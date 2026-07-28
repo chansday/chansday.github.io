@@ -13,6 +13,9 @@
     <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기">☰</button>
     <ul class="nav-links" id="navLinks">
       <li><a href="#home">Home</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#projects">Projects</a></li>
+      <li><a href="#contact">Contact</a></li>
       <li><a href="#games">Games</a></li>
     </ul>
   </nav>
@@ -20,18 +23,52 @@
 
 <main>
   <section id="home" class="section">
-    <h1>Profile</h1>
-    <p>프로필 콘텐츠는 CV 확인 후 채워질 예정입니다.</p>
+    <h1>chansday</h1>
+    <p>개인 프로페셔널 웹사이트입니다. 프로필 세부 내용은 CV 확인 후 채워질 예정입니다. [사람 확인 필요]</p>
+  </section>
+
+  <section id="about" class="section">
+    <h2>About</h2>
+    <p>소개, 경력(Experience), 연구(Research) 내용은 CV 자료가 확인되지 않아 아직 채우지 않았습니다. [사람 확인 필요]</p>
+  </section>
+
+  <section id="projects" class="section">
+    <h2>Projects</h2>
+    <p>프로젝트 목록은 CV 자료가 확인되지 않아 아직 채우지 않았습니다. [사람 확인 필요]</p>
+  </section>
+
+  <section id="contact" class="section">
+    <h2>Contact</h2>
+    <p>연락처 정보는 확인된 자료가 없어 아직 채우지 않았습니다. [사람 확인 필요]</p>
   </section>
 
   <section id="games" class="section">
-    <h1>Games</h1>
+    <h2>Games</h2>
     <div id="game-area" class="game-area">
-      <p>게임 준비 중입니다.</p>
+      <div class="game-hud">
+        <span>Score: <span id="score">0</span></span>
+        <span>High Score: <span id="highScore">0</span></span>
+      </div>
+      <canvas id="gameCanvas" width="360" height="360" aria-label="지렁이 게임 화면"></canvas>
+      <div class="game-buttons">
+        <button id="startBtn">Start</button>
+        <button id="pauseBtn">Pause</button>
+        <button id="restartBtn">Restart</button>
+      </div>
+      <p id="gameMessage" class="game-message" role="status"></p>
+      <div class="touch-controls" aria-label="모바일 방향 조작">
+        <button class="touch-btn" id="touchUp" aria-label="위로">▲</button>
+        <div class="touch-row">
+          <button class="touch-btn" id="touchLeft" aria-label="왼쪽으로">◀</button>
+          <button class="touch-btn" id="touchDown" aria-label="아래로">▼</button>
+          <button class="touch-btn" id="touchRight" aria-label="오른쪽으로">▶</button>
+        </div>
+      </div>
     </div>
   </section>
 </main>
 
 <script src="script.js"></script>
+<script src="game.js"></script>
 </body>
 </html>

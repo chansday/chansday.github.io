@@ -74,10 +74,67 @@ body {
 .game-area {
   border: 1px solid var(--fg-dim);
   padding: 1rem;
-  min-height: 200px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 0.75rem;
+}
+
+.game-hud {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 1rem;
+}
+
+#gameCanvas {
+  background: #000;
+  border: 1px solid var(--fg-dim);
+  max-width: 100%;
+  touch-action: none;
+}
+
+.game-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.game-buttons button,
+.touch-btn {
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--fg-dim);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.game-buttons button:hover,
+.touch-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.game-message {
+  min-height: 1.2rem;
+  color: var(--accent);
+}
+
+.touch-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.touch-row {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.touch-btn {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.2rem;
 }
 
 @media (max-width: 768px) {
