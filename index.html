@@ -13,7 +13,7 @@
     <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기">☰</button>
     <ul class="nav-links" id="navLinks">
       <li><a href="#home">Home</a></li>
-      <li><a href="#about">About</a></li>
+      <li><a href="#preview">Preview</a></li>
       <li><a href="#games">Games</a></li>
     </ul>
   </nav>
@@ -24,32 +24,138 @@
     <h1>ChansDay</h1>
   </section>
 
-  <section id="about" class="section">
-    <h2>About</h2>
-    <h3>Skills</h3>
-    <p>ComDoll2</p>
+  <section id="preview" class="section">
+    <h2>Preview</h2>
+    <div class="promo-media">
+      <img src="assets/promo.gif" alt="사이트 준비 중을 알리는 공사장 컨셉 애니메이션" loading="lazy" width="480" height="270">
+    </div>
   </section>
 
   <section id="games" class="section">
     <h2>Games</h2>
-    <div id="game-area" class="game-area">
-      <div class="game-hud">
-        <span>Score: <span id="score">0</span></span>
-        <span>High Score: <span id="highScore">0</span></span>
+
+    <div class="game-block">
+      <h3>Snake</h3>
+      <div id="game-area" class="game-area kb-target">
+        <div class="game-hud">
+          <span>Score: <span id="score">0</span></span>
+          <span>High Score: <span id="highScore">0</span></span>
+        </div>
+        <canvas id="gameCanvas" width="360" height="360" aria-label="지렁이 게임 화면"></canvas>
+        <div class="game-buttons">
+          <button id="startBtn">Start</button>
+          <button id="pauseBtn">Pause</button>
+          <button id="restartBtn">Restart</button>
+        </div>
+        <p id="gameMessage" class="game-message" role="status"></p>
+        <div class="touch-controls" aria-label="모바일 방향 조작">
+          <button class="touch-btn" id="touchUp" aria-label="위로">▲</button>
+          <div class="touch-row">
+            <button class="touch-btn" id="touchLeft" aria-label="왼쪽으로">◀</button>
+            <button class="touch-btn" id="touchDown" aria-label="아래로">▼</button>
+            <button class="touch-btn" id="touchRight" aria-label="오른쪽으로">▶</button>
+          </div>
+        </div>
       </div>
-      <canvas id="gameCanvas" width="360" height="360" aria-label="지렁이 게임 화면"></canvas>
-      <div class="game-buttons">
-        <button id="startBtn">Start</button>
-        <button id="pauseBtn">Pause</button>
-        <button id="restartBtn">Restart</button>
+    </div>
+
+    <div class="game-block">
+      <h3>2048</h3>
+      <div id="game2048-area" class="game-area kb-target">
+        <div class="game-hud">
+          <span>Score: <span id="score2048">0</span></span>
+          <span>High Score: <span id="highScore2048">0</span></span>
+        </div>
+        <div id="board2048" class="board-2048" aria-label="2048 보드"></div>
+        <div class="game-buttons">
+          <button id="restart2048">Restart</button>
+        </div>
+        <p id="message2048" class="game-message" role="status">방향키/WASD 또는 스와이프로 타일을 밀어주세요.</p>
+        <div class="touch-controls" aria-label="모바일 방향 조작">
+          <button class="touch-btn" id="touch2048Up" aria-label="위로">▲</button>
+          <div class="touch-row">
+            <button class="touch-btn" id="touch2048Left" aria-label="왼쪽으로">◀</button>
+            <button class="touch-btn" id="touch2048Down" aria-label="아래로">▼</button>
+            <button class="touch-btn" id="touch2048Right" aria-label="오른쪽으로">▶</button>
+          </div>
+        </div>
       </div>
-      <p id="gameMessage" class="game-message" role="status"></p>
-      <div class="touch-controls" aria-label="모바일 방향 조작">
-        <button class="touch-btn" id="touchUp" aria-label="위로">▲</button>
-        <div class="touch-row">
-          <button class="touch-btn" id="touchLeft" aria-label="왼쪽으로">◀</button>
-          <button class="touch-btn" id="touchDown" aria-label="아래로">▼</button>
-          <button class="touch-btn" id="touchRight" aria-label="오른쪽으로">▶</button>
+    </div>
+
+    <div class="game-block">
+      <h3>Breakout</h3>
+      <div id="game-breakout-area" class="game-area kb-target">
+        <div class="game-hud">
+          <span>Score: <span id="scoreBreakout">0</span></span>
+          <span>Lives: <span id="livesBreakout">3</span></span>
+        </div>
+        <canvas id="breakoutCanvas" width="360" height="360" aria-label="벽돌깨기 게임 화면"></canvas>
+        <div class="game-buttons">
+          <button id="startBreakout">Start</button>
+          <button id="pauseBreakout">Pause</button>
+          <button id="restartBreakout">Restart</button>
+        </div>
+        <p id="messageBreakout" class="game-message" role="status"></p>
+        <div class="touch-controls" aria-label="모바일 패들 조작">
+          <div class="touch-row">
+            <button class="touch-btn" id="touchBreakoutLeft" aria-label="왼쪽으로">◀</button>
+            <button class="touch-btn" id="touchBreakoutRight" aria-label="오른쪽으로">▶</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-block">
+      <h3>Memory Match</h3>
+      <div id="game-memory-area" class="game-area">
+        <div class="game-hud">
+          <span>Moves: <span id="movesMemory">0</span></span>
+          <span>Matched: <span id="matchedMemory">0</span>/8</span>
+        </div>
+        <div id="boardMemory" class="board-memory" aria-label="메모리 매칭 보드"></div>
+        <div class="game-buttons">
+          <button id="restartMemory">Restart</button>
+        </div>
+        <p id="messageMemory" class="game-message" role="status">카드를 클릭/터치해서 짝을 맞춰보세요.</p>
+      </div>
+    </div>
+
+    <div class="game-block">
+      <h3>Whack-a-Mole</h3>
+      <div id="game-mole-area" class="game-area">
+        <div class="game-hud">
+          <span>Score: <span id="scoreMole">0</span></span>
+          <span>Time: <span id="timeMole">30</span>s</span>
+        </div>
+        <div id="boardMole" class="board-mole" aria-label="두더지 잡기 보드"></div>
+        <div class="game-buttons">
+          <button id="startMole">Start</button>
+          <button id="restartMole">Restart</button>
+        </div>
+        <p id="messageMole" class="game-message" role="status">Start를 눌러 시작하세요.</p>
+      </div>
+    </div>
+
+    <div class="game-block">
+      <h3>Galaga</h3>
+      <div id="game-galaga-area" class="game-area kb-target">
+        <div class="game-hud">
+          <span>Score: <span id="scoreGalaga">0</span></span>
+          <span>Lives: <span id="livesGalaga">3</span></span>
+        </div>
+        <canvas id="galagaCanvas" width="360" height="420" aria-label="갤러그 슈팅 게임 화면"></canvas>
+        <div class="game-buttons">
+          <button id="startGalaga">Start</button>
+          <button id="pauseGalaga">Pause</button>
+          <button id="restartGalaga">Restart</button>
+        </div>
+        <p id="messageGalaga" class="game-message" role="status"></p>
+        <div class="touch-controls" aria-label="모바일 이동/발사 조작">
+          <div class="touch-row">
+            <button class="touch-btn" id="touchGalagaLeft" aria-label="왼쪽으로">◀</button>
+            <button class="touch-btn" id="touchGalagaFire" aria-label="발사">●</button>
+            <button class="touch-btn" id="touchGalagaRight" aria-label="오른쪽으로">▶</button>
+          </div>
         </div>
       </div>
     </div>
@@ -58,5 +164,10 @@
 
 <script src="script.js"></script>
 <script src="game.js"></script>
+<script src="game-2048.js"></script>
+<script src="game-breakout.js"></script>
+<script src="game-memory.js"></script>
+<script src="game-whackamole.js"></script>
+<script src="game-galaga.js"></script>
 </body>
 </html>

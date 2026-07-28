@@ -220,7 +220,10 @@
     D: [1, 0],
   };
 
+  const container = document.getElementById("game-area");
+
   document.addEventListener("keydown", (e) => {
+    if (!container.classList.contains("kb-active")) return;
     if (e.key === "p" || e.key === "P") {
       togglePause();
       return;
