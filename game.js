@@ -14,6 +14,18 @@
   const TICK_MS = 150;
   const HIGH_SCORE_KEY = "chansday-snake-highscore";
 
+  const rootStyle = getComputedStyle(document.documentElement);
+  const themeColor = (name, fallback) => {
+    const value = rootStyle.getPropertyValue(name).trim();
+    return value || fallback;
+  };
+  const COLORS = {
+    canvasBg: "#0a0b0f",
+    snake: themeColor("--accent", "#6366f1"),
+    food: themeColor("--food-color", "#f59e0b"),
+    enemy: themeColor("--enemy-color", "#f43f5e"),
+  };
+
   let snake, direction, nextDirection, food, enemy, score, state, tickHandle;
 
   function loadHighScore() {
@@ -165,6 +177,9 @@
     if (head.x === food.x && head.y === food.y) {
       score += 1;
       scoreEl.textContent = String(score);
+      scoreEl.classList.remove("pop");
+      void scoreEl.offsetWidth;
+      scoreEl.classList.add("pop");
       food = spawnFood();
     } else {
       snake.pop();
@@ -175,18 +190,18 @@
   }
 
   function draw() {
-    ctx.fillStyle = "#000";
+    ctx.fillStyle = COLORS.canvasBg;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#33ff66";
+    ctx.fillStyle = COLORS.snake;
     snake.forEach((seg) => {
       ctx.fillRect(seg.x * CELL, seg.y * CELL, CELL - 1, CELL - 1);
     });
 
-    ctx.fillStyle = "#ff3355";
+    ctx.fillStyle = COLORS.food;
     ctx.fillRect(food.x * CELL, food.y * CELL, CELL - 1, CELL - 1);
 
-    ctx.fillStyle = "#ffaa00";
+    ctx.fillStyle = COLORS.enemy;
     ctx.fillRect(enemy.x * CELL, enemy.y * CELL, CELL - 1, CELL - 1);
   }
 
