@@ -2,7 +2,7 @@ name: KOSPI signal board pipeline
 
 on:
   schedule:
-    # GitHub Actions cron is UTC. These three entries are Mon-Fri in KST.
+    # GitHub Actions cron is UTC. These five entries are Mon-Fri in KST.
     - cron: "0 22 * * 0-4" # 07:00 KST, previous-day result update
     - cron: "0 23 * * 0-4" # 08:00 KST, same-day analysis
     - cron: "20 23 * * 0-4" # 08:20 KST, pre-market collection with 08:29 KST hard deadline
@@ -73,11 +73,17 @@ jobs:
         with:
           node-version: 22
 
+      - name: Guard KOSPI trading day
+        id: market-day
+        run: node scripts/market-session-guard.mjs
+
       - name: Validate the static contract
+        if: steps.market-day.outputs.should_run == 'true'
         run: npm test && npm run check
 
       - name: Resolve scheduled stage
         id: stage
+        if: steps.market-day.outputs.should_run == 'true'
         shell: bash
         run: |
           if [ "${{ github.event_name }}" = "schedule" ]; then
@@ -94,26 +100,27 @@ jobs:
           fi
 
       - name: Run previous-day result update
-        if: steps.stage.outputs.stage == 'update-results' || steps.stage.outputs.stage == 'all'
+        if: steps.market-day.outputs.should_run == 'true' && (steps.stage.outputs.stage == 'update-results' || steps.stage.outputs.stage == 'all')
         run: node scripts/update-results.mjs --mode update-results
 
       - name: Run same-day analysis
-        if: steps.stage.outputs.stage == 'analysis' || steps.stage.outputs.stage == 'all'
+        if: steps.market-day.outputs.should_run == 'true' && (steps.stage.outputs.stage == 'analysis' || steps.stage.outputs.stage == 'all')
         run: node scripts/update-results.mjs --mode analysis
 
       - name: Generate pre-market forecast ranking
-        if: steps.stage.outputs.stage == 'forecast' || steps.stage.outputs.stage == 'all'
+        if: steps.market-day.outputs.should_run == 'true' && (steps.stage.outputs.stage == 'forecast' || steps.stage.outputs.stage == 'all')
         run: node scripts/update-results.mjs --mode forecast
 
       - name: Settle 09:00 actual open
-        if: steps.stage.outputs.stage == 'open-settlement' || steps.stage.outputs.stage == 'all'
+        if: steps.market-day.outputs.should_run == 'true' && (steps.stage.outputs.stage == 'open-settlement' || steps.stage.outputs.stage == 'all')
         run: node scripts/update-results.mjs --mode open-settlement
 
       - name: Settle same-day close result
-        if: steps.stage.outputs.stage == 'close-settlement' || steps.stage.outputs.stage == 'all'
+        if: steps.market-day.outputs.should_run == 'true' && (steps.stage.outputs.stage == 'close-settlement' || steps.stage.outputs.stage == 'all')
         run: node scripts/update-results.mjs --mode close-settlement
 
       - name: Commit snapshot state when changed
+        if: steps.market-day.outputs.should_run == 'true'
         shell: bash
         run: |
           if git diff --quiet -- data/latest-snapshot.json data/runs; then

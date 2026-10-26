@@ -130,7 +130,15 @@ UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-
 
 `index.html`과 `styles.css`는 정적 Pages UI를 제공한다. `app.js`는 snapshot을 검증한 뒤 검색·정렬·상태 필터·pipeline 상태·예상/실제 비교표를 렌더링한다. `?mode=demo`는 숫자 없는 UI demo를, `?mode=fixture&date=2026-10-22|2026-10-23`은 명시적인 합성 fixture snapshot을 사용한다.
 
-Actions는 `workflow_dispatch`에서 `all`, `update-results`, `analysis`, `forecast`, `open-settlement`, `close-settlement` 중 하나를 선택할 수 있다. workflow는 `npm test`와 `npm run check` 후 provider-aware runner를 실행하고 변경된 snapshot만 커밋한다.
+종목 비교 섹션의 날짜 버튼은 `data/date-index.json`의 mode별 `availableDates`와 `data/krx-market-holidays.json`을 결합해 달력 상태를 계산한다. `historical-test`의 선택 날짜는 `data/runs/historical-test/YYYY-MM-DD/1530.json`을 직접 읽고, 운영 mode는 `data/runs/YYYY-MM-DD/1530.json`을 직접 읽는다. fixture/replay/backfill은 각각의 날짜 파일을 직접 읽는다. 날짜가 인덱스에 없거나 파일 요청이 실패하면 행을 이전 날짜에서 복사하지 않고 빈 결과 상태를 보여준다.
+
+달력 상태 계약은 `available`(결과 있음), `loading`(조회 중), `not_collected`(미수집), `holiday`(KRX 휴장일·주말), `error`(날짜/파일/계약 오류)다. 상태는 텍스트와 색상, `aria-selected`, `aria-disabled`, `aria-live`를 함께 사용한다. 조회 날짜 선택은 현재 `mode` 쿼리 파라미터를 보존하고 `date=YYYY-MM-DD`만 갱신한다. `data/date-index.json`은 `node scripts/generate-date-index.mjs`로 실제 stage 파일을 스캔해 갱신하며, 미래의 `data/runs` 날짜 확장을 위해 브라우저 코드에 날짜를 하드코딩하지 않는다.
+
+Actions는 `workflow_dispatch`에서 `all`, `update-results`, `analysis`, `forecast`, `open-settlement`, `close-settlement` 중 하나를 선택할 수 있다. workflow는 checkout/setup 직후 `scripts/market-session-guard.mjs`로 KST 거래일을 확인한 뒤, 통과한 경우에만 `npm test`, `npm run check`, provider-aware runner와 snapshot commit을 실행한다. 주말·KRX 휴장일은 정상 skip이며, guard가 휴장일 목록을 판정할 수 없는 커버리지 밖 평일·캘린더 오류는 fail-closed로 job을 실패시킨다. 모든 collection step과 commit은 guard output으로 조건부 실행되므로 skip 시 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않는다.
+
+공휴일 계약은 `data/krx-market-holidays.json`에 둔다. 출처는 한국거래소 휴장일 조회이며, 2026년 목록에 일반 공휴일·근로자의 날·대체휴일·임시공휴일·연말휴장일을 구분해 기록한다. 실행 시 네트워크 API에 의존하지 않고 체크인 목록을 사용한다. 매년 KRX 공표 후 `coverage`, `holidays`, `source.retrievedAt`을 갱신하고, 공표 전의 미래 평일은 목록 누락을 정상 거래일로 추정하지 않는다.
+
+각 cron stage는 동일 `run_date`의 stage 파일과 바로 앞선 stage 파일만 읽는다. 현재 stage/선행 stage가 없거나 `meta.run_date`·`meta.run_stage`가 일치하지 않으면 `data/latest-snapshot.json`으로 fallback하지 않고 `no_data`/차단 상태로 시작한다. `open-settlement`와 `close-settlement`는 비어 있지 않은 입력 rows의 `asOfDate`도 현재 `run_date`와 일치해야 하며, 그렇지 않으면 rows를 비운다. 따라서 이전 거래일 latest snapshot이 독립 settlement cron에 섞여 partial 화면으로 저장되지 않는다.
 
 ## 8. 보안·라이선스·한계
 

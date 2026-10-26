@@ -1,5 +1,6 @@
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js?v=20261026o";
 import { createDemoProvider } from "./providers/demo-provider.js";
+import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
@@ -48,19 +49,24 @@ const historicalBaselineLegacyDescription = "공개 일봉 모멘텀·변동성 
 const historicalFallbackContract = "isLiveNoDataSnapshot(data) / historical_fallback_source";
 const historicalFallbackContractFile = "historical-test-fallback.js";
 const historicalTestDataRoot = "data/runs/historical-test";
-const HISTORICAL_TEST_DATES = Object.freeze(["2026-10-23", "2026-10-22"]);
 const HISTORICAL_TEST_STAGE = "1530";
 const HISTORICAL_TEST_REQUIRED_FIELDS = Object.freeze(["rank", "expected_open", "expected_return", "actual_open", "actual_return", "error"]);
 const elementIds = [
   "mode-badge", "data-purpose", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "top-clock", "refresh-button",
   "quality-ribbon", "quality-ribbon-label", "quality-ribbon-text", "truth-label", "truth-note-text", "evaluation-status", "evaluation-headline", "evaluation-description", "summary-status", "summary-status-detail", "summary-samples", "summary-samples-detail", "summary-range", "summary-range-detail", "summary-rmse", "summary-rmse-detail", "summary-expected", "summary-expected-detail", "summary-actual", "summary-actual-detail", "summary-error", "summary-error-detail", "summary-scope", "summary-scope-detail",
-  "kpi-market", "kpi-market-note", "kpi-market-bar", "kpi-universe", "kpi-valid", "kpi-accuracy", "kpi-accuracy-note", "kpi-model", "kpi-model-note", "kpi-model-time", "kpi-model-quality", "table-state", "table-count", "ranking-table", "ranking-body", "ranking-cards", "empty-state", "empty-state-note", "search-input", "status-filter", "sort-select",
+  "kpi-market", "kpi-market-note", "kpi-market-bar", "kpi-universe", "kpi-valid", "kpi-accuracy", "kpi-accuracy-note", "kpi-model", "kpi-model-note", "kpi-model-time", "kpi-model-quality", "table-state", "table-count", "ranking-table", "ranking-body", "ranking-cards", "empty-state", "empty-state-note", "search-input", "status-filter", "sort-select", "ranking-date-picker", "ranking-date-button", "ranking-date-label", "ranking-date-popover", "calendar-month", "calendar-grid", "calendar-status", "calendar-prev", "calendar-next",
   "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-close", "selected-expected-return", "selected-actual-open", "selected-actual-close", "selected-actual-return", "selected-evaluation-return", "selected-error", "selected-confidence", "selected-quality", "selected-reasons",
   "source-name", "source-url", "source-license", "evaluation-scope", "data-timestamp", "snapshot-date", "source-collection", "source-range", "model-name", "baseline-input", "model-note", "limit-title", "quality-summary", "quality-source", "data-notice", "notice-title", "notice-detail", "footer-status",
 ].reduce((result, id) => ({ ...result, [id]: document.getElementById(id) }), {});
 
 let snapshot = null;
 let selectedSymbol = null;
+let dateIndex = normalizeDateIndex(null);
+let marketCalendar = null;
+let currentDate = null;
+let currentDataMode = "provider";
+let calendarMonthCursor = null;
+let dateRequestToken = 0;
 
 function setText(node, value) { if (node) node.textContent = value; }
 function finite(value) { return typeof value === "number" && Number.isFinite(value); }
@@ -126,7 +132,7 @@ function normalizeRow(row, index) {
 function emptySnapshot(message = "연결된 데이터 공급자가 없습니다.") { return noDataSnapshot({ provider: { id: null, status: "not_configured", label: "연결된 데이터 공급자 없음", source: null }, message }); }
 function validateRequestedDate(date, label) { if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`${label} date is invalid`); return date; }
 async function fetchSnapshot(path, errorLabel) { const response = await fetch(path, { cache: "no-store" }); if (!response.ok) throw new Error(`${errorLabel}: ${response.status}`); return response.json(); }
-function historicalTestRunPath(date, stage = HISTORICAL_TEST_STAGE) { if (!HISTORICAL_TEST_DATES.includes(date)) throw new Error(`Historical-test date is not supported: ${date}`); if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Historical-test date is invalid: ${date}`); if (!/^\d{4}$/.test(stage)) throw new Error(`Historical-test stage is invalid: ${stage}`); return `${historicalTestDataRoot}/${date}/${stage}.json`; }
+function historicalTestRunPath(date, stage = HISTORICAL_TEST_STAGE) { if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Historical-test date is invalid: ${date}`); if (!/^\d{4}$/.test(stage)) throw new Error(`Historical-test stage is invalid: ${stage}`); return `${historicalTestDataRoot}/${date}/${stage}.json`; }
 function hasObservedHistoricalFields(row) { return Boolean(row && HISTORICAL_TEST_REQUIRED_FIELDS.every((field) => Object.hasOwn(row, field) && typeof row[field] === "number" && Number.isFinite(row[field])) && Number.isInteger(row.rank) && row.rank >= 1); }
 function isHistoricalTestSnapshot(snapshotData) { return Boolean(isSnapshot(snapshotData) && snapshotData.mode === "historical_test" && snapshotData.provider?.id === "historical-test" && snapshotData.meta?.historical_test === true && snapshotData.meta?.test_only === true && snapshotData.rows.length > 0 && snapshotData.rows.every(hasObservedHistoricalFields)); }
 function isLiveNoDataSnapshot(data) { return Boolean(data && data.mode === "provider" && data.status === "no_data" && data.meta?.historical_test !== true && data.meta?.test_only !== true && data.meta?.isDemo !== true); }
@@ -141,19 +147,78 @@ async function loadHistoricalTestSnapshot(date, liveSnapshot = null) {
 }
 async function loadHistoricalFallback(liveSnapshot) {
   if (!isLiveNoDataSnapshot(liveSnapshot)) return null;
-  for (const date of HISTORICAL_TEST_DATES) {
+  const fallbackDates = [...(dateIndex.availableDates["historical-test"] || [])].sort().reverse();
+  for (const date of fallbackDates) {
     try { return await loadHistoricalTestSnapshot(date, liveSnapshot); } catch (error) { if (!String(error?.message || error).includes("404")) console.warn(error.message); }
   }
   return null;
 }
-async function loadSnapshot() {
+
+class DateNavigationError extends Error {
+  constructor(status, date, message) {
+    super(message);
+    this.name = "DateNavigationError";
+    this.status = status;
+    this.date = date;
+  }
+}
+
+function requestedRoute() {
   const params = new URLSearchParams(window.location.search);
-  const requestedMode = params.get("mode")?.toLowerCase();
+  const rawMode = params.get("mode")?.toLowerCase() || null;
+  const rawDate = params.get("date");
+  return { params, rawMode, date: rawDate && isIsoDate(rawDate) ? rawDate : rawDate };
+}
+
+function dateModeForRoute(rawMode = null) {
+  if (rawMode === "historical_test") return "historical-test";
+  if (rawMode === "backfill_test") return "backfill-test";
+  if (rawMode === "demo") return "provider";
+  return normalizeMode(rawMode || currentDataMode);
+}
+
+async function loadDateMetadata() {
+  try {
+    const [index, calendar] = await Promise.all([
+      fetchSnapshot("./data/date-index.json", "Date index request failed"),
+      fetchSnapshot("./data/krx-market-holidays.json", "Market calendar request failed"),
+    ]);
+    dateIndex = normalizeDateIndex(index);
+    marketCalendar = calendar;
+  } catch (error) {
+    console.warn(error.message);
+    dateIndex = normalizeDateIndex(null);
+    marketCalendar = { holidays: [] };
+  }
+}
+
+function dateState(date, mode = currentDataMode) { return classifyDate(date, mode, dateIndex, marketCalendar); }
+
+async function loadSnapshotForMode(mode, date) {
+  const normalizedMode = dateModeForRoute(mode);
+  const path = snapshotPath(normalizedMode, date);
+  const snapshotData = await fetchSnapshot(`./${path}`, `${normalizedMode} request failed`);
+  if (!isSnapshot(snapshotData)) throw new Error(`${normalizedMode} snapshot shape is invalid`);
+  if (normalizedMode === "historical-test" && !isHistoricalTestSnapshot(snapshotData)) throw new Error("Historical-test snapshot shape is invalid");
+  if (normalizedMode === "fixture" && (snapshotData.mode !== "fixture" || snapshotData.meta?.isDemo !== true)) throw new Error("Fixture snapshot shape is invalid");
+  if (normalizedMode === "replay" && (snapshotData.mode !== "replay" || snapshotData.meta?.isDemo !== true || snapshotData.meta?.replay_type !== "replay_baseline")) throw new Error("Replay snapshot shape is invalid");
+  if (normalizedMode === "backfill-test" && (snapshotData.mode !== "backfill_test" || snapshotData.provider?.id !== "backfill-test" || snapshotData.meta?.isDemo !== true || snapshotData.meta?.backfill !== true)) throw new Error("Backfill snapshot shape is invalid");
+  return snapshotData;
+}
+
+async function loadSnapshot() {
+  const { rawMode, date } = requestedRoute();
+  const requestedMode = rawMode;
   if (requestedMode === "demo") return createDemoProvider().getSnapshot();
-  if (requestedMode === "fixture") { const date = validateRequestedDate(params.get("date") || "2026-10-23", "Fixture"); const fixture = await fetchSnapshot(`./data/fixtures/${encodeURIComponent(date)}.json`, "Fixture request failed"); if (!isSnapshot(fixture) || fixture.mode !== "fixture" || fixture.meta?.isDemo !== true) throw new Error("Fixture snapshot shape is invalid"); return fixture; }
-  if (requestedMode === "replay") { const date = params.get("date") || "2026-10-23"; if (!["2026-10-22", "2026-10-23"].includes(date)) throw new Error("Replay date is not supported"); const replay = await fetchSnapshot(`./data/replays/${encodeURIComponent(date)}.json`, "Replay request failed"); if (!isSnapshot(replay) || replay.mode !== "replay" || replay.meta?.isDemo !== true || replay.meta?.replay_type !== "replay_baseline") throw new Error("Replay snapshot shape is invalid"); return replay; }
-  if (requestedMode === "backfill-test" || requestedMode === "backfill_test") { const date = params.get("date") || "2026-10-23"; if (!["2026-10-22", "2026-10-23"].includes(date)) throw new Error("Backfill date is not supported"); const backfill = await fetchSnapshot(`./data/backfill-test/${encodeURIComponent(date)}.json`, "Backfill request failed"); if (!isSnapshot(backfill) || backfill.mode !== "backfill_test" || backfill.provider?.id !== "backfill-test" || backfill.meta?.isDemo !== true || backfill.meta?.backfill !== true) throw new Error("Backfill snapshot shape is invalid"); return backfill; }
-  if (requestedMode === "historical-test" || requestedMode === "historical_test") { const date = params.get("date") || "2026-10-23"; if (!HISTORICAL_TEST_DATES.includes(date)) throw new Error("Historical-test date is not supported"); return loadHistoricalTestSnapshot(date); }
+  if (requestedMode === "fixture" || requestedMode === "replay" || requestedMode === "backfill-test" || requestedMode === "backfill_test" || requestedMode === "historical-test" || requestedMode === "historical_test" || date) {
+    const selectedDate = validateRequestedDate(date || "2026-10-23", "Snapshot");
+    const mode = dateModeForRoute(requestedMode);
+    const state = dateState(selectedDate, mode);
+    if (state.status === "holiday") throw new DateNavigationError("holiday", selectedDate, `${selectedDate} is a market holiday`);
+    if (state.status === "not_collected") throw new DateNavigationError("not_collected", selectedDate, `${selectedDate} has no collected snapshot`);
+    if (mode === "historical-test") return loadHistoricalTestSnapshot(selectedDate);
+    return loadSnapshotForMode(mode, selectedDate);
+  }
   const response = await fetch("./data/latest-snapshot.json", { cache: "no-store" });
   if (response.status === 404) return emptySnapshot();
   if (!response.ok) throw new Error(`Snapshot request failed: ${response.status}`);
@@ -291,9 +356,13 @@ function renderHeader(data) {
   const test = isTestOnly(data);
   const historical = isHistorical(data);
   const fallback = data?.meta?.historical_fallback === true;
+  const route = requestedRoute();
   const statusText = fallback ? "과거 공개 데이터" : historical ? "과거 시험 데이터" : stateLabels[status] || status;
   document.documentElement.dataset.status = status;
   snapshot = { ...data, rows };
+  currentDataMode = dateModeForRoute(route.rawMode || (historical || fallback ? "historical-test" : "provider"));
+  currentDate = currentRouteDate(snapshot);
+  if (isIsoDate(currentDate)) calendarMonthCursor = new Date(`${currentDate.slice(0, 7)}-01T00:00:00Z`);
   if (!selectedSymbol || !rows.some((row) => row.symbol === selectedSymbol)) selectedSymbol = rows[0]?.symbol || null;
   setStatusPill(elementIds["mode-badge"], historical || test ? "pending" : status, statusText);
   setText(elementIds["global-status"], fallback ? "과거 공개 데이터" : historical ? "과거 공개 데이터" : status === "ready" ? "시장 데이터 연결" : status === "demo" ? "화면 확인 모드" : status === "no_data" ? "데이터 대기" : statusText);
@@ -316,7 +385,142 @@ function renderHeader(data) {
   setText(elementIds["empty-state-note"], status === "no_data" ? "데이터 공급자가 연결되면 확인 가능한 종목이 이곳에 표시됩니다." : "검색 또는 필터 조건과 일치하는 종목이 없습니다.");
   renderRows();
   renderSelected();
+  renderDateNavigation();
 }
+
+function currentRouteDate(data = snapshot) {
+  const route = requestedRoute();
+  return isIsoDate(route.date) ? route.date : (isIsoDate(data?.asOfDate) ? data.asOfDate : currentDate);
+}
+
+function calendarStatusText(state) {
+  if (state.status === "available") return "결과 있음";
+  if (state.status === "holiday") return `${state.label}${state.reason ? ` · ${state.reason}` : ""}`;
+  return statusLabel(state.status);
+}
+
+function renderDateState(status, date, detail = "") {
+  currentDate = isIsoDate(date) ? date : currentDate;
+  const label = statusLabel(status);
+  if (status !== "available") {
+    snapshot = null;
+    selectedSymbol = null;
+    elementIds["selected-empty"].hidden = false;
+    elementIds["selected-content"].hidden = true;
+    setText(elementIds["selected-detail-hint"], "종목을 선택하세요");
+  }
+  setText(elementIds["table-state"], label);
+  setText(elementIds["table-count"], status === "available" ? `${formatNumber(snapshot?.rows?.length || 0)}개 종목` : "—");
+  if (elementIds["ranking-body"]) elementIds["ranking-body"].replaceChildren();
+  if (elementIds["ranking-cards"]) elementIds["ranking-cards"].replaceChildren();
+  if (elementIds["ranking-table"]) elementIds["ranking-table"].hidden = true;
+  if (elementIds["empty-state"]) elementIds["empty-state"].hidden = false;
+  setText(elementIds["empty-state-note"], detail || ({
+    loading: "선택한 날짜의 실제 스냅샷을 읽는 중입니다.",
+    not_collected: "이 날짜의 스냅샷 파일이 없어 이전 날짜 결과를 표시하지 않습니다.",
+    holiday: "한국거래소 휴장일에는 수집·예측 결과가 없습니다.",
+    error: "선택한 날짜의 결과를 읽지 못했습니다. 이전 결과는 유지하지 않습니다.",
+  }[status] || "선택한 날짜의 상태를 확인하세요."));
+  const state = dateState(date, currentDataMode);
+  setText(elementIds["calendar-status"], `${formatPlainDate(date)} · ${calendarStatusText({ ...state, status })}`);
+  renderDateNavigation();
+}
+
+function calendarMonthLabel(date) {
+  return new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "long" }).format(date);
+}
+
+function isoDateAtOffset(year, month, day) {
+  return new Date(Date.UTC(year, month, day)).toISOString().slice(0, 10);
+}
+
+function setCalendarFocus(offset) {
+  const buttons = [...elementIds["calendar-grid"].querySelectorAll("button[data-date]:not([disabled])")];
+  const focused = document.activeElement?.dataset?.date;
+  const index = buttons.findIndex((button) => button.dataset.date === focused);
+  const next = buttons[index < 0 ? 0 : Math.max(0, Math.min(buttons.length - 1, index + offset))];
+  if (next) next.focus();
+}
+
+function openDatePopover() {
+  const popover = elementIds["ranking-date-popover"];
+  if (!popover) return;
+  popover.hidden = false;
+  elementIds["ranking-date-button"].setAttribute("aria-expanded", "true");
+  renderDateNavigation();
+  popover.querySelector("button[data-date][aria-selected='true'], button[data-date]:not([disabled])")?.focus();
+}
+
+function closeDatePopover({ restoreFocus = true } = {}) {
+  const popover = elementIds["ranking-date-popover"];
+  if (!popover) return;
+  popover.hidden = true;
+  elementIds["ranking-date-button"].setAttribute("aria-expanded", "false");
+  if (restoreFocus) elementIds["ranking-date-button"]?.focus();
+}
+
+function renderDateNavigation() {
+  const button = elementIds["ranking-date-button"];
+  const grid = elementIds["calendar-grid"];
+  if (!button || !grid) return;
+  const date = currentDate || currentRouteDate();
+  if (!calendarMonthCursor) {
+    const source = isIsoDate(date) ? date : new Date().toISOString().slice(0, 10);
+    calendarMonthCursor = new Date(`${source.slice(0, 7)}-01T00:00:00Z`);
+  }
+  const mode = currentDataMode;
+  const state = dateState(date, mode);
+  setText(elementIds["ranking-date-label"], formatPlainDate(date));
+  button.dataset.status = state.status;
+  button.setAttribute("aria-label", `조회 날짜 ${formatPlainDate(date)} · ${calendarStatusText(state)}`);
+  setText(elementIds["calendar-month"], calendarMonthLabel(calendarMonthCursor));
+  grid.replaceChildren();
+  const year = calendarMonthCursor.getUTCFullYear();
+  const month = calendarMonthCursor.getUTCMonth();
+  const firstWeekday = new Date(Date.UTC(year, month, 1)).getUTCDay();
+  const totalDays = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const cells = Math.ceil((firstWeekday + totalDays) / 7) * 7;
+  for (let index = 0; index < cells; index += 1) {
+    const day = index - firstWeekday + 1;
+    const dateValue = isoDateAtOffset(year, month, day);
+    const dateStateValue = dateState(dateValue, mode);
+    const cell = document.createElement("button");
+    cell.type = "button";
+    cell.className = `date-cell date-cell-${dateStateValue.status}${dateValue.slice(0, 7) !== `${year}-${String(month + 1).padStart(2, "0")}` ? " date-cell-outside" : ""}`;
+    cell.dataset.date = dateValue;
+    cell.dataset.status = dateStateValue.status;
+    cell.setAttribute("role", "gridcell");
+    cell.setAttribute("aria-label", `${formatPlainDate(dateValue)} · ${calendarStatusText(dateStateValue)}`);
+    cell.setAttribute("aria-selected", String(dateValue === date));
+    cell.setAttribute("aria-disabled", String(dateStateValue.status === "holiday"));
+    cell.disabled = dateStateValue.status === "holiday";
+    cell.innerHTML = `<span class="date-cell-day">${day}</span><span class="date-cell-status">${calendarStatusText(dateStateValue)}</span>`;
+    if (dateValue === date) cell.classList.add("date-cell-selected");
+    if (dateStateValue.status !== "holiday") cell.addEventListener("click", () => selectDate(dateValue));
+    grid.append(cell);
+  }
+  setText(elementIds["calendar-status"], `${formatPlainDate(date)} · ${calendarStatusText(state)}`);
+}
+
+async function selectDate(date) {
+  const state = dateState(date, currentDataMode);
+  if (state.status === "holiday") return;
+  currentDate = date;
+  const url = new URL(window.location.href);
+  url.searchParams.set("date", date);
+  window.history.pushState({}, "", url);
+  closeDatePopover({ restoreFocus: false });
+  const token = ++dateRequestToken;
+  renderDateState("loading", date);
+  await refresh({ showLoading: false, token });
+}
+
+function moveCalendarMonth(delta) {
+  const base = calendarMonthCursor || new Date();
+  calendarMonthCursor = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + delta, 1));
+  renderDateNavigation();
+}
+
 function toneClass(value) { return finite(value) ? value >= 0 ? "positive" : "negative" : ""; }
 function sortRows(rows, sortKey) { return rows.sort((a, b) => { if (sortKey === "name") return a.name.localeCompare(b.name, "ko"); const av = a[sortKey]; const bv = b[sortKey]; if (!finite(av) && !finite(bv)) return 0; if (!finite(av)) return 1; if (!finite(bv)) return -1; if (sortKey === "rank") return av - bv; if (sortKey === "error") return Math.abs(av) - Math.abs(bv); return bv - av; }); }
 function rowMetric(label, value, tone = "") { return `<div><span>${label}</span><strong class="${tone}">${value}</strong></div>`; }
@@ -379,9 +583,29 @@ function renderSelected() {
   setText(elementIds["selected-reasons"], `상태 사유 ${row.reasons?.length ? row.reasons.join(", ") : "기록 없음"}`);
 }
 function updateClock() { const now = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date()); setText(elementIds["top-clock"], `KST ${now}`); }
-async function refresh() {
-  try { renderHeader(await loadSnapshot()); }
-  catch (error) { console.error(error); const failed = emptySnapshot("정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요."); failed.status = "blocked"; failed.provider = { status: "blocked", label: "스냅샷 읽기 실패" }; renderHeader(failed); setText(elementIds["notice-detail"], "정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요."); }
+async function refresh({ showLoading = false, token = null } = {}) {
+  const route = requestedRoute();
+  const date = isIsoDate(route.date) ? route.date : currentDate;
+  if (showLoading && date) renderDateState("loading", date);
+  try {
+    const nextSnapshot = await loadSnapshot();
+    if (token !== null && token !== dateRequestToken) return;
+    renderHeader(nextSnapshot);
+  } catch (error) {
+    if (token !== null && token !== dateRequestToken) return;
+    console.error(error);
+    if (error instanceof DateNavigationError) {
+      renderDateState(error.status, error.date, error.status === "not_collected" ? "이 날짜의 스냅샷이 아직 수집되지 않아 이전 결과를 표시하지 않습니다." : error.status === "holiday" ? "한국거래소 휴장일입니다. 수집·예측 결과가 없습니다." : "선택한 날짜의 스냅샷을 읽지 못했습니다.");
+      return;
+    }
+    const failed = emptySnapshot("정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요.");
+    failed.status = "blocked";
+    failed.provider = { status: "blocked", label: "스냅샷 읽기 실패" };
+    snapshot = null;
+    renderHeader(failed);
+    renderDateState("error", date, "정적 스냅샷을 읽지 못했습니다. 이전 결과는 유지하지 않습니다.");
+    setText(elementIds["notice-detail"], "정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요.");
+  }
 }
 
 function initSkipLink() {
@@ -402,6 +626,31 @@ elementIds["search-input"].addEventListener("input", renderRows);
 elementIds["status-filter"].addEventListener("change", renderRows);
 elementIds["sort-select"].addEventListener("change", renderRows);
 elementIds["refresh-button"].addEventListener("click", refresh);
+elementIds["ranking-date-button"].addEventListener("click", () => {
+  const expanded = elementIds["ranking-date-button"].getAttribute("aria-expanded") === "true";
+  if (expanded) closeDatePopover(); else openDatePopover();
+});
+elementIds["ranking-date-button"].addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeDatePopover();
+  if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    openDatePopover();
+  }
+});
+elementIds["calendar-prev"].addEventListener("click", () => moveCalendarMonth(-1));
+elementIds["calendar-next"].addEventListener("click", () => moveCalendarMonth(1));
+elementIds["calendar-grid"].addEventListener("keydown", (event) => {
+  const offsets = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 };
+  if (Object.hasOwn(offsets, event.key)) { event.preventDefault(); setCalendarFocus(offsets[event.key]); }
+  if (event.key === "Escape") { event.preventDefault(); closeDatePopover(); }
+});
+elementIds["ranking-date-popover"].addEventListener("keydown", (event) => {
+  if (event.key === "Escape") { event.preventDefault(); closeDatePopover(); }
+});
+window.addEventListener("popstate", () => refresh({ showLoading: true }));
 updateClock();
 setInterval(updateClock, 1000);
-refresh();
+(async () => {
+  await loadDateMetadata();
+  refresh();
+})();

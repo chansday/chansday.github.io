@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAt": "2026-10-26T16:09:00.513Z",
+  "sourceContract": "Each date is listed only when the mode-specific snapshot file exists at its configured stage.",
+  "stage": "1530",
+  "availableDates": {
+    "provider": [],
+    "historical-test": [
+      "2026-10-22",
+      "2026-10-23"
+    ],
+    "fixture": [
+      "2026-10-22",
+      "2026-10-23"
+    ],
+    "replay": [
+      "2026-10-22",
+      "2026-10-23"
+    ],
+    "backfill-test": [
+      "2026-10-22",
+      "2026-10-23"
+    ]
+  }
+}

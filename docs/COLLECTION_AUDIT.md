@@ -2,6 +2,21 @@
 
 작성 기준: `public-csv` 운영 어댑터와 GitHub Actions workflow
 
+## 거래일 guard 및 휴장일 데이터 계약
+
+- workflow는 요일 cron보다 먼저 `scripts/market-session-guard.mjs`를 실행하고, KST 날짜를 `data/krx-market-holidays.json`과 대조합니다.
+- 2026년 체크인 목록은 한국거래소(KRX) 휴장일 조회를 출처로 하며, 일반 공휴일뿐 아니라 근로자의 날, 대체휴일, 2026-06-03 임시공휴일, 12월 31일 연말휴장일을 포함합니다.
+- 공휴일·주말은 정상 skip이고 collection/commit step을 실행하지 않습니다. 따라서 skip은 기존 snapshot이나 stale 데이터를 덮어쓰지 않습니다.
+- 실행 시점에 외부 공휴일 API를 호출하지 않습니다. 매년 KRX 원문을 재확인해 JSON을 갱신해야 하며, `coverage` 밖의 평일이나 손상된 목록은 `calendar_coverage_missing`/contract error로 fail-closed합니다. API·네트워크 실패를 허용하는 fallback은 두지 않습니다.
+- 대체·임시공휴일은 계산 규칙으로 추론하지 않고 KRX가 공표한 실제 휴장일을 날짜별로 기록합니다. 정부 발표나 KRX 임시 휴장 공지가 생기면 해당 연도 목록을 수동 갱신해야 합니다.
+
+## Stage 입력과 stale 데이터 차단
+
+- 각 stage는 동일 `run_date`의 자기 stage 파일 또는 바로 앞선 stage 파일만 읽습니다. `meta.run_date`와 `meta.run_stage`가 일치하지 않는 파일은 무시합니다.
+- 자동 stage 실행은 `data/latest-snapshot.json`을 독립 입력으로 fallback하지 않습니다. 현재 run의 선행 stage가 없으면 빈 `no_data`/차단 snapshot을 기록합니다.
+- `open-settlement`·`close-settlement`는 비어 있지 않은 rows의 `asOfDate`까지 현재 `run_date`와 일치해야 합니다. 이전 거래일 rows를 `partial` 결과로 보존하지 않습니다.
+- 이 입력 차단은 거래일 guard 통과 후에도 적용되며, stage 누락·실행 지연·독립 cron 순서 변경이 stale 화면과 commit으로 이어지지 않도록 합니다.
+
 ## 결론
 
 기본 운영 수집은 계좌·API key 없이 공개된 날짜별 전체 CSV를 GitHub Actions에서 가져옵니다. 종목별 순차 페이지 크롤링은 하지 않습니다. 현재 공개 원천에서 검증할 수 있는 값은 KOSPI 일별 시가·종가·거래량이며, 장전 호가·예상체결가·체결강도·분봉은 제공되지 않으므로 예측값을 생성하지 않습니다.

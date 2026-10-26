@@ -56,6 +56,14 @@ function parseAttemptedAt(value, runDate, mode) {
   return new Date(attemptedAt).toISOString();
 }
 
+function snapshotBelongsToStage(snapshot, runDate, stage, mode) {
+  if (!snapshot || snapshot.meta?.run_date !== runDate || snapshot.meta?.run_stage !== stage) return false;
+  if (["open-settlement", "close-settlement"].includes(mode)
+    && snapshot.rows?.length > 0
+    && snapshot.asOfDate !== runDate) return false;
+  return true;
+}
+
 function parseArgs(argv) {
   const options = {
     mode: null,
@@ -281,11 +289,12 @@ export async function run(argv = process.argv.slice(2)) {
     ? resolve("data", "runs", options.runDate, `${previousMode === "update-results" ? "0700" : previousMode === "analysis" ? "0800" : previousMode === "forecast" ? "0820" : "0900"}.json`)
     : null;
   const explicitDataFile = Boolean(options.dataFile);
-  async function readIfPresent(path) {
+  async function readIfPresent(path, expectedStage = null) {
     if (!path) return null;
     try {
       await access(path);
-      return JSON.parse(await readFile(path, "utf8"));
+      const candidate = JSON.parse(await readFile(path, "utf8"));
+      return expectedStage && !snapshotBelongsToStage(candidate, options.runDate, expectedStage, options.mode) ? null : candidate;
     } catch (error) {
       if (error.code === "ENOENT") return null;
       throw error;
@@ -295,9 +304,8 @@ export async function run(argv = process.argv.slice(2)) {
   if (explicitDataFile) {
     snapshot = JSON.parse(await readFile(latestPath, "utf8"));
   } else {
-    snapshot = await readIfPresent(runPath)
-      || await readIfPresent(previousPath)
-      || await readIfPresent(latestPath);
+    snapshot = await readIfPresent(runPath, options.mode)
+      || await readIfPresent(previousPath, previousMode);
     if (snapshot?.meta?.historical_test || snapshot?.meta?.test_only || snapshot?.mode === "historical_test") snapshot = null;
     snapshot ||= noDataSnapshot();
   }

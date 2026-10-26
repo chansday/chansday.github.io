@@ -202,6 +202,54 @@ test("unavailable settlement preserves previously successful actual fields", asy
   }
 });
 
+test("independent settlement stages do not fall back to stale latest rows when the current run predecessor is missing", async () => {
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-stale-stage-"));
+  const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
+  const stale = {
+    schemaVersion: "1.0.0",
+    status: "ready",
+    mode: "provider",
+    asOfDate: "2026-10-26",
+    provider: { id: "stale-provider" },
+    meta: { run_date: "2026-10-26", run_stage: "close-settlement" },
+    pipeline: {},
+    rows: [{
+      rank: 1,
+      symbol: "STALE",
+      name: "이전 거래일 행",
+      expected_open: 100,
+      expected_close: null,
+      expected_return: 0,
+      actual_open: 101,
+      actual_close: 102,
+      actual_return: 1,
+      session_return: 1,
+      actual_volume: 10,
+      error: 1,
+      confidence: null,
+      quality: "stale",
+      status: "valid",
+    }],
+  };
+  try {
+    await mkdir(join(tempRoot, "data"), { recursive: true });
+    await writeFile(join(tempRoot, "data", "latest-snapshot.json"), `${JSON.stringify(stale)}\n`, "utf8");
+    for (const mode of ["open-settlement", "close-settlement"]) {
+      await execFileAsync(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-27"], { cwd: tempRoot });
+      const stage = mode === "open-settlement" ? "0900" : "1530";
+      const output = JSON.parse(await readFile(join(tempRoot, "data", "runs", "2026-10-27", `${stage}.json`), "utf8"));
+      assert.equal(output.meta.run_date, "2026-10-27");
+      assert.equal(output.status, "no_data");
+      assert.deepEqual(output.rows, []);
+      assert.equal(output.pipeline[mode === "open-settlement" ? "openSettlement" : "closeSettlement"].status, "blocked");
+      await rm(join(tempRoot, "data", "runs", "2026-10-27"), { recursive: true, force: true });
+      await writeFile(join(tempRoot, "data", "latest-snapshot.json"), `${JSON.stringify(stale)}\n`, "utf8");
+    }
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
 test("close settlement preserves actual_return and recalculates error", () => {
   const existing = {
     rank: 1,

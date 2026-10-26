@@ -24,6 +24,7 @@
 ├─ styles.css
 ├─ app.js
 ├─ data/latest-snapshot.json
+├─ data/date-index.json
 ├─ data/runs/YYYY-MM-DD/{0700,0800,0820,0900,1530}.json
 ├─ schema/market-snapshot.schema.json
 ├─ providers/evaluation-contract.js
@@ -67,6 +68,18 @@
 
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-22`
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-23`
+
+### 날짜별 조회 달력
+
+종목 비교 제목 오른쪽의 `조회 날짜 YYYY.MM.DD` 버튼은 현재 URL의 `mode`를 유지한 채 `date=YYYY-MM-DD`를 갱신합니다. 예를 들어 `?mode=historical-test&date=2026-10-22`에서 2026-10-23을 고르면 `?mode=historical-test&date=2026-10-23`을 직접 읽습니다. 선택한 파일이 없으면 이전 날짜의 행을 재사용하지 않고 `미수집`으로 비웁니다.
+
+- `결과 있음`: `data/date-index.json`의 mode별 `availableDates`에 있고, 실제 파일이 존재하는 날짜입니다.
+- `조회 중`: 새 날짜 파일을 읽는 동안 표시합니다. 요청 토큰으로 늦게 도착한 이전 응답이 새 날짜를 덮지 못하게 합니다.
+- `미수집`: 날짜 인덱스에 실제 stage 파일이 없습니다. 운영 provider는 `data/runs/YYYY-MM-DD/1530.json`, historical-test는 `data/runs/historical-test/YYYY-MM-DD/1530.json`을 기준으로 합니다.
+- `휴장일`: [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 KRX 휴장일과 주말입니다. 날짜 버튼은 비활성화되고 상태 문구를 함께 표시합니다.
+- `오류`: 유효하지 않은 날짜·스냅샷 계약 위반·읽기 실패입니다. 이 경우에도 이전 순위는 유지하지 않습니다.
+
+`data/date-index.json`은 [`scripts/generate-date-index.mjs`](scripts/generate-date-index.mjs)가 `data/runs` 및 mode별 fixture/replay/backfill 폴더를 스캔해 생성합니다. 새 run stage를 추가할 때는 이 인덱스를 갱신하고, 브라우저는 mode별 실제 경로를 다시 읽습니다. 달력은 색상뿐 아니라 `결과 있음·조회 중·미수집·휴장일·오류` 텍스트, `aria-selected`, `aria-disabled`, `aria-live`로 상태를 전달합니다. 모바일에서는 860px 이하에서 제목·달력·컨텍스트가 줄바꿈되고 달력 폭은 viewport 안으로 제한됩니다.
 
 화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. 화면의 `실제 수익률`은 모든 종목에서 실제 시가→실제 종가로 계산하며, `평가용 시가 수익률`은 전일 종가→실제 시가로 평가엔진과 오차 계산에 사용합니다. fallback에서는 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `session_return`, `error`를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
@@ -197,7 +210,17 @@ GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9�
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 09:00 시가와 15:30 종가 단계는 공개 일별 CSV가 장중에 제공되지 않으면 `no_data`로 남으며, 이전 snapshot을 재사용하지 않습니다.
 
-Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `close-settlement` 중 하나와 provider(`none`, `fixture`, `demo`, `public-json`, `public-csv`)를 선택할 수 있습니다. 기본 workflow와 평일 cron은 `public-csv`를 사용하며 fixture를 자동 선택하지 않습니다. `public-csv`는 계좌·API 키·Secret 없이 실행됩니다.
+Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `open-settlement`, `close-settlement` 중 하나와 provider(`none`, `fixture`, `demo`, `public-json`, `public-csv`)를 선택할 수 있습니다. 기본 workflow와 평일 cron은 `public-csv`를 사용하며 fixture를 자동 선택하지 않습니다. `public-csv`는 계좌·API 키·Secret 없이 실행됩니다.
+
+### 한국 거래일·공휴일 guard
+
+cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 checkout/setup 직후 [`scripts/market-session-guard.mjs`](scripts/market-session-guard.mjs)를 실행합니다. guard는 한국시간 현재 날짜를 [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 정상 종료하고 검증·stage 실행·수집·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
+
+캘린더는 코드에 내장하지 않고 연도별 체크인 JSON으로 관리합니다. 2026년 목록에는 신정·설/추석·근로자의 날·제헌절·연말휴장일과 2026년에 확인된 대체휴일·임시공휴일을 포함합니다. 매년 KRX가 공표한 휴장일을 원문에서 재확인하여 목록, 대체휴일, 임시공휴일 변경을 갱신해야 합니다. 캘린더 커버리지 밖의 평일은 `calendar_coverage_missing` 오류로 fail-closed하며 수집을 시작하지 않습니다. 따라서 네트워크 API가 다운되거나 목록이 갱신되지 않은 상태에서 공휴일을 평일로 오판해 파일을 덮어쓰는 대신 workflow가 실패하고 운영자가 캘린더를 갱신해야 합니다. 이 저장소는 공휴일 API를 실행 시점에 호출하지 않으며, 자동 갱신을 보장하지 않습니다.
+
+각 cron stage는 해당 stage 파일과 현재 `run_date`의 선행 stage 파일만 입력으로 사용합니다. 현재 run의 선행 파일이 없으면 `data/latest-snapshot.json`을 이전 거래일 데이터로 간주해 fallback하지 않고 빈 `no_data`/차단 상태를 기록합니다. 특히 `open-settlement`와 `close-settlement`는 현재 run date와 일치하지 않는 비어 있지 않은 데이터 행을 보존하지 않습니다. 이 규칙은 stage 지연·재실행·독립 실행에서 stale 행이 `partial` snapshot으로 노출되는 것을 막습니다.
+
+`node scripts/market-session-guard.mjs --date YYYY-MM-DD`로 특정 날짜 판정을 확인할 수 있습니다. 캘린더 파일의 `source.retrievedAt`, `source.url`, `coverage`와 각 휴장 사유는 갱신 감사에 사용합니다.
 
 ## 로컬 실행과 검증
 
