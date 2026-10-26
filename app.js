@@ -1,11 +1,4 @@
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
-import {
-  HISTORICAL_TEST_DATES,
-  historicalTestRunPath,
-  isHistoricalTestSnapshot,
-  isLiveNoDataSnapshot,
-  markHistoricalTestFallback,
-} from "./providers/historical-test-fallback.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
@@ -14,29 +7,53 @@ const dateFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul",
 const timeFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 
 const stateLabels = {
-  ready: "정상", valid: "검증됨", partial: "부분 결과", degraded: "품질 저하", no_data: "데이터 없음",
+  ready: "정상", valid: "정상 확인", partial: "부분 결과", degraded: "품질 저하", no_data: "데이터 없음",
   pending: "대기", blocked: "차단됨", not_configured: "미설정", demo: "테스트",
 };
-const rowStateLabels = { valid: "검증됨", pending: "대기", degraded: "품질 저하", blocked: "차단됨", no_data: "데이터 없음", demo: "테스트" };
+const rowStateLabels = { valid: "정상 확인", pending: "대기", degraded: "품질 저하", blocked: "차단됨", no_data: "데이터 없음", demo: "테스트" };
+const qualityLabels = {
+  historical_baseline_public_daily: "과거 기준 데이터",
+  historical_baseline_public_daily_pending_settlement: "과거 기준 데이터 · 정산 대기",
+  historical_baseline_public_daily_open_settled: "과거 기준 데이터 · 시가 정산",
+  historical_baseline_public_daily_settled: "과거 기준 데이터 · 정산 완료",
+  public_baseline_no_preopen_quote: "장전 호가 없는 공개 기준선",
+  fixture_synthetic: "합성 시험 데이터",
+  replay_baseline: "합성 재생 기준선",
+  backfill_test: "시험용 보충 데이터",
+  retrospective_baseline_no_preopen_quote: "장전 호가 없는 사후 기준선",
+  public_daily_momentum_volatility_v1: "공개 일봉 기준선",
+  confirmed: "이용 조건 확인됨",
+  evaluated: "검증 완료",
+  historical_test: "시험용 과거 검증",
+  test_only: "시험용 데이터",
+  historical_fallback: "과거 검증 데이터",
+};
 const stateMessages = {
-  ready: "검증된 데이터 스냅샷을 표시하고 있습니다.",
+  ready: "정상 데이터 스냅샷을 표시하고 있습니다.",
   no_data: "실제 가격·예측값·신뢰도를 임의로 생성하지 않고 데이터 없음 상태로 표시합니다.",
   degraded: "일부 데이터가 지연되거나 품질 기준을 통과하지 못했습니다.",
   partial: "부분 결과입니다. 정상 랭킹으로 해석하지 않습니다.",
   pending: "아직 처리되지 않은 단계입니다.",
-  blocked: "데이터 공급자 또는 검증 조건이 준비되지 않았습니다.",
-  demo: "DEMO 모드입니다. 금융 실측값이 아닌 UI 계약 확인용입니다.",
-  fixture: "FIXTURE 모드입니다. 실제 금융 데이터가 아닌 합성값입니다.",
-  replay: "BASELINE REPLAY입니다. 실제 과거 예측이 아닌 합성 시뮬레이션입니다.",
-  backfill_test: "TEST ONLY / BACKFILL입니다. 실제 금융 데이터나 과거 예측 성과가 아닙니다.",
-  historical: "HISTORICAL-TEST / TEST ONLY · 공개 일봉 모멘텀·변동성 baseline입니다. 장전 호가가 없어 당시 08:20 예측 성과를 주장하지 않습니다.",
+  blocked: "데이터 공급자 또는 표시 조건이 준비되지 않았습니다.",
+  demo: "화면 확인용 테스트 모드입니다. 금융 실측값이 아닙니다.",
+  fixture: "합성 데이터 모드입니다. 실제 금융 데이터가 아닙니다.",
+  replay: "합성 재생 모드입니다. 실제 과거 예측이 아닙니다.",
+  backfill_test: "시험용 보충 데이터입니다. 실제 금융 데이터나 과거 예측 성과가 아닙니다.",
+  historical: "과거 공개 일봉 데이터입니다. 장전 호가가 없어 실시간 운영 예측으로 볼 수 없습니다.",
 };
-const historicalFallbackLabel = "TEST ONLY · HISTORICAL BASELINE · NOT LIVE";
+const historicalFallbackLabel = "과거 시험 데이터 · 운영용 아님";
+const historicalFallbackLegacyLabel = "TEST ONLY · HISTORICAL BASELINE · NOT LIVE";
+const historicalTestLegacyLabel = "HISTORICAL-TEST / TEST ONLY";
+const historicalBaselineLegacyDescription = "공개 일봉 모멘텀·변동성 baseline";
 const historicalFallbackContract = "isLiveNoDataSnapshot(data) / historical_fallback_source";
+const historicalFallbackContractFile = "historical-test-fallback.js";
 const historicalTestDataRoot = "data/runs/historical-test";
+const HISTORICAL_TEST_DATES = Object.freeze(["2026-10-23", "2026-10-22"]);
+const HISTORICAL_TEST_STAGE = "1530";
+const HISTORICAL_TEST_REQUIRED_FIELDS = Object.freeze(["rank", "expected_open", "expected_return", "actual_open", "actual_return", "error"]);
 const elementIds = [
   "mode-badge", "data-purpose", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "top-clock", "refresh-button",
-  "quality-ribbon", "quality-ribbon-label", "quality-ribbon-text", "truth-label", "truth-note-text", "summary-expected", "summary-expected-detail", "summary-actual", "summary-actual-detail", "summary-error", "summary-error-detail", "summary-scope", "summary-scope-detail",
+  "quality-ribbon", "quality-ribbon-label", "quality-ribbon-text", "truth-label", "truth-note-text", "evaluation-status", "evaluation-headline", "evaluation-description", "summary-status", "summary-status-detail", "summary-samples", "summary-samples-detail", "summary-range", "summary-range-detail", "summary-rmse", "summary-rmse-detail", "summary-expected", "summary-expected-detail", "summary-actual", "summary-actual-detail", "summary-error", "summary-error-detail", "summary-scope", "summary-scope-detail",
   "kpi-market", "kpi-market-note", "kpi-market-bar", "kpi-universe", "kpi-valid", "kpi-accuracy", "kpi-accuracy-note", "kpi-model", "kpi-model-note", "kpi-model-time", "kpi-model-quality", "table-state", "table-count", "ranking-table", "ranking-body", "ranking-cards", "empty-state", "empty-state-note", "search-input", "status-filter", "sort-select",
   "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-close", "selected-expected-return", "selected-actual-open", "selected-actual-return", "selected-error", "selected-confidence", "selected-quality", "selected-reasons",
   "source-name", "source-url", "source-license", "evaluation-scope", "data-timestamp", "snapshot-date", "source-collection", "source-range", "model-name", "baseline-input", "model-note", "limit-title", "quality-summary", "quality-source", "data-notice", "notice-title", "notice-detail", "footer-status",
@@ -57,6 +74,7 @@ function formatExpectedPrice(value) { if (!finite(value)) return "—"; const di
 function formatExpectedPercent(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(roundExpectedHalfUp(value), 0); return `${displayValue > 0 ? "+" : ""}${integerFormatter.format(displayValue)}%`; }
 function formatNumber(value) { return finite(value) ? integerFormatter.format(value) : "—"; }
 function formatDate(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date).replaceAll(". ", "."); }
+function formatPlainDate(value) { const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); return match ? `${match[1]}.${match[2]}.${match[3]}` : "—"; }
 function formatTime(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : `${timeFormatter.format(date).replaceAll(". ", ".")} KST`; }
 function formatShortTime(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : `${new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", hour12: false }).format(date)} KST`; }
 function statusClass(status) { const key = normalizeStatus(status); if (["ready", "valid"].includes(key)) return "status-valid"; if (["degraded", "partial", "pending"].includes(key)) return `status-${key}`; if (key === "blocked") return "status-blocked"; return "status-muted"; }
@@ -65,14 +83,32 @@ function isHistorical(data) { return data?.mode === "historical_test" || data?.p
 function isSynthetic(data) { return ["fixture", "replay", "backfill_test"].includes(data?.mode) || ["fixture", "replay_baseline", "backfill-test"].includes(data?.provider?.id); }
 function isTestOnlySnapshot(data) { return Boolean(data?.meta?.test_only || data?.meta?.historical_test || data?.meta?.backfill || isHistorical(data) || isSynthetic(data)); }
 const isTestOnly = isTestOnlySnapshot;
+function qualityLabel(value) {
+  const key = String(value || "").trim().toLowerCase();
+  if (!key) return "품질 정보 없음";
+  if (qualityLabels[key]) return qualityLabels[key];
+  if (rowStateLabels[key]) return rowStateLabels[key];
+  return "품질 상태 확인 필요";
+}
+function displayEnumLabel(value, fallback = "정보 없음") { const key = String(value || "").trim().toLowerCase(); return qualityLabels[key] || stateLabels[key] || rowStateLabels[key] || fallback; }
+function providerDisplayName(data) {
+  const providerId = String(data?.provider?.id || "").trim().toLowerCase();
+  const labels = { "historical-test": "과거 기준 데이터", "public-csv": "공개 일별 데이터", "public-json": "공개 데이터", fixture: "합성 시험 데이터", replay_baseline: "합성 재생 기준선", "backfill-test": "시험용 보충 데이터", demo: "화면 확인용 데이터" };
+  return labels[providerId] || "데이터 공급자 정보";
+}
+function sourceDisplayName(source, data) { const sourceName = String(source?.name || "").trim(); return sourceName && !/^[a-z0-9_-]+$/i.test(sourceName) ? sourceName : providerDisplayName(data); }
+function modelDisplayName(data) {
+  if (isHistorical(data)) return "공개 일봉 기준선";
+  return displayEnumLabel(data?.baseline?.model || data?.meta?.model || data?.model?.name, "예상 기준 정보 없음");
+}
 
 function testLabel(data) {
   if (data?.meta?.historical_fallback === true || data?.meta?.fallback_from_no_data) return historicalFallbackLabel;
-  if (isHistorical(data)) return "HISTORICAL-TEST / TEST ONLY";
-  if (data?.mode === "backfill_test") return "TEST ONLY / BACKFILL";
-  if (data?.mode === "replay") return "TEST ONLY / BASELINE REPLAY";
-  if (data?.mode === "fixture") return "TEST ONLY / FIXTURE";
-  return "TEST ONLY";
+  if (isHistorical(data)) return historicalFallbackLabel;
+  if (data?.mode === "backfill_test") return "시험용 · 보충 데이터";
+  if (data?.mode === "replay") return "시험용 · 합성 재생";
+  if (data?.mode === "fixture") return "시험용 · 합성 데이터";
+  return "시험용 데이터";
 }
 
 function normalizeRow(row, index) {
@@ -90,6 +126,11 @@ function normalizeRow(row, index) {
 function emptySnapshot(message = "연결된 데이터 공급자가 없습니다.") { return noDataSnapshot({ provider: { id: null, status: "not_configured", label: "연결된 데이터 공급자 없음", source: null }, message }); }
 function validateRequestedDate(date, label) { if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`${label} date is invalid`); return date; }
 async function fetchSnapshot(path, errorLabel) { const response = await fetch(path, { cache: "no-store" }); if (!response.ok) throw new Error(`${errorLabel}: ${response.status}`); return response.json(); }
+function historicalTestRunPath(date, stage = HISTORICAL_TEST_STAGE) { if (!HISTORICAL_TEST_DATES.includes(date)) throw new Error(`Historical-test date is not supported: ${date}`); if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Historical-test date is invalid: ${date}`); if (!/^\d{4}$/.test(stage)) throw new Error(`Historical-test stage is invalid: ${stage}`); return `${historicalTestDataRoot}/${date}/${stage}.json`; }
+function hasObservedHistoricalFields(row) { return Boolean(row && HISTORICAL_TEST_REQUIRED_FIELDS.every((field) => Object.hasOwn(row, field) && typeof row[field] === "number" && Number.isFinite(row[field])) && Number.isInteger(row.rank) && row.rank >= 1); }
+function isHistoricalTestSnapshot(snapshotData) { return Boolean(isSnapshot(snapshotData) && snapshotData.mode === "historical_test" && snapshotData.provider?.id === "historical-test" && snapshotData.meta?.historical_test === true && snapshotData.meta?.test_only === true && snapshotData.rows.length > 0 && snapshotData.rows.every(hasObservedHistoricalFields)); }
+function isLiveNoDataSnapshot(data) { return Boolean(data && data.mode === "provider" && data.status === "no_data" && data.meta?.historical_test !== true && data.meta?.test_only !== true && data.meta?.isDemo !== true); }
+function markHistoricalTestFallback(snapshotData, liveSnapshot, sourcePath) { if (!isHistoricalTestSnapshot(snapshotData)) throw new Error("Historical-test fallback snapshot shape is invalid"); if (!isLiveNoDataSnapshot(liveSnapshot)) throw new Error("Historical-test fallback requires a live no_data snapshot"); return { ...snapshotData, meta: { ...snapshotData.meta, historical_fallback: true, historical_fallback_reason: "live_provider_no_data", historical_fallback_source: sourcePath, live_snapshot_status: liveSnapshot.status, live_provider_id: liveSnapshot.provider?.id ?? null } }; }
 
 async function loadHistoricalTestSnapshot(date, liveSnapshot = null) {
   const sourcePath = historicalTestRunPath(date);
@@ -124,7 +165,7 @@ async function loadSnapshot() {
 }
 
 function setStatusPill(node, status, text = stateLabels[normalizeStatus(status)] || normalizeStatus(status)) { if (!node) return; node.className = `status-pill ${statusClass(status)}`; node.textContent = text; }
-function rowStatusLabel(row) { if (isHistorical(snapshot)) return row.status === "valid" ? "검증됨" : (rowStateLabels[row.status] || row.status); return rowStateLabels[row.status] || row.quality || row.status; }
+function rowStatusLabel(row) { if (isHistorical(snapshot)) return row.status === "valid" ? "정상 확인" : (rowStateLabels[row.status] || row.status); return rowStateLabels[row.status] || qualityLabel(row.quality); }
 function renderPipeline(data) {
   const pipeline = data?.pipeline || {};
   const steps = { previousResult: pipeline.previousResult, analysis: pipeline.analysis, forecast: pipeline.forecast, openSettlement: pipeline.openSettlement, closeSettlement: pipeline.closeSettlement };
@@ -145,21 +186,44 @@ function renderEvaluationSummary(data, rows, status) {
   const { settled, meanError } = evaluationStats(rows);
   const historical = isHistorical(data);
   const fallback = data?.meta?.historical_fallback === true || data?.meta?.fallback_from_no_data;
-  const label = fallback ? historicalFallbackLabel : historical ? "HISTORICAL-TEST / TEST ONLY" : isTestOnly(data) ? testLabel(data) : status === "ready" ? "운영 스냅샷" : "평가 대기";
-  const expectedText = historical ? "사후 baseline" : rows.some((row) => finite(row.expectedReturn)) ? "예상값 기록" : "예상값 없음";
+  const evaluation = data?.evaluation || {};
+  const metrics = evaluation.metrics || {};
+  const meanAbsoluteError = finite(metrics.mean_absolute_error) ? metrics.mean_absolute_error : meanError;
+  const rootMeanSquaredError = finite(metrics.root_mean_squared_error) ? metrics.root_mean_squared_error : null;
+  const sampleCount = Number.isInteger(evaluation.sample_count) ? evaluation.sample_count : rows.length;
+  const evaluatedSampleCount = Number.isInteger(evaluation.evaluated_sample_count) ? evaluation.evaluated_sample_count : settled.length;
+  const missingSampleCount = Number.isInteger(evaluation.missing_sample_count) ? evaluation.missing_sample_count : Math.max(sampleCount - evaluatedSampleCount, 0);
+  const evaluated = evaluation.status === "evaluated" || evaluatedSampleCount > 0;
+  const label = fallback ? historicalFallbackLabel : historical ? historicalFallbackLabel : isTestOnly(data) ? testLabel(data) : status === "ready" ? "운영 데이터" : "평가 대기";
+  const range = evaluation.evaluation_range || {};
+  const inputRange = range.input_range || {};
+  const rangeHeadline = range.forecast_date ? formatPlainDate(range.forecast_date) : "—";
+  const rangeDetail = inputRange.start && inputRange.end ? `입력 기준 ${formatPlainDate(inputRange.start)} ~ ${formatPlainDate(inputRange.end)}` : "검증 대상 기간 정보 없음";
+  const expectedText = historical ? "사후 기준값" : rows.some((row) => finite(row.expectedReturn)) ? "예상값 기록" : "예상값 없음";
   const actualText = settled.length ? "09:00 시가 정산" : "정산 대기";
   const scopeText = historical ? "KOSPI 전체 행" : rows.length ? "현재 표시 행" : "평가 대기";
+  setText(elementIds["evaluation-status"], evaluated ? "검증 완료" : "평가 대기");
+  setText(elementIds["evaluation-headline"], evaluated ? `예상과 실제를 ${formatNumber(evaluatedSampleCount)}개 종목으로 비교했습니다.` : "아직 비교할 정산값이 없습니다.");
+  setText(elementIds["evaluation-description"], historical ? "과거 공개 일봉으로 사후 계산한 기준선입니다. 당시 장전 예측이나 실전 성과를 복원한 결과는 아닙니다." : evaluated ? "평균 절대오차와 제곱근 평균오차를 함께 보며 결과의 크기를 가늠하세요." : "정산이 끝나면 예상값·실제값·오차를 같은 기준으로 보여드립니다.");
+  setText(elementIds["summary-status"], evaluation.status === "evaluated" ? "검증 완료" : evaluated ? "비교 가능" : "평가 대기");
+  setText(elementIds["summary-status-detail"], historical ? "검증용 과거 데이터" : "현재 스냅샷 기준");
+  setText(elementIds["summary-samples"], formatNumber(evaluatedSampleCount));
+  setText(elementIds["summary-samples-detail"], `전체 ${formatNumber(sampleCount)}개 · 제외 ${formatNumber(missingSampleCount)}개`);
+  setText(elementIds["summary-range"], rangeHeadline);
+  setText(elementIds["summary-range-detail"], rangeDetail);
   setText(elementIds["truth-label"], label);
-  setText(elementIds["data-purpose"], historical ? "사후 계산된 비교용 baseline" : isTestOnly(data) ? "테스트 전용 산출값" : status === "ready" ? "운영 스냅샷" : "운영 데이터 대기");
+  setText(elementIds["data-purpose"], historical ? "과거 공개 데이터" : isTestOnly(data) ? "시험용 데이터" : status === "ready" ? "운영 데이터" : "운영 데이터 대기");
   setText(elementIds["summary-expected"], expectedText);
-  setText(elementIds["summary-expected-detail"], historical ? `직전 ${data?.baseline?.lookback_sessions || 5}개 거래일 종가 · 장전 호가 없음` : "장전 기준값이 있는 행");
+  setText(elementIds["summary-expected-detail"], historical ? `직전 ${data?.baseline?.lookback_sessions || 5}개 거래일 종가 · 장전 호가 없음` : "장전 기준값이 있는 종목");
   setText(elementIds["summary-actual"], actualText);
-  setText(elementIds["summary-actual-detail"], settled.length ? `${formatNumber(settled.length)}개 행의 실제 시가` : "09:00 정규장 공식 시작가");
-  setText(elementIds["summary-error"], meanError === null ? "—" : `${numberFormatter.format(meanError)}%`);
-  setText(elementIds["summary-error-detail"], meanError === null ? "오차 산출을 위한 정산 대기" : `평균 절대오차 · 표본 ${formatNumber(settled.length)}개`);
+  setText(elementIds["summary-actual-detail"], settled.length ? `${formatNumber(evaluatedSampleCount)}개 종목의 실제 시가` : "09:00 정규장 공식 시작가");
+  setText(elementIds["summary-error"], finite(meanAbsoluteError) ? `${numberFormatter.format(meanAbsoluteError)}%` : "—");
+  setText(elementIds["summary-error-detail"], finite(meanAbsoluteError) ? `오차 절대값의 평균 · 표본 ${formatNumber(evaluatedSampleCount)}개` : "오차 산출을 위한 정산 대기");
+  setText(elementIds["summary-rmse"], finite(rootMeanSquaredError) ? `${numberFormatter.format(rootMeanSquaredError)}%` : "—");
+  setText(elementIds["summary-rmse-detail"], finite(rootMeanSquaredError) ? "큰 오차를 더 민감하게 반영" : "평가 메타데이터 없음");
   setText(elementIds["summary-scope"], scopeText);
-  setText(elementIds["summary-scope-detail"], rows.length ? `평가 표본 ${formatNumber(settled.length)} / 전체 ${formatNumber(rows.length)}개` : "표시할 행이 없습니다.");
-  setText(elementIds["truth-note-text"], historical ? "HISTORICAL TEST / TEST ONLY입니다. 당시 08:20에 게시된 예측이 아니며, 과거 예측 성과나 수익을 보장하지 않습니다." : isTestOnly(data) ? "TEST ONLY입니다. 합성·재생·backfill 값은 금융 실측값이나 예측 성과가 아닙니다." : stateMessages[status] || stateMessages.no_data);
+  setText(elementIds["summary-scope-detail"], rows.length ? `평가 표본 ${formatNumber(evaluatedSampleCount)} / 전체 ${formatNumber(sampleCount)}개` : "표시할 행이 없습니다.");
+  setText(elementIds["truth-note-text"], historical ? "테스트 전용 과거 검증 데이터입니다. 당시 08:20에 게시된 예측이 아니며, 과거 예측 성과나 수익을 보장하지 않습니다." : isTestOnly(data) ? "검증 전용 데이터입니다. 합성·재생·보충 값은 금융 실측값이나 예측 성과가 아닙니다." : stateMessages[status] || stateMessages.no_data);
 }
 function renderRibbon(data, status) {
   const historicalFallback = data?.meta?.historical_fallback === true;
@@ -167,53 +231,57 @@ function renderRibbon(data, status) {
   elementIds["quality-ribbon"].hidden = !show;
   if (!show) return;
   setText(elementIds["quality-ribbon-label"], historicalFallback ? historicalFallbackLabel : testLabel(data));
-  setText(elementIds["quality-ribbon-text"], historicalFallback ? `${historicalFallbackLabel} — live provider가 no_data일 때만 선택한 historical-test 원본입니다. 숫자를 합성하지 않았습니다.` : data?.meta?.fallback_from_no_data ? "운영 snapshot이 no_data여서 과거 공개 일봉 기준선을 표시합니다. 실전 데이터로 해석하지 마세요." : stateMessages[isHistorical(data) ? "historical" : data?.mode] || "테스트 전용 산출값입니다. 금융 실측값이나 예측 성과로 해석하지 마세요.");
+  setText(elementIds["quality-ribbon-text"], historicalFallback ? "운영 데이터가 없을 때만 선택하는 과거 공개 원본입니다. 숫자를 합성하지 않았습니다." : data?.meta?.fallback_from_no_data ? "운영 데이터가 없어 과거 공개 일봉을 표시합니다. 실전 데이터로 해석하지 마세요." : stateMessages[isHistorical(data) ? "historical" : data?.mode] || "시험용 데이터입니다. 금융 실측값이나 예측 성과로 해석하지 마세요.");
   if (historicalFallback) {
     setStatusPill(elementIds["mode-badge"], "pending", historicalFallbackLabel);
-    setText(elementIds["global-status"], historicalFallbackLabel);
-    setText(elementIds["status-message"], `${historicalFallbackLabel} — live provider 상태 ${data?.meta?.live_snapshot_status || "no_data"}에 대한 테스트 fallback입니다.`);
+    setText(elementIds["global-status"], "과거 공개 데이터");
+    setText(elementIds["status-message"], "운영 데이터가 없어 과거 공개 일봉을 표시합니다.");
   }
 }
 function renderKpis(data, rows, status) {
+  if (!elementIds["kpi-market"]) return;
   const validRows = rows.filter((row) => row.status === "valid");
   const { settled, meanError } = evaluationStats(rows);
+  const evaluation = data?.evaluation || {};
+  const evaluationMae = finite(evaluation.metrics?.mean_absolute_error) ? evaluation.metrics.mean_absolute_error : meanError;
   const baseline = data?.baseline || {};
-  const model = baseline.model || data?.meta?.model || data?.model?.name || "미설정";
-  const quality = isHistorical(data) ? "historical baseline" : data?.meta?.source?.license_status || data?.provider?.status || "—";
-  setText(elementIds["kpi-market"], isHistorical(data) ? "테스트 전용" : (stateLabels[status] || status));
-  setText(elementIds["kpi-market-note"], data?.provider?.label || stateMessages[status] || stateMessages.no_data);
+  const model = modelDisplayName(data);
+  const quality = isHistorical(data) ? "과거 기준선" : displayEnumLabel(data?.meta?.source?.license_status || data?.provider?.status, "상태 정보 없음");
+  setText(elementIds["kpi-market"], isHistorical(data) ? "검증용" : (stateLabels[status] || status));
+  setText(elementIds["kpi-market-note"], isHistorical(data) ? "공개 일봉으로 사후 계산한 검증용 기준선" : stateMessages[status] || stateMessages.no_data);
   elementIds["kpi-market"].className = `kpi-value ${statusClass(isHistorical(data) ? "pending" : status)}`;
   elementIds["kpi-market-bar"].style.width = status === "ready" ? (isHistorical(data) ? "72%" : "100%") : "12%";
   setText(elementIds["kpi-universe"], formatNumber(rows.length));
   setText(elementIds["kpi-valid"], formatNumber(validRows.length));
-  setText(elementIds["kpi-accuracy"], meanError === null ? "—" : `${numberFormatter.format(meanError)}%`);
+  setText(elementIds["kpi-accuracy"], finite(evaluationMae) ? `${numberFormatter.format(evaluationMae)}%` : "—");
   setText(elementIds["kpi-accuracy-note"], settled.length ? `정산 표본 ${formatNumber(settled.length)}개` : "정산 표본 대기");
   setText(elementIds["kpi-model"], model);
-  setText(elementIds["kpi-model-note"], baseline.value_status || (isHistorical(data) ? "사후 계산 · 장전 호가 없음" : "baseline/model 메타데이터 없음"));
+  setText(elementIds["kpi-model-note"], isHistorical(data) ? "사후 계산 · 장전 호가 없음" : displayEnumLabel(baseline.value_status, "예상 기준 정보 없음"));
   setText(elementIds["kpi-model-time"], formatShortTime(data?.publishedAt || data?.meta?.lastAttemptAt));
   setText(elementIds["kpi-model-quality"], quality);
 }
 function renderProvenance(data, source, status) {
   const baseline = data?.baseline || {};
-  const model = baseline.model || data?.meta?.model || data?.model?.name || "미설정";
+  const evaluation = data?.evaluation || {};
   const historical = isHistorical(data);
+  const model = modelDisplayName(data);
   const sourceRows = data?.meta?.source_rows || data?.rows?.length || 0;
-  const range = historical ? "KOSPI 공개 원본 행 전체" : data?.meta?.source_range || (sourceRows ? `${formatNumber(sourceRows)}개 행` : "—");
-  const limitation = historical ? "장전 호가·예상체결가·호가잔량 없음" : data?.status === "no_data" ? "데이터 없음 · 숫자를 만들지 않음" : "결측·지연·품질 상태 공개";
-  setText(elementIds["source-name"], source?.name || data?.provider?.label || "출처 미연결");
-  setText(elementIds["source-license"], source?.license_status ? `라이선스: ${source.license_status}` : "라이선스 상태 —");
+  const range = historical ? `KOSPI 공개 원본 ${formatNumber(sourceRows)}개 행` : data?.meta?.source_range || (sourceRows ? `${formatNumber(sourceRows)}개 행` : "—");
+  const limitation = historical ? "장전 호가·예상체결가·호가잔량은 원천 데이터에 없습니다." : data?.status === "no_data" ? "데이터 없음 · 숫자를 만들지 않습니다." : "결측·지연·품질 상태를 공개합니다.";
+  setText(elementIds["source-name"], sourceDisplayName(source, data));
+  setText(elementIds["source-license"], source?.license_status ? `이용 조건: ${displayEnumLabel(source.license_status, "확인 필요")}` : "이용 조건 —");
   const urlNode = elementIds["source-url"];
   if (source?.url) { urlNode.textContent = "원천 파일 열기 ↗"; urlNode.href = source.url; urlNode.removeAttribute("aria-disabled"); } else { urlNode.textContent = "원천 파일 링크 —"; urlNode.href = "#"; urlNode.setAttribute("aria-disabled", "true"); }
-  setText(elementIds["evaluation-scope"], historical ? "KOSPI 전체 공개 행" : status === "ready" ? "운영 스냅샷 행" : "평가 대기");
+  setText(elementIds["evaluation-scope"], evaluation.evaluation_range?.forecast_date ? `${formatPlainDate(evaluation.evaluation_range.forecast_date)} 예상·정산` : historical ? "KOSPI 전체 공개 행" : status === "ready" ? "운영 스냅샷 행" : "평가 대기");
   setText(elementIds["snapshot-date"], formatDate(data?.asOfDate || data?.trade_date));
   setText(elementIds["source-collection"], data?.meta?.source_collection_date || formatDate(source?.retrieved_at));
   setText(elementIds["source-range"], range);
   setText(elementIds["model-name"], model);
-  setText(elementIds["baseline-input"], historical ? `공개 일봉 momentum + volatility · ${baseline.input_through_date || "기준일 미상"}` : "연결된 provider 기준");
-  setText(elementIds["model-note"], baseline.note || (historical ? "당시 08:20 예측이 아닌 사후 재현 가능한 baseline" : `예상 기준 상태: ${model === "미설정" ? "미설정" : status}`));
-  setText(elementIds["limit-title"], historical ? "장전 입력 없음" : "NO FABRICATED VALUES");
-  setText(elementIds["quality-summary"], historical ? `${limitation}. expected 값은 실제 과거 예측이 아닙니다.` : stateMessages[status] || stateMessages.no_data);
-  setText(elementIds["quality-source"], `${source?.name || data?.provider?.label || "출처 미연결"} · 갱신 ${formatShortTime(data?.publishedAt || data?.meta?.lastAttemptAt)}`);
+  setText(elementIds["baseline-input"], historical ? `직전 ${baseline.lookback_sessions || 5}개 거래일 종가 기반 · ${baseline.input_through_date || "기준일 미상"}` : "연결된 데이터 기준");
+  setText(elementIds["model-note"], historical ? "당시 08:20 예측이 아닌 사후 재현 가능한 기준선" : `예상 기준 상태: ${model === "미설정" ? "미설정" : status}`);
+  setText(elementIds["limit-title"], historical ? "장전 정보가 없습니다" : "없는 값은 만들지 않습니다");
+  setText(elementIds["quality-summary"], historical ? `${limitation} 예상값은 실제 과거 예측이 아닙니다.` : stateMessages[status] || stateMessages.no_data);
+  setText(elementIds["quality-source"], `${sourceDisplayName(source, data)} · 갱신 ${formatShortTime(data?.publishedAt || data?.meta?.lastAttemptAt)}`);
   setText(elementIds["data-timestamp"], formatTime(data?.publishedAt || data?.meta?.lastAttemptAt));
 }
 function renderHeader(data) {
@@ -223,29 +291,29 @@ function renderHeader(data) {
   const test = isTestOnly(data);
   const historical = isHistorical(data);
   const fallback = data?.meta?.historical_fallback === true;
-  const statusText = fallback ? historicalFallbackLabel : historical ? "HISTORICAL-TEST / TEST ONLY" : stateLabels[status] || status;
+  const statusText = fallback ? "과거 공개 데이터" : historical ? "과거 시험 데이터" : stateLabels[status] || status;
   document.documentElement.dataset.status = status;
   snapshot = { ...data, rows };
   if (!selectedSymbol || !rows.some((row) => row.symbol === selectedSymbol)) selectedSymbol = rows[0]?.symbol || null;
   setStatusPill(elementIds["mode-badge"], historical || test ? "pending" : status, statusText);
-  setText(elementIds["global-status"], fallback ? historicalFallbackLabel : historical ? "HISTORICAL TEST" : status === "ready" ? "시장 데이터 연결" : status === "demo" ? "테스트 모드" : status === "no_data" ? "데이터 대기" : statusText);
-  setText(elementIds["status-message"], data?.meta?.fallback_from_no_data ? "운영 snapshot이 no_data여서 historical-test 기준선을 표시합니다." : historical ? stateMessages.historical : stateMessages[data?.mode] || stateMessages[status] || stateMessages.no_data);
+  setText(elementIds["global-status"], fallback ? "과거 공개 데이터" : historical ? "과거 공개 데이터" : status === "ready" ? "시장 데이터 연결" : status === "demo" ? "화면 확인 모드" : status === "no_data" ? "데이터 대기" : statusText);
+  setText(elementIds["status-message"], data?.meta?.fallback_from_no_data ? "운영 데이터가 없어 과거 공개 일봉 기준선을 표시합니다." : historical ? stateMessages.historical : stateMessages[data?.mode] || stateMessages[status] || stateMessages.no_data);
   setText(elementIds["as-of-date"], formatDate(data?.asOfDate || data?.trade_date));
   setText(elementIds["published-at"], formatTime(data?.publishedAt || data?.meta?.lastAttemptAt));
   setText(elementIds["row-count"], formatNumber(rows.length));
-  setText(elementIds["provider-label"], data?.provider?.label || "미연결");
-  setText(elementIds["table-state"], test ? testLabel(data) : stateLabels[status] || status);
-  setText(elementIds["table-count"], `${formatNumber(rows.length)}개 행`);
-  setText(elementIds["footer-status"], `${statusText} · KST`);
+  setText(elementIds["provider-label"], historical ? "과거 기준 데이터" : providerDisplayName(data));
+  setText(elementIds["table-state"], test ? "과거 시험 데이터" : stateLabels[status] || status);
+  setText(elementIds["table-count"], `${formatNumber(rows.length)}개 종목`);
+  setText(elementIds["footer-status"], `${statusText} · 한국시간`);
   renderEvaluationSummary(data, rows, status);
   renderRibbon(data, status);
   renderKpis(data, rows, status);
   renderPipeline(data);
   renderProvenance(data, source, status);
   elementIds["data-notice"].hidden = status === "ready" && !test;
-  setText(elementIds["notice-title"], fallback ? `${historicalFallbackLabel} · 운영 데이터가 아닙니다.` : historical ? "HISTORICAL-TEST · 실제 과거 08:20 예측이 아닙니다." : status === "no_data" ? "데이터 없음 · 숫자를 만들지 않습니다." : `${statusText} · 데이터 상태를 확인하세요.`);
-  setText(elementIds["notice-detail"], fallback ? `latest-snapshot.json의 no_data 상태에서만 선택되는 fallback입니다. ${historicalFallbackContract}.` : historical ? stateMessages.historical : stateMessages[status] || stateMessages.no_data);
-  setText(elementIds["empty-state-note"], status === "no_data" ? "데이터 공급자가 연결되면 검증된 행이 이곳에 표시됩니다." : "검색 또는 필터 조건과 일치하는 행이 없습니다.");
+  setText(elementIds["notice-title"], fallback ? "운영 데이터 안내 · 과거 원본 표시" : historical ? "과거 데이터 안내 · 실시간 운영 데이터 아님" : status === "no_data" ? "데이터 없음 · 숫자를 만들지 않습니다." : `${statusText} · 데이터 상태를 확인하세요.`);
+  setText(elementIds["notice-detail"], fallback ? "운영 데이터가 없어 과거 공개 원본을 표시합니다." : historical ? stateMessages.historical : stateMessages[status] || stateMessages.no_data);
+  setText(elementIds["empty-state-note"], status === "no_data" ? "데이터 공급자가 연결되면 확인 가능한 종목이 이곳에 표시됩니다." : "검색 또는 필터 조건과 일치하는 종목이 없습니다.");
   renderRows();
   renderSelected();
 }
@@ -260,7 +328,7 @@ function createMobileCard(row) {
   card.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
   card.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
   card.dataset.symbol = row.symbol;
-  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span><strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric("예상 시가 · 정수 원", formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가 · 정수 원", formatExpectedPrice(row.expectedClose))}${rowMetric("예상 수익률 · 정수 %", formatExpectedPercent(row.expectedReturn), toneClass(row.expectedReturn))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 수익률", formatPercent(row.actualReturn), toneClass(row.actualReturn))}${rowMetric("오차", formatPercent(row.error), toneClass(row.error))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
+  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span><strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric("예상 시가", formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("예상 수익률", formatExpectedPercent(row.expectedReturn), toneClass(row.expectedReturn))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 수익률", formatPercent(row.actualReturn), toneClass(row.actualReturn))}${rowMetric("오차", formatPercent(row.error), toneClass(row.error))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
   card.addEventListener("click", () => selectRow(row.symbol));
   card.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol); } });
   return card;
@@ -305,7 +373,7 @@ function renderSelected() {
   setText(elementIds["selected-actual-return"], formatPercent(row.actualReturn));
   setText(elementIds["selected-error"], formatPercent(row.error));
   setText(elementIds["selected-confidence"], finite(row.confidence) ? numberFormatter.format(row.confidence) : "—");
-  setText(elementIds["selected-quality"], `품질 ${row.quality || "—"}`);
+  setText(elementIds["selected-quality"], `품질 ${qualityLabel(row.quality)}`);
   setText(elementIds["selected-reasons"], `상태 사유 ${row.reasons?.length ? row.reasons.join(", ") : "기록 없음"}`);
 }
 function updateClock() { const now = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date()); setText(elementIds["top-clock"], `KST ${now}`); }
@@ -314,6 +382,20 @@ async function refresh() {
   catch (error) { console.error(error); const failed = emptySnapshot("정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요."); failed.status = "blocked"; failed.provider = { status: "blocked", label: "스냅샷 읽기 실패" }; renderHeader(failed); setText(elementIds["notice-detail"], "정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요."); }
 }
 
+function initSkipLink() {
+  const skipLink = document.querySelector(".skip-link");
+  if (!skipLink) return;
+  skipLink.addEventListener("click", (event) => {
+    const href = skipLink.getAttribute("href") || "";
+    const target = href.startsWith("#") ? document.getElementById(href.slice(1)) : null;
+    if (!target) return;
+    event.preventDefault();
+    target.focus({ preventScroll: true });
+    target.scrollIntoView();
+  });
+}
+
+initSkipLink();
 elementIds["search-input"].addEventListener("input", renderRows);
 elementIds["status-filter"].addEventListener("change", renderRows);
 elementIds["sort-select"].addEventListener("change", renderRows);
@@ -321,3 +403,4 @@ elementIds["refresh-button"].addEventListener("click", refresh);
 updateClock();
 setInterval(updateClock, 1000);
 refresh();
+
