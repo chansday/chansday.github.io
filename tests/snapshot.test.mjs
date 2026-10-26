@@ -99,3 +99,20 @@ test("baseline replay snapshots are explicit synthetic previous-close simulation
     assert.equal(snapshot.rows.every((row) => row.expected_open !== null && row.actual_open !== null && row.error !== null), true);
   }
 });
+
+test("backfill test snapshots are isolated synthetic copies of replay numeric flow", async () => {
+  const fields = ["expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "actual_return", "error"];
+  for (const date of ["2026-10-22", "2026-10-23"]) {
+    const backfill = JSON.parse(await readFile(new URL("../data/backfill-test/" + date + ".json", import.meta.url), "utf8"));
+    const replay = JSON.parse(await readFile(new URL("../data/replays/" + date + ".json", import.meta.url), "utf8"));
+    assert.equal(isSnapshot(backfill), true);
+    assert.equal(backfill.mode, "backfill_test");
+    assert.equal(backfill.provider.id, "backfill-test");
+    assert.equal(backfill.meta.isDemo, true);
+    assert.equal(backfill.meta.backfill, true);
+    assert.equal(backfill.meta.backfill_source_replay_date, date);
+    assert.match(backfill.meta.backfill_note, /TEST ONLY|real financial/i);
+    assert.deepEqual(backfill.rows.map((row) => fields.map((field) => row[field])), replay.rows.map((row) => fields.map((field) => row[field])));
+    assert.equal(backfill.rows.every((row) => fields.every((field) => typeof row[field] === "number")), true);
+  }
+});

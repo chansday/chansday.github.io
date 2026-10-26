@@ -8,7 +8,7 @@
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "status": { "enum": ["ready", "demo", "no_data", "degraded", "blocked", "pending"] },
-    "mode": { "enum": ["provider", "demo", "fixture"] },
+    "mode": { "enum": ["provider", "demo", "fixture", "replay", "backfill_test"] },
     "asOfDate": { "type": ["string", "null"], "format": "date" },
     "publishedAt": { "type": ["string", "null"], "format": "date-time" },
     "market": {
@@ -18,6 +18,17 @@
         "name": { "const": "KOSPI" },
         "currency": { "const": "KRW" },
         "timezone": { "const": "Asia/Seoul" }
+      },
+      "additionalProperties": false
+    },
+    "baseline": {
+      "type": "object",
+      "required": ["basis", "reference_date", "value_status", "note"],
+      "properties": {
+        "basis": { "type": "string" },
+        "reference_date": { "type": "string", "format": "date" },
+        "value_status": { "type": "string" },
+        "note": { "type": "string" }
       },
       "additionalProperties": false
     },
@@ -53,6 +64,11 @@
         "lastAttemptMode": { "type": ["string", "null"] },
         "blockedReason": { "type": ["string", "null"] },
         "isDemo": { "type": "boolean" },
+        "backfill": { "type": "boolean" },
+        "backfill_source_replay_date": { "type": "string", "format": "date" },
+        "backfill_note": { "type": "string" },
+        "replay_type": { "type": "string" },
+        "replay_note": { "type": "string" },
         "fixture_note": { "type": "string" },
         "source": { "$ref": "#/$defs/sourceMetadataOrNull" }
       },

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "demo",
+  "mode": "backfill_test",
+  "asOfDate": "2026-10-23",
+  "publishedAt": null,
+  "market": {
+    "name": "KOSPI",
+    "currency": "KRW",
+    "timezone": "Asia/Seoul"
+  },
+  "provider": {
+    "id": "backfill-test",
+    "status": "demo",
+    "label": "TEST ONLY / BACKFILL / SYNTHETIC REPLAY / 2026-10-23",
+    "source": null
+  },
+  "baseline": {
+    "basis": "previous_session_close",
+    "reference_date": "2026-10-22",
+    "value_status": "not_reconstructed",
+    "note": "전일 종가 기준 입력 계약만 확인합니다. 실제 2026-10-22 종가를 복원하지 않습니다."
+  },
+  "pipeline": {
+    "previousResult": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "backfill-test",
+      "message": "TEST ONLY / BACKFILL: existing replay numeric flow for 2026-10-23; no real historical observation."
+    },
+    "analysis": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "backfill-test",
+      "message": "TEST ONLY / BACKFILL: existing replay numeric flow for 2026-10-23; no real historical observation."
+    },
+    "forecast": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "backfill-test",
+      "message": "TEST ONLY / BACKFILL: existing replay numeric flow for 2026-10-23; no real historical observation."
+    },
+    "closeSettlement": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "backfill-test",
+      "message": "TEST ONLY / BACKFILL: existing replay numeric flow for 2026-10-23; no real historical observation."
+    }
+  },
+  "rows": [
+    {
+      "rank": 1,
+      "symbol": "REPLAY-23-A",
+      "name": "baseline replay A · 합성",
+      "expected_open": 401,
+      "expected_close": 408,
+      "expected_return": 1.75,
+      "actual_open": 400,
+      "actual_close": 412,
+      "actual_return": 3,
+      "error": 1.25,
+      "confidence": 0.55,
+      "quality": "backfill_test_replay",
+      "status": "demo"
+    },
+    {
+      "rank": 2,
+      "symbol": "REPLAY-23-B",
+      "name": "baseline replay B · 합성",
+      "expected_open": 501,
+      "expected_close": 495,
+      "expected_return": -1.2,
+      "actual_open": 500,
+      "actual_close": 490,
+      "actual_return": -2,
+      "error": -0.8,
+      "confidence": 0.45,
+      "quality": "backfill_test_replay",
+      "status": "demo"
+    },
+    {
+      "rank": 3,
+      "symbol": "REPLAY-23-C",
+      "name": "baseline replay C · 합성",
+      "expected_open": 601,
+      "expected_close": 612,
+      "expected_return": 1.83,
+      "actual_open": 600,
+      "actual_close": 618,
+      "actual_return": 3,
+      "error": 1.17,
+      "confidence": 0.35,
+      "quality": "backfill_test_replay",
+      "status": "demo"
+    }
+  ],
+  "meta": {
+    "generatedBy": "data/backfill-test/2026-10-23.json",
+    "lastAttemptAt": null,
+    "lastAttemptMode": "backfill_test",
+    "blockedReason": "TEST ONLY / BACKFILL. No 08:30 KST source snapshot exists; synthetic replay values are shown only to exercise the expected/actual/error flow. No future data is used.",
+    "isDemo": true,
+    "backfill": true,
+    "backfill_source_replay_date": "2026-10-23",
+    "backfill_note": "TEST ONLY / BACKFILL. Uses existing synthetic replay numbers; not real financial data, not a reconstructed 08:30 forecast, and not historical performance.",
+    "source": null
+  }
+}

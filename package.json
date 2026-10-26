@@ -5,10 +5,11 @@
   "description": "Static KOSPI pre-market ranking board for GitHub Pages.",
   "type": "module",
   "scripts": {
-    "check": "node --check app.js && node --check providers/provider-adapter.js && node --check providers/demo-provider.js && node --check providers/fixture-provider.js && node --check providers/public-json-provider.js && node --check scripts/update-results.mjs && node --check scripts/workflow-dry-run.mjs && node --check scripts/replay-dry-run.mjs",
+    "check": "node --check app.js && node --check providers/provider-adapter.js && node --check providers/demo-provider.js && node --check providers/fixture-provider.js && node --check providers/public-json-provider.js && node --check scripts/update-results.mjs && node --check scripts/workflow-dry-run.mjs && node --check scripts/replay-dry-run.mjs && node --check scripts/backfill-test-dry-run.mjs",
     "test": "node --test tests/*.test.mjs",
     "pipeline:dry-run": "node scripts/workflow-dry-run.mjs",
-    "replay:dry-run": "node scripts/replay-dry-run.mjs"
+    "replay:dry-run": "node scripts/replay-dry-run.mjs",
+    "backfill:dry-run": "node scripts/backfill-test-dry-run.mjs"
   }
 }
 

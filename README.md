@@ -16,6 +16,8 @@
 
 ## 구조
 
+?mode=backfill-test는 2026-10-26 오늘만 사용하는 TEST ONLY / BACKFILL 화면이며 운영 데이터와 분리되어 있습니다.
+
 ```text
 .
 ├─ index.html
@@ -29,8 +31,12 @@
 ├─ providers/public-json-provider.js
 ├─ data/fixtures/2026-10-22.json
 ├─ data/fixtures/2026-10-23.json
+├─ data/backfill-test/2026-10-22.json
+├─ data/backfill-test/2026-10-23.json
 ├─ scripts/update-results.mjs
 ├─ scripts/workflow-dry-run.mjs
+├─ scripts/replay-dry-run.mjs
+├─ scripts/backfill-test-dry-run.mjs
 ├─ tests/snapshot.test.mjs
 ├─ docs/SYSTEM_DESIGN.md
 └─ .github/workflows/kospi-pipeline.yml
@@ -68,6 +74,24 @@ npm run replay:dry-run -- --date 2026-10-22
 npm run replay:dry-run -- --date 2026-10-23
 ~~~
 
+### 오늘 전용 backfill 테스트
+
+2026-10-26의 backfill 테스트는 운영 data/latest-snapshot.json, 실제 provider 설정, 평일 Actions cron과 엄격히 분리되어 있습니다. 다음 주소는 기존 합성 replay의 expected_open/close/return 및 actual_open/close/return/error 숫자 흐름을 테스트 입력으로 채운 화면을 엽니다.
+
+- https://chansday.github.io/?mode=backfill-test&date=2026-10-22
+- https://chansday.github.io/?mode=backfill-test&date=2026-10-23
+
+스냅샷은 mode=backfill_test, provider.id=backfill-test, meta.isDemo=true, meta.backfill=true를 사용하며 화면에 TEST ONLY / BACKFILL 라벨을 표시합니다. 08:30 KST 실제 원천 스냅샷이 없으므로 과거 08:30 예측을 재구성하지 않았고, 미래 데이터 누수를 막기 위해 날짜를 두 테스트 날짜로만 제한합니다. 숫자는 실제 금융 데이터·실적·예측 성과가 아닙니다.
+
+두 날짜를 실제 파일에 쓰지 않는 dry-run으로 확인합니다.
+
+~~~bash
+npm run backfill:dry-run -- --date 2026-10-22
+npm run backfill:dry-run -- --date 2026-10-23
+~~~
+
+이 경로는 2026-10-26 테스트 전용입니다. 2026-10-27부터 운영 모드는 backfill/replay가 아니라 설정된 실제 provider를 사용해야 하며, 실제 provider가 없거나 출처·라이선스가 확인되지 않으면 기존 정책대로 no_data/degraded를 유지합니다. backfill 테스트는 cron에 연결되지 않습니다.
+
 ### 합성 fixture 모드
 
 data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 UI·스키마·정산 흐름을 확인하기 위한 합성 fixture입니다. 두 파일 모두 provider.id=fixture, mode=fixture, meta.isDemo=true를 명시하고, FIXTURE / SYNTHETIC ONLY 라벨과 fixture_synthetic 품질을 사용합니다. 값은 실제 종목·가격·수익률이 아니며, 실제 08:30 KST 입력 스냅샷이 없으므로 역사적 예측을 사후 재구성한 자료도 아닙니다.
@@ -99,6 +123,7 @@ Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `fo
 ## 로컬 실행과 검증
 
 정적 JSON을 브라우저에서 읽으므로 파일을 직접 열지 말고 HTTP 서버를 사용합니다.
+backfill smoke test는 http://localhost:4173/?mode=backfill-test&date=2026-10-22 및 date=2026-10-23을 사용합니다.
 
 ```bash
 python -m http.server 4173

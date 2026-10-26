@@ -85,6 +85,10 @@ data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 운영 데이�
 
 실제 08:30 KST 입력 snapshot이 없으므로 fixture의 expected_*는 역사적 예측을 사후 재구성한 값이 아니다. fixture provider는 forecast 단계에서 합성 expected 필드만, close-settlement 단계에서 합성 actual/error 필드를 반환하고, 화면에는 FIXTURE / SYNTHETIC ONLY와 SYN 접두사를 표시한다. KOSPI_PROVIDER=fixture는 자동 cron에서 사용하지 않으며, 수동 workflow_dispatch 또는 --provider fixture --fixture-date 2026-10-22|2026-10-23 dry-run에서만 선택한다.
 
+### 오늘 전용 backfill test
+
+?mode=backfill-test&date=2026-10-22|2026-10-23은 운영 snapshot과 분리된 2026-10-26 테스트 경로다. data/backfill-test의 두 snapshot은 기존 replay의 expected/actual/error 숫자 흐름을 복사해 mode=backfill_test, provider.id=backfill-test, meta.isDemo=true, meta.backfill=true로 표시한다. 화면에는 TEST ONLY / BACKFILL 라벨과 함께 08:30 KST 실제 원천 snapshot이 없고 미래 데이터 누수를 막기 위한 테스트 입력이라는 설명을 보여준다. 실제 금융 데이터나 과거 예측 성과를 주장하지 않는다. 2026-10-27부터 운영 모드는 실제 provider 설정만 사용하며 backfill test는 cron에 연결하지 않는다.
+
 ### 공개 JSON provider
 
 `providers/public-json-provider.js`는 정책이 확인된 단일 공개 JSON endpoint를 위한 안전한 opt-in adapter다. 다음 조건을 모두 충족해야 요청한다.
