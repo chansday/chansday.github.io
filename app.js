@@ -49,10 +49,12 @@ function setText(node, value) { if (node) node.textContent = value; }
 function finite(value) { return typeof value === "number" && Number.isFinite(value); }
 function valueOf(row, ...keys) { for (const key of keys) if (row?.[key] !== undefined) return row[key]; return null; }
 function normalizeStatus(status) { return String(status || "no_data").toLowerCase().replaceAll("-", "_"); }
-function formatPrice(value) { return finite(value) ? `${numberFormatter.format(value)}원` : "—"; }
-function formatPercent(value) { return finite(value) ? `${value > 0 ? "+" : ""}${numberFormatter.format(value)}%` : "—"; }
-function formatExpectedPrice(value) { return finite(value) ? `${integerFormatter.format(Math.round(value))}원` : "—"; }
-function formatExpectedPercent(value) { return finite(value) ? `${value > 0 ? "+" : ""}${integerFormatter.format(Math.round(value))}%` : "—"; }
+function normalizeDisplayZero(value, precision = 2) { if (!finite(value)) return value; return Math.abs(value) < (0.5 * (10 ** -precision)) ? 0 : value; }
+function formatPrice(value) { return finite(value) ? `${numberFormatter.format(normalizeDisplayZero(value))}원` : "—"; }
+function formatPercent(value) { const displayValue = normalizeDisplayZero(value); return finite(displayValue) ? `${displayValue > 0 ? "+" : ""}${numberFormatter.format(displayValue)}%` : "—"; }
+function roundExpectedHalfUp(value) { if (!finite(value)) return value; const magnitude = Math.floor(Math.abs(value) + 0.5); const rounded = value < 0 ? -magnitude : magnitude; return rounded === 0 ? 0 : rounded; }
+function formatExpectedPrice(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(roundExpectedHalfUp(value), 0); return `${integerFormatter.format(displayValue)}원`; }
+function formatExpectedPercent(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(roundExpectedHalfUp(value), 0); return `${displayValue > 0 ? "+" : ""}${integerFormatter.format(displayValue)}%`; }
 function formatNumber(value) { return finite(value) ? integerFormatter.format(value) : "—"; }
 function formatDate(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date).replaceAll(". ", "."); }
 function formatTime(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : `${timeFormatter.format(date).replaceAll(". ", ".")} KST`; }

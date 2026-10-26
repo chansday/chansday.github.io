@@ -14,11 +14,11 @@
       ],
       "label": "normal",
       "files": [
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0700.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0800.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0820.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0900.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\1530.json"
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0820.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\1530.json"
       ],
       "rows": 913,
       "expected_preserved": true,
@@ -36,11 +36,11 @@
       ],
       "label": "out-of-order",
       "files": [
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0900.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0700.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\1530.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0800.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0820.json"
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\1530.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0820.json"
       ],
       "rows": 913,
       "expected_preserved": true,
@@ -58,11 +58,11 @@
       ],
       "label": "normal",
       "files": [
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0700.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0800.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0820.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0900.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\1530.json"
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0820.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\1530.json"
       ],
       "rows": 913,
       "expected_preserved": true,
@@ -80,11 +80,11 @@
       ],
       "label": "out-of-order",
       "files": [
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0900.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0700.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\1530.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0800.json",
-        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0820.json"
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\1530.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\output\\kospi-premarket-ranking\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0820.json"
       ],
       "rows": 913,
       "expected_preserved": true,
