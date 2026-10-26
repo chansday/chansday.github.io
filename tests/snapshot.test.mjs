@@ -261,3 +261,4 @@ test("backfill test snapshots are isolated synthetic copies of replay numeric fl
     assert.equal(backfill.rows.every((row) => fields.every((field) => typeof row[field] === "number")), true);
   }
 });
+
