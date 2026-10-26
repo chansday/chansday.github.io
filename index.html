@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#0c151c">
     <meta name="description" content="KOSPI 장전 예측과 실제 정산을 같은 기준으로 확인하는 공개 모니터링 대시보드입니다.">
     <title>KOSPI 장전 모니터링 | CHANSDAY</title>
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./styles.css?v=20261026b">
   </head>
   <body>
     <a class="skip-link" href="#main-content">본문으로 바로가기</a>
@@ -27,6 +27,12 @@
           <span id="top-clock" class="mono">KST --:--:--</span>
         </div>
       </header>
+
+      <div id="quality-ribbon" class="quality-ribbon" role="status" hidden>
+        <span class="quality-ribbon-icon" aria-hidden="true">!</span>
+        <strong id="quality-ribbon-label">DATA QUALITY</strong>
+        <span id="quality-ribbon-text">품질 상태를 확인하세요.</span>
+      </div>
 
       <main id="main-content">
         <section id="overview" class="hero" aria-labelledby="page-title">
@@ -65,6 +71,19 @@
           <div class="snapshot-item"><span class="snapshot-key">PROVIDER</span><strong id="provider-status">미연결</strong><span class="snapshot-sub" id="provider-detail">공개 데이터 공급자 대기</span></div>
           <div class="snapshot-item"><span class="snapshot-key">PROVENANCE</span><strong><a id="source-url" href="#" target="_blank" rel="noreferrer">—</a></strong><span class="snapshot-sub">수집일 <span id="source-collection">—</span> · <span id="source-range">—</span></span></div>
           <div class="snapshot-item snapshot-item-alert"><span class="snapshot-key">DATA POLICY</span><strong>값을 만들지 않음</strong><span class="snapshot-sub">결측·지연·품질 상태를 공개</span></div>
+        </section>
+
+        <section class="signal-overview" aria-labelledby="signal-overview-title">
+          <article class="signal-panel signal-panel-primary">
+            <div class="signal-panel-heading"><div><p class="section-label">TODAY'S SIGNAL</p><h2 id="signal-overview-title">오늘의 장전 신호</h2></div><span id="signal-state" class="badge badge-muted">NO DATA</span></div>
+            <p id="today-signal" class="signal-lede">연결된 예측 데이터가 없어 오늘의 신호를 산출하지 않습니다.</p>
+            <div class="signal-facts"><div><span>예측 가능 행</span><strong id="eligible-count">0</strong></div><div><span>예측 단계</span><strong id="forecast-state">대기</strong></div><div><span>정산 단계</span><strong id="settlement-state">대기</strong></div></div>
+          </article>
+          <article class="signal-panel signal-panel-quality" aria-labelledby="quality-title">
+            <div class="signal-panel-heading"><div><p class="section-label">QUALITY SUMMARY</p><h2 id="quality-title">데이터 품질</h2></div><span id="quality-state" class="badge badge-muted">미확인</span></div>
+            <p id="quality-summary" class="quality-summary">출처·수집 시각·결측 상태가 스냅샷에 기록됩니다.</p>
+            <div class="quality-meta"><span id="quality-source">출처 미연결</span><span id="quality-freshness">갱신 시각 —</span></div>
+          </article>
         </section>
 
         <section class="section pipeline-section" aria-labelledby="pipeline-title">
@@ -130,14 +149,32 @@
               <table id="ranking-table">
                 <caption class="visually-hidden">KOSPI 종목별 장전 예측 및 실제 정산 비교</caption>
                 <thead><tr>
-                  <th scope="col">순위</th><th scope="col">종목</th><th scope="col">예상 시작가</th><th scope="col">예상 종가</th><th scope="col">예상 수익률</th><th scope="col">실제 시작가</th><th scope="col">실제 종가</th><th scope="col">실제 수익률</th><th scope="col">실제 거래량</th><th scope="col">오차</th><th scope="col">confidence</th><th scope="col">품질 / 상태</th>
+                  <th scope="col">순위</th><th scope="col">종목</th><th scope="col" class="column-expected">예상 시작가</th><th scope="col" class="column-expected">예상 종가</th><th scope="col" class="column-expected">예상 수익률</th><th scope="col" class="column-actual">실제 시작가</th><th scope="col" class="column-actual">실제 종가</th><th scope="col" class="column-actual">실제 수익률</th><th scope="col" class="column-actual">실제 거래량</th><th scope="col" class="column-error">오차</th><th scope="col">confidence</th><th scope="col">품질 / 상태</th>
                 </tr></thead>
                 <tbody id="ranking-body"></tbody>
               </table>
               <div id="empty-state" class="empty-state"><span class="empty-mark" aria-hidden="true">∅</span><strong>표시할 종목 데이터가 없습니다.</strong><p>공급자 연결, 검증, 정산이 완료되면 이곳에 행이 추가됩니다.</p><span class="empty-code">NO_DATA / NOTHING FABRICATED</span></div>
             </div>
+            <div id="ranking-cards" class="ranking-cards" aria-label="모바일 종목 카드"></div>
             <div class="table-card-footer"><span>가격: KRW · 거래량: 주 · 수익률/오차: %p</span><span>— = 미수집 · 미계산 · 미공개</span></div>
           </div>
+
+          <section id="selected-detail" class="selected-detail" aria-labelledby="selected-detail-title" aria-live="polite">
+            <div class="selected-detail-heading"><div><p class="section-label">SELECTED INSTRUMENT</p><h2 id="selected-detail-title">선택 종목 상세</h2></div><span id="selected-detail-hint" class="selected-detail-hint">랭킹에서 종목을 선택하세요.</span></div>
+            <div id="selected-empty" class="selected-empty"><span class="selected-empty-icon" aria-hidden="true">↗</span><p>종목 행을 클릭하거나 Enter 키로 선택하면 예상값·실제값·오차와 품질 상태를 확인할 수 있습니다.</p></div>
+            <div id="selected-content" class="selected-content" hidden>
+              <div class="selected-instrument"><span id="selected-symbol" class="selected-symbol">—</span><h3 id="selected-name">—</h3><span id="selected-status" class="row-status no_data">no_data</span></div>
+              <div class="metric-grid">
+                <div class="metric metric-expected"><span>예상 시작가</span><strong id="selected-expected-open">—</strong><small>FORECAST / 08:20 KST</small></div>
+                <div class="metric metric-expected"><span>예상 수익률</span><strong id="selected-expected-return">—</strong><small>EXPECTED</small></div>
+                <div class="metric metric-actual"><span>실제 시작가</span><strong id="selected-actual-open">—</strong><small>SETTLED / 09:00 KST</small></div>
+                <div class="metric metric-actual"><span>실제 수익률</span><strong id="selected-actual-return">—</strong><small>ACTUAL</small></div>
+                <div class="metric metric-error"><span>오차</span><strong id="selected-error">—</strong><small>ERROR / percentage points</small></div>
+                <div class="metric metric-neutral"><span>confidence</span><strong id="selected-confidence">—</strong><small>단위는 provider 계약에 따름</small></div>
+              </div>
+              <div class="selected-meta"><span id="selected-quality">quality —</span><span id="selected-reasons">상태 사유 —</span></div>
+            </div>
+          </section>
         </section>
 
         <section id="method" class="section method-section" aria-labelledby="method-title">
