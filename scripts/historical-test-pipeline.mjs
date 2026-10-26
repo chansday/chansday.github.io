@@ -93,6 +93,10 @@ function buildStageSnapshot(source, date, stageIndex) {
     publishedAt: source.publishedAt,
     pipeline: stagePipeline(source, stageIndex),
     rows,
+    baseline: {
+      ...source.baseline,
+      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + expected_return / 100), 2); actual_return = actual_open / prior_close - 1; session_return = actual_close / actual_open - 1; error = actual_return - expected_return.",
+    },
     evaluation: buildEvaluationSummary(rows, {
       testOnly: true,
       dataset: "historical_test",
@@ -113,6 +117,7 @@ function buildStageSnapshot(source, date, stageIndex) {
       data_classification: "test_only",
       evaluation_dataset: "historical_test",
       evaluation_test_only: true,
+      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close for evaluation; session_return is actual_close versus actual_open for intraday display; expected_open/expected_return are retrospective public-daily momentum/volatility baseline values; expected_close is null because this test targets the open.",
     },
     provider: {
       ...source.provider,
