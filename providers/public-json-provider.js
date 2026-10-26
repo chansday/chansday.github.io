@@ -182,7 +182,12 @@ export function createPublicJsonProvider({ env = globalThis.process?.env || {}, 
         runId: env.GITHUB_RUN_ID || env.KOSPI_RUN_ID || `local-${startedAt}`,
         status: "ready",
         fetchedAt: retrievedAt,
-        metrics: { ...metrics, elapsed_ms: Date.now() - startedAt, overall_deadline_ms: config.overallDeadlineMs, max_concurrency: 1 },
+        metrics: {
+          ...metrics,
+          elapsed_ms: env.KOSPI_STABLE_SNAPSHOT === "1" ? 0 : Date.now() - startedAt,
+          overall_deadline_ms: config.overallDeadlineMs,
+          max_concurrency: 1,
+        },
       });
       const result = normalizePayload(payload, source, stage, now(), config.maxAgeHours);
       if (!isProviderResult(result)) return blockedResult(config, "Public source result failed provider-result validation.");
@@ -190,8 +195,6 @@ export function createPublicJsonProvider({ env = globalThis.process?.env || {}, 
     } catch (error) {
       const reason = error.name === "AbortError" ? "Public source request timed out." : `Public source request failed: ${error.message}`;
       return blockedResult(config, reason);
-    } finally {
-      clearTimeout(timer);
     }
   }
 

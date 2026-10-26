@@ -234,7 +234,7 @@ function freshnessStatus(date, now, maxAgeHours) {
 
 function makeSource({ latest, context, status, partial = false }) {
   const nowIso = context.now().toISOString();
-  const elapsedMs = Date.now() - context.startedAt;
+  const elapsedMs = context.stableSnapshot ? 0 : Date.now() - context.startedAt;
   const estimatedMs = Math.min(context.config.overallDeadlineMs, Math.ceil(
     (context.metrics.completed > 0 ? elapsedMs / context.metrics.completed : context.config.timeoutMs) * Math.max(1, context.metrics.requested) / context.config.maxConcurrency,
   ));
@@ -381,6 +381,7 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
       fetchImpl,
       now,
       runId: runId(env),
+      stableSnapshot: env.KOSPI_STABLE_SNAPSHOT === "1",
       startedAt,
       deadlineAt: startedAt + config.overallDeadlineMs,
       metrics: { requested: 0, completed: 0, failed: 0, retries: 0, deadlineHit: false },

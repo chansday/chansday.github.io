@@ -24,6 +24,7 @@
 ├─ styles.css
 ├─ app.js
 ├─ data/latest-snapshot.json
+├─ data/runs/YYYY-MM-DD/{0700,0800,0820,0900,1530}.json
 ├─ schema/market-snapshot.schema.json
 ├─ providers/provider-adapter.js
 ├─ providers/demo-provider.js
@@ -51,7 +52,7 @@
 
 운영 provider 기본값은 `public-csv`이며, 평일 Actions가 명시적 allowlist의 bulk CSV만 수집합니다. `KOSPI_PROVIDER=none`으로 끄거나, 공개 원천이 늦거나 품질 검사를 통과하지 못하면 `no_data`/`partial`/`degraded` 상태로 기록합니다. 아래 historical-test 스냅샷만 별도 TEST ONLY 화면으로 실제 과거 파일을 표시합니다.
 
-`data/historical-test/*.json`과 기본 `data/latest-snapshot.json`은 운영 provider와 분리된 검증용 과거 스냅샷입니다. 이 두 파일의 숫자는 합성 fixture가 아니라 아래 공개 일별 파일에서 수집한 실제 값입니다.
+`data/historical-test/*.json`은 운영 run과 분리된 검증용 과거 스냅샷입니다. `data/latest-snapshot.json`은 화면이 읽는 최신 운영 run의 복사본이며, canonical 입력은 `data/runs/YYYY-MM-DD/*.json`에 단계별로 보존합니다. historical-test 수집기는 latest 운영 복사본을 갱신하지 않습니다.
 
 - 출처: [한국주식데이터 일별 시세 파일](https://aikstockdata.com/data/public/daily/quotes_20261023.csv), 원천 표기: 금융위원회 공공데이터포털·한국거래소
 - 라이선스: [aiksd-public-1.1](https://aikstockdata.com/licenses/aiksd-public-1.1.txt), 출처표시·비영리 이용 조건 및 공공누리 제4유형 조건을 준수해야 합니다.
@@ -62,7 +63,7 @@
 
 ### Historical-test / TEST ONLY
 
-기본 화면은 2026-10-23 historical-test 스냅샷을 바로 표시합니다. 날짜별 화면은 다음 주소로 확인할 수 있습니다.
+기본 화면은 최신 운영 스냅샷을 표시하며, 공급자가 없거나 수집이 차단되면 `no_data`/`degraded` 상태를 유지합니다. historical-test 날짜별 화면은 다음 주소로 별도 확인할 수 있습니다.
 
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-22`
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-23`
@@ -114,6 +115,8 @@ npm run historical-test:collect
 adapter는 단일 HTTPS JSON endpoint만 사용하고, redirect를 거부하며, `application/json`이 아닌 응답을 거부합니다. source timeout·overall deadline·429/5xx bounded backoff를 적용하고 응답에는 `asOfDate`와 검증된 `rows`가 있어야 합니다. 성공 시 `meta.source`에 출처명·URL·라이선스 상태·라이선스 URL·수집시각·run id·metrics를 기록합니다.
 
 실제 API 키는 코드·fixture·snapshot에 넣지 않습니다. 향후 provider가 인증을 요구할 경우에만 GitHub Actions Secret `KOSPI_PROVIDER_API_KEY`를 사용하며, 현재 `public-json` adapter는 키를 사용하지 않습니다.
+
+운영 단계 저장은 `node scripts/update-results.mjs --mode <stage> --run-date YYYY-MM-DD`로 수행합니다. 기본 단계 시각은 KST 07:00, 08:00, 08:20, 09:00, 15:30으로 고정되어 동일 입력 재실행 시 JSON 내용이 달라지지 않습니다. 09:00은 `actual_open`/`actual_return`만, 15:30은 `actual_close`/`actual_volume`만 이전 단계에 병합하며 expected 필드는 보존합니다. `--dry-run`은 파일을 쓰지 않습니다.
 
 ### Baseline replay 모드
 

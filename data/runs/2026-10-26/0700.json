@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "no_data",
+  "mode": "provider",
+  "asOfDate": null,
+  "publishedAt": null,
+  "market": {
+    "name": "KOSPI",
+    "currency": "KRW",
+    "timezone": "Asia/Seoul"
+  },
+  "provider": {
+    "id": null,
+    "status": "not_configured",
+    "label": "연결된 데이터 공급자 없음",
+    "source": null
+  },
+  "pipeline": {
+    "previousResult": {
+      "status": "blocked",
+      "attemptedAt": "2026-10-25T22:00:00.000Z",
+      "provider_id": null,
+      "message": "No market data provider is configured. No financial values are generated."
+    },
+    "analysis": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    },
+    "forecast": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    },
+    "openSettlement": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    },
+    "closeSettlement": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    }
+  },
+  "rows": [],
+  "meta": {
+    "generatedBy": "provider-adapter",
+    "lastAttemptAt": "2026-10-25T22:00:00.000Z",
+    "lastAttemptMode": "update-results",
+    "blockedReason": "No market data provider is configured. No financial values are generated.",
+    "isDemo": false,
+    "source": null,
+    "run_date": "2026-10-26",
+    "run_stage": "update-results"
+  }
+}

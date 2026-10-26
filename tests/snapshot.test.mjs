@@ -1,5 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readFile, rm } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { fileURLToPath } from "node:url";
+import { join, resolve } from "node:path";
 import test from "node:test";
 import {
   emptyRow,
@@ -12,20 +16,53 @@ import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provi
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
 
-test("static snapshot follows the top-level contract and is visibly test-only", async () => {
+const execFileAsync = promisify(execFile);
+const PROJECT_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
+
+test("latest snapshot is an operating screen copy, not the historical-test dataset", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../data/latest-snapshot.json", import.meta.url), "utf8"));
   assert.equal(isSnapshot(snapshot), true);
   assert.equal(snapshot.market.name, "KOSPI");
   assert.equal(snapshot.market.timezone, "Asia/Seoul");
-  assert.equal(snapshot.mode, "historical_test");
-  assert.equal(snapshot.meta.historical_test, true);
-  assert.equal(snapshot.meta.test_only, true);
-  assert.equal(snapshot.provider.id, "historical-test");
-  assert.equal(snapshot.rows.length, 913);
-  assert.equal(snapshot.meta.source_rows, 913);
-  assert.equal(snapshot.baseline.model, "public_daily_momentum_volatility_v1");
-  assert.equal(snapshot.pipeline.openSettlement.status, "ready");
-  assert.equal(snapshot.pipeline.closeSettlement.status, "ready");
+  assert.notEqual(snapshot.mode, "historical_test");
+  assert.notEqual(snapshot.meta?.historical_test, true);
+  assert.notEqual(snapshot.meta?.test_only, true);
+  assert.equal(snapshot.meta.run_stage, "update-results");
+});
+
+test("canonical stage runs preserve fields, settle cumulatively, and are idempotent", async () => {
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-run-"));
+  const fixtureSource = join(PROJECT_ROOT, "data", "fixtures", "2026-10-23.json");
+  const fixtureTarget = join(tempRoot, "data", "fixtures", "2026-10-23.json");
+  const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
+  const modes = ["update-results", "analysis", "forecast", "open-settlement", "close-settlement"];
+  const args = ["--provider", "fixture", "--fixture-date", "2026-10-23", "--run-date", "2026-10-23"];
+  try {
+    await mkdir(join(tempRoot, "data", "fixtures"), { recursive: true });
+    await cp(fixtureSource, fixtureTarget);
+    for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot });
+
+    const stage = async (name) => JSON.parse(await readFile(join(tempRoot, "data", "runs", "2026-10-23", `${name}.json`), "utf8"));
+    const stage0700 = await stage("0700");
+    const stage0800 = await stage("0800");
+    const stage0820 = await stage("0820");
+    const stage0900 = await stage("0900");
+    const stage1530 = await stage("1530");
+    assert.equal(stage0700.meta.run_stage, "update-results");
+    assert.equal(stage0800.meta.run_stage, "analysis");
+    assert.equal(stage0820.rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null), true);
+    assert.equal(stage0900.rows.every((row) => row.expected_open !== null && row.actual_open !== null && row.actual_close === null), true);
+    assert.equal(stage1530.rows.every((row) => row.expected_open !== null && row.actual_open !== null && row.actual_close !== null), true);
+    assert.deepEqual(stage1530.rows.map((row) => row.actual_return), stage0900.rows.map((row) => row.actual_return));
+    assert.deepEqual(JSON.parse(await readFile(join(tempRoot, "data", "latest-snapshot.json"), "utf8")), stage1530);
+
+    const before = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0820" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
+    for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot });
+    const after = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0820" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
+    assert.deepEqual(after, before);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
 });
 
 test("historical-test snapshots contain observed OHLC-volume values and no future-leaking baseline inputs", async () => {

@@ -1,9 +1,10 @@
-import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
   isProviderAdapter,
   isProviderResult,
+  noDataSnapshot,
   validateRankingRows,
 } from "../providers/provider-adapter.js";
 import { createDemoProvider } from "../providers/demo-provider.js";
@@ -19,8 +20,52 @@ export const MODES = {
   "close-settlement": { key: "closeSettlement", method: "settleClose" },
 };
 
+export const RUN_STAGE_TIMES = Object.freeze({
+  "update-results": "07:00:00",
+  analysis: "08:00:00",
+  forecast: "08:20:00",
+  "open-settlement": "09:00:00",
+  "close-settlement": "15:30:00",
+});
+
+const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expected_return"]);
+const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open", "actual_return"]);
+const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "actual_volume"]);
+
+function kstDate(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date).reduce((result, part) => ({ ...result, [part.type]: part.value }), {});
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function validDate(value) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
+}
+
+function stageAttemptedAt(runDate, mode) {
+  return new Date(`${runDate}T${RUN_STAGE_TIMES[mode]}+09:00`).toISOString();
+}
+
+function parseAttemptedAt(value, runDate, mode) {
+  const attemptedAt = value || stageAttemptedAt(runDate, mode);
+  if (Number.isNaN(Date.parse(attemptedAt))) throw new Error(`Invalid --attempted-at value: ${attemptedAt}`);
+  return new Date(attemptedAt).toISOString();
+}
+
 function parseArgs(argv) {
-  const options = { mode: null, dataFile: "data/latest-snapshot.json", dryRun: false, provider: null, fixtureDate: null };
+  const options = {
+    mode: null,
+    dataFile: null,
+    dryRun: false,
+    provider: null,
+    fixtureDate: null,
+    runDate: process.env.KOSPI_RUN_DATE || kstDate(),
+    attemptedAt: null,
+  };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--dry-run") options.dryRun = true;
@@ -28,25 +73,37 @@ function parseArgs(argv) {
     else if (arg === "--data-file") { options.dataFile = argv[index + 1]; index += 1; }
     else if (arg === "--provider") { options.provider = argv[index + 1]; index += 1; }
     else if (arg === "--fixture-date") { options.fixtureDate = argv[index + 1]; index += 1; }
+    else if (arg === "--run-date" || arg === "--date") { options.runDate = argv[index + 1]; index += 1; }
+    else if (arg === "--attempted-at") { options.attemptedAt = argv[index + 1]; index += 1; }
     else if (arg === "--help") {
-      console.log("Usage: node scripts/update-results.mjs --mode <update-results|analysis|forecast|close-settlement> [--provider id] [--fixture-date YYYY-MM-DD] [--data-file path] [--dry-run]");
+      console.log("Usage: node scripts/update-results.mjs --mode <update-results|analysis|forecast|open-settlement|close-settlement> [--provider id] [--fixture-date YYYY-MM-DD] [--run-date YYYY-MM-DD] [--attempted-at ISO] [--data-file path] [--dry-run]");
       return null;
     } else throw new Error(`Unknown argument: ${arg}`);
   }
   if (!options.mode || !MODES[options.mode]) {
-    throw new Error("--mode must be one of: update-results, analysis, forecast, close-settlement");
+    throw new Error("--mode must be one of: update-results, analysis, forecast, open-settlement, close-settlement");
   }
+  if (!validDate(options.runDate)) throw new Error(`--run-date must be YYYY-MM-DD: ${options.runDate}`);
+  options.attemptedAt = parseAttemptedAt(options.attemptedAt, options.runDate, options.mode);
   return options;
 }
 
 function resolveProvider(env = process.env, options = {}) {
   const providerId = (options.provider ?? env.KOSPI_PROVIDER ?? "").trim().toLowerCase();
-  const providerEnv = { ...env, ...(options.fixtureDate ? { KOSPI_FIXTURE_DATE: options.fixtureDate } : {}) };
+  const providerEnv = {
+    ...env,
+    ...(options.fixtureDate ? { KOSPI_FIXTURE_DATE: options.fixtureDate } : {}),
+    KOSPI_RUN_DATE: options.runDate,
+    KOSPI_RUN_ID: `${options.runDate}-${options.mode}`,
+    KOSPI_STABLE_SNAPSHOT: "1",
+    GITHUB_RUN_ID: undefined,
+  };
+  const now = () => new Date(options.attemptedAt);
   if (!providerId || providerId === "none") return { provider: null, providerId: null };
   if (providerId === "demo") return { provider: createDemoProvider(), providerId };
   if (providerId === "fixture") return { provider: createFixtureProvider({ env: providerEnv }), providerId };
-  if (providerId === "public-json") return { provider: createPublicJsonProvider({ env: providerEnv }), providerId };
-  if (providerId === "public-csv") return { provider: createPublicCsvProvider({ env: providerEnv }), providerId };
+  if (providerId === "public-json") return { provider: createPublicJsonProvider({ env: providerEnv, now }), providerId };
+  if (providerId === "public-csv") return { provider: createPublicCsvProvider({ env: providerEnv, now }), providerId };
   return { provider: null, providerId };
 }
 
@@ -63,18 +120,40 @@ function providerInfo(provider, providerId, status = "degraded") {
   };
 }
 
+function derivedError(row) {
+  return typeof row.actual_return === "number" && typeof row.expected_return === "number"
+    ? Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100
+    : null;
+}
+
 function mergeRows(existingRows, incomingRows, mode) {
-  if (mode !== "close-settlement") return incomingRows;
   const bySymbol = new Map(existingRows.filter((row) => row.symbol).map((row) => [row.symbol, row]));
   return incomingRows.map((incoming) => {
     const existing = incoming.symbol ? bySymbol.get(incoming.symbol) : null;
     if (!existing) return incoming;
-    const expectedFields = ["expected_open", "expected_close", "expected_return"];
-    return {
-      ...existing,
-      ...incoming,
-      ...Object.fromEntries(expectedFields.map((field) => [field, incoming[field] ?? existing[field] ?? null])),
-    };
+
+    if (mode === "open-settlement") {
+      const merged = { ...existing };
+      for (const field of ["rank", "symbol", "name", "quality", "status", ...OPEN_SETTLEMENT_FIELDS]) {
+        if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
+      }
+      merged.error = derivedError(merged);
+      return merged;
+    }
+
+    if (mode === "close-settlement") {
+      const merged = { ...existing };
+      for (const field of ["rank", "symbol", "name", "quality", "status", ...CLOSE_SETTLEMENT_FIELDS]) {
+        if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
+      }
+      return merged;
+    }
+
+    const merged = { ...existing, ...incoming };
+    for (const field of EXPECTED_FIELDS) {
+      if (incoming[field] === null && existing[field] !== null) merged[field] = existing[field];
+    }
+    return merged;
   });
 }
 
@@ -82,12 +161,19 @@ function carryExpectedRowsForUnavailableSettlement(rows, mode) {
   return rows.map((row) => ({
     ...row,
     actual_open: mode === "open-settlement" ? null : row.actual_open,
-    actual_close: null,
+    actual_close: mode === "open-settlement" ? row.actual_close : null,
     actual_return: mode === "open-settlement" ? null : row.actual_return,
-    error: null,
+    error: mode === "open-settlement" ? null : derivedError(row),
     quality: mode === "open-settlement" ? "pending_open_settlement" : "pending_close_settlement",
     status: "pending",
   }));
+}
+
+function unavailableRows(snapshot, mode) {
+  if (["open-settlement", "close-settlement"].includes(mode) && snapshot.rows.length > 0) {
+    return carryExpectedRowsForUnavailableSettlement(snapshot.rows, mode);
+  }
+  return [];
 }
 
 function applyProviderResult(snapshot, result, mode, provider, providerId, attemptedAt) {
@@ -168,12 +254,50 @@ export async function run(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
   if (!options) return { help: true };
   const modeConfig = MODES[options.mode];
-  const snapshot = JSON.parse(await readFile(options.dataFile, "utf8"));
-  const attemptedAt = new Date().toISOString();
+  const latestPath = resolve(options.dataFile || "data/latest-snapshot.json");
+  const runPath = resolve("data", "runs", options.runDate, `${options.mode === "update-results" ? "0700" : options.mode === "analysis" ? "0800" : options.mode === "forecast" ? "0820" : options.mode === "open-settlement" ? "0900" : "1530"}.json`);
+  const previousMode = {
+    "update-results": null,
+    analysis: "update-results",
+    forecast: "analysis",
+    "open-settlement": "forecast",
+    "close-settlement": "open-settlement",
+  }[options.mode];
+  const previousPath = previousMode
+    ? resolve("data", "runs", options.runDate, `${previousMode === "update-results" ? "0700" : previousMode === "analysis" ? "0800" : previousMode === "forecast" ? "0820" : "0900"}.json`)
+    : null;
+  const explicitDataFile = Boolean(options.dataFile);
+  async function readIfPresent(path) {
+    if (!path) return null;
+    try {
+      await access(path);
+      return JSON.parse(await readFile(path, "utf8"));
+    } catch (error) {
+      if (error.code === "ENOENT") return null;
+      throw error;
+    }
+  }
+  let snapshot;
+  if (explicitDataFile) {
+    snapshot = JSON.parse(await readFile(latestPath, "utf8"));
+  } else {
+    snapshot = await readIfPresent(runPath)
+      || await readIfPresent(previousPath)
+      || await readIfPresent(latestPath);
+    if (snapshot?.meta?.historical_test || snapshot?.meta?.test_only || snapshot?.mode === "historical_test") snapshot = null;
+    snapshot ||= noDataSnapshot();
+  }
+  const attemptedAt = options.attemptedAt;
   const { provider, providerId } = resolveProvider(process.env, options);
   let nextSnapshot = {
     ...snapshot,
-    meta: { ...snapshot.meta, lastAttemptAt: attemptedAt, lastAttemptMode: options.mode },
+    meta: {
+      ...snapshot.meta,
+      lastAttemptAt: attemptedAt,
+      lastAttemptMode: options.mode,
+      run_date: options.runDate,
+      run_stage: options.mode,
+    },
   };
 
   if (!provider) {
@@ -186,7 +310,7 @@ export async function run(argv = process.argv.slice(2)) {
       status,
       mode: "provider",
       provider: providerInfo(null, providerId, providerId ? "unsupported" : "not_configured"),
-      rows: [],
+      rows: unavailableRows(nextSnapshot, options.mode),
       meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: null },
       pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -197,7 +321,7 @@ export async function run(argv = process.argv.slice(2)) {
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: [],
+      rows: unavailableRows(nextSnapshot, options.mode),
       meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: provider.getSourceMetadata?.() || null },
       pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -207,8 +331,33 @@ export async function run(argv = process.argv.slice(2)) {
   }
 
   const output = `${JSON.stringify(nextSnapshot, null, 2)}\n`;
-  if (!options.dryRun) await writeFile(options.dataFile, output, "utf8");
-  const summary = { mode: options.mode, provider: providerId, status: nextSnapshot.status, wroteFile: !options.dryRun };
+  let wroteRunFile = false;
+  let wroteLatestFile = false;
+  if (!options.dryRun) {
+    if (explicitDataFile) {
+      await mkdir(dirname(latestPath), { recursive: true });
+      await writeFile(latestPath, output, "utf8");
+      wroteLatestFile = true;
+    } else {
+      await mkdir(dirname(runPath), { recursive: true });
+      await mkdir(dirname(latestPath), { recursive: true });
+      await writeFile(runPath, output, "utf8");
+      await writeFile(latestPath, output, "utf8");
+      wroteRunFile = true;
+      wroteLatestFile = true;
+    }
+  }
+  const summary = {
+    mode: options.mode,
+    runDate: options.runDate,
+    attemptedAt,
+    provider: providerId,
+    status: nextSnapshot.status,
+    stageFile: explicitDataFile ? null : runPath,
+    wroteRunFile,
+    wroteLatestFile,
+    wroteFile: wroteLatestFile,
+  };
   console.log(JSON.stringify(summary));
   return summary;
 }

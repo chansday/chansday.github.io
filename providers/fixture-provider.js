@@ -51,7 +51,6 @@ function stageRows(rows, stage) {
       base.quality = "fixture_expected_only";
     } else if (stage === "openSettlement") {
       base.actual_close = null;
-      base.actual_return = null;
       base.error = null;
       base.quality = "fixture_open_settled";
     } else {
