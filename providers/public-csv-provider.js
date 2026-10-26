@@ -70,7 +70,7 @@ function kstDate(date) {
 }
 
 function subtractDays(date, days) {
-  const value = new Date(`${date}T00:00:00+09:00`);
+  const value = new Date(`${date}T12:00:00Z`);
   value.setUTCDate(value.getUTCDate() - days);
   return value.toISOString().slice(0, 10);
 }
@@ -269,23 +269,30 @@ function noData(message, source = null, status = "no_data") {
   return { status, message, rows: [], source, asOfDate: null };
 }
 
+function deriveError(actualReturn, expectedReturn) {
+  return typeof actualReturn === "number" && typeof expectedReturn === "number"
+    ? Math.round((actualReturn - expectedReturn + Number.EPSILON) * 100) / 100
+    : null;
+}
+
 function makeRows(latest, prior) {
   const priorBySymbol = new Map((prior?.rows || []).map((row) => [row.symbol, row]));
   const rows = latest.rows.map((row) => {
     const previous = priorBySymbol.get(row.symbol);
-    const actualReturn = previous?.close > 0 ? Math.round(((row.close / previous.close - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
+    const expectedReturn = null;
+    const actualReturn = previous?.close > 0 ? Math.round(((row.open / previous.close - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
     return {
       rank: null,
       symbol: row.symbol,
       name: row.name,
       expected_open: null,
       expected_close: null,
-      expected_return: null,
+      expected_return: expectedReturn,
       actual_open: row.open,
       actual_close: row.close,
       actual_return: actualReturn,
       actual_volume: row.volume,
-      error: null,
+      error: deriveError(actualReturn, expectedReturn),
       confidence: null,
       quality: "public_eod_observed",
       status: "valid",

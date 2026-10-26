@@ -110,7 +110,8 @@ async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics }) {
     const remaining = deadlineAt - Date.now();
     if (remaining <= 0) return { ok: false, reason: "overall deadline exceeded" };
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), Math.min(config.timeoutMs, remaining));
+    let timer = null;
+    timer = setTimeout(() => controller.abort(), Math.min(config.timeoutMs, remaining));
     metrics.requested += 1;
     try {
       const response = await fetchImpl(url, { headers: { Accept: "application/json", "User-Agent": USER_AGENT }, redirect: "error", signal: controller.signal });
@@ -128,7 +129,9 @@ async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics }) {
       const delay = Math.min(3000, config.retryBaseMs * (2 ** attempt));
       if (Date.now() + delay >= deadlineAt) return { ok: false, reason: "overall deadline exceeded during retry backoff" };
       await new Promise((resolve) => setTimeout(resolve, delay));
-    } finally { clearTimeout(timer); }
+    } finally {
+      if (timer !== null) clearTimeout(timer);
+    }
   }
   return { ok: false, reason: "retry budget exhausted" };
 }

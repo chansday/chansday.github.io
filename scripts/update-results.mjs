@@ -31,8 +31,6 @@ export const RUN_STAGE_TIMES = Object.freeze({
 const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expected_return"]);
 const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open", "actual_return"]);
 const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "actual_volume"]);
-const SETTLEMENT_IDENTITY_FIELDS = Object.freeze(["rank", "symbol", "name", "quality", "status"]);
-const SETTLEMENT_MODES = new Set(["open-settlement", "close-settlement"]);
 
 function kstDate(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -128,36 +126,38 @@ function derivedError(row) {
     : null;
 }
 
-function mergeSettlementRows(existingRows, incomingRows, mode) {
-  const fields = mode === "open-settlement" ? OPEN_SETTLEMENT_FIELDS : CLOSE_SETTLEMENT_FIELDS;
-  const incomingBySymbol = new Map(incomingRows.filter((row) => row.symbol).map((row) => [row.symbol, row]));
-  const matchedSymbols = new Set();
-  const mergedExisting = existingRows.map((existing) => {
-    const incoming = existing.symbol ? incomingBySymbol.get(existing.symbol) : null;
-    if (!incoming) return existing;
-
-    const merged = { ...existing };
-    for (const field of [...SETTLEMENT_IDENTITY_FIELDS, ...fields]) {
-      if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
-    }
-    merged.error = derivedError(merged);
-    matchedSymbols.add(existing.symbol);
-    return merged;
-  });
-
-  const newRows = incomingRows
-    .filter((incoming) => !incoming.symbol || !matchedSymbols.has(incoming.symbol))
-    .map((incoming) => ({ ...incoming, error: derivedError(incoming) }));
-  return [...mergedExisting, ...newRows];
+function derivedActualReturn(row) {
+  return typeof row.actual_open === "number" && row.actual_open >= 0 && typeof row.prior_close === "number" && row.prior_close > 0
+    ? Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100
+    : null;
 }
 
 export function mergeRows(existingRows, incomingRows, mode) {
-  if (SETTLEMENT_MODES.has(mode)) return mergeSettlementRows(existingRows, incomingRows, mode);
-
   const bySymbol = new Map(existingRows.filter((row) => row.symbol).map((row) => [row.symbol, row]));
-  return incomingRows.map((incoming) => {
+  const incomingSymbols = new Set(incomingRows.filter((row) => row.symbol).map((row) => row.symbol));
+  const mergedRows = incomingRows.map((incoming) => {
     const existing = incoming.symbol ? bySymbol.get(incoming.symbol) : null;
     if (!existing) return incoming;
+
+    if (mode === "open-settlement") {
+      const merged = { ...existing };
+      for (const field of ["rank", "symbol", "name", "quality", "status", ...OPEN_SETTLEMENT_FIELDS]) {
+        if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
+      }
+      const actualReturn = derivedActualReturn(merged);
+      if (actualReturn !== null) merged.actual_return = actualReturn;
+      merged.error = derivedError(merged);
+      return merged;
+    }
+
+    if (mode === "close-settlement") {
+      const merged = { ...existing };
+      for (const field of ["rank", "symbol", "name", "quality", "status", ...CLOSE_SETTLEMENT_FIELDS]) {
+        if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
+      }
+      merged.error = derivedError(merged);
+      return merged;
+    }
 
     const merged = { ...existing, ...incoming };
     for (const field of EXPECTED_FIELDS) {
@@ -165,18 +165,14 @@ export function mergeRows(existingRows, incomingRows, mode) {
     }
     return merged;
   });
+  for (const existing of existingRows) {
+    if (existing.symbol && !incomingSymbols.has(existing.symbol)) mergedRows.push(existing);
+  }
+  return mergedRows;
 }
 
 function carryExpectedRowsForUnavailableSettlement(rows, mode) {
-  return rows.map((row) => ({
-    ...row,
-    actual_open: mode === "open-settlement" ? null : row.actual_open,
-    actual_close: mode === "open-settlement" ? row.actual_close : null,
-    actual_return: mode === "open-settlement" ? null : row.actual_return,
-    error: mode === "open-settlement" ? null : derivedError(row),
-    quality: mode === "open-settlement" ? "pending_open_settlement" : "pending_close_settlement",
-    status: "pending",
-  }));
+  return rows.map((row) => ({ ...row, error: derivedError(row) }));
 }
 
 function unavailableRows(snapshot, mode) {
@@ -194,7 +190,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: SETTLEMENT_MODES.has(mode) ? unavailableRows(snapshot, mode) : [],
+      rows: unavailableRows(snapshot, mode),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source: provider?.getSourceMetadata?.() || null },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -208,13 +204,13 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: SETTLEMENT_MODES.has(mode) ? unavailableRows(snapshot, mode) : [],
+      rows: unavailableRows(snapshot, mode),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
   }
 
-  const preserveExpectedRows = SETTLEMENT_MODES.has(mode) && snapshot.rows.length > 0 && result.status !== "ready" && result.status !== "demo";
+  const preserveExpectedRows = result.status === "no_data" && ["open-settlement", "close-settlement"].includes(mode) && snapshot.rows.length > 0;
   const rows = result.status === "ready" || result.status === "demo"
     ? mergeRows(snapshot.rows, result.rows, mode)
     : preserveExpectedRows ? carryExpectedRowsForUnavailableSettlement(snapshot.rows, mode) : [];
@@ -227,7 +223,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: SETTLEMENT_MODES.has(mode) ? unavailableRows(snapshot, mode) : [],
+      rows: unavailableRows(snapshot, mode),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -281,85 +277,66 @@ export async function run(argv = process.argv.slice(2)) {
     if (!path) return null;
     try {
       await access(path);
-      const raw = await readFile(path, "utf8");
-      return { snapshot: JSON.parse(raw), raw };
+      return JSON.parse(await readFile(path, "utf8"));
     } catch (error) {
       if (error.code === "ENOENT") return null;
       throw error;
     }
   }
-  const existingRun = !explicitDataFile ? await readIfPresent(runPath) : null;
-  const attemptedAt = options.attemptedAt;
-  let providerId = existingRun?.snapshot?.provider?.id || null;
-  let nextSnapshot;
-  let output;
-  let wroteCanonicalRun = false;
-
-  if (existingRun) {
-    nextSnapshot = existingRun.snapshot;
-    output = existingRun.raw;
+  let snapshot;
+  if (explicitDataFile) {
+    snapshot = JSON.parse(await readFile(latestPath, "utf8"));
   } else {
-    let snapshot;
-    if (explicitDataFile) {
-      const explicitSnapshot = await readIfPresent(latestPath);
-      if (!explicitSnapshot) throw new Error(`Snapshot file not found: ${latestPath}`);
-      snapshot = explicitSnapshot.snapshot;
-    } else {
-      const previous = await readIfPresent(previousPath);
-      const latest = await readIfPresent(latestPath);
-      snapshot = previous?.snapshot
-        || (latest?.snapshot?.meta?.run_date === options.runDate ? latest.snapshot : null)
-        || noDataSnapshot();
-      if (snapshot?.meta?.historical_test || snapshot?.meta?.test_only || snapshot?.mode === "historical_test") snapshot = noDataSnapshot();
-    }
+    snapshot = await readIfPresent(runPath)
+      || await readIfPresent(previousPath)
+      || await readIfPresent(latestPath);
+    if (snapshot?.meta?.historical_test || snapshot?.meta?.test_only || snapshot?.mode === "historical_test") snapshot = null;
+    snapshot ||= noDataSnapshot();
+  }
+  const attemptedAt = options.attemptedAt;
+  const { provider, providerId } = resolveProvider(process.env, options);
+  let nextSnapshot = {
+    ...snapshot,
+    meta: {
+      ...snapshot.meta,
+      lastAttemptAt: attemptedAt,
+      lastAttemptMode: options.mode,
+      run_date: options.runDate,
+      run_stage: options.mode,
+    },
+  };
 
-    const resolvedProvider = resolveProvider(process.env, options);
-    const { provider } = resolvedProvider;
-    providerId = resolvedProvider.providerId;
+  if (!provider) {
+    const reason = providerId
+      ? `Provider '${providerId}' is not registered. Register an adapter before enabling it.`
+      : "No market data provider is configured. No financial values are generated.";
+    const status = providerId ? "degraded" : "no_data";
     nextSnapshot = {
-      ...snapshot,
-      meta: {
-        ...snapshot.meta,
-        lastAttemptAt: attemptedAt,
-        lastAttemptMode: options.mode,
-        run_date: options.runDate,
-        run_stage: options.mode,
-      },
+      ...nextSnapshot,
+      status,
+      mode: "provider",
+      provider: providerInfo(null, providerId, providerId ? "unsupported" : "not_configured"),
+      rows: unavailableRows(nextSnapshot, options.mode),
+      meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: null },
+      pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
-
-    if (!provider) {
-      const reason = providerId
-        ? `Provider '${providerId}' is not registered. Register an adapter before enabling it.`
-        : "No market data provider is configured. No financial values are generated.";
-      const status = providerId ? "degraded" : "no_data";
-      nextSnapshot = {
-        ...nextSnapshot,
-        status,
-        mode: "provider",
-        provider: providerInfo(null, providerId, providerId ? "unsupported" : "not_configured"),
-        rows: unavailableRows(nextSnapshot, options.mode),
-        meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: null },
-        pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
-      };
-    } else if (!isProviderAdapter(provider)) {
-      const reason = `Provider '${provider.id}' does not satisfy the adapter contract.`;
-      nextSnapshot = {
-        ...nextSnapshot,
-        status: "degraded",
-        mode: "provider",
-        provider: providerInfo(provider, providerId, "degraded"),
-        rows: unavailableRows(nextSnapshot, options.mode),
-        meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: provider.getSourceMetadata?.() || null },
-        pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
-      };
-    } else {
-      const result = await provider[modeConfig.method]({ snapshot: nextSnapshot, env: process.env });
-      nextSnapshot = applyProviderResult(nextSnapshot, result, options.mode, provider, providerId, attemptedAt);
-    }
-
-    output = `${JSON.stringify(nextSnapshot, null, 2)}\n`;
+  } else if (!isProviderAdapter(provider)) {
+    const reason = `Provider '${provider.id}' does not satisfy the adapter contract.`;
+    nextSnapshot = {
+      ...nextSnapshot,
+      status: "degraded",
+      mode: "provider",
+      provider: providerInfo(provider, providerId, "degraded"),
+      rows: unavailableRows(nextSnapshot, options.mode),
+      meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: provider.getSourceMetadata?.() || null },
+      pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
+    };
+  } else {
+    const result = await provider[modeConfig.method]({ snapshot: nextSnapshot, env: process.env });
+    nextSnapshot = applyProviderResult(nextSnapshot, result, options.mode, provider, providerId, attemptedAt);
   }
 
+  const output = `${JSON.stringify(nextSnapshot, null, 2)}\n`;
   let wroteRunFile = false;
   let wroteLatestFile = false;
   if (!options.dryRun) {
@@ -370,17 +347,10 @@ export async function run(argv = process.argv.slice(2)) {
     } else {
       await mkdir(dirname(runPath), { recursive: true });
       await mkdir(dirname(latestPath), { recursive: true });
-      if (!existingRun) {
-        await writeFile(runPath, output, "utf8");
-        wroteCanonicalRun = true;
-        wroteRunFile = true;
-      }
-      let latestRaw = null;
-      try { latestRaw = await readFile(latestPath, "utf8"); } catch (error) { if (error.code !== "ENOENT") throw error; }
-      if (latestRaw !== output) {
-        await writeFile(latestPath, output, "utf8");
-        wroteLatestFile = true;
-      }
+      await writeFile(runPath, output, "utf8");
+      await writeFile(latestPath, output, "utf8");
+      wroteRunFile = true;
+      wroteLatestFile = true;
     }
   }
   const summary = {
@@ -393,7 +363,6 @@ export async function run(argv = process.argv.slice(2)) {
     wroteRunFile,
     wroteLatestFile,
     wroteFile: wroteLatestFile,
-    canonicalRunPreserved: Boolean(existingRun) || wroteCanonicalRun,
   };
   console.log(JSON.stringify(summary));
   return summary;
