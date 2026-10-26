@@ -290,6 +290,16 @@ test("historical-test page exposes the baseline and missing pre-open quote statu
   assert.match(app, /isTestOnlySnapshot\(data\)/);
 });
 
+test("ranking views expose actual close whenever settlement data is present", async () => {
+  const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(app, /actualClose: valueOf\(row, "actual_close"\)/);
+  assert.match(app, /rowMetric\("실제 종가", formatPrice\(row\.actualClose\)\)/);
+  assert.match(app, /setText\(elementIds\["selected-actual-close"\], formatPrice\(row\.actualClose\)\)/);
+  assert.match(html, />실제 종가<\/th>/);
+  assert.match(html, /id="selected-actual-close"/);
+});
+
 test("ranking schema uses snake_case financial fields and rejects legacy names", () => {
   const row = emptyRow({
     rank: 1,
@@ -425,3 +435,4 @@ test("backfill test snapshots are isolated synthetic copies of replay numeric fl
     assert.equal(backfill.rows.every((row) => fields.every((field) => typeof row[field] === "number")), true);
   }
 });
+
