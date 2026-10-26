@@ -5,9 +5,9 @@
   "description": "Static KOSPI pre-market ranking board for GitHub Pages.",
   "type": "module",
   "scripts": {
-    "check": "node --check app.js && node --check providers/provider-adapter.js && node --check providers/demo-provider.js && node --check scripts/update-results.mjs",
+    "check": "node --check app.js && node --check providers/provider-adapter.js && node --check providers/demo-provider.js && node --check providers/public-json-provider.js && node --check scripts/update-results.mjs && node --check scripts/workflow-dry-run.mjs",
     "test": "node --test tests/*.test.mjs",
-    "pipeline:dry-run": "node scripts/update-results.mjs --mode forecast --dry-run"
+    "pipeline:dry-run": "node scripts/workflow-dry-run.mjs"
   }
 }
 

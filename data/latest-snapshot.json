@@ -12,12 +12,14 @@
   "provider": {
     "id": null,
     "status": "not_configured",
-    "label": "연결된 데이터 공급자 없음"
+    "label": "연결된 데이터 공급자 없음",
+    "source": null
   },
   "pipeline": {
-    "previousResult": { "status": "pending", "attemptedAt": null, "message": null },
-    "analysis": { "status": "pending", "attemptedAt": null, "message": null },
-    "forecast": { "status": "pending", "attemptedAt": null, "message": null }
+    "previousResult": { "status": "pending", "attemptedAt": null, "provider_id": null, "message": null },
+    "analysis": { "status": "pending", "attemptedAt": null, "provider_id": null, "message": null },
+    "forecast": { "status": "pending", "attemptedAt": null, "provider_id": null, "message": null },
+    "closeSettlement": { "status": "pending", "attemptedAt": null, "provider_id": null, "message": null }
   },
   "rows": [],
   "meta": {
@@ -25,7 +27,7 @@
     "lastAttemptAt": null,
     "lastAttemptMode": null,
     "blockedReason": "No market data provider is configured. No financial values are generated.",
-    "isDemo": false
+    "isDemo": false,
+    "source": null
   }
 }
-

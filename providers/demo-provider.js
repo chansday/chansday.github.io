@@ -12,7 +12,7 @@ function clone(value) {
 }
 
 function demoResult(message) {
-  return { status: "demo", message, rows: [clone(DEMO_ROW)] };
+  return { status: "demo", message, rows: [clone(DEMO_ROW)], source: null, asOfDate: null };
 }
 
 /**
@@ -24,6 +24,9 @@ export function createDemoProvider() {
     id: "demo",
     label: "DEMO MODE · UI / SCHEMA ONLY",
     status: "demo",
+    getSourceMetadata() {
+      return null;
+    },
     async getSnapshot() {
       return {
         schemaVersion: "1.0.0",
@@ -32,11 +35,12 @@ export function createDemoProvider() {
         asOfDate: null,
         publishedAt: null,
         market: { name: "KOSPI", currency: "KRW", timezone: "Asia/Seoul" },
-        provider: { id: "demo", status: "demo", label: "DEMO MODE · UI / SCHEMA ONLY" },
+        provider: { id: "demo", status: "demo", label: "DEMO MODE · UI / SCHEMA ONLY", source: null },
         pipeline: {
-          previousResult: { status: "demo", attemptedAt: null, message: "UI demo only" },
-          analysis: { status: "demo", attemptedAt: null, message: "UI demo only" },
-          forecast: { status: "demo", attemptedAt: null, message: "UI demo only" },
+          previousResult: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
+          analysis: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
+          forecast: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
+          closeSettlement: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
         },
         rows: [clone(DEMO_ROW)],
         meta: {
@@ -45,6 +49,7 @@ export function createDemoProvider() {
           lastAttemptMode: "demo",
           blockedReason: "Demo data is not a financial measurement or prediction performance result.",
           isDemo: true,
+          source: null,
         },
       };
     },
@@ -57,6 +62,8 @@ export function createDemoProvider() {
     async generateForecast() {
       return demoResult("DEMO MODE: 사전예측 결과를 표시하지 않습니다.");
     },
+    async settleClose() {
+      return demoResult("DEMO MODE: 장마감 실제 결과를 표시하지 않습니다.");
+    },
   };
 }
-

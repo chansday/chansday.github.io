@@ -7,7 +7,7 @@
   "required": ["schemaVersion", "status", "mode", "market", "provider", "pipeline", "rows", "meta"],
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
-    "status": { "enum": ["ready", "demo", "no_data", "blocked", "pending"] },
+    "status": { "enum": ["ready", "demo", "no_data", "degraded", "blocked", "pending"] },
     "mode": { "enum": ["provider", "demo"] },
     "asOfDate": { "type": ["string", "null"], "format": "date" },
     "publishedAt": { "type": ["string", "null"], "format": "date-time" },
@@ -26,60 +26,79 @@
       "properties": {
         "id": { "type": ["string", "null"] },
         "status": { "type": "string" },
-        "label": { "type": "string" }
+        "label": { "type": "string" },
+        "source": { "$ref": "#/$defs/sourceMetadataOrNull" }
       },
-      "required": ["status", "label"],
+      "required": ["status", "label", "source"],
       "additionalProperties": false
     },
     "pipeline": {
       "type": "object",
-      "required": ["previousResult", "analysis", "forecast"],
+      "required": ["previousResult", "analysis", "forecast", "closeSettlement"],
       "properties": {
         "previousResult": { "$ref": "#/$defs/pipelineStep" },
         "analysis": { "$ref": "#/$defs/pipelineStep" },
-        "forecast": { "$ref": "#/$defs/pipelineStep" }
+        "forecast": { "$ref": "#/$defs/pipelineStep" },
+        "closeSettlement": { "$ref": "#/$defs/pipelineStep" }
       },
       "additionalProperties": false
     },
     "rows": { "type": "array", "items": { "$ref": "#/$defs/rankingRow" } },
     "meta": {
       "type": "object",
-      "required": ["generatedBy", "lastAttemptAt", "lastAttemptMode", "blockedReason", "isDemo"],
+      "required": ["generatedBy", "lastAttemptAt", "lastAttemptMode", "blockedReason", "isDemo", "source"],
       "properties": {
         "generatedBy": { "type": "string" },
         "lastAttemptAt": { "type": ["string", "null"], "format": "date-time" },
         "lastAttemptMode": { "type": ["string", "null"] },
         "blockedReason": { "type": ["string", "null"] },
-        "isDemo": { "type": "boolean" }
+        "isDemo": { "type": "boolean" },
+        "source": { "$ref": "#/$defs/sourceMetadataOrNull" }
       },
       "additionalProperties": false
     }
   },
   "$defs": {
+    "sourceMetadata": {
+      "type": "object",
+      "required": ["name", "url", "license_status", "license_url", "retrieved_at"],
+      "properties": {
+        "name": { "type": "string" },
+        "url": { "type": "string", "format": "uri" },
+        "license_status": { "enum": ["confirmed", "unconfirmed", "unknown", "not_applicable"] },
+        "license_url": { "type": ["string", "null"], "format": "uri-reference" },
+        "retrieved_at": { "type": ["string", "null"], "format": "date-time" }
+      },
+      "additionalProperties": false
+    },
+    "sourceMetadataOrNull": { "anyOf": [{ "$ref": "#/$defs/sourceMetadata" }, { "type": "null" }] },
     "pipelineStep": {
       "type": "object",
-      "required": ["status", "attemptedAt", "message"],
+      "required": ["status", "attemptedAt", "provider_id", "message"],
       "properties": {
         "status": { "type": "string" },
         "attemptedAt": { "type": ["string", "null"], "format": "date-time" },
+        "provider_id": { "type": ["string", "null"] },
         "message": { "type": ["string", "null"] }
       },
       "additionalProperties": false
     },
     "rankingRow": {
       "type": "object",
-      "required": ["rank", "symbol", "name", "expectedOpen", "expectedClose", "expectedReturn", "actualOpen", "actualClose", "actualReturn", "error", "status"],
+      "required": ["rank", "symbol", "name", "expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "actual_return", "error", "status"],
       "properties": {
         "rank": { "type": ["integer", "null"], "minimum": 1 },
         "symbol": { "type": ["string", "null"] },
         "name": { "type": ["string", "null"] },
-        "expectedOpen": { "type": ["number", "null"] },
-        "expectedClose": { "type": ["number", "null"] },
-        "expectedReturn": { "type": ["number", "null"] },
-        "actualOpen": { "type": ["number", "null"] },
-        "actualClose": { "type": ["number", "null"] },
-        "actualReturn": { "type": ["number", "null"] },
+        "expected_open": { "type": ["number", "null"] },
+        "expected_close": { "type": ["number", "null"] },
+        "expected_return": { "type": ["number", "null"] },
+        "actual_open": { "type": ["number", "null"] },
+        "actual_close": { "type": ["number", "null"] },
+        "actual_return": { "type": ["number", "null"] },
         "error": { "type": ["number", "null"] },
+        "confidence": { "type": ["number", "null"] },
+        "quality": { "type": ["string", "null"] },
         "status": { "type": "string" }
       },
       "additionalProperties": false
@@ -87,4 +106,3 @@
   },
   "additionalProperties": false
 }
-

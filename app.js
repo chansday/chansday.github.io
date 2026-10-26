@@ -1,3 +1,6 @@
+import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
+import { createDemoProvider } from "./providers/demo-provider.js";
+
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const timeFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
@@ -26,39 +29,42 @@ function normalizeStatus(status) { return String(status || "no_data").toLowerCas
 function statusBadgeClass(status) { const key = normalizeStatus(status); return ["ready", "valid"].includes(key) ? "badge-ready" : ["degraded", "pending"].includes(key) ? `badge-${key}` : ["blocked"].includes(key) ? "badge-error" : "badge-muted"; }
 
 function normalizeRow(row, index) {
-  const status = normalizeStatus(row?.status || row?.eligibility?.status || "no_data");
+  const rawStatus = normalizeStatus(row?.status || row?.eligibility?.status || "no_data");
+  const status = rawStatus === "ready" ? "valid" : rawStatus;
   return {
     rank: valueOf(row, "rank") ?? index + 1,
     symbol: valueOf(row, "symbol", "code", "instrument_id") || "—",
     name: valueOf(row, "name", "instrument_name") || "종목명 미정",
-    expectedOpen: valueOf(row, "expectedOpen", "expected_start_price"),
-    expectedClose: valueOf(row, "expectedClose", "expected_close_price"),
-    expectedReturn: valueOf(row, "expectedReturn", "expected_return_pct"),
-    actualOpen: valueOf(row, "actualOpen", "actual_start_price"),
-    actualClose: valueOf(row, "actualClose", "actual_close_price"),
-    actualReturn: valueOf(row, "actualReturn", "actual_return_pct"),
-    error: valueOf(row, "error", "return_error_pp"),
+    expectedOpen: valueOf(row, "expected_open"),
+    expectedClose: valueOf(row, "expected_close"),
+    expectedReturn: valueOf(row, "expected_return"),
+    actualOpen: valueOf(row, "actual_open"),
+    actualClose: valueOf(row, "actual_close"),
+    actualReturn: valueOf(row, "actual_return"),
+    error: valueOf(row, "error"),
     confidence: valueOf(row, "confidence", "confidence_score"),
     quality: valueOf(row, "quality", "quality_status") || status,
     status,
   };
 }
 
-function demoSnapshot() { return { schemaVersion: "1.0.0", status: "demo", mode: "demo", asOfDate: null, publishedAt: null, market: { name: "KOSPI", currency: "KRW", timezone: "Asia/Seoul" }, provider: { status: "demo", label: "UI 계약 확인용 DEMO" }, pipeline: { previousResult: { status: "no_data" }, analysis: { status: "no_data" }, forecast: { status: "no_data" }, settlement: { status: "pending" } }, rows: [{ rank: 1, symbol: "DEMO-01", name: "화면 확인용 행", expectedOpen: null, expectedClose: null, expectedReturn: null, actualOpen: null, actualClose: null, actualReturn: null, error: null, confidence: null, quality: "no_data", status: "no_data" }], meta: { isDemo: true, lastAttemptAt: null } }; }
+function demoSnapshot() { return createDemoProvider().getSnapshot(); }
 
-function emptySnapshot() { return { schemaVersion: "1.0.0", status: "no_data", mode: "provider", asOfDate: null, publishedAt: null, market: { name: "KOSPI", currency: "KRW", timezone: "Asia/Seoul" }, provider: { status: "not_configured", label: "연결된 데이터 공급자 없음" }, pipeline: { previousResult: { status: "pending" }, analysis: { status: "pending" }, forecast: { status: "pending" }, settlement: { status: "pending" } }, rows: [], meta: { isDemo: false, lastAttemptAt: null, blockedReason: "No market data provider is configured." } }; }
+function emptySnapshot() { return noDataSnapshot({ provider: { id: null, status: "not_configured", label: "연결된 데이터 공급자 없음", source: null }, message: "No market data provider is configured." }); }
 
 async function loadSnapshot() {
   if (new URLSearchParams(window.location.search).get("mode")?.toLowerCase() === "demo") return demoSnapshot();
   const response = await fetch("./data/latest-snapshot.json", { cache: "no-store" });
   if (response.status === 404) return emptySnapshot();
   if (!response.ok) throw new Error(`Snapshot request failed: ${response.status}`);
-  return response.json();
+  const data = await response.json();
+  if (!isSnapshot(data)) throw new Error("Snapshot shape is invalid");
+  return data;
 }
 
 function renderPipeline(data) {
   const pipeline = data?.pipeline || {};
-  const steps = { previousResult: pipeline.previousResult, analysis: pipeline.analysis, forecast: pipeline.forecast, settlement: pipeline.settlement || pipeline.marketClose || { status: "pending" } };
+  const steps = { previousResult: pipeline.previousResult, analysis: pipeline.analysis, forecast: pipeline.forecast, closeSettlement: pipeline.closeSettlement || { status: "pending" } };
   document.querySelectorAll(".pipeline-step[data-step]").forEach((card) => { const state = normalizeStatus(steps[card.dataset.step]?.status || (data?.status === "no_data" ? "no_data" : "pending")); const statusNode = card.querySelector("[data-step-status]"); setText(statusNode, stateLabels[state] || state.toUpperCase()); statusNode.className = `step-status status-${state}`; });
 }
 
