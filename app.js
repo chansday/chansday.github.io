@@ -116,8 +116,8 @@ async function loadSnapshot() {
   if (!response.ok) throw new Error(`Snapshot request failed: ${response.status}`);
   const latest = await response.json();
   if (!isSnapshot(latest)) throw new Error("Snapshot shape is invalid");
-  if (isTestOnly(latest)) return emptySnapshot();
   if (latest.status === "no_data") return (await loadHistoricalFallback(latest)) || latest;
+  if (isTestOnly(latest)) return emptySnapshot();
   return latest;
 }
 

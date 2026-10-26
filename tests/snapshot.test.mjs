@@ -125,6 +125,15 @@ test("operating UI declares historical fallback as not live and reads only isola
   assert.doesNotMatch(app, /data\/historical-test\//);
 });
 
+test("operating UI tries the historical fallback before rejecting a no_data snapshot as test-only", async () => {
+  const app = await readFile(join(PROJECT_ROOT, "app.js"), "utf8");
+  const noDataBranch = app.indexOf('if (latest.status === "no_data")');
+  const testOnlyBranch = app.indexOf("if (isTestOnly(latest))");
+  assert.ok(noDataBranch >= 0);
+  assert.ok(testOnlyBranch >= 0);
+  assert.ok(noDataBranch < testOnlyBranch);
+});
+
 test("canonical stage runs preserve fields, settle cumulatively, and are idempotent", async () => {
   const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-run-"));
   const fixtureSource = join(PROJECT_ROOT, "data", "fixtures", "2026-10-23.json");
