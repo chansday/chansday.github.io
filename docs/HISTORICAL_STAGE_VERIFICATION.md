@@ -61,3 +61,19 @@ error = round(actual_return - expected_return, 2)
 ## 한계
 
 이 파일들은 사후 공개 일봉으로 재구성한 테스트 증거다. 당시 08:20에 실시간 생성된 예측이나 실제 장전 호가 데이터가 아니다. 실시간·장전 provider가 연결되지 않은 상태에서 운영 금융값을 만들지 않는다.
+
+## HTTP smoke 증거
+
+최종 commit `2ccdedf` 배포 후 다음 경로를 실제 HTTP GET으로 확인했다. 모두 `200 OK`였다.
+
+```text
+https://chansday.github.io/
+https://chansday.github.io/?mode=historical-test&date=2026-10-22
+https://chansday.github.io/?mode=historical-test&date=2026-10-23
+https://chansday.github.io/data/latest-snapshot.json
+https://chansday.github.io/data/runs/historical-test/2026-10-22/0700.json
+https://chansday.github.io/data/runs/historical-test/2026-10-23/1530.json
+https://chansday.github.io/data/runs/historical-test-verification/verification-report.json
+```
+
+페이지 기본 snapshot은 `status=no_data`, `rows=[]`이며, 테스트 데이터는 `mode=historical-test` 쿼리 또는 명시적 테스트 파일 경로에서만 접근한다.
