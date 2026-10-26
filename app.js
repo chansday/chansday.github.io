@@ -107,4 +107,3 @@ function updateClock() { const now = new Intl.DateTimeFormat("ko-KR", { timeZone
 async function refresh() { try { renderHeader(await loadSnapshot()); } catch (error) { console.error(error); renderHeader({ status: "blocked", mode: "provider", provider: { status: "blocked", label: "스냅샷 읽기 실패" }, pipeline: {}, rows: [], meta: { lastAttemptAt: null } }); setText(el["notice-detail"], "정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요."); } }
 
 el["search-input"].addEventListener("input", renderRows); el["status-filter"].addEventListener("change", renderRows); el["sort-select"].addEventListener("change", renderRows); el["refresh-button"].addEventListener("click", refresh); updateClock(); setInterval(updateClock, 1000); refresh();
-
