@@ -1,173 +1,198 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>chansday</title>
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
-<header class="site-header">
-  <nav class="nav">
-    <a href="#home" class="nav-brand">chansday</a>
-    <button class="nav-toggle" id="navToggle" aria-label="메뉴 열기">☰</button>
-    <ul class="nav-links" id="navLinks">
-      <li><a href="#home">Home</a></li>
-      <li><a href="#preview">Preview</a></li>
-      <li><a href="#games">Games</a></li>
-    </ul>
-  </nav>
-</header>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#08111f">
+    <meta name="description" content="KOSPI 사전예측 랭킹과 이후 실제 결과를 비교하는 공개 관찰판입니다.">
+    <title>KOSPI Signal Board — CHANSDAY</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <a class="skip-link" href="#ranking">본문으로 이동</a>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="CHANSDAY KOSPI Signal Board 홈">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+          <span class="brand-copy">CHANSDAY <em>/</em> SIGNAL BOARD</span>
+        </a>
+        <nav class="nav" aria-label="주요 메뉴">
+          <a href="#ranking">랭킹</a>
+          <a href="#how-it-works">운영 방식</a>
+          <a href="#notes">주의사항</a>
+          <a class="nav-demo" href="?mode=demo">DEMO 보기</a>
+        </nav>
+      </header>
 
-<main>
-  <section id="home" class="section">
-    <h1>ChansDay</h1>
-  </section>
-
-  <section id="preview" class="section">
-    <h2>Preview</h2>
-    <div class="promo-media">
-      <img src="assets/promo.gif" alt="사이트 준비 중을 알리는 공사장 컨셉 애니메이션" loading="lazy" width="480" height="270">
-    </div>
-  </section>
-
-  <section id="games" class="section">
-    <h2>Games</h2>
-
-    <div class="game-block">
-      <h3>Snake</h3>
-      <div id="game-area" class="game-area kb-target">
-        <div class="game-hud">
-          <span>Score: <span id="score">0</span></span>
-          <span>High Score: <span id="highScore">0</span></span>
-        </div>
-        <canvas id="gameCanvas" width="360" height="360" aria-label="지렁이 게임 화면"></canvas>
-        <div class="game-buttons">
-          <button id="startBtn">Start</button>
-          <button id="pauseBtn">Pause</button>
-          <button id="restartBtn">Restart</button>
-        </div>
-        <p id="gameMessage" class="game-message" role="status"></p>
-        <div class="touch-controls" aria-label="모바일 방향 조작">
-          <button class="touch-btn" id="touchUp" aria-label="위로">▲</button>
-          <div class="touch-row">
-            <button class="touch-btn" id="touchLeft" aria-label="왼쪽으로">◀</button>
-            <button class="touch-btn" id="touchDown" aria-label="아래로">▼</button>
-            <button class="touch-btn" id="touchRight" aria-label="오른쪽으로">▶</button>
+      <main>
+        <section class="hero" aria-labelledby="page-title">
+          <div class="hero-copy">
+            <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span> DAILY MARKET OBSERVATION / KST</p>
+            <h1 id="page-title">내일의 KOSPI를<br><span>미리 읽는 화면.</span></h1>
+            <p class="hero-lede">
+              예상 시작가와 종가를 먼저 기록하고, 장이 끝난 뒤 실제 값과 나란히 비교합니다.
+              숫자가 연결되지 않은 날에는 빈칸을 빈칸으로 남깁니다.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#ranking">오늘의 랭킹 보기 <span aria-hidden="true">↘</span></a>
+              <a class="button button-ghost" href="#how-it-works">운영 방식 알아보기</a>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="game-block">
-      <h3>2048</h3>
-      <div id="game2048-area" class="game-area kb-target">
-        <div class="game-hud">
-          <span>Score: <span id="score2048">0</span></span>
-          <span>High Score: <span id="highScore2048">0</span></span>
-        </div>
-        <div id="board2048" class="board-2048" aria-label="2048 보드"></div>
-        <div class="game-buttons">
-          <button id="restart2048">Restart</button>
-        </div>
-        <p id="message2048" class="game-message" role="status">방향키/WASD 또는 스와이프로 타일을 밀어주세요.</p>
-        <div class="touch-controls" aria-label="모바일 방향 조작">
-          <button class="touch-btn" id="touch2048Up" aria-label="위로">▲</button>
-          <div class="touch-row">
-            <button class="touch-btn" id="touch2048Left" aria-label="왼쪽으로">◀</button>
-            <button class="touch-btn" id="touch2048Down" aria-label="아래로">▼</button>
-            <button class="touch-btn" id="touch2048Right" aria-label="오른쪽으로">▶</button>
+          <div class="signal-card" aria-label="현재 데이터 연결 상태">
+            <div class="signal-card-topline">
+              <span>MARKET BOARD <span class="muted-slash">/</span> KOSPI</span>
+              <span id="last-updated">업데이트 대기</span>
+            </div>
+            <div class="signal-card-title-row">
+              <div>
+                <p class="signal-label">STATUS</p>
+                <h2 id="global-status">NO DATA</h2>
+              </div>
+              <span id="mode-badge" class="status-badge status-badge-muted">DATA NOT CONNECTED</span>
+            </div>
+            <div class="signal-stats">
+              <div class="signal-stat">
+                <span>관찰 기준일</span>
+                <strong id="as-of-date">—</strong>
+              </div>
+              <div class="signal-stat">
+                <span>표시 종목</span>
+                <strong id="row-count">0</strong>
+              </div>
+              <div class="signal-stat signal-stat-accent">
+                <span>데이터 상태</span>
+                <strong id="provider-status">미연결</strong>
+              </div>
+            </div>
+            <div class="signal-card-footer">
+              <span class="card-rule" aria-hidden="true"></span>
+              <span id="provider-label">연결된 데이터 공급자 없음</span>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
+        </section>
 
-    <div class="game-block">
-      <h3>Breakout</h3>
-      <div id="game-breakout-area" class="game-area kb-target">
-        <div class="game-hud">
-          <span>Score: <span id="scoreBreakout">0</span></span>
-          <span>Lives: <span id="livesBreakout">3</span></span>
-        </div>
-        <canvas id="breakoutCanvas" width="360" height="360" aria-label="벽돌깨기 게임 화면"></canvas>
-        <div class="game-buttons">
-          <button id="startBreakout">Start</button>
-          <button id="pauseBreakout">Pause</button>
-          <button id="restartBreakout">Restart</button>
-        </div>
-        <p id="messageBreakout" class="game-message" role="status"></p>
-        <div class="touch-controls" aria-label="모바일 패들 조작">
-          <div class="touch-row">
-            <button class="touch-btn" id="touchBreakoutLeft" aria-label="왼쪽으로">◀</button>
-            <button class="touch-btn" id="touchBreakoutRight" aria-label="오른쪽으로">▶</button>
+        <section class="trust-strip" aria-label="서비스 원칙">
+          <div><span class="trust-number">01</span><span>사전 기록</span></div>
+          <div><span class="trust-number">02</span><span>실제 결과 대조</span></div>
+          <div><span class="trust-number">03</span><span>빈 데이터는 빈칸으로</span></div>
+          <p>자동매매·주문·브로커 연동 없음</p>
+        </section>
+
+        <section id="ranking" class="section" aria-labelledby="ranking-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">01 / PRE-MARKET RANKING</p>
+              <h2 id="ranking-title">사전예측 랭킹</h2>
+            </div>
+            <div class="section-context">
+              <span id="snapshot-label">스냅샷 확인 중</span>
+              <span class="context-dot" aria-hidden="true"></span>
+              <span>KST 기준</span>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
 
-    <div class="game-block">
-      <h3>Memory Match</h3>
-      <div id="game-memory-area" class="game-area">
-        <div class="game-hud">
-          <span>Moves: <span id="movesMemory">0</span></span>
-          <span>Matched: <span id="matchedMemory">0</span>/8</span>
-        </div>
-        <div id="boardMemory" class="board-memory" aria-label="메모리 매칭 보드"></div>
-        <div class="game-buttons">
-          <button id="restartMemory">Restart</button>
-        </div>
-        <p id="messageMemory" class="game-message" role="status">카드를 클릭/터치해서 짝을 맞춰보세요.</p>
-      </div>
-    </div>
-
-    <div class="game-block">
-      <h3>Whack-a-Mole</h3>
-      <div id="game-mole-area" class="game-area">
-        <div class="game-hud">
-          <span>Score: <span id="scoreMole">0</span></span>
-          <span>Time: <span id="timeMole">30</span>s</span>
-        </div>
-        <div id="boardMole" class="board-mole" aria-label="두더지 잡기 보드"></div>
-        <div class="game-buttons">
-          <button id="startMole">Start</button>
-          <button id="restartMole">Restart</button>
-        </div>
-        <p id="messageMole" class="game-message" role="status">Start를 눌러 시작하세요.</p>
-      </div>
-    </div>
-
-    <div class="game-block">
-      <h3>Galaga</h3>
-      <div id="game-galaga-area" class="game-area kb-target">
-        <div class="game-hud">
-          <span>Score: <span id="scoreGalaga">0</span></span>
-          <span>Lives: <span id="livesGalaga">3</span></span>
-        </div>
-        <canvas id="galagaCanvas" width="360" height="420" aria-label="갤러그 슈팅 게임 화면"></canvas>
-        <div class="game-buttons">
-          <button id="startGalaga">Start</button>
-          <button id="pauseGalaga">Pause</button>
-          <button id="restartGalaga">Restart</button>
-        </div>
-        <p id="messageGalaga" class="game-message" role="status"></p>
-        <div class="touch-controls" aria-label="모바일 이동/발사 조작">
-          <div class="touch-row">
-            <button class="touch-btn" id="touchGalagaLeft" aria-label="왼쪽으로">◀</button>
-            <button class="touch-btn" id="touchGalagaFire" aria-label="발사">●</button>
-            <button class="touch-btn" id="touchGalagaRight" aria-label="오른쪽으로">▶</button>
+          <div id="data-notice" class="data-notice" role="status">
+            <span class="notice-icon" aria-hidden="true">i</span>
+            <div>
+              <strong>데이터 공급자가 연결되지 않았습니다.</strong>
+              <p id="data-notice-detail">실제 가격이나 예측 성과를 임의로 채우지 않고, 연결 대기 상태를 표시합니다.</p>
+            </div>
           </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</main>
 
-<script src="script.js"></script>
-<script src="game.js"></script>
-<script src="game-2048.js"></script>
-<script src="game-breakout.js"></script>
-<script src="game-memory.js"></script>
-<script src="game-whackamole.js"></script>
-<script src="game-galaga.js"></script>
-</body>
+          <div class="ranking-panel">
+            <div class="table-toolbar">
+              <div>
+                <span class="table-kicker">EXPECTED → ACTUAL</span>
+                <span class="table-description">예상값과 이후 실제값의 차이를 한 화면에서 확인</span>
+              </div>
+              <span id="table-state" class="table-state">NO DATA</span>
+            </div>
+            <div class="table-wrap">
+              <table id="ranking-table">
+                <caption class="visually-hidden">KOSPI 사전예측과 실제 결과 비교표</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">순위</th>
+                    <th scope="col">종목</th>
+                    <th scope="col">예상 시작가</th>
+                    <th scope="col">예상 종가</th>
+                    <th scope="col">예상 수익률</th>
+                    <th scope="col">실제 시작가</th>
+                    <th scope="col">실제 종가</th>
+                    <th scope="col">실제 수익률</th>
+                    <th scope="col">오차</th>
+                  </tr>
+                </thead>
+                <tbody id="ranking-body"></tbody>
+              </table>
+              <div id="empty-state" class="empty-state">
+                <div class="empty-state-mark" aria-hidden="true">∅</div>
+                <strong>표시할 가격 데이터가 없습니다.</strong>
+                <p>공급자 연결과 검증이 끝나면 이곳에 종목별 예상값과 실제 결과가 나타납니다.</p>
+              </div>
+            </div>
+            <div class="table-footer">
+              <span>가격 단위: KRW · 수익률 단위: %</span>
+              <span>— 는 미수집·미계산·미공개를 뜻합니다.</span>
+            </div>
+          </div>
+        </section>
+
+        <section id="how-it-works" class="section section-narrow" aria-labelledby="how-title">
+          <div class="section-heading section-heading-tight">
+            <div>
+              <p class="eyebrow">02 / OPERATING MODEL</p>
+              <h2 id="how-title">기록이 먼저, 해석은 그다음.</h2>
+            </div>
+          </div>
+          <div class="process-grid">
+            <article class="process-card">
+              <span class="process-index">A</span>
+              <h3>전일 결과 업데이트</h3>
+              <p>KST 07:00에 전일 예상과 실제 결과를 확인합니다. 공급자가 없으면 상태만 기록하고 값은 만들지 않습니다.</p>
+            </article>
+            <article class="process-card process-card-accent">
+              <span class="process-index">B</span>
+              <h3>당일 분석</h3>
+              <p>KST 08:00에 분석 결과를 준비합니다. 데이터 라이선스와 검증 규칙을 통과한 값만 화면에 올립니다.</p>
+            </article>
+            <article class="process-card">
+              <span class="process-index">C</span>
+              <h3>사전 예상 랭킹</h3>
+              <p>KST 08:30에 예상 시작가·종가·수익률을 기록합니다. 이것은 정보 기록용이며 투자 결과를 보장하지 않습니다.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="notes" class="section notes-section" aria-labelledby="notes-title">
+          <div class="notes-copy">
+            <p class="eyebrow">03 / PUBLIC NOTE</p>
+            <h2 id="notes-title">데이터가 없을 때의<br><span>정직한 화면.</span></h2>
+          </div>
+          <div class="notes-list">
+            <div class="note-item">
+              <span class="note-marker">01</span>
+              <p><strong>예측은 보장하지 않습니다.</strong><br>모든 예상은 검토와 비교를 위한 기록이며, 수익·정확도·투자 결과를 약속하지 않습니다.</p>
+            </div>
+            <div class="note-item">
+              <span class="note-marker">02</span>
+              <p><strong>데이터 라이선스를 존중합니다.</strong><br>연결될 공급자의 이용약관·재배포 조건·표시 의무를 확인한 뒤 운영합니다.</p>
+            </div>
+            <div class="note-item">
+              <span class="note-marker">03</span>
+              <p><strong>수동 검토가 남아 있습니다.</strong><br>자동화된 작업은 스냅샷과 상태를 갱신할 뿐이며, 운영자는 로그와 결과를 직접 확인해야 합니다.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-brand">CHANSDAY <span>·</span> KOSPI SIGNAL BOARD</div>
+        <div class="footer-meta"><span id="footer-status">DATA NOT CONNECTED</span><span>정적 GitHub Pages</span><span>© 2026 CHANSDAY</span></div>
+      </footer>
+    </div>
+    <script type="module" src="./app.js"></script>
+  </body>
 </html>
+

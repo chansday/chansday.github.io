@@ -1,0 +1,88 @@
+name: KOSPI signal board pipeline
+
+on:
+  schedule:
+    # GitHub Actions cron is UTC. These three entries are Mon-Fri in KST.
+    - cron: "0 22 * * 0-4" # 07:00 KST, previous-day result update
+    - cron: "0 23 * * 0-4" # 08:00 KST, same-day analysis
+    - cron: "30 23 * * 0-4" # 08:30 KST, pre-market forecast ranking
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "Pipeline stage to run"
+        required: true
+        default: all
+        type: choice
+        options:
+          - all
+          - update-results
+          - analysis
+          - forecast
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+
+jobs:
+  update-snapshot:
+    runs-on: ubuntu-latest
+    env:
+      # Configuration hooks only. No provider is enabled by default.
+      KOSPI_PROVIDER: ${{ vars.KOSPI_PROVIDER || 'none' }}
+      KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
+      KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate the static contract
+        run: npm test
+
+      - name: Resolve scheduled stage
+        id: stage
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            case "${{ github.event.schedule }}" in
+              "0 22 * * 0-4") echo "stage=update-results" >> "$GITHUB_OUTPUT" ;;
+              "0 23 * * 0-4") echo "stage=analysis" >> "$GITHUB_OUTPUT" ;;
+              "30 23 * * 0-4") echo "stage=forecast" >> "$GITHUB_OUTPUT" ;;
+              *) echo "Unknown schedule: ${{ github.event.schedule }}" >&2; exit 1 ;;
+            esac
+          else
+            echo "stage=${{ inputs.stage }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run previous-day result update
+        if: steps.stage.outputs.stage == 'update-results' || steps.stage.outputs.stage == 'all'
+        run: node scripts/update-results.mjs --mode update-results
+
+      - name: Run same-day analysis
+        if: steps.stage.outputs.stage == 'analysis' || steps.stage.outputs.stage == 'all'
+        run: node scripts/update-results.mjs --mode analysis
+
+      - name: Generate pre-market forecast ranking
+        if: steps.stage.outputs.stage == 'forecast' || steps.stage.outputs.stage == 'all'
+        run: node scripts/update-results.mjs --mode forecast
+
+      - name: Commit snapshot state when changed
+        shell: bash
+        run: |
+          if git diff --quiet -- data/latest-snapshot.json; then
+            echo "No snapshot changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/latest-snapshot.json
+          git commit -m "chore(data): record KOSPI pipeline state"
+          git push
+

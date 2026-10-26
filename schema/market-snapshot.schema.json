@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chansday.github.io/schema/market-snapshot.schema.json",
+  "title": "KOSPI signal board snapshot",
+  "description": "Static snapshot contract for expected and actual KOSPI observation values.",
+  "type": "object",
+  "required": ["schemaVersion", "status", "mode", "market", "provider", "pipeline", "rows", "meta"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "status": { "enum": ["ready", "demo", "no_data", "blocked", "pending"] },
+    "mode": { "enum": ["provider", "demo"] },
+    "asOfDate": { "type": ["string", "null"], "format": "date" },
+    "publishedAt": { "type": ["string", "null"], "format": "date-time" },
+    "market": {
+      "type": "object",
+      "required": ["name", "currency", "timezone"],
+      "properties": {
+        "name": { "const": "KOSPI" },
+        "currency": { "const": "KRW" },
+        "timezone": { "const": "Asia/Seoul" }
+      },
+      "additionalProperties": false
+    },
+    "provider": {
+      "type": ["object", "null"],
+      "properties": {
+        "id": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "label": { "type": "string" }
+      },
+      "required": ["status", "label"],
+      "additionalProperties": false
+    },
+    "pipeline": {
+      "type": "object",
+      "required": ["previousResult", "analysis", "forecast"],
+      "properties": {
+        "previousResult": { "$ref": "#/$defs/pipelineStep" },
+        "analysis": { "$ref": "#/$defs/pipelineStep" },
+        "forecast": { "$ref": "#/$defs/pipelineStep" }
+      },
+      "additionalProperties": false
+    },
+    "rows": { "type": "array", "items": { "$ref": "#/$defs/rankingRow" } },
+    "meta": {
+      "type": "object",
+      "required": ["generatedBy", "lastAttemptAt", "lastAttemptMode", "blockedReason", "isDemo"],
+      "properties": {
+        "generatedBy": { "type": "string" },
+        "lastAttemptAt": { "type": ["string", "null"], "format": "date-time" },
+        "lastAttemptMode": { "type": ["string", "null"] },
+        "blockedReason": { "type": ["string", "null"] },
+        "isDemo": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "pipelineStep": {
+      "type": "object",
+      "required": ["status", "attemptedAt", "message"],
+      "properties": {
+        "status": { "type": "string" },
+        "attemptedAt": { "type": ["string", "null"], "format": "date-time" },
+        "message": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "rankingRow": {
+      "type": "object",
+      "required": ["rank", "symbol", "name", "expectedOpen", "expectedClose", "expectedReturn", "actualOpen", "actualClose", "actualReturn", "error", "status"],
+      "properties": {
+        "rank": { "type": ["integer", "null"], "minimum": 1 },
+        "symbol": { "type": ["string", "null"] },
+        "name": { "type": ["string", "null"] },
+        "expectedOpen": { "type": ["number", "null"] },
+        "expectedClose": { "type": ["number", "null"] },
+        "expectedReturn": { "type": ["number", "null"] },
+        "actualOpen": { "type": ["number", "null"] },
+        "actualClose": { "type": ["number", "null"] },
+        "actualReturn": { "type": ["number", "null"] },
+        "error": { "type": ["number", "null"] },
+        "status": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
+
