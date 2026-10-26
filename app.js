@@ -1,4 +1,4 @@
-import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
+import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js?v=20261026n";
 import { createDemoProvider } from "./providers/demo-provider.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
