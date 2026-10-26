@@ -85,3 +85,17 @@ test("fixture snapshots are explicit synthetic data for both requested dates", a
     assert.equal(settlement.rows.every((row) => row.expected_open !== null && row.actual_open !== null && row.error !== null), true);
   }
 });
+
+
+test("baseline replay snapshots are explicit synthetic previous-close simulations", async () => {
+  for (const date of ["2026-10-22", "2026-10-23"]) {
+    const snapshot = JSON.parse(await readFile(new URL(`../data/replays/${date}.json`, import.meta.url), "utf8"));
+    assert.equal(isSnapshot(snapshot), true);
+    assert.equal(snapshot.mode, "replay");
+    assert.equal(snapshot.provider.id, "replay_baseline");
+    assert.equal(snapshot.meta.isDemo, true);
+    assert.equal(snapshot.meta.replay_type, "replay_baseline");
+    assert.equal(snapshot.baseline.basis, "previous_session_close");
+    assert.equal(snapshot.rows.every((row) => row.expected_open !== null && row.actual_open !== null && row.error !== null), true);
+  }
+});
