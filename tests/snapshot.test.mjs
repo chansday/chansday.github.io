@@ -310,11 +310,14 @@ test("ranking views expose actual close whenever settlement data is present", as
   assert.match(app, /actualClose: valueOf\(row, "actual_close"\)/);
   assert.match(app, /sessionReturn: valueOf\(row, "session_return"\)/);
   assert.match(app, /rowMetric\("실제 종가", formatPrice\(row\.actualClose\)\)/);
-  assert.match(app, /rowMetric\("장중 수익률", formatPercent\(row\.sessionReturn/);
+  assert.match(app, /rowMetric\("실제 수익률", formatPercent\(row\.sessionReturn/);
+  assert.match(app, /rowMetric\("평가용 시가 수익률", formatPercent\(row\.actualReturn/);
   assert.match(app, /setText\(elementIds\["selected-actual-close"\], formatPrice\(row\.actualClose\)\)/);
-  assert.match(app, /setText\(elementIds\["selected-session-return"\], formatPercent\(row\.sessionReturn\)\)/);
+  assert.match(app, /setText\(elementIds\["selected-actual-return"\], formatPercent\(row\.sessionReturn\)\)/);
+  assert.match(app, /setText\(elementIds\["selected-evaluation-return"\], formatPercent\(row\.actualReturn\)\)/);
   assert.match(html, />실제 종가<\/th>/);
-  assert.match(html, />장중 수익률<\/th>/);
+  assert.match(html, />실제 수익률<\/th>/);
+  assert.match(html, />평가용 시가 수익률<\/th>/);
   assert.match(html, /id="selected-actual-close"/);
 });
 

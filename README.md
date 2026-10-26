@@ -68,7 +68,7 @@
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-22`
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-23`
 
-화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. 화면의 `시가 수익률`은 전일 종가→실제 시가로 평가엔진과 오차 계산에 사용하고, `장중 수익률`은 실제 시가→실제 종가로 별도 표시합니다. fallback에서는 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `session_return`, `error`를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
+화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. 화면의 `실제 수익률`은 모든 종목에서 실제 시가→실제 종가로 계산하며, `평가용 시가 수익률`은 전일 종가→실제 시가로 평가엔진과 오차 계산에 사용합니다. fallback에서는 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `session_return`, `error`를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
 historical baseline은 직전 5개 거래일의 공개 일별 종가만 사용합니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다. `features`에는 전일 수익률, 최근 3개 수익률 평균(momentum), 최근 4개 수익률의 모집단 표준편차(volatility)를 함께 저장합니다.
 

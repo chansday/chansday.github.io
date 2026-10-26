@@ -1,4 +1,4 @@
-import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js?v=20261026n";
+import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js?v=20261026o";
 import { createDemoProvider } from "./providers/demo-provider.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
@@ -55,7 +55,7 @@ const elementIds = [
   "mode-badge", "data-purpose", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "top-clock", "refresh-button",
   "quality-ribbon", "quality-ribbon-label", "quality-ribbon-text", "truth-label", "truth-note-text", "evaluation-status", "evaluation-headline", "evaluation-description", "summary-status", "summary-status-detail", "summary-samples", "summary-samples-detail", "summary-range", "summary-range-detail", "summary-rmse", "summary-rmse-detail", "summary-expected", "summary-expected-detail", "summary-actual", "summary-actual-detail", "summary-error", "summary-error-detail", "summary-scope", "summary-scope-detail",
   "kpi-market", "kpi-market-note", "kpi-market-bar", "kpi-universe", "kpi-valid", "kpi-accuracy", "kpi-accuracy-note", "kpi-model", "kpi-model-note", "kpi-model-time", "kpi-model-quality", "table-state", "table-count", "ranking-table", "ranking-body", "ranking-cards", "empty-state", "empty-state-note", "search-input", "status-filter", "sort-select",
-  "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-close", "selected-expected-return", "selected-actual-open", "selected-actual-close", "selected-actual-return", "selected-session-return", "selected-error", "selected-confidence", "selected-quality", "selected-reasons",
+  "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-close", "selected-expected-return", "selected-actual-open", "selected-actual-close", "selected-actual-return", "selected-evaluation-return", "selected-error", "selected-confidence", "selected-quality", "selected-reasons",
   "source-name", "source-url", "source-license", "evaluation-scope", "data-timestamp", "snapshot-date", "source-collection", "source-range", "model-name", "baseline-input", "model-note", "limit-title", "quality-summary", "quality-source", "data-notice", "notice-title", "notice-detail", "footer-status",
 ].reduce((result, id) => ({ ...result, [id]: document.getElementById(id) }), {});
 
@@ -328,7 +328,7 @@ function createMobileCard(row) {
   card.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
   card.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
   card.dataset.symbol = row.symbol;
-  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span><strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric("예상 시가", formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("예상 수익률", formatExpectedPercent(row.expectedReturn), toneClass(row.expectedReturn))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("시가 수익률", formatPercent(row.actualReturn), toneClass(row.actualReturn))}${rowMetric("장중 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("오차", formatPercent(row.error), toneClass(row.error))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
+  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span><strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric("예상 시가", formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("예상 수익률", formatExpectedPercent(row.expectedReturn), toneClass(row.expectedReturn))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("실제 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("평가용 시가 수익률", formatPercent(row.actualReturn), toneClass(row.actualReturn))}${rowMetric("오차", formatPercent(row.error), toneClass(row.error))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
   card.addEventListener("click", () => selectRow(row.symbol));
   card.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol); } });
   return card;
@@ -347,7 +347,7 @@ function renderRows() {
     tr.setAttribute("role", "button");
     tr.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
     tr.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
-    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시">${formatExpectedPrice(row.expectedOpen)}</td><td class="${toneClass(row.expectedReturn)}" aria-label="예상 수익률 ${formatExpectedPercent(row.expectedReturn)}. 퍼센트 단위 정수 표시">${formatExpectedPercent(row.expectedReturn)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td class="${toneClass(row.actualReturn)}" aria-label="전일 종가 대비 실제 시가 수익률">${formatPercent(row.actualReturn)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 수익률">${formatPercent(row.sessionReturn)}</td><td class="${toneClass(row.error)}">${formatPercent(row.error)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
+    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시">${formatExpectedPrice(row.expectedOpen)}</td><td class="${toneClass(row.expectedReturn)}" aria-label="예상 수익률 ${formatExpectedPercent(row.expectedReturn)}. 퍼센트 단위 정수 표시">${formatExpectedPercent(row.expectedReturn)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 수익률">${formatPercent(row.sessionReturn)}</td><td class="${toneClass(row.actualReturn)}" aria-label="전일 종가 대비 실제 시가 수익률이며 평가엔진 오차에 사용">${formatPercent(row.actualReturn)}</td><td class="${toneClass(row.error)}">${formatPercent(row.error)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
     tr.addEventListener("click", () => selectRow(row.symbol));
     tr.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol); } });
     elementIds["ranking-body"].append(tr);
@@ -371,8 +371,8 @@ function renderSelected() {
   setText(elementIds["selected-expected-return"], formatExpectedPercent(row.expectedReturn));
   setText(elementIds["selected-actual-open"], formatPrice(row.actualOpen));
   setText(elementIds["selected-actual-close"], formatPrice(row.actualClose));
-  setText(elementIds["selected-actual-return"], formatPercent(row.actualReturn));
-  setText(elementIds["selected-session-return"], formatPercent(row.sessionReturn));
+  setText(elementIds["selected-actual-return"], formatPercent(row.sessionReturn));
+  setText(elementIds["selected-evaluation-return"], formatPercent(row.actualReturn));
   setText(elementIds["selected-error"], formatPercent(row.error));
   setText(elementIds["selected-confidence"], finite(row.confidence) ? numberFormatter.format(row.confidence) : "—");
   setText(elementIds["selected-quality"], `품질 ${qualityLabel(row.quality)}`);
