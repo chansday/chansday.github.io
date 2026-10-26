@@ -13,10 +13,10 @@ const stateMessages = {
   pending: "아직 처리되지 않은 단계입니다. 결과가 게시되면 상태가 갱신됩니다.",
   blocked: "데이터 공급자 또는 검증 조건이 준비되지 않아 업데이트가 보류되었습니다.",
   demo: "DEMO 모드입니다. 금융 실측값이 아닌 UI 계약 확인용 상태입니다.",
-  fixture: "FIXTURE 모드입니다. 합성값만 표시하며 실제 금융 데이터나 08:30 예측을 재구성한 결과가 아닙니다.",
+  fixture: "FIXTURE 모드입니다. 합성값만 표시하며 실제 금융 데이터나 08:20 예측을 재구성한 결과가 아닙니다.",
   replay: "BASELINE REPLAY입니다. 전일 종가 기준 입력 계약을 확인하는 합성 시뮬레이션이며 실제 과거 예측이 아닙니다.",
-  backfill: "TEST ONLY / BACKFILL입니다. 08:30 KST 실제 원천 스냅샷이 없어 기존 합성 replay 수치 흐름만 다시 표시합니다. 미래 데이터 누수를 막기 위한 테스트 입력이며 실제 금융 데이터나 과거 예측 성과가 아닙니다.",
-  historicalTest: "HISTORICAL-TEST / TEST ONLY입니다. 실제 공개 일봉의 시가·종가·거래량과 사후 계산한 baseline forecast를 분리해 표시합니다. 당시 08:30 예측 성과를 주장하지 않습니다."
+  backfill: "TEST ONLY / BACKFILL입니다. 08:20 KST 실제 원천 스냅샷이 없어 기존 합성 replay 수치 흐름만 다시 표시합니다. 미래 데이터 누수를 막기 위한 테스트 입력이며 실제 금융 데이터나 과거 예측 성과가 아닙니다.",
+  historicalTest: "HISTORICAL-TEST / TEST ONLY입니다. 실제 공개 일봉의 시가·종가·거래량과 사후 계산한 baseline forecast를 분리해 표시합니다. 당시 08:20 예측 성과를 주장하지 않습니다."
 };
 
 const el = Object.fromEntries(["mode-badge", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "snapshot-date", "provider-status", "provider-detail", "baseline-input", "source-url", "source-collection", "source-range", "notice-title", "notice-detail", "data-notice", "table-state", "ranking-body", "empty-state", "footer-status", "top-clock", "search-input", "status-filter", "sort-select", "refresh-button", "ranking-table"].map((id) => [id, document.getElementById(id)]));
@@ -109,7 +109,7 @@ async function loadSnapshot() {
 
 function renderPipeline(data) {
   const pipeline = data?.pipeline || {};
-  const steps = { previousResult: pipeline.previousResult, analysis: pipeline.analysis, forecast: pipeline.forecast, closeSettlement: pipeline.closeSettlement || { status: "pending" } };
+  const steps = { previousResult: pipeline.previousResult, analysis: pipeline.analysis, forecast: pipeline.forecast, openSettlement: pipeline.openSettlement || { status: "pending" }, closeSettlement: pipeline.closeSettlement || { status: "pending" } };
   document.querySelectorAll(".pipeline-step[data-step]").forEach((card) => { const state = normalizeStatus(steps[card.dataset.step]?.status || (data?.status === "no_data" ? "no_data" : "pending")); const statusNode = card.querySelector("[data-step-status]"); setText(statusNode, stateLabels[state] || state.toUpperCase()); statusNode.className = `step-status status-${state}`; });
 }
 
@@ -135,7 +135,7 @@ function renderHeader(data) {
   setText(el["snapshot-date"], formatDate(data?.asOfDate || data?.trade_date));
   setText(el["provider-status"], stateLabels[providerStatus] || providerStatus);
   setText(el["provider-detail"], data?.provider?.label || "공개 데이터 공급자 대기");
-  setText(el["baseline-input"], isHistoricalTest ? `전일 종가·수익률 baseline · ${data?.baseline?.input_through_date || data?.baseline?.reference_date || "—"}까지 · 사후 계산` : isBackfill ? `replay 수치 흐름 · ${data?.meta?.backfill_source_replay_date || data?.asOfDate || "—"} · 테스트 전용` : isReplay ? `전일 종가 기준 · ${data?.baseline?.reference_date || "—"} · 값 복원 안 함` : "실제 provider 기준");
+  setText(el["baseline-input"], isHistoricalTest ? `전일 종가·수익률 baseline · ${data?.baseline?.input_through_date || data?.baseline?.reference_date || "—"}까지 · 09:00 시가 비교` : isBackfill ? `replay 수치 흐름 · ${data?.meta?.backfill_source_replay_date || data?.asOfDate || "—"} · 테스트 전용` : isReplay ? `전일 종가 기준 · ${data?.baseline?.reference_date || "—"} · 값 복원 안 함` : "실제 provider 기준");
   const source = data?.meta?.source || data?.provider?.source || null;
   setText(el["source-collection"], data?.meta?.source_collection_date || (source?.retrieved_at ? formatDate(source.retrieved_at) : "—"));
   setText(el["source-range"], data?.meta?.source_range || (data?.meta?.source_rows ? `${data.meta.source_rows}행` : "—"));
@@ -147,7 +147,7 @@ function renderHeader(data) {
   setText(el["table-state"], label);
   el["table-state"].className = `badge ${statusBadgeClass(status)}`;
   setText(el["footer-status"], `${label} · KST`);
-  setText(el["notice-title"], isHistoricalTest ? "HISTORICAL-TEST / TEST ONLY — 실제값과 사후 baseline을 구분합니다." : isBackfill ? "TEST ONLY / BACKFILL — 실제 금융 데이터가 아닙니다." : isReplay ? "SYNTHETIC / BASELINE REPLAY를 표시하고 있습니다." : isFixture ? "합성 fixture를 표시하고 있습니다." : status === "ready" ? "검증된 스냅샷을 표시하고 있습니다." : status === "partial" ? "PARTIAL — 정상 순위로 표시하지 않는 부분 수집 결과입니다." : status === "degraded" ? "일부 데이터의 품질 상태를 확인하세요." : "데이터 공급자가 연결되지 않았습니다.");
+  setText(el["notice-title"], isHistoricalTest ? "HISTORICAL-TEST / TEST ONLY — 09:00 시가 baseline 비교입니다." : isBackfill ? "TEST ONLY / BACKFILL — 실제 금융 데이터가 아닙니다." : isReplay ? "SYNTHETIC / BASELINE REPLAY를 표시하고 있습니다." : isFixture ? "합성 fixture를 표시하고 있습니다." : status === "ready" ? "검증된 스냅샷을 표시하고 있습니다." : status === "partial" ? "PARTIAL — 정상 순위로 표시하지 않는 부분 수집 결과입니다." : status === "degraded" ? "일부 데이터의 품질 상태를 확인하세요." : "데이터 공급자가 연결되지 않았습니다.");
   setText(el["notice-detail"], isHistoricalTest ? stateMessages.historicalTest : isBackfill ? stateMessages.backfill : isReplay ? stateMessages.replay : isFixture ? stateMessages.fixture : stateMessages[status] || stateMessages.no_data);
   el["data-notice"]?.toggleAttribute("hidden", status === "ready" && data?.mode !== "demo" && !isBackfill && !isHistoricalTest);
   snapshot = { ...data, rows };

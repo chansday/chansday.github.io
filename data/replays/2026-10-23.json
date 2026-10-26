@@ -40,6 +40,12 @@
       "provider_id": "replay_baseline",
       "message": "08:30 당시 입력 스냅샷이 없어 baseline replay로만 표시합니다."
     },
+    "openSettlement": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "replay_baseline",
+      "message": "기존 테스트 숫자 흐름의 09:00 시작가 정산 단계입니다. 실제 실시간 수집이 아닙니다."
+    },
     "closeSettlement": {
       "status": "demo",
       "attemptedAt": null,

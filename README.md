@@ -2,13 +2,13 @@
 
 정적 GitHub Pages 프론트엔드로 KOSPI 사전예측 랭킹을 기록하고, 장마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
-평일 운영 provider 기본값은 계좌·API 키가 필요 없는 `public-csv`입니다. 다만 공개 일별 CSV는 장전 호가·예상체결가를 제공하지 않으므로 08:20 forecast 단계에서 예측값을 만들지 않고 `no_data`로 기록합니다. 기본 화면의 최신 스냅샷에는 별도 `historical_test` / `TEST ONLY` 표시로 2026-10-22·23의 실제 공개 과거 일봉과 사후 계산 baseline을 연결했습니다. 당시 08:30 예측 스냅샷이나 예측 성과를 복원한 것은 아닙니다.
+평일 운영 provider 기본값은 계좌·API 키가 필요 없는 `public-csv`입니다. 공개 일별 CSV는 장전 호가·예상체결가를 제공하지 않으므로 08:20 forecast 단계에서는 전일 정보만 이용한 `public_baseline_no_preopen_quote`를 계산하고, 고정밀 호가 기반 예측으로 표시하지 않습니다. 기본 화면의 최신 스냅샷에는 별도 `historical_test` / `TEST ONLY` 표시로 2026-10-22·23의 실제 공개 과거 일봉과 사후 계산 baseline을 연결했습니다. 당시 08:20 예측 스냅샷이나 예측 성과를 복원한 것은 아닙니다.
 
 ## 범위와 운영 원칙
 
 + 종목 범위는 운영 provider에서 KOSPI 정규시장 보통주를 기본으로 합니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
 - 가격 기준은 provider가 확인한 KOSPI 정규장 공식 시작가·종가이며 통화는 KRW, 시간대는 `Asia/Seoul`입니다. 조정주가·호가·추정값을 자동으로 섞지 않습니다.
-- `expected_open`, `expected_close`, `expected_return`은 장전 기록이고 `actual_open`, `actual_close`, `actual_return`, `error`는 이후 정산 필드입니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
+- `expected_open`, `expected_return`은 09:00 시작가 목표를 위한 장전 기록이고 `actual_open`, `actual_return`, `error`는 09:00 시가 정산 필드입니다. `actual_close`는 15:30 종가 정산용이며, 시작가 테스트에서는 `expected_close`를 `null`로 둡니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
 - 실제 출처의 약관·재배포 권한이 확인되지 않으면 연결하지 않습니다. HTML 크롤링이나 우회 요청을 하지 않습니다.
@@ -69,16 +69,18 @@
 
 화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 임시 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
-baseline 공식은 다음과 같습니다.
+baseline 공식은 다음과 같습니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다.
 
 ```text
 forecast input through 2026-10-22:
-  expected_open   = previous session close
-  expected_return = previous session close-to-close return
-  expected_close  = previous session close × (1 + expected_return / 100)
+  expected_open   = prior close
+  expected_return = expected_open / prior close - 1 = 0%
+  expected_close  = null (this test targets the 09:00 open)
+  actual_return   = actual_open / prior close - 1
+  error           = actual_return - expected_return
 ```
 
-2026-10-22 forecast는 2026-10-21까지의 값(10-20·10-21 일봉)을, 2026-10-23 forecast는 2026-10-22까지의 값(10-21·10-22 일봉)을 사용합니다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않습니다. 이 baseline은 당시 08:30에 실제로 게시된 예측이 아니며, 과거 운영 성과를 주장하지 않습니다.
+2026-10-22 forecast는 2026-10-21까지의 값(10-20·10-21 일봉)을, 2026-10-23 forecast는 2026-10-22까지의 값(10-21·10-22 일봉)을 사용합니다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않습니다. 이 baseline은 장전 호가가 없는 상태에서의 재현용 사후 계산이며, 당시 08:20에 실제로 게시된 예측이 아니고 과거 운영 성과를 주장하지 않습니다.
 
 원본을 다시 수집하고 두 스냅샷을 재생성하는 명령은 다음과 같습니다. 실제 API 키·주문·자동매매는 필요하지 않습니다.
 
@@ -88,11 +90,11 @@ npm run historical-test:collect
 
 이 경로는 평일 운영 cron, `KOSPI_PROVIDER`, `public-csv` 운영 수집, 기존 합성 fixture/replay/backfill 파일과 분리되어 있습니다.
 
-### 공개 bulk 수집 전략과 08:30 cutoff
+### 공개 bulk 수집 전략과 08:20 cutoff
 
 운영 수집은 종목별 페이지를 순차 크롤링하지 않습니다. 기본 경로는 공개된 날짜별 전체 CSV 한 파일을 가져와 KOSPI 행을 일괄 파싱하는 방식입니다. 로그인·CAPTCHA·robots 차단·redirect·HTML 페이지를 우회하지 않으며, 명시적 allowlist인 `aikstockdata.com` 외 호스트는 거부합니다.
 
-- Actions forecast job은 08:20 KST에 시작하고, 수집기는 08:29:00 KST hard cutoff를 적용합니다. cutoff 이후 도착한 결과는 당일 값으로 재사용하지 않습니다.
+- Actions forecast job은 08:20 KST에 시작하고, 수집기는 08:29:00 KST hard cutoff를 적용합니다. cutoff 이후 도착한 결과는 당일 값으로 재사용하지 않습니다. 09:00 단계는 별도의 `open-settlement` 계약으로 실제 시작가를 정산합니다.
 - source별 timeout(기본 8초), stage별 overall deadline(기본 20초), 최대 동시 요청 2개, 429/5xx에 대한 최대 2회 지수 backoff를 적용합니다.
 - deadline 초과·중복·필수 필드 결측·오래된 파일은 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 이전 snapshot을 당일 결과처럼 재사용하지 않습니다.
 - `meta.source`에는 source id, run id, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록합니다.
@@ -112,7 +114,7 @@ adapter는 단일 HTTPS JSON endpoint만 사용하고, redirect를 거부하며,
 
 ### Baseline replay 모드
 
-2026-10-22·23 baseline replay는 전일 종가 기준 입력 계약, 예상값, 실제값, 오차 열을 검증하기 위한 합성 시뮬레이션입니다. 당시 08:30 입력 스냅샷이나 실제 시장값을 복원하지 않으며, 두 파일 모두 `mode=replay`, `provider.id=replay_baseline`, `meta.replay_type=replay_baseline`, `meta.isDemo=true`를 유지합니다.
+2026-10-22·23 baseline replay는 전일 종가 기준 입력 계약, 예상값, 실제값, 오차 열을 검증하기 위한 합성 시뮬레이션입니다. 당시 08:20 입력 스냅샷이나 실제 시장값을 복원하지 않으며, 두 파일 모두 `mode=replay`, `provider.id=replay_baseline`, `meta.replay_type=replay_baseline`, `meta.isDemo=true`를 유지합니다.
 
 브라우저에서 다음 주소로 확인할 수 있습니다.
 
@@ -133,7 +135,7 @@ npm run replay:dry-run -- --date 2026-10-23
 - https://chansday.github.io/?mode=backfill-test&date=2026-10-22
 - https://chansday.github.io/?mode=backfill-test&date=2026-10-23
 
-스냅샷은 mode=backfill_test, provider.id=backfill-test, meta.isDemo=true, meta.backfill=true를 사용하며 화면에 TEST ONLY / BACKFILL 라벨을 표시합니다. 08:30 KST 실제 원천 스냅샷이 없으므로 과거 08:30 예측을 재구성하지 않았고, 미래 데이터 누수를 막기 위해 날짜를 두 테스트 날짜로만 제한합니다. 숫자는 실제 금융 데이터·실적·예측 성과가 아닙니다.
+스냅샷은 mode=backfill_test, provider.id=backfill-test, meta.isDemo=true, meta.backfill=true를 사용하며 화면에 TEST ONLY / BACKFILL 라벨을 표시합니다. 08:20 KST 실제 원천 스냅샷이 없으므로 과거 08:20 예측을 재구성하지 않았고, 미래 데이터 누수를 막기 위해 날짜를 두 테스트 날짜로만 제한합니다. 숫자는 실제 금융 데이터·실적·예측 성과가 아닙니다.
 
 두 날짜를 실제 파일에 쓰지 않는 dry-run으로 확인합니다.
 
@@ -146,7 +148,7 @@ npm run backfill:dry-run -- --date 2026-10-23
 
 ### 합성 fixture 모드
 
-data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 UI·스키마·정산 흐름을 확인하기 위한 합성 fixture입니다. 두 파일 모두 provider.id=fixture, mode=fixture, meta.isDemo=true를 명시하고, FIXTURE / SYNTHETIC ONLY 라벨과 fixture_synthetic 품질을 사용합니다. 값은 실제 종목·가격·수익률이 아니며, 실제 08:30 KST 입력 스냅샷이 없으므로 역사적 예측을 사후 재구성한 자료도 아닙니다.
+data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 UI·스키마·정산 흐름을 확인하기 위한 합성 fixture입니다. 두 파일 모두 provider.id=fixture, mode=fixture, meta.isDemo=true를 명시하고, FIXTURE / SYNTHETIC ONLY 라벨과 fixture_synthetic 품질을 사용합니다. 값은 실제 종목·가격·수익률이 아니며, 실제 08:20 KST 입력 스냅샷이 없으므로 역사적 예측을 사후 재구성한 자료도 아닙니다.
 
 운영 cron은 fixture를 사용하지 않습니다. Actions의 workflow_dispatch에서 provider=fixture와 fixture_date=2026-10-22 또는 2026-10-23을 선택하거나, 로컬에서 다음처럼 스냅샷을 쓰지 않는 dry-run을 실행할 수 있습니다.
 
@@ -166,9 +168,10 @@ GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9�
 | `0 22 * * 0-4` | 월–금 07:00 | 전일 결과 업데이트 |
 | `0 23 * * 0-4` | 월–금 08:00 | 당일 기초 분석 |
 | `20 23 * * 0-4` | 월–금 08:20 | 08:29 cutoff 전 공개 bulk 수집·장전 상태 기록 |
-| `0 7 * * 1-5` | 월–금 16:00 | 장마감 실제 정산 |
+| `0 0 * * 1-5` | 월–금 09:00 | 실제 시작가 정산 |
+| `30 6 * * 1-5` | 월–금 15:30 | 장마감 실제 정산 |
 
-UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 장마감 단계는 KOSPI 정규장 종료 후 16:00 KST를 기준으로 하며 휴장일 또는 데이터 부족 시 상태만 기록합니다.
+UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 09:00 시가와 15:30 종가 단계는 공개 일별 CSV가 장중에 제공되지 않으면 `no_data`로 남으며, 이전 snapshot을 재사용하지 않습니다.
 
 Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `close-settlement` 중 하나와 provider(`none`, `fixture`, `demo`, `public-json`, `public-csv`)를 선택할 수 있습니다. 기본 workflow와 평일 cron은 `public-csv`를 사용하며 fixture를 자동 선택하지 않습니다. `public-csv`는 계좌·API 키·Secret 없이 실행됩니다.
 

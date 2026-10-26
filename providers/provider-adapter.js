@@ -9,6 +9,7 @@ export const PROVIDER_METHODS = Object.freeze([
   "fetchPreviousDay",
   "runAnalysis",
   "generateForecast",
+  "settleOpen",
   "settleClose",
 ]);
 
@@ -22,7 +23,7 @@ export const RANKING_FIELDS = Object.freeze([
   "error",
 ]);
 
-export const OPTIONAL_ROW_FIELDS = Object.freeze(["confidence", "quality", "actual_volume"]);
+export const OPTIONAL_ROW_FIELDS = Object.freeze(["confidence", "quality", "actual_volume", "prior_close"]);
 
 export const SNAPSHOT_STATUSES = Object.freeze([
   "ready",
@@ -38,6 +39,7 @@ export const PIPELINE_KEYS = Object.freeze([
   "previousResult",
   "analysis",
   "forecast",
+  "openSettlement",
   "closeSettlement",
 ]);
 
@@ -67,6 +69,7 @@ export function isRankingRow(row) {
   if (typeof row.status !== "string") return false;
   if (Object.hasOwn(row, "confidence") && !isFiniteOrNull(row.confidence)) return false;
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
+  if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
   if (Object.hasOwn(row, "quality") && row.quality !== null && typeof row.quality !== "string") return false;
   return RANKING_FIELDS.every((field) => isFiniteOrNull(row[field]));
 }
@@ -187,6 +190,7 @@ export function noDataSnapshot({ mode = "provider", provider = null, message = "
       previousResult: { status: "pending", attemptedAt: null, provider_id: null, message: null },
       analysis: { status: "pending", attemptedAt: null, provider_id: null, message: null },
       forecast: { status: "pending", attemptedAt: null, provider_id: null, message: null },
+      openSettlement: { status: "pending", attemptedAt: null, provider_id: null, message: null },
       closeSettlement: { status: "pending", attemptedAt: null, provider_id: null, message: null },
     },
     rows: [],

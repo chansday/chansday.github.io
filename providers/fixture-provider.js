@@ -8,6 +8,7 @@ const STAGE_MESSAGES = Object.freeze({
   previousResult: "합성 전일 결과 예시입니다. 실제 시장 관측값이 아닙니다.",
   analysis: "합성 분석 단계 예시입니다. 실제 입력·모델 결과가 아닙니다.",
   forecast: "합성 expected_* UI 값만 표시합니다. 08:30 KST 실제 입력 스냅샷이 없어 역사적 예측을 재구성하지 않았습니다.",
+  openSettlement: "합성 actual_open 정산 단계 예시입니다. 실제 09:00 시가가 아닙니다.",
   closeSettlement: "합성 expected_*와 actual_*를 병합하는 정산 흐름 예시입니다. 실제 장마감 값이 아닙니다.",
 });
 
@@ -48,6 +49,11 @@ function stageRows(rows, stage) {
       base.actual_return = null;
       base.error = null;
       base.quality = "fixture_expected_only";
+    } else if (stage === "openSettlement") {
+      base.actual_close = null;
+      base.actual_return = null;
+      base.error = null;
+      base.quality = "fixture_open_settled";
     } else {
       base.quality = "fixture_settled";
     }
@@ -117,6 +123,9 @@ export function createFixtureProvider({
     },
     async generateForecast() {
       return stage("forecast");
+    },
+    async settleOpen() {
+      return stage("openSettlement");
     },
     async settleClose() {
       return stage("closeSettlement");

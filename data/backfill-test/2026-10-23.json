@@ -40,6 +40,12 @@
       "provider_id": "backfill-test",
       "message": "TEST ONLY / BACKFILL: existing replay numeric flow for 2026-10-23; no real historical observation."
     },
+    "openSettlement": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "backfill-test",
+      "message": "기존 테스트 숫자 흐름의 09:00 시작가 정산 단계입니다. 실제 실시간 수집이 아닙니다."
+    },
     "closeSettlement": {
       "status": "demo",
       "attemptedAt": null,

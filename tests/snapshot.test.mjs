@@ -23,6 +23,7 @@ test("static snapshot follows the top-level contract and is visibly test-only", 
   assert.equal(snapshot.provider.id, "historical-test");
   assert.equal(snapshot.rows.length, 913);
   assert.equal(snapshot.meta.source_rows, 913);
+  assert.equal(snapshot.pipeline.openSettlement.status, "ready");
   assert.equal(snapshot.pipeline.closeSettlement.status, "ready");
 });
 
@@ -38,8 +39,13 @@ test("historical-test snapshots contain observed OHLC-volume values and no futur
     assert.equal(snapshot.baseline.input_through_date, expectedInputDates[date]);
     assert.equal(snapshot.meta.source_rows, snapshot.rows.length);
     assert.equal(snapshot.rows.length, 913);
-    assert.equal(snapshot.rows.every((row) => ["expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "actual_return", "actual_volume", "error"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
+    assert.equal(snapshot.rows.every((row) => ["expected_open", "expected_return", "actual_open", "actual_close", "actual_return", "actual_volume", "prior_close", "error"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
+    assert.equal(snapshot.rows.every((row) => row.expected_close === null), true);
     assert.equal(snapshot.rows.every((row) => row.confidence === null), true);
+    assert.equal(snapshot.rows.every((row) => row.quality === "historical_baseline_no_preopen_quote"), true);
+    assert.equal(snapshot.rows.every((row) => Math.abs(row.actual_return - ((row.actual_open / row.prior_close - 1) * 100)) < 0.011), true);
+    assert.equal(snapshot.rows.every((row) => Math.abs(row.expected_return - ((row.expected_open / row.prior_close - 1) * 100)) < 0.011), true);
+    assert.equal(snapshot.rows.every((row) => Math.abs(row.error - (row.actual_return - row.expected_return)) < 0.011), true);
     assert.match(snapshot.pipeline.forecast.message, new RegExp(expectedInputDates[date]));
     assert.match(snapshot.provider.source.url, new RegExp(date.replaceAll("-", "")));
   }
@@ -102,7 +108,7 @@ test("public CSV provider uses bounded bulk collection and never fabricates pre-
   const provider = createPublicCsvProvider({
     env: { KOSPI_PUBLIC_MAX_RETRIES: "0", KOSPI_PUBLIC_MAX_CONCURRENCY: "2", GITHUB_RUN_ID: "test-run" },
     fetchImpl,
-    now: () => new Date("2026-10-26T00:00:00.000Z"),
+    now: () => new Date("2026-10-25T23:10:00.000Z"),
   });
   const observed = await provider.fetchPreviousDay();
   assert.equal(observed.status, "ready");
@@ -114,9 +120,13 @@ test("public CSV provider uses bounded bulk collection and never fabricates pre-
   assert.equal(observed.source.metrics.requested, calls.length);
 
   const forecast = await provider.generateForecast();
-  assert.equal(forecast.status, "no_data");
-  assert.equal(forecast.rows.length, 0);
-  assert.match(forecast.message, /pre-market|order book|no_data/i);
+  assert.equal(forecast.status, "ready");
+  assert.equal(forecast.rows.length, 2);
+  assert.equal(forecast.rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null && row.quality === "public_baseline_no_preopen_quote"), true);
+  assert.match(forecast.message, /baseline|pre-market|order book/i);
+  const openSettlement = await provider.settleOpen();
+  assert.equal(openSettlement.status, "no_data");
+  assert.match(openSettlement.message, /09:00|actual_open|no_data/i);
 });
 
 test("fixture snapshots are explicit synthetic data for both requested dates", async () => {
@@ -130,6 +140,7 @@ test("fixture snapshots are explicit synthetic data for both requested dates", a
     assert.match(snapshot.meta.fixture_note, /SYNTHETIC/i);
     assert.equal(snapshot.rows.length, 3);
     assert.equal(snapshot.pipeline.forecast.status, "demo");
+    assert.equal(snapshot.pipeline.openSettlement.status, "demo");
     assert.match(snapshot.pipeline.forecast.message, /08:30|재구성하지 않았습니다/);
 
     const provider = createFixtureProvider({ env: { KOSPI_FIXTURE_DATE: date } });

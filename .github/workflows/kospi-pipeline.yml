@@ -6,7 +6,8 @@ on:
     - cron: "0 22 * * 0-4" # 07:00 KST, previous-day result update
     - cron: "0 23 * * 0-4" # 08:00 KST, same-day analysis
     - cron: "20 23 * * 0-4" # 08:20 KST, pre-market collection with 08:29 KST hard deadline
-    - cron: "0 7 * * 1-5" # 16:00 KST, same-day close settlement
+    - cron: "0 0 * * 1-5" # 09:00 KST, actual_open settlement
+    - cron: "30 6 * * 1-5" # 15:30 KST, same-day close settlement
   workflow_dispatch:
     inputs:
       stage:
@@ -19,6 +20,7 @@ on:
           - update-results
           - analysis
           - forecast
+          - open-settlement
           - close-settlement
       provider:
         description: "Provider for this manual run only"
@@ -83,7 +85,8 @@ jobs:
               "0 22 * * 0-4") echo "stage=update-results" >> "$GITHUB_OUTPUT" ;;
               "0 23 * * 0-4") echo "stage=analysis" >> "$GITHUB_OUTPUT" ;;
               "20 23 * * 0-4") echo "stage=forecast" >> "$GITHUB_OUTPUT" ;;
-              "0 7 * * 1-5") echo "stage=close-settlement" >> "$GITHUB_OUTPUT" ;;
+              "0 0 * * 1-5") echo "stage=open-settlement" >> "$GITHUB_OUTPUT" ;;
+              "30 6 * * 1-5") echo "stage=close-settlement" >> "$GITHUB_OUTPUT" ;;
               *) echo "Unknown schedule: ${{ github.event.schedule }}" >&2; exit 1 ;;
             esac
           else
@@ -101,6 +104,10 @@ jobs:
       - name: Generate pre-market forecast ranking
         if: steps.stage.outputs.stage == 'forecast' || steps.stage.outputs.stage == 'all'
         run: node scripts/update-results.mjs --mode forecast
+
+      - name: Settle 09:00 actual open
+        if: steps.stage.outputs.stage == 'open-settlement' || steps.stage.outputs.stage == 'all'
+        run: node scripts/update-results.mjs --mode open-settlement
 
       - name: Settle same-day close result
         if: steps.stage.outputs.stage == 'close-settlement' || steps.stage.outputs.stage == 'all'

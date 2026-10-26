@@ -47,11 +47,12 @@
     },
     "pipeline": {
       "type": "object",
-      "required": ["previousResult", "analysis", "forecast", "closeSettlement"],
+      "required": ["previousResult", "analysis", "forecast", "openSettlement", "closeSettlement"],
       "properties": {
         "previousResult": { "$ref": "#/$defs/pipelineStep" },
         "analysis": { "$ref": "#/$defs/pipelineStep" },
         "forecast": { "$ref": "#/$defs/pipelineStep" },
+        "openSettlement": { "$ref": "#/$defs/pipelineStep" },
         "closeSettlement": { "$ref": "#/$defs/pipelineStep" }
       },
       "additionalProperties": false
@@ -146,6 +147,7 @@
         "actual_return": { "type": ["number", "null"] },
         "error": { "type": ["number", "null"] },
         "actual_volume": { "type": ["number", "null"], "minimum": 0 },
+        "prior_close": { "type": ["number", "null"], "minimum": 0 },
         "confidence": { "type": ["number", "null"] },
         "quality": { "type": ["string", "null"] },
         "status": { "type": "string" }

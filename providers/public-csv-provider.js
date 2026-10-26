@@ -296,6 +296,33 @@ function makeRows(latest, prior) {
   return rows;
 }
 
+function makeForecastRows(latest, prior) {
+  const rows = latest.rows.map((row) => {
+    const expectedOpen = row.close;
+    const expectedReturn = 0;
+    return {
+      rank: null,
+      symbol: row.symbol,
+      name: row.name,
+      expected_open: expectedOpen,
+      expected_close: null,
+      expected_return: expectedReturn,
+      actual_open: null,
+      actual_close: null,
+      actual_return: null,
+      actual_volume: null,
+      prior_close: row.close,
+      error: null,
+      confidence: null,
+      quality: "public_baseline_no_preopen_quote",
+      status: "valid",
+    };
+  }).filter(Boolean);
+  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+  rows.forEach((row, index) => { row.rank = index + 1; });
+  return rows;
+}
+
 export function createPublicCsvProvider({ env = globalThis.process?.env || {}, fetchImpl = globalThis.fetch, now = () => new Date() } = {}) {
   const config = parseConfig(env);
   const provider = {
@@ -311,7 +338,20 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
       const context = createContext();
       const history = await fetchHistory(subtractDays(kstDate(now()), 1), context);
       const source = makeSource({ latest: history.latest, context, status: "forecast_unavailable", partial: true });
-      return noData("Public daily CSV has no pre-market quote, expected auction price, order book, or execution strength; forecast remains no_data.", source);
+      if (!history.latest || context.metrics.deadlineHit) return noData("Public daily CSV baseline inputs are incomplete before the forecast deadline; forecast remains no_data.", source);
+      const rows = makeForecastRows(history.latest, history.prior);
+      if (rows.length === 0) return noData("Public daily CSV has no overlapping prior-session rows for a baseline forecast.", source);
+      return {
+        status: "ready",
+        message: `Generated ${rows.length} baseline expected_open rows from daily CSV through ${history.latest.date}; pre-market quote/order-book fields are unavailable.`,
+        rows,
+        source: makeSource({ latest: history.latest, context, status: "ready" }),
+        asOfDate: kstDate(now()),
+      };
+    },
+    async settleOpen() {
+      if (!config.enabled) return noData(config.reason);
+      return noData("Public daily CSV is not published at the 09:00 open-settlement stage; actual_open remains no_data until a licensed intraday/open source is connected.");
     },
     async settleClose() {
       if (!config.enabled) return noData(config.reason);

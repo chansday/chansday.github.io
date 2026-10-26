@@ -16,15 +16,83 @@
     "source": null
   },
   "pipeline": {
-    "previousResult": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 전일 결과 예시입니다. 실제 시장 관측값이 아닙니다." },
-    "analysis": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 분석 단계 예시입니다. 실제 입력·모델 결과가 아닙니다." },
-    "forecast": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 expected_* UI 값만 표시합니다. 08:30 KST 실제 입력 스냅샷이 없어 역사적 예측을 재구성하지 않았습니다." },
-    "closeSettlement": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 expected_*와 actual_*를 병합하는 정산 흐름 예시입니다. 실제 장마감 값이 아닙니다." }
+    "previousResult": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "fixture",
+      "message": "합성 전일 결과 예시입니다. 실제 시장 관측값이 아닙니다."
+    },
+    "analysis": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "fixture",
+      "message": "합성 분석 단계 예시입니다. 실제 입력·모델 결과가 아닙니다."
+    },
+    "forecast": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "fixture",
+      "message": "합성 expected_* UI 값만 표시합니다. 08:30 KST 실제 입력 스냅샷이 없어 역사적 예측을 재구성하지 않았습니다."
+    },
+    "openSettlement": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "fixture",
+      "message": "합성 09:00 시작가 정산 단계 예시입니다. 실제 시장 관측값이 아닙니다."
+    },
+    "closeSettlement": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "fixture",
+      "message": "합성 expected_*와 actual_*를 병합하는 정산 흐름 예시입니다. 실제 장마감 값이 아닙니다."
+    }
   },
   "rows": [
-    { "rank": 1, "symbol": "FIXTURE-23-A", "name": "합성 레코드 A · fixture", "expected_open": 41, "expected_close": 44, "expected_return": 4, "actual_open": 40, "actual_close": 42, "actual_return": 5, "error": 1, "confidence": 0.35, "quality": "fixture_synthetic", "status": "demo" },
-    { "rank": 2, "symbol": "FIXTURE-23-B", "name": "합성 레코드 B · fixture", "expected_open": 51, "expected_close": 50, "expected_return": -2, "actual_open": 52, "actual_close": 49, "actual_return": -5, "error": -3, "confidence": 0.45, "quality": "fixture_synthetic", "status": "demo" },
-    { "rank": 3, "symbol": "FIXTURE-23-C", "name": "합성 레코드 C · fixture", "expected_open": 61, "expected_close": 66, "expected_return": 5, "actual_open": 60, "actual_close": 65, "actual_return": 8.33, "error": 3.33, "confidence": 0.55, "quality": "fixture_synthetic", "status": "demo" }
+    {
+      "rank": 1,
+      "symbol": "FIXTURE-23-A",
+      "name": "합성 레코드 A · fixture",
+      "expected_open": 41,
+      "expected_close": 44,
+      "expected_return": 4,
+      "actual_open": 40,
+      "actual_close": 42,
+      "actual_return": 5,
+      "error": 1,
+      "confidence": 0.35,
+      "quality": "fixture_synthetic",
+      "status": "demo"
+    },
+    {
+      "rank": 2,
+      "symbol": "FIXTURE-23-B",
+      "name": "합성 레코드 B · fixture",
+      "expected_open": 51,
+      "expected_close": 50,
+      "expected_return": -2,
+      "actual_open": 52,
+      "actual_close": 49,
+      "actual_return": -5,
+      "error": -3,
+      "confidence": 0.45,
+      "quality": "fixture_synthetic",
+      "status": "demo"
+    },
+    {
+      "rank": 3,
+      "symbol": "FIXTURE-23-C",
+      "name": "합성 레코드 C · fixture",
+      "expected_open": 61,
+      "expected_close": 66,
+      "expected_return": 5,
+      "actual_open": 60,
+      "actual_close": 65,
+      "actual_return": 8.33,
+      "error": 3.33,
+      "confidence": 0.55,
+      "quality": "fixture_synthetic",
+      "status": "demo"
+    }
   ],
   "meta": {
     "generatedBy": "data/fixtures/2026-10-23.json",

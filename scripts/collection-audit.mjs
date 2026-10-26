@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 const root = resolve(process.cwd());
 const expectedHistoricalDates = ["2026-10-22", "2026-10-23"];
-const pipelineKeys = ["previousResult", "analysis", "forecast", "closeSettlement"];
+const pipelineKeys = ["previousResult", "analysis", "forecast", "openSettlement", "closeSettlement"];
 
 async function readJson(relativePath) {
   return JSON.parse(await readFile(resolve(root, relativePath), "utf8"));
@@ -28,8 +28,11 @@ function checkHistoricalSnapshot(snapshot, date) {
     seen.add(row.symbol);
     if (!(row.actual_open >= 0 && row.actual_close > 0 && row.actual_volume >= 0)) errors.push(`invalid observed value: ${row.symbol}`);
     if (row.actual_open === 0 || row.actual_volume === 0) zeroObservedCount += 1;
-    const derivedActualReturn = ((row.actual_close / row.expected_open) - 1) * 100;
+    if (!(row.prior_close > 0)) errors.push(`prior_close missing: ${row.symbol}`);
+    const derivedActualReturn = ((row.actual_open / row.prior_close) - 1) * 100;
     if (Math.abs(derivedActualReturn - row.actual_return) > 0.011) errors.push(`actual_return mismatch: ${row.symbol}`);
+    const derivedExpectedReturn = ((row.expected_open / row.prior_close) - 1) * 100;
+    if (Math.abs(derivedExpectedReturn - row.expected_return) > 0.011) errors.push(`expected_return mismatch: ${row.symbol}`);
     if (Math.abs((row.actual_return - row.expected_return) - row.error) > 0.011) errors.push(`error mismatch: ${row.symbol}`);
   }
   const ranks = snapshot.rows.map((row) => row.rank);
@@ -65,7 +68,7 @@ async function main() {
     pass: historical.every((item) => item.errors.length === 0),
     limitations: [
       "The default public-csv provider collects daily bulk CSV only; no real pre-market or order-book values are generated.",
-      "Historical daily files are not historical 08:30 snapshots and must not be reported as forecast performance.",
+      "Historical daily files are not historical 08:20 snapshots and must not be reported as forecast performance.",
       "The public site must not publish raw licensed data beyond the source terms.",
     ],
   };

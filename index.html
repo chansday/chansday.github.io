@@ -61,7 +61,7 @@
         <section class="snapshot-bar" aria-label="스냅샷 요약">
           <div class="snapshot-item"><span class="snapshot-key">MARKET</span><strong>KOSPI</strong><span class="snapshot-sub">대한민국 유가증권시장</span></div>
           <div class="snapshot-item"><span class="snapshot-key">AS OF</span><strong id="snapshot-date">—</strong><span class="snapshot-sub">Asia/Seoul · KST</span></div>
-          <div class="snapshot-item"><span class="snapshot-key">BASELINE INPUT</span><strong id="baseline-input">실제 provider 기준</strong><span class="snapshot-sub">replay에서는 전일 종가 기준</span></div>
+          <div class="snapshot-item"><span class="snapshot-key">BASELINE INPUT</span><strong id="baseline-input">실제 provider 기준</strong><span class="snapshot-sub">09:00 시가 비교 · 전일 정보만 사용</span></div>
           <div class="snapshot-item"><span class="snapshot-key">PROVIDER</span><strong id="provider-status">미연결</strong><span class="snapshot-sub" id="provider-detail">공개 데이터 공급자 대기</span></div>
           <div class="snapshot-item"><span class="snapshot-key">PROVENANCE</span><strong><a id="source-url" href="#" target="_blank" rel="noreferrer">—</a></strong><span class="snapshot-sub">수집일 <span id="source-collection">—</span> · <span id="source-range">—</span></span></div>
           <div class="snapshot-item snapshot-item-alert"><span class="snapshot-key">DATA POLICY</span><strong>값을 만들지 않음</strong><span class="snapshot-sub">결측·지연·품질 상태를 공개</span></div>
@@ -84,12 +84,17 @@
             </article>
             <div class="pipeline-connector" aria-hidden="true"></div>
             <article class="pipeline-step pipeline-step-current" role="listitem" data-step="forecast">
-              <div class="step-top"><span class="step-time">08:30</span><span class="step-index">03</span></div>
+              <div class="step-top"><span class="step-time">08:20</span><span class="step-index">03</span></div>
               <h3>장전 예측</h3><p>예상값과 순위 공개</p><span class="step-status" data-step-status>대기</span>
             </article>
             <div class="pipeline-connector" aria-hidden="true"></div>
+            <article class="pipeline-step" role="listitem" data-step="openSettlement">
+              <div class="step-top"><span class="step-time">09:00</span><span class="step-index">04</span></div>
+              <h3>시가 정산</h3><p>실제 시작가·오차 확정</p><span class="step-status" data-step-status>대기</span>
+            </article>
+            <div class="pipeline-connector" aria-hidden="true"></div>
             <article class="pipeline-step" role="listitem" data-step="closeSettlement">
-              <div class="step-top"><span class="step-time">16:00</span><span class="step-index">04</span></div>
+              <div class="step-top"><span class="step-time">15:30</span><span class="step-index">05</span></div>
               <h3>실제 정산</h3><p>실제값과 오차 갱신</p><span class="step-status" data-step-status>대기</span>
             </article>
           </div>
@@ -112,6 +117,12 @@
             <label class="select-field"><span>정렬</span><select id="sort-select"><option value="rank">순위</option><option value="expectedReturn">예상 수익률</option><option value="confidence">confidence</option><option value="error">오차</option><option value="name">종목명</option></select></label>
             <button id="refresh-button" class="button button-compact" type="button">스냅샷 새로고침</button>
           </div>
+          <div class="date-switcher" aria-label="Historical-test 날짜 선택">
+            <span class="date-switcher-label">TEST DATE</span>
+            <a href="?mode=historical-test&date=2026-10-22">2026-10-22 목</a>
+            <a href="?mode=historical-test&date=2026-10-23">2026-10-23 금</a>
+            <span class="date-switcher-note">실제 공개 일봉 + 사후 baseline</span>
+          </div>
 
           <div class="table-card">
             <div class="table-card-header"><div><span class="eyebrow">EXPECTED → ACTUAL</span><p>정산 전후의 값을 같은 행에서 비교합니다.</p></div><span id="table-state" class="badge badge-muted">NO DATA</span></div>
@@ -132,7 +143,7 @@
         <section id="method" class="section method-section" aria-labelledby="method-title">
           <div class="section-heading"><div><p class="section-label">03 / METHOD & PROVENANCE</p><h2 id="method-title">숫자보다 먼저<br><span>기준을 공개합니다.</span></h2></div></div>
           <div class="method-grid">
-            <article class="info-card info-card-feature"><span class="card-number">A</span><h3>예측은 관측 시점에 고정</h3><p>08:30 KST 컷오프 이전에 확인 가능한 입력만 예측에 사용합니다. 이후 공개된 값이 섞이면 상태를 degraded로 낮춥니다.</p><div class="card-foot">CUTOFF · 08:30 KST</div></article>
+            <article class="info-card info-card-feature"><span class="card-number">A</span><h3>09:00 시가를 목표로 고정</h3><p>08:20 KST 수집 시점에 확인 가능한 입력만 예상 시작가에 사용합니다. 장전 호가가 없으면 baseline으로 낮추고 상태를 명시합니다.</p><div class="card-foot">FORECAST · 08:20 KST → OPEN · 09:00</div></article>
             <article class="info-card"><span class="card-number">B</span><h3>신뢰도는 성과 보장이 아님</h3><p>confidence와 quality는 입력·모델·정산 데이터의 상태를 설명하는 메타데이터입니다. 미래 수익이나 정확도를 의미하지 않습니다.</p><div class="card-foot">NO GUARANTEE</div></article>
             <article class="info-card"><span class="card-number">C</span><h3>출처와 지연을 함께 표시</h3><p>공급자, 수집 시각, 게시 시각, 결측·지연 상태를 공개합니다. 소스가 없을 때는 수치 대신 no_data를 표시합니다.</p><div class="card-foot">PROVENANCE · KST</div></article>
           </div>

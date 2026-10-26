@@ -40,6 +40,7 @@ export function createDemoProvider() {
           previousResult: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
           analysis: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
           forecast: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
+          openSettlement: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
           closeSettlement: { status: "demo", attemptedAt: null, provider_id: "demo", message: "UI demo only" },
         },
         rows: [clone(DEMO_ROW)],
@@ -61,6 +62,9 @@ export function createDemoProvider() {
     },
     async generateForecast() {
       return demoResult("DEMO MODE: 사전예측 결과를 표시하지 않습니다.");
+    },
+    async settleOpen() {
+      return demoResult("DEMO MODE: 09:00 시작가 정산을 표시하지 않습니다.");
     },
     async settleClose() {
       return demoResult("DEMO MODE: 장마감 실제 결과를 표시하지 않습니다.");

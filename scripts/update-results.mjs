@@ -15,6 +15,7 @@ export const MODES = {
   "update-results": { key: "previousResult", method: "fetchPreviousDay" },
   analysis: { key: "analysis", method: "runAnalysis" },
   forecast: { key: "forecast", method: "generateForecast" },
+  "open-settlement": { key: "openSettlement", method: "settleOpen" },
   "close-settlement": { key: "closeSettlement", method: "settleClose" },
 };
 
@@ -77,6 +78,18 @@ function mergeRows(existingRows, incomingRows, mode) {
   });
 }
 
+function carryExpectedRowsForUnavailableSettlement(rows, mode) {
+  return rows.map((row) => ({
+    ...row,
+    actual_open: mode === "open-settlement" ? null : row.actual_open,
+    actual_close: null,
+    actual_return: mode === "open-settlement" ? null : row.actual_return,
+    error: null,
+    quality: mode === "open-settlement" ? "pending_open_settlement" : "pending_close_settlement",
+    status: "pending",
+  }));
+}
+
 function applyProviderResult(snapshot, result, mode, provider, providerId, attemptedAt) {
   if (!isProviderResult(result)) {
     const reason = "Provider result failed status/source/ranking schema validation.";
@@ -105,9 +118,11 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
     };
   }
 
+  const preserveExpectedRows = result.status === "no_data" && ["open-settlement", "close-settlement"].includes(mode) && snapshot.rows.length > 0;
   const rows = result.status === "ready" || result.status === "demo"
     ? mergeRows(snapshot.rows, result.rows, mode)
-    : [];
+    : preserveExpectedRows ? carryExpectedRowsForUnavailableSettlement(snapshot.rows, mode) : [];
+  const effectiveStatus = preserveExpectedRows ? "partial" : result.status;
   const rowValidation = validateRankingRows(rows);
   if (!rowValidation.valid) {
     const reason = rowValidation.reason;
@@ -127,11 +142,11 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
   const snapshotMode = isFixture ? "fixture" : isDemo ? "demo" : "provider";
   return {
     ...snapshot,
-    status: result.status,
+    status: effectiveStatus,
     mode: snapshotMode,
     asOfDate: result.asOfDate || snapshot.asOfDate || null,
     publishedAt: result.status === "ready" || isDemo ? attemptedAt : snapshot.publishedAt || null,
-    provider: providerInfo(provider, providerId, result.status),
+    provider: providerInfo(provider, providerId, effectiveStatus),
     rows: rowValidation.rows,
     meta: {
       ...snapshot.meta,

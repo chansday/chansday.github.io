@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const TEST_DATES = Object.freeze(["2026-10-22", "2026-10-23"]);
-const INPUT_DATES = Object.freeze(["2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
+const INPUT_DATES = Object.freeze(["2026-10-21", "2026-10-22", "2026-10-23"]);
 const SOURCE_ROOT = "https://aikstockdata.com/data/public/daily";
 const SOURCE_NAME = "한국주식데이터 (원천: 금융위원회 공공데이터포털·한국거래소)";
 const LICENSE_URL = "https://aikstockdata.com/licenses/aiksd-public-1.1.txt";
@@ -92,23 +92,20 @@ function sourceMetadata(url, retrievedAt) {
   };
 }
 
-function makeSnapshot(date, actual, prior, priorPrior, retrievedAt) {
+function makeSnapshot(date, actual, prior, retrievedAt) {
   const inputThroughDate = prior.date;
   const rows = [];
   for (const [symbol, actualRow] of actual.rows) {
     const priorRow = prior.rows.get(symbol);
-    const priorPriorRow = priorPrior.rows.get(symbol);
-    if (!priorRow || !priorPriorRow) throw new Error(`${date}: missing prior input row for ${symbol}.`);
+    if (!priorRow) throw new Error(`${date}: missing prior input row for ${symbol}.`);
     const priorClose = numeric(priorRow, "clpr", prior.date);
-    const priorPriorClose = numeric(priorPriorRow, "clpr", priorPrior.date);
-    const priorReturn = round((priorClose / priorPriorClose - 1) * 100, 2);
     const expectedOpen = priorClose;
-    const expectedClose = Math.round(expectedOpen * (1 + priorReturn / 100));
-    const expectedReturn = priorReturn;
+    const expectedClose = null;
+    const expectedReturn = 0;
     const actualOpen = numeric(actualRow, "mkp", date);
     const actualClose = numeric(actualRow, "clpr", date);
     const actualVolume = numeric(actualRow, "trqu", date);
-    const actualReturn = round((actualClose / priorClose - 1) * 100, 2);
+    const actualReturn = round((actualOpen / priorClose - 1) * 100, 2);
     rows.push({
       rank: null,
       symbol,
@@ -120,9 +117,10 @@ function makeSnapshot(date, actual, prior, priorPrior, retrievedAt) {
       actual_close: actualClose,
       actual_return: actualReturn,
       actual_volume: actualVolume,
+      prior_close: priorClose,
       error: round(actualReturn - expectedReturn, 2),
       confidence: null,
-      quality: "historical_actual_baseline",
+      quality: "historical_baseline_no_preopen_quote",
       status: "valid",
     });
   }
@@ -140,18 +138,19 @@ function makeSnapshot(date, actual, prior, priorPrior, retrievedAt) {
     market: { name: "KOSPI", currency: "KRW", timezone: "Asia/Seoul" },
     provider: { id: "historical-test", status: "ready", label: `HISTORICAL-TEST / TEST ONLY / ${date}`, source },
     baseline: {
-      basis: "previous_session_close_and_return",
+      basis: "previous_session_close",
       reference_date: inputThroughDate,
       input_through_date: inputThroughDate,
-      value_status: "observed_pre_cutoff",
-      formula: "expected_open = previous close; expected_return = previous session close-to-close return; expected_close = previous close × (1 + expected_return / 100).",
-      note: "Retrospective baseline computed only from observed values through the input date. It is not the historical 08:30 forecast and must not be described as one.",
+      value_status: "retrospective_baseline_no_preopen_quote",
+      formula: "expected_open = prior close; expected_return = expected_open / prior close - 1 = 0%; expected_close = null; actual_return = actual_open / prior close - 1; error = actual_return - expected_return.",
+      note: "This is a reproducible previous-close baseline generated after the fact because no historical 08:20 pre-open quote/order-book snapshot is available. It is not the historical 08:20 forecast and must not be described as one.",
     },
     pipeline: {
       previousResult: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Actual prior-session input through ${inputThroughDate} was collected.` },
       analysis: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: "Historical-test input coverage and numeric fields passed validation." },
-      forecast: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Baseline forecast uses only values through ${inputThroughDate}; no historical 08:30 snapshot is claimed.` },
-      closeSettlement: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Actual open, close, and volume are from the source ${date} daily file.` },
+      forecast: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `09:00 expected_open baseline uses only values through ${inputThroughDate}; no historical 08:20 quote snapshot is claimed.` },
+      openSettlement: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Historical-test actual_open is from the source ${date} daily file; it was not captured live at 09:00.` },
+      closeSettlement: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Actual close and volume are from the source ${date} daily file.` },
     },
     rows,
     meta: {
@@ -162,7 +161,7 @@ function makeSnapshot(date, actual, prior, priorPrior, retrievedAt) {
       isDemo: false,
       historical_test: true,
       test_only: true,
-      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is close-to-previous-close return; expected_* are a retrospective prior-session baseline.",
+      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close; expected_open/expected_return are retrospective previous-close baseline values; expected_close is null because this test targets the open.",
       source_collection_date: retrievedAt.slice(0, 10),
       source_range: rangeNote,
       source_rows: rows.length,
@@ -183,8 +182,7 @@ async function main() {
   for (const date of TEST_DATES) {
     const actual = fetched.get(date);
     const prior = fetched.get(date === "2026-10-22" ? "2026-10-21" : "2026-10-22");
-    const priorPrior = fetched.get(date === "2026-10-22" ? "2026-10-20" : "2026-10-21");
-    const snapshot = makeSnapshot(date, actual, prior, priorPrior, retrievedAt);
+    const snapshot = makeSnapshot(date, actual, prior, retrievedAt);
     await writeFile(resolve(outputDir, `${date}.json`), `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
     console.log(JSON.stringify({ date, sourceRows: actual.rawRows, kospiRows: snapshot.rows.length, retrievedAt }));
   }

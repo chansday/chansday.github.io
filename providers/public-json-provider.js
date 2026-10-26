@@ -151,6 +151,9 @@ export function createPublicJsonProvider({ env = globalThis.process?.env || {}, 
     async generateForecast() {
       return fetchStage(provider, "forecast");
     },
+    async settleOpen() {
+      return fetchStage(provider, "open-settlement");
+    },
     async settleClose() {
       return fetchStage(provider, "close-settlement");
     },

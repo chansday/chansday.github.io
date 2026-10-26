@@ -22,7 +22,7 @@
 - source timeout은 기본 8초, stage overall deadline은 기본 20초입니다.
 - bulk 날짜 파일 탐색은 최대 동시 요청 2개로 제한합니다. 종목별 순차 호출은 사용하지 않습니다.
 - HTTP 429/5xx만 최대 2회 지수 backoff하며, 재시도도 overall deadline 안에서만 허용합니다.
-- 08:30 cutoff 이후 도착한 값, stale 파일, 중복·필수 필드 결측이 있는 결과는 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다.
+- 08:20 forecast 수집은 08:29 cutoff를 적용하고, 이후 도착한 값·stale 파일·중복·필수 필드 결측이 있는 결과는 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 09:00 `openSettlement`는 별도 단계로 actual_open을 정산합니다.
 - 수집 실패 시 이전 snapshot을 당일 값으로 재사용하지 않습니다. `update-results`가 실패하면 rows를 비우고 상태를 남깁니다.
 
 `meta.source`에는 `source_id`, `run_id`, `fetched_at`, `retrieved_at`, source `status`, raw/유효 행 수, `partial`, 요청·완료·실패·재시도·deadline·경과시간·예상 소요시간 metrics가 기록됩니다.
@@ -36,6 +36,6 @@
 
 ## 정확도와 시간의 trade-off
 
-전체 CSV bulk 수집은 수백~수천 종목을 짧은 시간과 작은 호출량으로 확인하는 데 유리합니다. 반면 장전 호가·예상체결가가 없는 상태에서 가격을 추정하면 데이터가 아니라 모델 가정이 되므로, 정확도·감사 가능성을 위해 해당 필드를 null로 둡니다. 따라서 현재 결과는 공개 일봉 관찰표이지 08:30 상승 확률 또는 수익을 보장하는 예측표가 아닙니다.
+전체 CSV bulk 수집은 수백~수천 종목을 짧은 시간과 작은 호출량으로 확인하는 데 유리합니다. 반면 장전 호가·예상체결가가 없는 상태에서 가격을 추정하면 데이터가 아니라 모델 가정이 되므로, 운영 forecast는 전일 종가를 그대로 쓰는 `public_baseline_no_preopen_quote`만 계산합니다. historical-test도 구분 가능한 `previous_session_close` baseline만 사후 계산하며, 실제 08:20 예측 또는 09:00 실시간 정산을 복원한 것이 아닙니다.
 
 `npm run collection:audit`는 저장된 스냅샷의 내부 정합성만 검사하며, 공개 원천의 최신성·라이선스 변경·GitHub Actions 실행 지연을 보장하지 않습니다.
