@@ -38,6 +38,7 @@
       },
       "additionalProperties": false
     },
+    "evaluation": { "$ref": "#/$defs/evaluationSummary" },
     "provider": {
       "type": ["object", "null"],
       "properties": {
@@ -78,6 +79,11 @@
         "backfill_note": { "type": "string" },
         "historical_test": { "type": "boolean" },
         "test_only": { "type": "boolean" },
+        "historical_fallback": { "type": "boolean" },
+        "historical_fallback_reason": { "type": "string" },
+        "historical_fallback_source": { "type": "string" },
+        "live_snapshot_status": { "type": "string" },
+        "live_provider_id": { "type": ["string", "null"] },
         "actual_field_note": { "type": "string" },
         "source_collection_date": { "type": "string", "format": "date" },
         "source_range": { "type": "string" },
@@ -86,6 +92,17 @@
         "replay_type": { "type": "string" },
         "replay_note": { "type": "string" },
         "fixture_note": { "type": "string" },
+        "data_classification": { "enum": ["operational", "test_only"] },
+        "evaluation_dataset": { "enum": ["operational", "historical_test", "fixture", "replay", "backfill_test"] },
+        "evaluation_test_only": { "type": "boolean" },
+        "stage_test": { "type": "boolean" },
+        "stage": { "type": "string", "pattern": "^\\d{4}$" },
+        "stage_source": { "type": "string" },
+        "latest_snapshot_untouched": { "type": "boolean" },
+        "sequence_verification": { "type": "boolean" },
+        "sequence": { "type": "array", "items": { "type": "string", "pattern": "^\\d{4}$" } },
+        "applied_stage": { "type": "string", "pattern": "^\\d{4}$" },
+        "source_stage_snapshot": { "type": "string" },
         "source": { "$ref": "#/$defs/sourceMetadataOrNull" }
       },
       "additionalProperties": false
@@ -127,6 +144,86 @@
       "additionalProperties": false
     },
     "sourceMetadataOrNull": { "anyOf": [{ "$ref": "#/$defs/sourceMetadata" }, { "type": "null" }] },
+    "evaluationSummary": {
+      "type": "object",
+      "required": ["status", "test_only", "dataset", "target", "display_policy", "sample_count", "evaluated_sample_count", "missing_sample_count", "evaluation_range", "metrics", "note"],
+      "properties": {
+        "status": { "enum": ["pending", "partial", "evaluated"] },
+        "test_only": { "type": "boolean" },
+        "dataset": { "enum": ["operational", "historical_test", "fixture", "replay", "backfill_test"] },
+        "target": {
+          "type": "object",
+          "required": ["prediction_field", "actual_field", "error_field", "unit", "error_formula"],
+          "properties": {
+            "prediction_field": { "const": "expected_return" },
+            "actual_field": { "const": "actual_return" },
+            "error_field": { "const": "error" },
+            "unit": { "const": "percentage_points" },
+            "error_formula": { "const": "actual_return - expected_return" }
+          },
+          "additionalProperties": false
+        },
+        "display_policy": {
+          "type": "object",
+          "required": ["expected_open", "expected_close", "expected_return"],
+          "properties": {
+            "expected_open": { "$ref": "#/$defs/expectedDisplayPolicy" },
+            "expected_close": { "$ref": "#/$defs/expectedDisplayPolicy" },
+            "expected_return": { "$ref": "#/$defs/expectedDisplayPolicy" }
+          },
+          "additionalProperties": false
+        },
+        "sample_count": { "type": "integer", "minimum": 0 },
+        "evaluated_sample_count": { "type": "integer", "minimum": 0 },
+        "missing_sample_count": { "type": "integer", "minimum": 0 },
+        "evaluation_range": {
+          "type": "object",
+          "required": ["forecast_date", "actual_date", "forecast_stage", "actual_stage", "input_range"],
+          "properties": {
+            "forecast_date": { "type": ["string", "null"], "format": "date" },
+            "actual_date": { "type": ["string", "null"], "format": "date" },
+            "forecast_stage": { "type": "string", "pattern": "^\\d{4}$" },
+            "actual_stage": { "type": ["string", "null"], "pattern": "^\\d{4}$" },
+            "input_range": {
+              "type": "object",
+              "required": ["start", "end"],
+              "properties": {
+                "start": { "type": ["string", "null"], "format": "date" },
+                "end": { "type": ["string", "null"], "format": "date" }
+              },
+              "additionalProperties": false
+            }
+          },
+          "additionalProperties": false
+        },
+        "metrics": {
+          "type": "object",
+          "required": ["mean_absolute_error", "root_mean_squared_error", "mean_error", "min_error", "max_error"],
+          "properties": {
+            "mean_absolute_error": { "type": ["number", "null"] },
+            "root_mean_squared_error": { "type": ["number", "null"] },
+            "mean_error": { "type": ["number", "null"] },
+            "min_error": { "type": ["number", "null"] },
+            "max_error": { "type": ["number", "null"] }
+          },
+          "additionalProperties": false
+        },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "expectedDisplayPolicy": {
+      "type": "object",
+      "required": ["source_field", "format", "maximum_fraction_digits", "rounding", "source_precision"],
+      "properties": {
+        "source_field": { "enum": ["expected_open", "expected_close", "expected_return"] },
+        "format": { "const": "number" },
+        "maximum_fraction_digits": { "const": 0 },
+        "rounding": { "const": "half_up" },
+        "source_precision": { "const": "preserved" }
+      },
+      "additionalProperties": false
+    },
     "pipelineStep": {
       "type": "object",
       "required": ["status", "attemptedAt", "provider_id", "message"],

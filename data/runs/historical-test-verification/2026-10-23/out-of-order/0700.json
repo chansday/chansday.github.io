@@ -21096,6 +21096,9 @@
       "license_url": "https://aikstockdata.com/licenses/aiksd-public-1.1.txt",
       "retrieved_at": "2026-10-26T12:24:07.211Z"
     },
+    "data_classification": "test_only",
+    "evaluation_dataset": "historical_test",
+    "evaluation_test_only": true,
     "sequence_verification": true,
     "sequence": [
       "0900",
@@ -21107,5 +21110,61 @@
     "applied_stage": "0700",
     "latest_snapshot_untouched": true,
     "source_stage_snapshot": "data/historical-test/2026-10-23.json"
+  },
+  "evaluation": {
+    "status": "evaluated",
+    "test_only": true,
+    "dataset": "historical_test",
+    "target": {
+      "prediction_field": "expected_return",
+      "actual_field": "actual_return",
+      "error_field": "error",
+      "unit": "percentage_points",
+      "error_formula": "actual_return - expected_return"
+    },
+    "display_policy": {
+      "expected_open": {
+        "source_field": "expected_open",
+        "format": "number",
+        "maximum_fraction_digits": 0,
+        "rounding": "half_up",
+        "source_precision": "preserved"
+      },
+      "expected_close": {
+        "source_field": "expected_close",
+        "format": "number",
+        "maximum_fraction_digits": 0,
+        "rounding": "half_up",
+        "source_precision": "preserved"
+      },
+      "expected_return": {
+        "source_field": "expected_return",
+        "format": "number",
+        "maximum_fraction_digits": 0,
+        "rounding": "half_up",
+        "source_precision": "preserved"
+      }
+    },
+    "sample_count": 913,
+    "evaluated_sample_count": 913,
+    "missing_sample_count": 0,
+    "evaluation_range": {
+      "forecast_date": "2026-10-23",
+      "actual_date": "2026-10-23",
+      "forecast_stage": "0820",
+      "actual_stage": null,
+      "input_range": {
+        "start": "2026-10-16",
+        "end": "2026-10-22"
+      }
+    },
+    "metrics": {
+      "mean_absolute_error": 3.9305,
+      "root_mean_squared_error": 16.6297,
+      "mean_error": -2.6636,
+      "min_error": -100,
+      "max_error": 10.46
+    },
+    "note": "Sequence verification is test-only and isolated from operating snapshots."
   }
 }

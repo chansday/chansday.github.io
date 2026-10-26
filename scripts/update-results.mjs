@@ -132,9 +132,10 @@ function derivedActualReturn(row) {
     : null;
 }
 
-function mergeRows(existingRows, incomingRows, mode) {
+export function mergeRows(existingRows, incomingRows, mode) {
   const bySymbol = new Map(existingRows.filter((row) => row.symbol).map((row) => [row.symbol, row]));
-  return incomingRows.map((incoming) => {
+  const incomingSymbols = new Set(incomingRows.filter((row) => row.symbol).map((row) => row.symbol));
+  const mergedRows = incomingRows.map((incoming) => {
     const existing = incoming.symbol ? bySymbol.get(incoming.symbol) : null;
     if (!existing) return incoming;
 
@@ -154,6 +155,7 @@ function mergeRows(existingRows, incomingRows, mode) {
       for (const field of ["rank", "symbol", "name", "quality", "status", ...CLOSE_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
+      merged.error = derivedError(merged);
       return merged;
     }
 
@@ -163,18 +165,14 @@ function mergeRows(existingRows, incomingRows, mode) {
     }
     return merged;
   });
+  for (const existing of existingRows) {
+    if (existing.symbol && !incomingSymbols.has(existing.symbol)) mergedRows.push(existing);
+  }
+  return mergedRows;
 }
 
 function carryExpectedRowsForUnavailableSettlement(rows, mode) {
-  return rows.map((row) => ({
-    ...row,
-    actual_open: mode === "open-settlement" ? null : row.actual_open,
-    actual_close: mode === "open-settlement" ? row.actual_close : null,
-    actual_return: mode === "open-settlement" ? null : row.actual_return,
-    error: mode === "open-settlement" ? null : derivedError(row),
-    quality: mode === "open-settlement" ? "pending_open_settlement" : "pending_close_settlement",
-    status: "pending",
-  }));
+  return rows.map((row) => ({ ...row, error: derivedError(row) }));
 }
 
 function unavailableRows(snapshot, mode) {
@@ -192,7 +190,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: [],
+      rows: unavailableRows(snapshot, mode),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source: provider?.getSourceMetadata?.() || null },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -206,7 +204,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: [],
+      rows: unavailableRows(snapshot, mode),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -225,7 +223,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: [],
+      rows: unavailableRows(snapshot, mode),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };

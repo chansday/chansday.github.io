@@ -2,7 +2,7 @@
 
 정적 GitHub Pages 프론트엔드로 KOSPI 사전예측 랭킹을 기록하고, 장마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
-평일 운영 provider 기본값은 계좌·API 키가 필요 없는 `public-csv`입니다. 공개 일별 CSV는 장전 호가·예상체결가를 제공하지 않으므로 08:20 forecast 단계에서는 전일 정보만 이용한 `public_baseline_no_preopen_quote`를 계산하고, 고정밀 호가 기반 예측으로 표시하지 않습니다. 기본 화면의 최신 스냅샷에는 별도 `historical_test` / `TEST ONLY` 표시로 2026-10-22·23의 실제 공개 과거 일봉과 사후 계산 baseline을 연결했습니다. 당시 08:20 예측 스냅샷이나 예측 성과를 복원한 것은 아닙니다.
+평일 운영 provider 기본값은 계좌·API 키가 필요 없는 `public-csv`입니다. 공개 일별 CSV는 장전 호가·예상체결가를 제공하지 않으므로 08:20 forecast 단계에서는 전일 정보만 이용한 `public_baseline_no_preopen_quote`를 계산하고, 고정밀 호가 기반 예측으로 표시하지 않습니다. 운영 루트는 live snapshot 상태가 정확히 `no_data`일 때만 분리된 historical-test run을 선택하며, 화면 최상단에 `TEST ONLY · HISTORICAL BASELINE · NOT LIVE`를 표시합니다. 이는 당시 08:20 예측 스냅샷이나 예측 성과를 복원한 것이 아닙니다.
 
 ## 범위와 운영 원칙
 
@@ -26,6 +26,7 @@
 ├─ data/latest-snapshot.json
 ├─ data/runs/YYYY-MM-DD/{0700,0800,0820,0900,1530}.json
 ├─ schema/market-snapshot.schema.json
+├─ providers/evaluation-contract.js
 ├─ providers/provider-adapter.js
 ├─ providers/demo-provider.js
 ├─ providers/fixture-provider.js
@@ -35,8 +36,7 @@
 ├─ data/fixtures/2026-10-23.json
 ├─ data/backfill-test/2026-10-22.json
 ├─ data/backfill-test/2026-10-23.json
-├─ data/historical-test/2026-10-22.json
-├─ data/historical-test/2026-10-23.json
+├─ data/runs/historical-test/YYYY-MM-DD/{0700,0800,0820,0900,1530}.json
 ├─ scripts/update-results.mjs
 ├─ scripts/collect-historical-test.mjs
 ├─ scripts/workflow-dry-run.mjs
@@ -50,9 +50,9 @@
 
 ## 현재 데이터 출처 상태
 
-운영 provider 기본값은 `public-csv`이며, 평일 Actions가 명시적 allowlist의 bulk CSV만 수집합니다. `KOSPI_PROVIDER=none`으로 끄거나, 공개 원천이 늦거나 품질 검사를 통과하지 못하면 `no_data`/`partial`/`degraded` 상태로 기록합니다. 아래 historical-test 스냅샷만 별도 TEST ONLY 화면으로 실제 과거 파일을 표시합니다.
+운영 provider 기본값은 `public-csv`이며, 평일 Actions가 명시적 allowlist의 bulk CSV만 수집합니다. `KOSPI_PROVIDER=none`으로 끄거나, 공개 원천이 늦거나 품질 검사를 통과하지 못하면 `no_data`/`partial`/`degraded` 상태로 기록합니다. 운영 루트는 `no_data`에서만 `data/runs/historical-test`의 settled run을 fallback으로 읽고, `partial`·`degraded`·stale 등 다른 상태에서는 fallback하지 않습니다.
 
-`data/historical-test/*.json`은 운영 run과 분리된 검증용 과거 스냅샷입니다. `data/latest-snapshot.json`은 화면이 읽는 최신 운영 run의 복사본이며, canonical 입력은 `data/runs/YYYY-MM-DD/*.json`에 단계별로 보존합니다. historical-test 수집기는 latest 운영 복사본을 갱신하지 않습니다.
+`data/runs/historical-test/YYYY-MM-DD/*.json`은 운영 run과 분리된 검증용 과거 스냅샷입니다. `data/latest-snapshot.json`은 운영 provider의 최신 run 복사본이며, fallback 선택 시에도 파일·운영 상태·메타데이터를 덮어쓰지 않습니다. historical-test 수집기는 latest 운영 복사본을 갱신하지 않습니다.
 
 - 출처: [한국주식데이터 일별 시세 파일](https://aikstockdata.com/data/public/daily/quotes_20261023.csv), 원천 표기: 금융위원회 공공데이터포털·한국거래소
 - 라이선스: [aiksd-public-1.1](https://aikstockdata.com/licenses/aiksd-public-1.1.txt), 출처표시·비영리 이용 조건 및 공공누리 제4유형 조건을 준수해야 합니다.
@@ -63,12 +63,12 @@
 
 ### Historical-test / TEST ONLY
 
-기본 화면은 최신 운영 스냅샷을 표시하며, 공급자가 없거나 수집이 차단되면 `no_data`/`degraded` 상태를 유지합니다. historical-test 날짜별 화면은 다음 주소로 별도 확인할 수 있습니다.
+기본 화면은 최신 운영 스냅샷을 표시합니다. live provider가 정확히 `no_data`일 때만 `data/runs/historical-test/YYYY-MM-DD/1530.json`을 읽어 표시하며, `partial`·`degraded`·stale 상태에서는 운영 상태를 그대로 유지합니다. fallback 화면의 최상단 라벨은 정확히 `TEST ONLY · HISTORICAL BASELINE · NOT LIVE`입니다. historical-test 날짜별 화면은 다음 주소로 별도 확인할 수 있습니다.
 
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-22`
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-23`
 
-화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 임시 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
+화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. fallback에서는 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `error`를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
 historical baseline은 직전 5개 거래일의 공개 일별 종가만 사용합니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다. `features`에는 전일 수익률, 최근 3개 수익률 평균(momentum), 최근 4개 수익률의 모집단 표준편차(volatility)를 함께 저장합니다.
 
@@ -162,6 +162,12 @@ npm run historical-test:verify
 ```
 
 파일은 `data/runs/historical-test/YYYY-MM-DD/{0700,0800,0820,0900,1530}.json`에 생성되며, 순서 변경 검증과 결과 보고서는 `docs/HISTORICAL_STAGE_VERIFICATION.md`에 기록합니다. 모든 파일은 `test_only=true`, `historical_test=true`이며 `data/latest-snapshot.json`을 갱신하지 않습니다.
+
+각 historical-test snapshot에는 화면이 평가 결과를 평면 필드 추측 없이 사용할 수 있도록 top-level `evaluation` 계약도 포함됩니다. `evaluation.target`은 `expected_return`(예측), `actual_return`(실제), `error`(오차)의 정규화된 필드 매핑과 `actual_return - expected_return` 공식을 선언합니다. `sample_count`, `evaluated_sample_count`, `missing_sample_count`, `evaluation_range`, MAE/RMSE/평균 오차 집계 및 `test_only=true`, `dataset=historical_test`를 함께 기록합니다. 07:00~08:20 단계는 평가 상태가 `pending`, 09:00 이후 정산 단계는 `evaluated`이며, 오차가 없는 행을 표본으로 세지 않습니다.
+
+원본 JSON의 `expected_open`, `expected_close`, `expected_return` 값은 저장 정밀도를 그대로 보존합니다. 화면 표시가 필요할 때만 `evaluation.display_policy`의 `maximum_fraction_digits=0`, `rounding=half_up` 정책을 사용해 소수점 없는 표시값을 만들며, 이 정책은 저장값·실제값·오차 계산을 변경하지 않습니다.
+
+이 평가 메타데이터는 `data/historical-test/`와 `data/runs/historical-test/`에만 생성됩니다. 운영 `data/latest-snapshot.json`에는 historical-test 평가를 병합하지 않으며, historical-test fallback도 원본 `evaluation`을 보존하면서 `meta.historical_fallback`으로만 표시합니다. `providers/provider-adapter.js`는 historical-test snapshot에 test-only 평가 계약이 없거나 표본수가 행 수와 다르면 로드를 거부합니다.
 
 ### 합성 fixture 모드
 

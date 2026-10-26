@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { cp, mkdtemp, mkdir, readFile, rm } from "node:fs/promises";
+import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -11,10 +11,19 @@ import {
   isSnapshot,
   validateRankingRows,
 } from "../providers/provider-adapter.js";
+import {
+  HISTORICAL_TEST_REQUIRED_FIELDS,
+  historicalTestRunPath,
+  isHistoricalTestSnapshot,
+  isLiveNoDataSnapshot,
+  markHistoricalTestFallback,
+} from "../providers/historical-test-fallback.js";
+import { EXPECTED_DISPLAY_POLICY, isEvaluationSummary } from "../providers/evaluation-contract.js";
 import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
+import { mergeRows } from "../scripts/update-results.mjs";
 
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -28,6 +37,92 @@ test("latest snapshot is an operating screen copy, not the historical-test datas
   assert.notEqual(snapshot.meta?.historical_test, true);
   assert.notEqual(snapshot.meta?.test_only, true);
   assert.equal(snapshot.meta.run_stage, "update-results");
+});
+
+test("historical fallback is eligible only for live no_data and keeps observed fields from the isolated run", async () => {
+  const liveNoData = {
+    schemaVersion: "1.0.0",
+    mode: "provider",
+    status: "no_data",
+    provider: { id: null },
+    meta: { isDemo: false, historical_test: false, test_only: false },
+  };
+  assert.equal(isLiveNoDataSnapshot(liveNoData), true);
+  for (const status of ["ready", "partial", "degraded", "stale", "blocked", "pending"]) {
+    assert.equal(isLiveNoDataSnapshot({ ...liveNoData, status }), false, `${status} must not select historical fallback`);
+  }
+
+  const runPath = historicalTestRunPath("2026-10-23");
+  assert.equal(runPath, "data/runs/historical-test/2026-10-23/1530.json");
+  const historical = JSON.parse(await readFile(join(PROJECT_ROOT, runPath), "utf8"));
+  assert.equal(isHistoricalTestSnapshot(historical), true);
+  assert.equal(historical.meta.latest_snapshot_untouched, true);
+  assert.equal(historical.rows.every((row) => HISTORICAL_TEST_REQUIRED_FIELDS.every((field) => Object.hasOwn(row, field) && typeof row[field] === "number" && Number.isFinite(row[field]))), true);
+
+  const fallback = markHistoricalTestFallback(historical, liveNoData, runPath);
+  assert.notEqual(fallback, historical);
+  assert.notEqual(fallback.meta, historical.meta);
+  assert.deepEqual(fallback.rows, historical.rows);
+  assert.equal(fallback.meta.historical_fallback, true);
+  assert.equal(fallback.meta.historical_fallback_reason, "live_provider_no_data");
+  assert.equal(fallback.meta.historical_fallback_source, runPath);
+  assert.equal(fallback.meta.live_snapshot_status, "no_data");
+});
+
+test("historical-test snapshots expose a normalized, test-only evaluation contract", async () => {
+  const source = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "historical-test", "2026-10-23.json"), "utf8"));
+  const forecast = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", "2026-10-23", "0820.json"), "utf8"));
+  const settled = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", "2026-10-23", "1530.json"), "utf8"));
+  for (const snapshot of [source, forecast, settled]) {
+    assert.equal(isEvaluationSummary(snapshot.evaluation), true);
+    assert.equal(snapshot.evaluation.test_only, true);
+    assert.equal(snapshot.evaluation.dataset, "historical_test");
+    assert.deepEqual(snapshot.evaluation.display_policy, EXPECTED_DISPLAY_POLICY);
+    assert.deepEqual(snapshot.evaluation.target, {
+      prediction_field: "expected_return",
+      actual_field: "actual_return",
+      error_field: "error",
+      unit: "percentage_points",
+      error_formula: "actual_return - expected_return",
+    });
+    assert.equal(snapshot.evaluation.sample_count, snapshot.rows.length);
+    assert.equal(snapshot.evaluation.missing_sample_count, snapshot.evaluation.sample_count - snapshot.evaluation.evaluated_sample_count);
+  }
+  assert.equal(forecast.evaluation.status, "pending");
+  assert.equal(forecast.evaluation.evaluated_sample_count, 0);
+  assert.equal(forecast.evaluation.evaluation_range.actual_stage, null);
+  assert.equal(settled.evaluation.status, "evaluated");
+  assert.equal(settled.evaluation.evaluated_sample_count, settled.rows.length);
+  assert.equal(settled.evaluation.evaluation_range.actual_stage, "0900");
+  assert.equal(settled.evaluation.metrics.mean_absolute_error > 0, true);
+  assert.equal(settled.meta.evaluation_test_only, true);
+  assert.equal(source.rows.some((row) => typeof row.expected_return === "number" && !Number.isInteger(row.expected_return)), true);
+  assert.deepEqual(source.rows.map((row) => row.expected_return), settled.rows.map((row) => row.expected_return));
+});
+
+test("historical-test evaluation cannot be accepted without test-only provenance", async () => {
+  const snapshot = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", "2026-10-23", "1530.json"), "utf8"));
+  const withoutEvaluation = { ...snapshot };
+  delete withoutEvaluation.evaluation;
+  assert.equal(isSnapshot(withoutEvaluation), false);
+  assert.equal(isLiveNoDataSnapshot({
+    schemaVersion: "1.0.0",
+    mode: "provider",
+    status: "no_data",
+    provider: { id: null },
+    meta: { isDemo: false, historical_test: false, test_only: false },
+    evaluation: { test_only: true },
+  }), false);
+});
+
+test("operating UI declares historical fallback as not live and reads only isolated run paths", async () => {
+  const app = await readFile(join(PROJECT_ROOT, "app.js"), "utf8");
+  assert.match(app, /TEST ONLY · HISTORICAL BASELINE · NOT LIVE/);
+  assert.match(app, /isLiveNoDataSnapshot/);
+  assert.match(app, /historical_fallback_source/);
+  assert.match(app, /historicalTestRunPath/);
+  assert.match(app, /historical-test-fallback\.js/);
+  assert.doesNotMatch(app, /data\/historical-test\//);
 });
 
 test("canonical stage runs preserve fields, settle cumulatively, and are idempotent", async () => {
@@ -65,6 +160,64 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
   }
 });
 
+test("unavailable settlement preserves previously successful actual fields", async () => {
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-unavailable-settlement-"));
+  const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
+  const dataFile = join(tempRoot, "latest.json");
+  const row = {
+    rank: 1,
+    symbol: "KEEP",
+    name: "보존종목",
+    expected_open: 101,
+    expected_close: null,
+    expected_return: 1,
+    actual_open: 102,
+    actual_close: 105,
+    actual_return: 2,
+    actual_volume: 1234,
+    error: 1,
+    confidence: null,
+    quality: "settled",
+    status: "valid",
+  };
+  const snapshot = { status: "ready", mode: "provider", provider: { id: "test" }, meta: {}, rows: [row], pipeline: {} };
+  try {
+    await writeFile(dataFile, `${JSON.stringify(snapshot)}\n`, "utf8");
+    for (const mode of ["open-settlement", "close-settlement"]) {
+      await execFileAsync(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-23", "--data-file", dataFile], { cwd: PROJECT_ROOT });
+      const observed = JSON.parse(await readFile(dataFile, "utf8"));
+      assert.deepEqual(observed.rows[0], { ...row, error: 1 });
+    }
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test("close settlement preserves actual_return and recalculates error", () => {
+  const existing = {
+    rank: 1,
+    symbol: "CLOSE",
+    name: "종가정산",
+    expected_open: 101,
+    expected_close: null,
+    expected_return: 1,
+    actual_open: 102,
+    actual_close: null,
+    actual_return: 2,
+    actual_volume: null,
+    error: 999,
+    confidence: null,
+    quality: "open_settled",
+    status: "valid",
+  };
+  const incoming = { ...existing, actual_close: 105, actual_return: 99, actual_volume: 5000, error: null };
+  const [merged] = mergeRows([existing], [incoming], "close-settlement");
+  assert.equal(merged.actual_close, 105);
+  assert.equal(merged.actual_volume, 5000);
+  assert.equal(merged.actual_return, 2);
+  assert.equal(merged.error, 1);
+});
+
 test("historical-test pipeline writes five isolated stage files without touching operating latest", async () => {
   const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-historical-stage-"));
   const script = join(PROJECT_ROOT, "scripts", "historical-test-pipeline.mjs");
@@ -93,7 +246,7 @@ test("historical-test snapshots contain observed OHLC-volume values and no futur
     "2026-10-23": ["2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22"],
   };
   for (const [date, inputDates] of Object.entries(expectedInputDates)) {
-    const snapshot = JSON.parse(await readFile(new URL(`../data/historical-test/${date}.json`, import.meta.url), "utf8"));
+    const snapshot = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", date, "1530.json"), "utf8"));
     assert.equal(isSnapshot(snapshot), true);
     assert.equal(snapshot.mode, "historical_test");
     assert.equal(snapshot.provider.id, "historical-test");
@@ -109,13 +262,13 @@ test("historical-test snapshots contain observed OHLC-volume values and no futur
     assert.equal(snapshot.rows.every((row) => ["expected_open", "expected_return", "actual_open", "actual_close", "actual_return", "actual_volume", "prior_close", "error"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
     assert.equal(snapshot.rows.every((row) => row.expected_close === null), true);
     assert.equal(snapshot.rows.every((row) => row.confidence === null), true);
-    assert.equal(snapshot.rows.every((row) => row.quality === "historical_baseline_public_daily"), true);
+    assert.equal(snapshot.rows.every((row) => ["historical_baseline_public_daily", "historical_baseline_public_daily_settled"].includes(row.quality)), true);
     assert.equal(snapshot.rows.some((row) => row.expected_return !== 0), true);
     assert.equal(snapshot.rows.every((row) => row.features && Number.isFinite(row.features.momentum) && Number.isFinite(row.features.volatility)), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.actual_return - ((row.actual_open / row.prior_close - 1) * 100)) < 0.011), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.expected_return - ((row.expected_open / row.prior_close - 1) * 100)) < 0.011), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.error - (row.actual_return - row.expected_return)) < 0.011), true);
-    assert.match(snapshot.pipeline.forecast.message, new RegExp(inputDates.at(-1)));
+    assert.match(snapshot.pipeline.forecast.message, new RegExp(`${inputDates.at(-1)}|Historical-test stage 0820`));
     assert.match(snapshot.provider.source.url, new RegExp(date.replaceAll("-", "")));
   }
 });
@@ -191,6 +344,8 @@ test("public CSV provider uses bounded bulk collection and never fabricates pre-
   assert.equal(observed.status, "ready");
   assert.equal(observed.rows.length, 2);
   assert.equal(observed.rows.every((row) => row.expected_open === null && row.expected_return === null), true);
+  assert.equal(observed.rows.every((row) => row.actual_return === 0 && row.error === null), true);
+  assert.equal(observed.rows.every((row) => row.actual_close === 110 || row.actual_close === 220), true);
   assert.equal(observed.source.source_id, "aikstockdata-public-daily-csv");
   assert.equal(observed.source.run_id, "test-run");
   assert.equal(observed.source.metrics.max_concurrency, 2);

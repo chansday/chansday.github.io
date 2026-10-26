@@ -3,6 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isSnapshot } from "../providers/provider-adapter.js";
+import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
 
 const DATES = ["2026-10-22", "2026-10-23"];
 const NORMAL_ORDER = ["0700", "0800", "0820", "0900", "1530"];
@@ -46,6 +47,15 @@ function buildSnapshot(source, date, stage, sequence, rows) {
     mode: "historical_test",
     status: "ready",
     rows,
+    evaluation: buildEvaluationSummary(rows, {
+      testOnly: true,
+      dataset: "historical_test",
+      asOfDate: date,
+      forecastStage: "0820",
+      actualStage: ["0900", "1530"].includes(stage) ? "0900" : null,
+      inputDates: source.baseline?.input_dates || [],
+      note: "Sequence verification is test-only and isolated from operating snapshots.",
+    }),
     pipeline: {
       ...source.pipeline,
       previousResult: { ...source.pipeline.previousResult, status: sequence.indexOf("0700") <= sequence.indexOf(stage) ? "ready" : "pending" },
@@ -63,6 +73,9 @@ function buildSnapshot(source, date, stage, sequence, rows) {
       applied_stage: stage,
       latest_snapshot_untouched: true,
       source_stage_snapshot: `data/historical-test/${date}.json`,
+      data_classification: "test_only",
+      evaluation_dataset: "historical_test",
+      evaluation_test_only: true,
     },
   };
 }

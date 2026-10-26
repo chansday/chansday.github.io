@@ -2,6 +2,7 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isSnapshot } from "../providers/provider-adapter.js";
+import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
 
 const SUPPORTED_DATES = ["2026-10-22", "2026-10-23"];
 const STAGES = [
@@ -79,13 +80,24 @@ function stageRows(sourceRows, currentStageIndex) {
 
 function buildStageSnapshot(source, date, stageIndex) {
   const [stage] = STAGES[stageIndex];
+  const rows = stageRows(source.rows, stageIndex);
+  const inputDates = source.baseline?.input_dates || [];
   return {
     ...source,
     status: "ready",
     mode: "historical_test",
     publishedAt: source.publishedAt,
     pipeline: stagePipeline(source, stageIndex),
-    rows: stageRows(source.rows, stageIndex),
+    rows,
+    evaluation: buildEvaluationSummary(rows, {
+      testOnly: true,
+      dataset: "historical_test",
+      asOfDate: date,
+      forecastStage: "0820",
+      actualStage: stageIndex >= 3 ? "0900" : null,
+      inputDates,
+      note: "Historical-test only. This staged evaluation is isolated from operating snapshots and does not represent live forecast performance.",
+    }),
     meta: {
       ...source.meta,
       test_only: true,
@@ -94,6 +106,9 @@ function buildStageSnapshot(source, date, stageIndex) {
       stage,
       stage_source: `data/historical-test/${date}.json`,
       latest_snapshot_untouched: true,
+      data_classification: "test_only",
+      evaluation_dataset: "historical_test",
+      evaluation_test_only: true,
     },
     provider: {
       ...source.provider,

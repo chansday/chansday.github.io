@@ -1,3 +1,5 @@
+import { isEvaluationSummary } from "./evaluation-contract.js";
+
 /**
  * Provider contract for the static KOSPI signal board.
  *
@@ -158,9 +160,14 @@ export function isSnapshot(candidate) {
   if (candidate.provider !== null && typeof candidate.provider !== "object") return false;
   if (!candidate.meta || typeof candidate.meta !== "object" || !Object.hasOwn(candidate.meta, "source")) return false;
   if (candidate.meta.source !== null && !isSourceMetadata(candidate.meta.source)) return false;
+  if (candidate.evaluation !== undefined && !isEvaluationSummary(candidate.evaluation)) return false;
+  if (candidate.evaluation && candidate.evaluation.sample_count !== candidate.rows.length) return false;
+  if (candidate.evaluation && candidate.evaluation.evaluated_sample_count !== candidate.rows.filter((row) => typeof row.expected_return === "number" && typeof row.actual_return === "number" && typeof row.error === "number").length) return false;
   if (["fixture", "replay", "backfill_test"].includes(candidate.mode) && candidate.meta.isDemo !== true) return false;
   if (candidate.mode === "backfill_test" && (candidate.meta.backfill !== true || candidate.provider?.id !== "backfill-test")) return false;
   if (candidate.mode === "historical_test" && (candidate.meta.historical_test !== true || candidate.meta.test_only !== true || candidate.provider?.id !== "historical-test")) return false;
+  if (candidate.mode === "historical_test" && (candidate.evaluation?.test_only !== true || candidate.evaluation?.dataset !== "historical_test")) return false;
+  if (candidate.meta.evaluation_test_only === true && candidate.evaluation?.test_only !== true) return false;
   if (!candidate.pipeline || !PIPELINE_KEYS.every((key) => candidate.pipeline[key])) return false;
   return true;
 }

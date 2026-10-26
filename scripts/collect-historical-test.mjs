@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
 
 const TEST_DATES = Object.freeze(["2026-10-22", "2026-10-23"]);
 const INPUT_DATES = Object.freeze(["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
@@ -184,6 +185,15 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + expected_return / 100), 2); actual_return = actual_open / prior_close - 1; error = actual_return - expected_return.",
       note: "This is a reproducible public-daily baseline generated after the fact because no historical 08:20 pre-open quote/order-book snapshot is available. It uses only the five prior trading-session daily closes, is not the historical 08:20 forecast, and must not be described as one.",
     },
+    evaluation: buildEvaluationSummary(rows, {
+      testOnly: true,
+      dataset: "historical_test",
+      asOfDate: date,
+      forecastStage: "0820",
+      actualStage: "0900",
+      inputDates: priorDates,
+      note: "Historical-test only. expected_return is the retrospective public-daily baseline; actual_return is the observed open return; error is actual_return - expected_return. This dataset is never an operating snapshot.",
+    }),
     pipeline: {
       previousResult: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Actual prior-session input through ${inputThroughDate} was collected.` },
       analysis: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: "Historical-test input coverage and numeric fields passed validation." },
@@ -209,6 +219,9 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
         ...source,
         retrieved_at: retrievedAt,
       },
+      data_classification: "test_only",
+      evaluation_dataset: "historical_test",
+      evaluation_test_only: true,
     },
   };
 }
