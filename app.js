@@ -19,8 +19,9 @@ const stateMessages = {
   historicalTest: "HISTORICAL-TEST / TEST ONLY입니다. 실제 공개 일봉의 시가·종가·거래량과 공개 일봉 모멘텀·변동성으로 사후 계산한 historical baseline을 분리해 표시합니다. 장전 호가가 없어 당시 08:20 예측 성과를 주장하지 않습니다."
 };
 
-const el = Object.fromEntries(["mode-badge", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "snapshot-date", "provider-status", "provider-detail", "baseline-input", "source-url", "source-collection", "source-range", "notice-title", "notice-detail", "data-notice", "table-state", "ranking-body", "empty-state", "footer-status", "top-clock", "search-input", "status-filter", "sort-select", "refresh-button", "ranking-table"].map((id) => [id, document.getElementById(id)]));
+const el = Object.fromEntries(["mode-badge", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "snapshot-date", "provider-status", "provider-detail", "baseline-input", "source-url", "source-collection", "source-range", "quality-ribbon", "quality-ribbon-label", "quality-ribbon-text", "signal-state", "today-signal", "eligible-count", "forecast-state", "settlement-state", "quality-state", "quality-summary", "quality-source", "quality-freshness", "notice-title", "notice-detail", "data-notice", "table-state", "ranking-body", "ranking-cards", "empty-state", "footer-status", "top-clock", "search-input", "status-filter", "sort-select", "refresh-button", "ranking-table", "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-return", "selected-actual-open", "selected-actual-return", "selected-error", "selected-confidence", "selected-quality", "selected-reasons"].map((id) => [id, document.getElementById(id)]));
 let snapshot = null;
+let selectedSymbol = null;
 
 function setText(node, value) { if (node) node.textContent = value; }
 function finite(value) { return typeof value === "number" && Number.isFinite(value); }
@@ -33,6 +34,8 @@ function formatDate(value) { if (!value) return "—"; const d = new Date(value)
 function formatTime(value) { if (!value) return "—"; const d = new Date(value); return Number.isNaN(d.getTime()) ? "—" : `${timeFormatter.format(d)} KST`; }
 function normalizeStatus(status) { return String(status || "no_data").toLowerCase().replaceAll("-", "_"); }
 function statusBadgeClass(status) { const key = normalizeStatus(status); return ["ready", "valid"].includes(key) ? "badge-ready" : ["degraded", "partial", "pending"].includes(key) ? `badge-${key === "partial" ? "degraded" : key}` : ["blocked"].includes(key) ? "badge-error" : "badge-muted"; }
+function isTestOnlySnapshot(data) { return Boolean(data?.meta?.test_only || data?.meta?.historical_test || data?.meta?.backfill || ["historical_test", "backfill_test", "replay", "fixture"].includes(data?.mode) || ["historical-test", "backfill-test", "replay_baseline", "fixture"].includes(data?.provider?.id)); }
+function testOnlyLabel(data) { if (data?.mode === "historical_test" || data?.provider?.id === "historical-test") return "HISTORICAL-TEST / TEST ONLY"; if (data?.mode === "backfill_test" || data?.provider?.id === "backfill-test") return "TEST ONLY / BACKFILL"; if (data?.mode === "replay" || data?.provider?.id === "replay_baseline") return "TEST ONLY / BASELINE REPLAY"; if (data?.mode === "fixture" || data?.provider?.id === "fixture") return "TEST ONLY / FIXTURE"; return "TEST ONLY"; }
 
 function normalizeRow(row, index) {
   const rawStatus = normalizeStatus(row?.status || row?.eligibility?.status || "no_data");
@@ -51,6 +54,7 @@ function normalizeRow(row, index) {
     error: valueOf(row, "error"),
     confidence: valueOf(row, "confidence", "confidence_score"),
     quality: valueOf(row, "quality", "quality_status") || status,
+    reasons: row?.eligibility?.reasons || row?.reasons || [],
     status,
   };
 }
@@ -121,6 +125,7 @@ function renderHeader(data) {
   const isBackfill = data?.mode === "backfill_test" || data?.provider?.id === "backfill-test";
   const isHistoricalTest = data?.mode === "historical_test" || data?.provider?.id === "historical-test";
   const isSynthetic = isFixture || isReplay || isBackfill;
+  const testOnly = isTestOnlySnapshot(data);
   const rows = Array.isArray(data?.rows) ? data.rows.map(normalizeRow) : [];
   const label = stateLabels[status] || status.toUpperCase();
   document.documentElement.dataset.status = status;
@@ -150,9 +155,27 @@ function renderHeader(data) {
   setText(el["notice-title"], isHistoricalTest ? "HISTORICAL-TEST / TEST ONLY — 09:00 시가 baseline 비교입니다." : isBackfill ? "TEST ONLY / BACKFILL — 실제 금융 데이터가 아닙니다." : isReplay ? "SYNTHETIC / BASELINE REPLAY를 표시하고 있습니다." : isFixture ? "합성 fixture를 표시하고 있습니다." : status === "ready" ? "검증된 스냅샷을 표시하고 있습니다." : status === "partial" ? "PARTIAL — 정상 순위로 표시하지 않는 부분 수집 결과입니다." : status === "degraded" ? "일부 데이터의 품질 상태를 확인하세요." : "데이터 공급자가 연결되지 않았습니다.");
   setText(el["notice-detail"], isHistoricalTest ? stateMessages.historicalTest : isBackfill ? stateMessages.backfill : isReplay ? stateMessages.replay : isFixture ? stateMessages.fixture : stateMessages[status] || stateMessages.no_data);
   el["data-notice"]?.toggleAttribute("hidden", status === "ready" && data?.mode !== "demo" && !isBackfill && !isHistoricalTest);
+  const qualityText = testOnly ? `${testOnlyLabel(data)} — 금융 실측 예측 성과로 해석하지 마세요.` : stateMessages[status] || stateMessages.no_data;
+  el["quality-ribbon"]?.toggleAttribute("hidden", !testOnly && status === "ready");
+  setText(el["quality-ribbon-label"], testOnly ? testOnlyLabel(data) : "DATA QUALITY");
+  setText(el["quality-ribbon-text"], qualityText);
+  setText(el["signal-state"], label);
+  el["signal-state"].className = `badge ${statusBadgeClass(status)}`;
+  setText(el["today-signal"], isHistoricalTest ? "과거 공개 일봉 기반 baseline을 TEST ONLY로 표시합니다. 당시 장전 호가 예측은 복원하지 않습니다." : status === "ready" ? `${rows.length.toLocaleString("ko-KR")}개 행의 장전 관측 상태를 확인할 수 있습니다.` : stateMessages[status] || stateMessages.no_data);
+  setText(el["eligible-count"], rows.filter((row) => row.status === "valid").length.toLocaleString("ko-KR"));
+  setText(el["forecast-state"], stateLabels[normalizeStatus(data?.pipeline?.forecast?.status)] || "대기");
+  const settlementStatus = data?.pipeline?.closeSettlement?.status || data?.pipeline?.openSettlement?.status || "pending";
+  setText(el["settlement-state"], stateLabels[normalizeStatus(settlementStatus)] || "대기");
+  setText(el["quality-state"], testOnly ? "TEST ONLY" : label);
+  el["quality-state"].className = `badge ${testOnly ? "badge-degraded" : statusBadgeClass(status)}`;
+  setText(el["quality-summary"], qualityText);
+  setText(el["quality-source"], source?.name || data?.provider?.label || "출처 미연결");
+  setText(el["quality-freshness"], `갱신 시각 ${formatTime(data?.publishedAt || data?.meta?.lastAttemptAt)}`);
   snapshot = { ...data, rows };
+  if (!selectedSymbol || !rows.some((row) => row.symbol === selectedSymbol)) selectedSymbol = rows[0]?.symbol || null;
   renderPipeline(data);
   renderRows();
+  renderSelected();
 }
 
 function renderRows() {
@@ -164,9 +187,62 @@ function renderRows() {
   const rows = allRows.filter((row) => (!query || `${row.symbol} ${row.name}`.toLowerCase().includes(query)) && (statusFilter === "all" || row.status === statusFilter));
   rows.sort((a, b) => { if (sortKey === "name") return a.name.localeCompare(b.name, "ko"); const av = a[sortKey]; const bv = b[sortKey]; if (!finite(av) && !finite(bv)) return 0; if (!finite(av)) return 1; if (!finite(bv)) return -1; return sortKey === "name" ? String(av).localeCompare(String(bv)) : sortKey === "rank" ? av - bv : sortKey === "error" ? Math.abs(av) - Math.abs(bv) : bv - av; });
   el["ranking-body"].replaceChildren();
-  rows.forEach((row) => { const tr = document.createElement("tr"); const cells = [row.rank, null, formatPrice(row.expectedOpen, isSynthetic), formatPrice(row.expectedClose, isSynthetic), formatPercent(row.expectedReturn, isSynthetic), formatPrice(row.actualOpen, isSynthetic), formatPrice(row.actualClose, isSynthetic), formatPercent(row.actualReturn, isSynthetic), formatNumber(row.actualVolume), formatPercent(row.error, isSynthetic), formatConfidence(row.confidence), null]; const numericValues = [null, null, row.expectedOpen, row.expectedClose, row.expectedReturn, row.actualOpen, row.actualClose, row.actualReturn, row.actualVolume, row.error, row.confidence, null]; cells.forEach((value, index) => { const td = document.createElement("td"); if (index === 0) { td.className = "rank"; td.textContent = value; } else if (index === 1) { td.className = "instrument"; const strong = document.createElement("strong"); strong.textContent = row.name; const sub = document.createElement("span"); sub.textContent = row.symbol; td.append(strong, sub); } else if (index === 11) { td.className = "status-cell"; const state = document.createElement("span"); state.className = `row-status ${row.status}`; state.textContent = `${row.quality || row.status} · ${stateLabels[row.status] || row.status}`; td.append(state); } else { td.textContent = value; if ([4, 7, 9].includes(index) && finite(numericValues[index])) td.classList.add(numericValues[index] >= 0 ? "positive" : "negative"); } tr.append(td); }); el["ranking-body"].append(tr); });
+  el["ranking-cards"].replaceChildren();
+  rows.forEach((row) => {
+    const tr = document.createElement("tr");
+    tr.tabIndex = 0;
+    tr.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
+    tr.dataset.symbol = row.symbol;
+    tr.addEventListener("click", () => selectRow(row.symbol));
+    tr.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectRow(row.symbol); } });
+    const cells = [row.rank, null, formatPrice(row.expectedOpen, isSynthetic), formatPrice(row.expectedClose, isSynthetic), formatPercent(row.expectedReturn, isSynthetic), formatPrice(row.actualOpen, isSynthetic), formatPrice(row.actualClose, isSynthetic), formatPercent(row.actualReturn, isSynthetic), formatNumber(row.actualVolume), formatPercent(row.error, isSynthetic), formatConfidence(row.confidence), null];
+    const numericValues = [null, null, row.expectedOpen, row.expectedClose, row.expectedReturn, row.actualOpen, row.actualClose, row.actualReturn, row.actualVolume, row.error, row.confidence, null];
+    cells.forEach((value, index) => {
+      const td = document.createElement("td");
+      if (index === 0) { td.className = "rank"; td.textContent = value; }
+      else if (index === 1) { td.className = "instrument"; const strong = document.createElement("strong"); strong.textContent = row.name; const sub = document.createElement("span"); sub.textContent = row.symbol; td.append(strong, sub); }
+      else if (index === 11) { td.className = "status-cell"; const state = document.createElement("span"); state.className = `row-status ${row.status}`; state.textContent = `${row.quality || row.status} · ${stateLabels[row.status] || row.status}`; td.append(state); }
+      else { td.textContent = value; if (index >= 2 && index <= 4) td.classList.add("value-expected"); if (index >= 5 && index <= 8) td.classList.add("value-actual"); if (index === 9) td.classList.add("value-error"); if ([4, 7, 9].includes(index) && finite(numericValues[index])) td.classList.add(numericValues[index] >= 0 ? "positive" : "negative"); }
+      tr.append(td);
+    });
+    el["ranking-body"].append(tr);
+    el["ranking-cards"].append(createRankingCard(row, isSynthetic));
+  });
   el["ranking-table"].hidden = rows.length === 0;
   el["empty-state"].hidden = rows.length !== 0;
+}
+
+function createRankingCard(row, isSynthetic) {
+  const card = document.createElement("article");
+  card.className = "ranking-card";
+  card.tabIndex = 0;
+  card.setAttribute("role", "button");
+  card.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
+  card.dataset.symbol = row.symbol;
+  card.addEventListener("click", () => selectRow(row.symbol));
+  card.addEventListener("keydown", (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); selectRow(row.symbol); } });
+  const head = document.createElement("div"); head.className = "ranking-card-head";
+  const rank = document.createElement("span"); rank.textContent = `#${row.rank}`;
+  const name = document.createElement("strong"); name.textContent = row.name;
+  const symbol = document.createElement("span"); symbol.textContent = row.symbol;
+  head.append(rank, name, symbol);
+  const status = document.createElement("span"); status.className = `row-status ${row.status} ranking-card-status`; status.textContent = stateLabels[row.status] || row.status;
+  const metrics = document.createElement("div"); metrics.className = "ranking-card-metrics";
+  [["예상 시작가", formatPrice(row.expectedOpen, isSynthetic), "expected"], ["예상 수익률", formatPercent(row.expectedReturn, isSynthetic), "expected"], ["실제 시작가", formatPrice(row.actualOpen, isSynthetic), "actual"], ["실제 수익률", formatPercent(row.actualReturn, isSynthetic), "actual"], ["오차", formatPercent(row.error, isSynthetic), "error"], ["confidence", formatConfidence(row.confidence), "neutral"]].forEach(([label, value, tone]) => { const metric = document.createElement("div"); metric.className = `ranking-card-metric ${tone}`; const caption = document.createElement("span"); caption.textContent = label; const amount = document.createElement("strong"); amount.textContent = value; metric.append(caption, amount); metrics.append(metric); });
+  card.append(head, status, metrics);
+  return card;
+}
+
+function selectRow(symbol) { selectedSymbol = symbol; renderRows(); renderSelected(); }
+
+function renderSelected() {
+  const row = snapshot?.rows?.find((candidate) => candidate.symbol === selectedSymbol);
+  if (!row) { el["selected-empty"].hidden = false; el["selected-content"].hidden = true; setText(el["selected-detail-hint"], "랭킹에서 종목을 선택하세요."); return; }
+  el["selected-empty"].hidden = true; el["selected-content"].hidden = false; setText(el["selected-detail-hint"], `${row.symbol} · 선택됨`);
+  setText(el["selected-symbol"], row.symbol); setText(el["selected-name"], row.name);
+  setText(el["selected-status"], `${row.quality || row.status} · ${stateLabels[row.status] || row.status}`); el["selected-status"].className = `row-status ${row.status}`;
+  setText(el["selected-expected-open"], formatPrice(row.expectedOpen)); setText(el["selected-expected-return"], formatPercent(row.expectedReturn)); setText(el["selected-actual-open"], formatPrice(row.actualOpen)); setText(el["selected-actual-return"], formatPercent(row.actualReturn)); setText(el["selected-error"], formatPercent(row.error)); setText(el["selected-confidence"], formatConfidence(row.confidence));
+  setText(el["selected-quality"], `quality ${row.quality || "—"}`); setText(el["selected-reasons"], `상태 사유 ${row.reasons?.length ? row.reasons.join(", ") : "기록 없음"}`);
 }
 
 function updateClock() { const now = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date()); setText(el["top-clock"], `KST ${now}`); }
