@@ -126,6 +126,12 @@ function derivedError(row) {
     : null;
 }
 
+function derivedActualReturn(row) {
+  return typeof row.actual_open === "number" && row.actual_open >= 0 && typeof row.prior_close === "number" && row.prior_close > 0
+    ? Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100
+    : null;
+}
+
 function mergeRows(existingRows, incomingRows, mode) {
   const bySymbol = new Map(existingRows.filter((row) => row.symbol).map((row) => [row.symbol, row]));
   return incomingRows.map((incoming) => {
@@ -137,6 +143,8 @@ function mergeRows(existingRows, incomingRows, mode) {
       for (const field of ["rank", "symbol", "name", "quality", "status", ...OPEN_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
+      const actualReturn = derivedActualReturn(merged);
+      if (actualReturn !== null) merged.actual_return = actualReturn;
       merged.error = derivedError(merged);
       return merged;
     }

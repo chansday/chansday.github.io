@@ -65,6 +65,28 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
   }
 });
 
+test("historical-test pipeline writes five isolated stage files without touching operating latest", async () => {
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-historical-stage-"));
+  const script = join(PROJECT_ROOT, "scripts", "historical-test-pipeline.mjs");
+  const latestBefore = await readFile(join(PROJECT_ROOT, "data", "latest-snapshot.json"), "utf8");
+  try {
+    await execFileAsync(process.execPath, [script, "--output-root", join(tempRoot, "data", "runs", "historical-test")], { cwd: PROJECT_ROOT });
+    for (const date of ["2026-10-22", "2026-10-23"]) {
+      const stageFiles = ["0700", "0800", "0820", "0900", "1530"].map((stage) => join(tempRoot, "data", "runs", "historical-test", date, `${stage}.json`));
+      const snapshots = await Promise.all(stageFiles.map((path) => readFile(path, "utf8").then(JSON.parse)));
+      assert.equal(snapshots.every((snapshot) => snapshot.mode === "historical_test" && snapshot.meta.test_only === true && snapshot.meta.historical_test === true), true);
+      assert.equal(snapshots[0].rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null && row.actual_return === null && row.error === null), true);
+      assert.equal(snapshots[2].rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null), true);
+      assert.equal(snapshots[3].rows.every((row) => row.actual_open !== null && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
+      assert.equal(snapshots[4].rows.every((row) => row.actual_close !== null && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
+      assert.deepEqual(snapshots[2].rows.map((row) => [row.symbol, row.expected_open, row.expected_return]), snapshots[4].rows.map((row) => [row.symbol, row.expected_open, row.expected_return]));
+    }
+    assert.equal(await readFile(join(PROJECT_ROOT, "data", "latest-snapshot.json"), "utf8"), latestBefore);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+});
+
 test("historical-test snapshots contain observed OHLC-volume values and no future-leaking baseline inputs", async () => {
   const expectedInputDates = {
     "2026-10-22": ["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21"],
@@ -103,6 +125,7 @@ test("historical-test page exposes the baseline and missing pre-open quote statu
   assert.match(app, /HISTORICAL-TEST \/ TEST ONLY/);
   assert.match(app, /공개 일봉 모멘텀·변동성 baseline/);
   assert.match(app, /장전 호가가 없어/);
+  assert.match(app, /isTestOnlySnapshot\(data\)/);
 });
 
 test("ranking schema uses snake_case financial fields and rejects legacy names", () => {

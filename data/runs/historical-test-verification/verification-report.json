@@ -1,0 +1,95 @@
+{
+  "mode": "historical_test_sequence_verification",
+  "test_only": true,
+  "latest_snapshot_written": false,
+  "results": [
+    {
+      "date": "2026-10-22",
+      "sequence": [
+        "0700",
+        "0800",
+        "0820",
+        "0900",
+        "1530"
+      ],
+      "label": "normal",
+      "files": [
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0820.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\normal\\1530.json"
+      ],
+      "rows": 913,
+      "expected_preserved": true,
+      "actual_open_formula": true,
+      "error_formula": true
+    },
+    {
+      "date": "2026-10-22",
+      "sequence": [
+        "0900",
+        "0700",
+        "1530",
+        "0800",
+        "0820"
+      ],
+      "label": "out-of-order",
+      "files": [
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\1530.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-22\\out-of-order\\0820.json"
+      ],
+      "rows": 913,
+      "expected_preserved": true,
+      "actual_open_formula": true,
+      "error_formula": true
+    },
+    {
+      "date": "2026-10-23",
+      "sequence": [
+        "0700",
+        "0800",
+        "0820",
+        "0900",
+        "1530"
+      ],
+      "label": "normal",
+      "files": [
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0820.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\normal\\1530.json"
+      ],
+      "rows": 913,
+      "expected_preserved": true,
+      "actual_open_formula": true,
+      "error_formula": true
+    },
+    {
+      "date": "2026-10-23",
+      "sequence": [
+        "0900",
+        "0700",
+        "1530",
+        "0800",
+        "0820"
+      ],
+      "label": "out-of-order",
+      "files": [
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0900.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0700.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\1530.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0800.json",
+        "C:\\Users\\MosesPark\\OneDrive\\Desktop\\workidir\\_remote_sync_temp\\data\\runs\\historical-test-verification\\2026-10-23\\out-of-order\\0820.json"
+      ],
+      "rows": 913,
+      "expected_preserved": true,
+      "actual_open_formula": true,
+      "error_formula": true
+    }
+  ]
+}

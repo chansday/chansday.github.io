@@ -108,6 +108,9 @@ async function loadSnapshot() {
   if (!response.ok) throw new Error(`Snapshot request failed: ${response.status}`);
   const data = await response.json();
   if (!isSnapshot(data)) throw new Error("Snapshot shape is invalid");
+  if (isTestOnlySnapshot(data)) {
+    return emptySnapshot();
+  }
   return data;
 }
 
