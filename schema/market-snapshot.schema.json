@@ -8,7 +8,7 @@
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "status": { "enum": ["ready", "demo", "no_data", "degraded", "blocked", "pending"] },
-    "mode": { "enum": ["provider", "demo", "fixture", "replay", "backfill_test"] },
+    "mode": { "enum": ["provider", "demo", "fixture", "replay", "backfill_test", "historical_test"] },
     "asOfDate": { "type": ["string", "null"], "format": "date" },
     "publishedAt": { "type": ["string", "null"], "format": "date-time" },
     "market": {
@@ -27,7 +27,9 @@
       "properties": {
         "basis": { "type": "string" },
         "reference_date": { "type": "string", "format": "date" },
+        "input_through_date": { "type": "string", "format": "date" },
         "value_status": { "type": "string" },
+        "formula": { "type": "string" },
         "note": { "type": "string" }
       },
       "additionalProperties": false
@@ -67,6 +69,13 @@
         "backfill": { "type": "boolean" },
         "backfill_source_replay_date": { "type": "string", "format": "date" },
         "backfill_note": { "type": "string" },
+        "historical_test": { "type": "boolean" },
+        "test_only": { "type": "boolean" },
+        "actual_field_note": { "type": "string" },
+        "source_collection_date": { "type": "string", "format": "date" },
+        "source_range": { "type": "string" },
+        "source_rows": { "type": "integer", "minimum": 0 },
+        "source_raw_rows": { "type": "integer", "minimum": 0 },
         "replay_type": { "type": "string" },
         "replay_note": { "type": "string" },
         "fixture_note": { "type": "string" },
@@ -114,6 +123,7 @@
         "actual_close": { "type": ["number", "null"] },
         "actual_return": { "type": ["number", "null"] },
         "error": { "type": ["number", "null"] },
+        "actual_volume": { "type": ["number", "null"], "minimum": 0 },
         "confidence": { "type": ["number", "null"] },
         "quality": { "type": ["string", "null"] },
         "status": { "type": "string" }

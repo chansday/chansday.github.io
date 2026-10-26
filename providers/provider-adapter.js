@@ -22,7 +22,7 @@ export const RANKING_FIELDS = Object.freeze([
   "error",
 ]);
 
-export const OPTIONAL_ROW_FIELDS = Object.freeze(["confidence", "quality"]);
+export const OPTIONAL_ROW_FIELDS = Object.freeze(["confidence", "quality", "actual_volume"]);
 
 export const SNAPSHOT_STATUSES = Object.freeze([
   "ready",
@@ -56,7 +56,8 @@ export function isFiniteOrNull(value) {
 export function isRankingRow(row) {
   if (!row || typeof row !== "object") return false;
   const allowedFields = new Set(["rank", "symbol", "name", "status", ...RANKING_FIELDS, ...OPTIONAL_ROW_FIELDS]);
-  const hasAllFields = [...allowedFields].every((field) => Object.hasOwn(row, field));
+  const requiredFields = new Set(["rank", "symbol", "name", "status", ...RANKING_FIELDS]);
+  const hasAllFields = [...requiredFields].every((field) => Object.hasOwn(row, field));
   if (Object.keys(row).some((field) => !allowedFields.has(field))) return false;
   if (!hasAllFields) return false;
   if (row.rank !== null && (!Number.isInteger(row.rank) || row.rank < 1)) return false;
@@ -64,6 +65,7 @@ export function isRankingRow(row) {
   if (row.name !== null && typeof row.name !== "string") return false;
   if (typeof row.status !== "string") return false;
   if (Object.hasOwn(row, "confidence") && !isFiniteOrNull(row.confidence)) return false;
+  if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
   if (Object.hasOwn(row, "quality") && row.quality !== null && typeof row.quality !== "string") return false;
   return RANKING_FIELDS.every((field) => isFiniteOrNull(row[field]));
 }
@@ -114,7 +116,7 @@ export function isProviderResult(result) {
 export function isSnapshot(candidate) {
   if (!candidate || typeof candidate !== "object") return false;
   if (candidate.schemaVersion !== "1.0.0" || !SNAPSHOT_STATUSES.includes(candidate.status)) return false;
-  if (!(["provider", "demo", "fixture", "replay", "backfill_test"].includes(candidate.mode))) return false;
+  if (!(["provider", "demo", "fixture", "replay", "backfill_test", "historical_test"].includes(candidate.mode))) return false;
   if (!candidate.market || candidate.market.name !== "KOSPI" || candidate.market.currency !== "KRW") return false;
   if (!validateRankingRows(candidate.rows).valid) return false;
   if (candidate.provider !== null && typeof candidate.provider !== "object") return false;
@@ -122,6 +124,7 @@ export function isSnapshot(candidate) {
   if (candidate.meta.source !== null && !isSourceMetadata(candidate.meta.source)) return false;
   if (["fixture", "replay", "backfill_test"].includes(candidate.mode) && candidate.meta.isDemo !== true) return false;
   if (candidate.mode === "backfill_test" && (candidate.meta.backfill !== true || candidate.provider?.id !== "backfill-test")) return false;
+  if (candidate.mode === "historical_test" && (candidate.meta.historical_test !== true || candidate.meta.test_only !== true || candidate.provider?.id !== "historical-test")) return false;
   if (!candidate.pipeline || !PIPELINE_KEYS.every((key) => candidate.pipeline[key])) return false;
   return true;
 }

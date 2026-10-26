@@ -11,15 +11,37 @@ import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 
-test("static snapshot follows the top-level contract", async () => {
+test("static snapshot follows the top-level contract and is visibly test-only", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../data/latest-snapshot.json", import.meta.url), "utf8"));
   assert.equal(isSnapshot(snapshot), true);
   assert.equal(snapshot.market.name, "KOSPI");
   assert.equal(snapshot.market.timezone, "Asia/Seoul");
-  assert.equal(snapshot.rows.length, 0);
-  assert.equal(snapshot.status, "no_data");
-  assert.equal(snapshot.meta.source, null);
-  assert.equal(snapshot.pipeline.closeSettlement.status, "pending");
+  assert.equal(snapshot.mode, "historical_test");
+  assert.equal(snapshot.meta.historical_test, true);
+  assert.equal(snapshot.meta.test_only, true);
+  assert.equal(snapshot.provider.id, "historical-test");
+  assert.equal(snapshot.rows.length, 913);
+  assert.equal(snapshot.meta.source_rows, 913);
+  assert.equal(snapshot.pipeline.closeSettlement.status, "ready");
+});
+
+test("historical-test snapshots contain observed OHLC-volume values and no future-leaking baseline inputs", async () => {
+  const expectedInputDates = { "2026-10-22": "2026-10-21", "2026-10-23": "2026-10-22" };
+  for (const date of Object.keys(expectedInputDates)) {
+    const snapshot = JSON.parse(await readFile(new URL(`../data/historical-test/${date}.json`, import.meta.url), "utf8"));
+    assert.equal(isSnapshot(snapshot), true);
+    assert.equal(snapshot.mode, "historical_test");
+    assert.equal(snapshot.provider.id, "historical-test");
+    assert.equal(snapshot.meta.historical_test, true);
+    assert.equal(snapshot.meta.test_only, true);
+    assert.equal(snapshot.baseline.input_through_date, expectedInputDates[date]);
+    assert.equal(snapshot.meta.source_rows, snapshot.rows.length);
+    assert.equal(snapshot.rows.length, 913);
+    assert.equal(snapshot.rows.every((row) => ["expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "actual_return", "actual_volume", "error"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
+    assert.equal(snapshot.rows.every((row) => row.confidence === null), true);
+    assert.match(snapshot.pipeline.forecast.message, new RegExp(expectedInputDates[date]));
+    assert.match(snapshot.provider.source.url, new RegExp(date.replaceAll("-", "")));
+  }
 });
 
 test("ranking schema uses snake_case financial fields and rejects legacy names", () => {

@@ -26,6 +26,7 @@ Pages가 읽는 최신 파일은 `data/latest-snapshot.json`이며 계약은 `sc
 | `actual_close` | 실제 종가 | 유한한 숫자 또는 `null` |
 | `actual_return` | 실제 수익률 | 유한한 숫자 또는 `null` |
 | `error` | 예상과 실제의 오차 | 유한한 숫자 또는 `null` |
+| `actual_volume` | 실제 거래량(주) | 유한한 숫자 또는 `null` |
 
 `confidence`와 `quality`는 선택적 설명 필드이며 투자 성과나 성공 확률을 뜻하지 않는다. 기존 camelCase 가격 필드는 저장 계약으로 허용하지 않는다. `providers/provider-adapter.js`가 필드 존재·타입·유한수·추가 필드를 검사하고 JSON Schema가 정적 계약을 재확인한다.
 
@@ -89,6 +90,12 @@ data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 운영 데이�
 
 ?mode=backfill-test&date=2026-10-22|2026-10-23은 운영 snapshot과 분리된 2026-10-26 테스트 경로다. data/backfill-test의 두 snapshot은 기존 replay의 expected/actual/error 숫자 흐름을 복사해 mode=backfill_test, provider.id=backfill-test, meta.isDemo=true, meta.backfill=true로 표시한다. 화면에는 TEST ONLY / BACKFILL 라벨과 함께 08:30 KST 실제 원천 snapshot이 없고 미래 데이터 누수를 막기 위한 테스트 입력이라는 설명을 보여준다. 실제 금융 데이터나 과거 예측 성과를 주장하지 않는다. 2026-10-27부터 운영 모드는 실제 provider 설정만 사용하며 backfill test는 cron에 연결하지 않는다.
 
+### Historical-test / TEST ONLY
+
+`?mode=historical-test&date=2026-10-22|2026-10-23`은 운영 provider와 합성 fixture/replay/backfill을 건드리지 않는 과거 데이터 검증 경로다. `data/historical-test`의 두 스냅샷은 공개 일별 파일의 `mrktCtg=KOSPI` 전체 행을 저장하며, 날짜별 913행의 `actual_open`/`actual_close`/`actual_volume`을 실제 값으로 표시한다. 공개 원본에 security type이 없으므로 우선주 포함 가능성을 `meta.source_range`에 명시한다.
+
+`expected_*`는 당시 08:30 예측이 아니다. 2026-10-22 forecast는 2026-10-21까지, 2026-10-23 forecast는 2026-10-22까지의 previous close와 close-to-close return만으로 사후 baseline을 계산한다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않는다. 화면에는 `HISTORICAL-TEST / TEST ONLY`, 출처 URL, 수집일, 범위, 행 수를 표시하며 기본 latest snapshot은 2026-10-23 historical-test를 가리킨다.
+
 ### 공개 JSON provider
 
 `providers/public-json-provider.js`는 정책이 확인된 단일 공개 JSON endpoint를 위한 안전한 opt-in adapter다. 다음 조건을 모두 충족해야 요청한다.
@@ -126,6 +133,6 @@ Actions는 `workflow_dispatch`에서 `all`, `update-results`, `analysis`, `forec
 - 공개 source 설정은 GitHub Variables로 관리하고 source URL·라이선스 URL·allowlist를 수동 검토한다.
 - 자동매매·주문·브로커 API·계좌 정보는 구현하지 않는다.
 - GitHub Actions 실행 시각은 지연될 수 있으므로 실제 시각과 cutoff/published 시각을 구분한다.
-- 현재 실제 provider endpoint, source 약관·재배포 권한, 거래소 원문 응답은 연결·검증하지 않았다. 따라서 공개 화면은 기본적으로 `no_data` 상태이며 실수치 정확도·지연·휴장일 처리는 미검증이다.
++ 운영 provider endpoint는 연결하지 않았고 평일 cron 설정도 변경하지 않았다. historical-test의 공개 파일 접근·라이선스·행 수·필수 숫자 필드는 수집 시점에 검증했지만, 한국거래소 인증 API 원문 응답과 각 종목의 security type은 확인하지 못했다.
 
 검증 명령은 `npm test`, `npm run check`, `npm run pipeline:dry-run`, `git diff --check`이다. 로컬 HTTP smoke test는 `/`, `/?mode=demo`, `/data/latest-snapshot.json`의 응답과 JSON 파싱을 확인한다.

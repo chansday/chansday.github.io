@@ -2,11 +2,11 @@
 
 정적 GitHub Pages 프론트엔드로 KOSPI 사전예측 랭킹을 기록하고, 장마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
-현재 기본 설정은 실제 금융 데이터 공급자를 연결하지 않습니다. 따라서 기본 화면과 Actions는 `no_data`/`degraded` 상태를 기록하고, 가격·수익률·오차를 임의로 생성하지 않습니다.
+평일 운영 provider는 여전히 기본값 `none`이며 cron 설정도 변경하지 않았습니다. 다만 기본 화면의 최신 스냅샷에는 별도 `historical_test` / `TEST ONLY` 표시로 2026-10-22·23의 실제 공개 과거 일봉과 사후 계산 baseline을 연결했습니다. 당시 08:30 예측 스냅샷이나 예측 성과를 복원한 것은 아닙니다.
 
 ## 범위와 운영 원칙
 
-- 종목 범위는 KOSPI 정규시장 보통주를 기본으로 합니다. KOSDAQ, ETF·ETN, 파생상품 및 우선주는 provider 설정에서 명시적으로 허용하지 않는 한 제외합니다.
++ 종목 범위는 운영 provider에서 KOSPI 정규시장 보통주를 기본으로 합니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
 - 가격 기준은 provider가 확인한 KOSPI 정규장 공식 시작가·종가이며 통화는 KRW, 시간대는 `Asia/Seoul`입니다. 조정주가·호가·추정값을 자동으로 섞지 않습니다.
 - `expected_open`, `expected_close`, `expected_return`은 장전 기록이고 `actual_open`, `actual_close`, `actual_return`, `error`는 이후 정산 필드입니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
@@ -33,7 +33,10 @@
 ├─ data/fixtures/2026-10-23.json
 ├─ data/backfill-test/2026-10-22.json
 ├─ data/backfill-test/2026-10-23.json
+├─ data/historical-test/2026-10-22.json
+├─ data/historical-test/2026-10-23.json
 ├─ scripts/update-results.mjs
+├─ scripts/collect-historical-test.mjs
 ├─ scripts/workflow-dry-run.mjs
 ├─ scripts/replay-dry-run.mjs
 ├─ scripts/backfill-test-dry-run.mjs
@@ -44,7 +47,44 @@
 
 ## 현재 데이터 출처 상태
 
-현재 저장소에는 활성화된 실데이터 출처가 없습니다. 기본 `KOSPI_PROVIDER`는 `none`이며, snapshot의 `meta.source`는 `null`입니다. 따라서 공개 Pages에는 `NO DATA`가 표시됩니다.
+운영 provider로 활성화된 실데이터 출처는 없습니다. 기본 `KOSPI_PROVIDER`는 `none`이며, 평일 Actions는 기존처럼 `no_data`/`degraded` 정책을 따릅니다. 아래 historical-test 스냅샷만 별도 TEST ONLY 화면으로 실제 과거 파일을 표시합니다.
+
+`data/historical-test/*.json`과 기본 `data/latest-snapshot.json`은 운영 provider와 분리된 검증용 과거 스냅샷입니다. 이 두 파일의 숫자는 합성 fixture가 아니라 아래 공개 일별 파일에서 수집한 실제 값입니다.
+
+- 출처: [한국주식데이터 일별 시세 파일](https://aikstockdata.com/data/public/daily/quotes_20261023.csv), 원천 표기: 금융위원회 공공데이터포털·한국거래소
+- 라이선스: [aiksd-public-1.1](https://aikstockdata.com/licenses/aiksd-public-1.1.txt), 출처표시·비영리 이용 조건 및 공공누리 제4유형 조건을 준수해야 합니다.
+- 수집일: 2026-10-26 (스냅샷의 `meta.source.retrieved_at`에 ISO 시각 기록)
+- 실제 날짜/파일: 2026-10-22 → `quotes_20261022.csv`, 2026-10-23 → `quotes_20261023.csv`
+- 범위: 각 원본 CSV의 `mrktCtg=KOSPI` 행 전체, 날짜별 913행. 원본 전체는 날짜별 2,778행입니다. 이 공개 파일은 security type을 제공하지 않으므로 KOSPI 행에는 우선주가 포함될 수 있으며, 빈 행을 만들거나 미수집 값을 숫자로 채우지 않았습니다. ETF 행은 원본에 없습니다.
+- 저장한 실제 필드: `actual_open` = `mkp`, `actual_close` = `clpr`, `actual_volume` = `trqu`; 모두 날짜별 913행에서 결측 없이 검증했습니다.
+
+### Historical-test / TEST ONLY
+
+기본 화면은 2026-10-23 historical-test 스냅샷을 바로 표시합니다. 날짜별 화면은 다음 주소로 확인할 수 있습니다.
+
+- `https://chansday.github.io/?mode=historical-test&date=2026-10-22`
+- `https://chansday.github.io/?mode=historical-test&date=2026-10-23`
+
+화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 임시 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
+
+baseline 공식은 다음과 같습니다.
+
+```text
+forecast input through 2026-10-22:
+  expected_open   = previous session close
+  expected_return = previous session close-to-close return
+  expected_close  = previous session close × (1 + expected_return / 100)
+```
+
+2026-10-22 forecast는 2026-10-21까지의 값(10-20·10-21 일봉)을, 2026-10-23 forecast는 2026-10-22까지의 값(10-21·10-22 일봉)을 사용합니다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않습니다. 이 baseline은 당시 08:30에 실제로 게시된 예측이 아니며, 과거 운영 성과를 주장하지 않습니다.
+
+원본을 다시 수집하고 두 스냅샷을 재생성하는 명령은 다음과 같습니다. 실제 API 키·주문·자동매매는 필요하지 않습니다.
+
+```bash
+npm run historical-test:collect
+```
+
+이 경로는 평일 운영 cron, `KOSPI_PROVIDER`, `public-json` 설정, 기존 합성 fixture/replay/backfill 파일과 분리되어 있습니다.
 
 정책이 확인된 단일 공개 JSON endpoint를 연결하려면 `KOSPI_PROVIDER=public-json`과 아래 설정을 모두 명시해야 합니다. 하나라도 빠지면 adapter는 네트워크 요청 없이 `degraded`를 반환합니다.
 
