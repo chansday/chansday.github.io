@@ -248,6 +248,7 @@
         "actual_open": { "type": ["number", "null"] },
         "actual_close": { "type": ["number", "null"] },
         "actual_return": { "type": ["number", "null"] },
+        "session_return": { "type": ["number", "null"] },
         "error": { "type": ["number", "null"] },
         "actual_volume": { "type": ["number", "null"], "minimum": 0 },
         "prior_close": { "type": ["number", "null"], "minimum": 0 },

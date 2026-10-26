@@ -35,6 +35,8 @@ function checkHistoricalSnapshot(snapshot, date) {
     if (!(row.prior_close > 0)) errors.push(`prior_close missing: ${row.symbol}`);
     const derivedActualReturn = ((row.actual_open / row.prior_close) - 1) * 100;
     if (Math.abs(derivedActualReturn - row.actual_return) > 0.011) errors.push(`actual_return mismatch: ${row.symbol}`);
+    const derivedSessionReturn = row.actual_open > 0 ? ((row.actual_close / row.actual_open) - 1) * 100 : null;
+    if (derivedSessionReturn === null ? row.session_return !== null : Math.abs(derivedSessionReturn - row.session_return) > 0.011) errors.push(`session_return mismatch: ${row.symbol}`);
     const derivedExpectedReturn = ((row.expected_open / row.prior_close) - 1) * 100;
     if (Math.abs(derivedExpectedReturn - row.expected_return) > 0.011) errors.push(`expected_return mismatch: ${row.symbol}`);
     if (Math.abs((row.actual_return - row.expected_return) - row.error) > 0.011) errors.push(`error mismatch: ${row.symbol}`);

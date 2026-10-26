@@ -44,6 +44,7 @@ data/runs/historical-test-verification/verification-report.json
 
 ```text
 actual_return = round((actual_open / prior_close - 1) × 100, 2)
+session_return = round((actual_close / actual_open - 1) × 100, 2)
 error = round(actual_return - expected_return, 2)
 ```
 
@@ -53,6 +54,7 @@ error = round(actual_return - expected_return, 2)
 - 정상 순서·순서 변경 모두 `expected_*` 보존
 - 재실행 가능한 결정적 파일 생성
 - `actual_return`은 실제 시가 기준으로 검증
+- `session_return`은 실제 시가에서 실제 종가까지의 장중 수익률로 검증
 - `error`는 실제 시가 수익률과 예상 수익률의 차이로 검증
 - `data/latest-snapshot.json` 변경 없음
 - 운영 기본 로더는 혹시 테스트 snapshot이 들어와도 `no_data`로 차단

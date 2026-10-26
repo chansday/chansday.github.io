@@ -281,6 +281,7 @@ function makeRows(latest, prior) {
     const previous = priorBySymbol.get(row.symbol);
     const expectedReturn = null;
     const actualReturn = previous?.close > 0 ? Math.round(((row.open / previous.close - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
+    const sessionReturn = row.open > 0 ? Math.round(((row.close / row.open - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
     return {
       rank: null,
       symbol: row.symbol,
@@ -291,6 +292,7 @@ function makeRows(latest, prior) {
       actual_open: row.open,
       actual_close: row.close,
       actual_return: actualReturn,
+      session_return: sessionReturn,
       actual_volume: row.volume,
       error: deriveError(actualReturn, expectedReturn),
       confidence: null,
@@ -317,6 +319,7 @@ function makeForecastRows(latest, prior) {
       actual_open: null,
       actual_close: null,
       actual_return: null,
+      session_return: null,
       actual_volume: null,
       prior_close: row.close,
       error: null,

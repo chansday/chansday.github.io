@@ -12,7 +12,7 @@ const STAGES = [
   ["0900", "openSettlement"],
   ["1530", "closeSettlement"],
 ];
-const ACTUAL_FIELDS = ["actual_open", "actual_close", "actual_return", "actual_volume", "error"];
+const ACTUAL_FIELDS = ["actual_open", "actual_close", "actual_return", "session_return", "actual_volume", "error"];
 
 function round(value) {
   return Math.round((value + Number.EPSILON) * 100) / 100;
@@ -57,6 +57,7 @@ function stageRows(sourceRows, currentStageIndex) {
       for (const field of ACTUAL_FIELDS) row[field] = null;
     } else if (currentStageIndex === 3) {
       row.actual_close = null;
+      row.session_return = null;
       row.actual_volume = null;
       row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0
         ? round((row.actual_open / row.prior_close - 1) * 100)
@@ -67,6 +68,9 @@ function stageRows(sourceRows, currentStageIndex) {
     } else {
       row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0
         ? round((row.actual_open / row.prior_close - 1) * 100)
+        : null;
+      row.session_return = typeof row.actual_open === "number" && typeof row.actual_close === "number" && row.actual_open > 0
+        ? round((row.actual_close / row.actual_open - 1) * 100)
         : null;
       row.error = typeof row.actual_return === "number" && typeof row.expected_return === "number"
         ? round(row.actual_return - row.expected_return)

@@ -30,7 +30,7 @@ export const RUN_STAGE_TIMES = Object.freeze({
 
 const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expected_return"]);
 const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open", "actual_return"]);
-const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "actual_volume"]);
+const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "session_return", "actual_volume"]);
 
 function kstDate(date = new Date()) {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -132,6 +132,12 @@ function derivedActualReturn(row) {
     : null;
 }
 
+function derivedSessionReturn(row) {
+  return typeof row.actual_open === "number" && row.actual_open > 0 && typeof row.actual_close === "number"
+    ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100
+    : null;
+}
+
 export function mergeRows(existingRows, incomingRows, mode) {
   const bySymbol = new Map(existingRows.filter((row) => row.symbol).map((row) => [row.symbol, row]));
   const incomingSymbols = new Set(incomingRows.filter((row) => row.symbol).map((row) => row.symbol));
@@ -155,6 +161,8 @@ export function mergeRows(existingRows, incomingRows, mode) {
       for (const field of ["rank", "symbol", "name", "quality", "status", ...CLOSE_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
+      const sessionReturn = derivedSessionReturn(merged);
+      if (sessionReturn !== null) merged.session_return = sessionReturn;
       merged.error = derivedError(merged);
       return merged;
     }

@@ -141,6 +141,7 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
     const actualClose = numeric(actualRow, "clpr", date);
     const actualVolume = numeric(actualRow, "trqu", date);
     const actualReturn = round((actualOpen / priorClose - 1) * 100, 2);
+    const sessionReturn = actualOpen > 0 ? round((actualClose / actualOpen - 1) * 100, 2) : null;
     rows.push({
       rank: null,
       symbol,
@@ -151,6 +152,7 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       actual_open: actualOpen,
       actual_close: actualClose,
       actual_return: actualReturn,
+      session_return: sessionReturn,
       actual_volume: actualVolume,
       prior_close: priorClose,
       error: round(actualReturn - expectedReturn, 2),
@@ -182,7 +184,7 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       lookback_sessions: LOOKBACK_SESSIONS,
       input_dates: priorDates,
       coefficients: { momentum_weight: MOMENTUM_WEIGHT, volatility_penalty: VOLATILITY_PENALTY, max_abs_expected_return: MAX_EXPECTED_RETURN },
-      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + expected_return / 100), 2); actual_return = actual_open / prior_close - 1; error = actual_return - expected_return.",
+      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + expected_return / 100), 2); actual_return = actual_open / prior_close - 1; session_return = actual_close / actual_open - 1; error = actual_return - expected_return.",
       note: "This is a reproducible public-daily baseline generated after the fact because no historical 08:20 pre-open quote/order-book snapshot is available. It uses only the five prior trading-session daily closes, is not the historical 08:20 forecast, and must not be described as one.",
     },
     evaluation: buildEvaluationSummary(rows, {
@@ -210,7 +212,7 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       isDemo: false,
       historical_test: true,
       test_only: true,
-      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close; expected_open/expected_return are retrospective public-daily momentum/volatility baseline values; expected_close is null because this test targets the open.",
+      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close for evaluation; session_return is actual_close versus actual_open for intraday display; expected_open/expected_return are retrospective public-daily momentum/volatility baseline values; expected_close is null because this test targets the open.",
       source_collection_date: retrievedAt.slice(0, 10),
       source_range: rangeNote,
       source_rows: rows.length,

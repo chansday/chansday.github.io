@@ -15,11 +15,12 @@ function settleRows(sourceRows, currentRows, stage) {
   const currentBySymbol = new Map((currentRows || []).map((row) => [row.symbol, row]));
   return sourceRows.map((sourceRow) => {
     const current = currentBySymbol.get(sourceRow.symbol) || {};
-    const baseline = { ...sourceRow, actual_open: null, actual_close: null, actual_return: null, actual_volume: null, error: null };
+    const baseline = { ...sourceRow, actual_open: null, actual_close: null, actual_return: null, session_return: null, actual_volume: null, error: null };
     const row = { ...baseline, ...current };
     if (stage === "0700" || stage === "0800" || stage === "0820") {
       row.actual_open = current.actual_open ?? null;
       row.actual_close = current.actual_close ?? null;
+      row.session_return = current.session_return ?? null;
       row.actual_volume = current.actual_volume ?? null;
       row.actual_return = current.actual_return ?? null;
       row.error = current.error ?? null;
@@ -29,11 +30,13 @@ function settleRows(sourceRows, currentRows, stage) {
       row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0 ? round((row.actual_open / row.prior_close - 1) * 100) : null;
       row.error = typeof row.actual_return === "number" && typeof row.expected_return === "number" ? round(row.actual_return - row.expected_return) : null;
       row.actual_close = current.actual_close ?? null;
+      row.session_return = current.session_return ?? null;
       row.actual_volume = current.actual_volume ?? null;
     }
     if (stage === "1530") {
       row.actual_close = sourceRow.actual_close;
       row.actual_volume = sourceRow.actual_volume;
+      row.session_return = typeof row.actual_open === "number" && typeof row.actual_close === "number" && row.actual_open > 0 ? round((row.actual_close / row.actual_open - 1) * 100) : null;
       row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0 ? round((row.actual_open / row.prior_close - 1) * 100) : null;
       row.error = typeof row.actual_return === "number" && typeof row.expected_return === "number" ? round(row.actual_return - row.expected_return) : null;
     }
@@ -105,6 +108,7 @@ async function verifySequence(date, source, sequence, label) {
   const final = JSON.parse(await readFile(files.at(-1), "utf8"));
   assert.equal(final.rows.every((row) => row.actual_open !== null && row.actual_close !== null && row.actual_return !== null && row.error !== null), true, `${date}/${label}: final settlement is incomplete`);
   assert.equal(final.rows.every((row) => row.actual_return === round((row.actual_open / row.prior_close - 1) * 100)), true, `${date}/${label}: actual_return formula mismatch`);
+  assert.equal(final.rows.every((row) => row.session_return === (row.actual_open > 0 ? round((row.actual_close / row.actual_open - 1) * 100) : null)), true, `${date}/${label}: session_return formula mismatch`);
   assert.equal(final.rows.every((row) => row.error === round(row.actual_return - row.expected_return)), true, `${date}/${label}: error formula mismatch`);
   return { date, sequence, label, files, rows: final.rows.length, expected_preserved: true, actual_open_formula: true, error_formula: true };
 }

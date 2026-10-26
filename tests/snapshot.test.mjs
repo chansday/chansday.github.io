@@ -239,8 +239,8 @@ test("historical-test pipeline writes five isolated stage files without touching
       assert.equal(snapshots.every((snapshot) => snapshot.mode === "historical_test" && snapshot.meta.test_only === true && snapshot.meta.historical_test === true), true);
       assert.equal(snapshots[0].rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null && row.actual_return === null && row.error === null), true);
       assert.equal(snapshots[2].rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null), true);
-      assert.equal(snapshots[3].rows.every((row) => row.actual_open !== null && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
-      assert.equal(snapshots[4].rows.every((row) => row.actual_close !== null && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
+      assert.equal(snapshots[3].rows.every((row) => row.actual_open !== null && row.session_return === null && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
+      assert.equal(snapshots[4].rows.every((row) => row.actual_close !== null && row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null) && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
       assert.deepEqual(snapshots[2].rows.map((row) => [row.symbol, row.expected_open, row.expected_return]), snapshots[4].rows.map((row) => [row.symbol, row.expected_open, row.expected_return]));
     }
     assert.equal(await readFile(join(PROJECT_ROOT, "data", "latest-snapshot.json"), "utf8"), latestBefore);
@@ -269,12 +269,14 @@ test("historical-test snapshots contain observed OHLC-volume values and no futur
     assert.equal(snapshot.meta.source_rows, snapshot.rows.length);
     assert.equal(snapshot.rows.length, 913);
     assert.equal(snapshot.rows.every((row) => ["expected_open", "expected_return", "actual_open", "actual_close", "actual_return", "actual_volume", "prior_close", "error"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
+    assert.equal(snapshot.rows.every((row) => row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null)), true);
     assert.equal(snapshot.rows.every((row) => row.expected_close === null), true);
     assert.equal(snapshot.rows.every((row) => row.confidence === null), true);
     assert.equal(snapshot.rows.every((row) => ["historical_baseline_public_daily", "historical_baseline_public_daily_settled"].includes(row.quality)), true);
     assert.equal(snapshot.rows.some((row) => row.expected_return !== 0), true);
     assert.equal(snapshot.rows.every((row) => row.features && Number.isFinite(row.features.momentum) && Number.isFinite(row.features.volatility)), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.actual_return - ((row.actual_open / row.prior_close - 1) * 100)) < 0.011), true);
+    assert.equal(snapshot.rows.every((row) => row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null)), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.expected_return - ((row.expected_open / row.prior_close - 1) * 100)) < 0.011), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.error - (row.actual_return - row.expected_return)) < 0.011), true);
     assert.match(snapshot.pipeline.forecast.message, new RegExp(`${inputDates.at(-1)}|Historical-test stage 0820`));
@@ -290,13 +292,29 @@ test("historical-test page exposes the baseline and missing pre-open quote statu
   assert.match(app, /isTestOnlySnapshot\(data\)/);
 });
 
+test("KR모터스 장중 수익률은 실제 시가에서 실제 종가로 계산한다", async () => {
+  const snapshot = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", "2026-10-23", "1530.json"), "utf8"));
+  const row = snapshot.rows.find((candidate) => candidate.symbol === "000040");
+  assert.ok(row);
+  assert.equal(row.actual_open, 1202);
+  assert.equal(row.actual_close, 1165);
+  assert.equal(row.actual_return, 2.56);
+  assert.equal(row.session_return, -3.08);
+  assert.equal(row.session_return, Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100);
+  assert.equal(row.error, Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100);
+});
+
 test("ranking views expose actual close whenever settlement data is present", async () => {
   const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   assert.match(app, /actualClose: valueOf\(row, "actual_close"\)/);
+  assert.match(app, /sessionReturn: valueOf\(row, "session_return"\)/);
   assert.match(app, /rowMetric\("실제 종가", formatPrice\(row\.actualClose\)\)/);
+  assert.match(app, /rowMetric\("장중 수익률", formatPercent\(row\.sessionReturn/);
   assert.match(app, /setText\(elementIds\["selected-actual-close"\], formatPrice\(row\.actualClose\)\)/);
+  assert.match(app, /setText\(elementIds\["selected-session-return"\], formatPercent\(row\.sessionReturn\)\)/);
   assert.match(html, />실제 종가<\/th>/);
+  assert.match(html, />장중 수익률<\/th>/);
   assert.match(html, /id="selected-actual-close"/);
 });
 
@@ -364,6 +382,7 @@ test("public CSV provider uses bounded bulk collection and never fabricates pre-
   assert.equal(observed.rows.length, 2);
   assert.equal(observed.rows.every((row) => row.expected_open === null && row.expected_return === null), true);
   assert.equal(observed.rows.every((row) => row.actual_return === 0 && row.error === null), true);
+  assert.equal(observed.rows.every((row) => row.session_return === 10), true);
   assert.equal(observed.rows.every((row) => row.actual_close === 110 || row.actual_close === 220), true);
   assert.equal(observed.source.source_id, "aikstockdata-public-daily-csv");
   assert.equal(observed.source.run_id, "test-run");
@@ -435,4 +454,3 @@ test("backfill test snapshots are isolated synthetic copies of replay numeric fl
     assert.equal(backfill.rows.every((row) => fields.every((field) => typeof row[field] === "number")), true);
   }
 });
-

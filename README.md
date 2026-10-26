@@ -8,7 +8,7 @@
 
 + 종목 범위는 운영 provider에서 KOSPI 정규시장 보통주를 기본으로 합니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
 - 가격 기준은 provider가 확인한 KOSPI 정규장 공식 시작가·종가이며 통화는 KRW, 시간대는 `Asia/Seoul`입니다. 조정주가·호가·추정값을 자동으로 섞지 않습니다.
-- `expected_open`, `expected_return`은 09:00 시작가 목표를 위한 장전 기록이고 `actual_open`, `actual_return`, `error`는 09:00 시가 정산 필드입니다. `actual_close`는 15:30 종가 정산용이며, 시작가 테스트에서는 `expected_close`를 `null`로 둡니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
+- `expected_open`, `expected_return`은 09:00 시작가 목표를 위한 장전 기록이고 `actual_open`, `actual_return`, `error`는 09:00 시가 정산 필드입니다. `actual_return`은 전일 종가→실제 시가 평가용이며, `session_return`은 실제 시가→실제 종가 장중 수익률입니다. `actual_close`는 15:30 종가 정산용이며, 시작가 테스트에서는 `expected_close`를 `null`로 둡니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
 - 실제 출처의 약관·재배포 권한이 확인되지 않으면 연결하지 않습니다. HTML 크롤링이나 우회 요청을 하지 않습니다.
@@ -59,7 +59,7 @@
 - 수집일: 2026-10-26 (스냅샷의 `meta.source.retrieved_at`에 ISO 시각 기록)
 - 실제 날짜/파일: 2026-10-22 → `quotes_20261022.csv`, 2026-10-23 → `quotes_20261023.csv`
 - 범위: 각 원본 CSV의 `mrktCtg=KOSPI` 행 전체, 날짜별 913행. 원본 전체는 날짜별 2,778행입니다. 이 공개 파일은 security type을 제공하지 않으므로 KOSPI 행에는 우선주가 포함될 수 있으며, 빈 행을 만들거나 미수집 값을 숫자로 채우지 않았습니다. ETF 행은 원본에 없습니다.
-- 저장한 실제 필드: `actual_open` = `mkp`, `actual_close` = `clpr`, `actual_volume` = `trqu`; 모두 날짜별 913행에서 결측 없이 검증했습니다.
+- 저장한 실제 필드: `actual_open` = `mkp`, `actual_close` = `clpr`, `actual_volume` = `trqu`; `session_return`은 `actual_close / actual_open - 1`로 계산합니다. 모두 날짜별 913행에서 결측 없이 검증했습니다.
 
 ### Historical-test / TEST ONLY
 
@@ -68,7 +68,7 @@
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-22`
 - `https://chansday.github.io/?mode=historical-test&date=2026-10-23`
 
-화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. fallback에서는 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `error`를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
+화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. 화면의 `시가 수익률`은 전일 종가→실제 시가로 평가엔진과 오차 계산에 사용하고, `장중 수익률`은 실제 시가→실제 종가로 별도 표시합니다. fallback에서는 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `session_return`, `error`를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
 historical baseline은 직전 5개 거래일의 공개 일별 종가만 사용합니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다. `features`에는 전일 수익률, 최근 3개 수익률 평균(momentum), 최근 4개 수익률의 모집단 표준편차(volatility)를 함께 저장합니다.
 
@@ -81,6 +81,7 @@ forecast input through 2026-10-22:
   expected_open   = round(prior_close × (1 + expected_return / 100), 2)
   expected_close  = null (this test targets the 09:00 open)
   actual_return   = round((actual_open / prior_close - 1) × 100, 2)
+  session_return  = round((actual_close / actual_open - 1) × 100, 2)
   error           = actual_return - expected_return
 ```
 
@@ -116,7 +117,7 @@ adapter는 단일 HTTPS JSON endpoint만 사용하고, redirect를 거부하며,
 
 실제 API 키는 코드·fixture·snapshot에 넣지 않습니다. 향후 provider가 인증을 요구할 경우에만 GitHub Actions Secret `KOSPI_PROVIDER_API_KEY`를 사용하며, 현재 `public-json` adapter는 키를 사용하지 않습니다.
 
-운영 단계 저장은 `node scripts/update-results.mjs --mode <stage> --run-date YYYY-MM-DD`로 수행합니다. 기본 단계 시각은 KST 07:00, 08:00, 08:20, 09:00, 15:30으로 고정되어 동일 입력 재실행 시 JSON 내용이 달라지지 않습니다. 09:00은 `actual_open`/`actual_return`만, 15:30은 `actual_close`/`actual_volume`만 이전 단계에 병합하며 expected 필드는 보존합니다. `--dry-run`은 파일을 쓰지 않습니다.
+운영 단계 저장은 `node scripts/update-results.mjs --mode <stage> --run-date YYYY-MM-DD`로 수행합니다. 기본 단계 시각은 KST 07:00, 08:00, 08:20, 09:00, 15:30으로 고정되어 동일 입력 재실행 시 JSON 내용이 달라지지 않습니다. 09:00은 `actual_open`/`actual_return`만, 15:30은 `actual_close`/`session_return`/`actual_volume`을 이전 단계에 병합하며 expected 필드는 보존합니다. `--dry-run`은 파일을 쓰지 않습니다.
 
 ### Baseline replay 모드
 

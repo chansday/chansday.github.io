@@ -25,7 +25,7 @@ export const RANKING_FIELDS = Object.freeze([
   "error",
 ]);
 
-export const OPTIONAL_ROW_FIELDS = Object.freeze(["confidence", "quality", "actual_volume", "prior_close", "features"]);
+export const OPTIONAL_ROW_FIELDS = Object.freeze(["confidence", "quality", "actual_volume", "prior_close", "session_return", "features"]);
 
 export const SNAPSHOT_STATUSES = Object.freeze([
   "ready",
@@ -72,6 +72,7 @@ export function isRankingRow(row) {
   if (Object.hasOwn(row, "confidence") && !isFiniteOrNull(row.confidence)) return false;
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
   if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
+  if (Object.hasOwn(row, "session_return") && !isFiniteOrNull(row.session_return)) return false;
   if (Object.hasOwn(row, "features")) {
     if (!row.features || typeof row.features !== "object" || Array.isArray(row.features)) return false;
     const featureFields = ["previous_return", "momentum", "volatility", "lookback_sessions"];
