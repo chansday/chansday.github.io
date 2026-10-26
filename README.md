@@ -47,6 +47,8 @@
 
 ## 현재 데이터 출처 상태
 
+전체 수집 항목의 현재 상태와 자동 품질검사는 [`docs/COLLECTION_AUDIT.md`](docs/COLLECTION_AUDIT.md)에 기록되어 있습니다. `npm run collection:audit`는 저장된 테스트 스냅샷의 내부 정합성만 검사하며, 라이브 공급자 연결이나 예측 성능을 보장하지 않습니다.
+
 운영 provider로 활성화된 실데이터 출처는 없습니다. 기본 `KOSPI_PROVIDER`는 `none`이며, 평일 Actions는 기존처럼 `no_data`/`degraded` 정책을 따릅니다. 아래 historical-test 스냅샷만 별도 TEST ONLY 화면으로 실제 과거 파일을 표시합니다.
 
 `data/historical-test/*.json`과 기본 `data/latest-snapshot.json`은 운영 provider와 분리된 검증용 과거 스냅샷입니다. 이 두 파일의 숫자는 합성 fixture가 아니라 아래 공개 일별 파일에서 수집한 실제 값입니다.
@@ -199,3 +201,4 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
 ## 라이선스·위험 고지
 
 이 저장소는 데이터 공급자의 라이선스를 대신하지 않습니다. 데이터 수집·저장·재배포 가능 여부는 원출처 약관과 관련 법규를 따라야 합니다. 이 사이트의 예상·실제 비교·오차는 투자 조언이 아니며 미래 수익, 정확도 또는 손실 회피를 보장하지 않습니다. 자세한 상태 전이와 보안 경계는 [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md)를 참고하세요.
+
