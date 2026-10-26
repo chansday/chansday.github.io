@@ -1,0 +1,107 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "demo",
+  "mode": "replay",
+  "asOfDate": "2026-10-22",
+  "publishedAt": null,
+  "market": {
+    "name": "KOSPI",
+    "currency": "KRW",
+    "timezone": "Asia/Seoul"
+  },
+  "provider": {
+    "id": "replay_baseline",
+    "status": "demo",
+    "label": "REPLAY_BASELINE / SYNTHETIC / BASELINE REPLAY / 2026-10-22",
+    "source": null
+  },
+  "baseline": {
+    "basis": "previous_session_close",
+    "reference_date": "2026-10-21",
+    "value_status": "not_reconstructed",
+    "note": "전일 종가 기준 입력 계약만 확인합니다. 실제 2026-10-21 종가를 복원하지 않습니다."
+  },
+  "pipeline": {
+    "previousResult": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "replay_baseline",
+      "message": "전일 종가 기준 baseline 입력 단계의 합성 예시입니다."
+    },
+    "analysis": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "replay_baseline",
+      "message": "전일 종가 기준 baseline 분석의 합성 예시입니다."
+    },
+    "forecast": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "replay_baseline",
+      "message": "08:30 당시 입력 스냅샷이 없어 baseline replay로만 표시합니다."
+    },
+    "closeSettlement": {
+      "status": "demo",
+      "attemptedAt": null,
+      "provider_id": "replay_baseline",
+      "message": "예상값·실제값·오차 열의 UI/정산 흐름 합성 예시입니다."
+    }
+  },
+  "rows": [
+    {
+      "rank": 1,
+      "symbol": "REPLAY-22-A",
+      "name": "baseline replay A · 합성",
+      "expected_open": 101,
+      "expected_close": 103,
+      "expected_return": 1.98,
+      "actual_open": 100,
+      "actual_close": 102,
+      "actual_return": 2,
+      "error": 0.02,
+      "confidence": 0.5,
+      "quality": "replay_baseline_synthetic",
+      "status": "demo"
+    },
+    {
+      "rank": 2,
+      "symbol": "REPLAY-22-B",
+      "name": "baseline replay B · 합성",
+      "expected_open": 201,
+      "expected_close": 198,
+      "expected_return": -1.49,
+      "actual_open": 200,
+      "actual_close": 196,
+      "actual_return": -2,
+      "error": -0.51,
+      "confidence": 0.4,
+      "quality": "replay_baseline_synthetic",
+      "status": "demo"
+    },
+    {
+      "rank": 3,
+      "symbol": "REPLAY-22-C",
+      "name": "baseline replay C · 합성",
+      "expected_open": 301,
+      "expected_close": 307,
+      "expected_return": 1.99,
+      "actual_open": 300,
+      "actual_close": 309,
+      "actual_return": 3,
+      "error": 1.01,
+      "confidence": 0.3,
+      "quality": "replay_baseline_synthetic",
+      "status": "demo"
+    }
+  ],
+  "meta": {
+    "generatedBy": "data/replays/2026-10-22.json",
+    "lastAttemptAt": null,
+    "lastAttemptMode": "replay_baseline",
+    "blockedReason": "Synthetic baseline replay only; not historical market evidence and not a reconstructed 08:30 forecast.",
+    "isDemo": true,
+    "replay_type": "replay_baseline",
+    "replay_note": "SYNTHETIC / BASELINE REPLAY. Previous-session-close basis is represented as a contract; no real historical values are claimed.",
+    "source": null
+  }
+}
