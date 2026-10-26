@@ -7,6 +7,7 @@ import {
   validateRankingRows,
 } from "../providers/provider-adapter.js";
 import { createDemoProvider } from "../providers/demo-provider.js";
+import { createFixtureProvider } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 
 export const MODES = {
@@ -17,14 +18,16 @@ export const MODES = {
 };
 
 function parseArgs(argv) {
-  const options = { mode: null, dataFile: "data/latest-snapshot.json", dryRun: false };
+  const options = { mode: null, dataFile: "data/latest-snapshot.json", dryRun: false, provider: null, fixtureDate: null };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === "--dry-run") options.dryRun = true;
     else if (arg === "--mode") { options.mode = argv[index + 1]; index += 1; }
     else if (arg === "--data-file") { options.dataFile = argv[index + 1]; index += 1; }
+    else if (arg === "--provider") { options.provider = argv[index + 1]; index += 1; }
+    else if (arg === "--fixture-date") { options.fixtureDate = argv[index + 1]; index += 1; }
     else if (arg === "--help") {
-      console.log("Usage: node scripts/update-results.mjs --mode <update-results|analysis|forecast|close-settlement> [--data-file path] [--dry-run]");
+      console.log("Usage: node scripts/update-results.mjs --mode <update-results|analysis|forecast|close-settlement> [--provider id] [--fixture-date YYYY-MM-DD] [--data-file path] [--dry-run]");
       return null;
     } else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -34,11 +37,13 @@ function parseArgs(argv) {
   return options;
 }
 
-function resolveProvider(env = process.env) {
-  const providerId = (env.KOSPI_PROVIDER || "").trim().toLowerCase();
+function resolveProvider(env = process.env, options = {}) {
+  const providerId = (options.provider ?? env.KOSPI_PROVIDER ?? "").trim().toLowerCase();
+  const providerEnv = { ...env, ...(options.fixtureDate ? { KOSPI_FIXTURE_DATE: options.fixtureDate } : {}) };
   if (!providerId || providerId === "none") return { provider: null, providerId: null };
   if (providerId === "demo") return { provider: createDemoProvider(), providerId };
-  if (providerId === "public-json") return { provider: createPublicJsonProvider({ env }), providerId };
+  if (providerId === "fixture") return { provider: createFixtureProvider({ env: providerEnv }), providerId };
+  if (providerId === "public-json") return { provider: createPublicJsonProvider({ env: providerEnv }), providerId };
   return { provider: null, providerId };
 }
 
@@ -115,11 +120,13 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
     };
   }
 
-  const isDemo = result.status === "demo";
+  const isFixture = providerId === "fixture";
+  const isDemo = result.status === "demo" || isFixture;
+  const snapshotMode = isFixture ? "fixture" : isDemo ? "demo" : "provider";
   return {
     ...snapshot,
     status: result.status,
-    mode: isDemo ? "demo" : "provider",
+    mode: snapshotMode,
     asOfDate: result.asOfDate || snapshot.asOfDate || null,
     publishedAt: result.status === "ready" || isDemo ? attemptedAt : snapshot.publishedAt || null,
     provider: providerInfo(provider, providerId, result.status),
@@ -130,6 +137,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       lastAttemptMode: mode,
       blockedReason: result.status === "ready" ? null : result.message,
       isDemo,
+      ...(providerId === "fixture" ? { fixture_note: "SYNTHETIC fixture only; not historical 08:30 forecast data." } : {}),
       source,
     },
     pipeline: {
@@ -145,7 +153,7 @@ export async function run(argv = process.argv.slice(2)) {
   const modeConfig = MODES[options.mode];
   const snapshot = JSON.parse(await readFile(options.dataFile, "utf8"));
   const attemptedAt = new Date().toISOString();
-  const { provider, providerId } = resolveProvider();
+  const { provider, providerId } = resolveProvider(process.env, options);
   let nextSnapshot = {
     ...snapshot,
     meta: { ...snapshot.meta, lastAttemptAt: attemptedAt, lastAttemptMode: options.mode },

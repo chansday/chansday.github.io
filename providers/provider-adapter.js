@@ -114,12 +114,13 @@ export function isProviderResult(result) {
 export function isSnapshot(candidate) {
   if (!candidate || typeof candidate !== "object") return false;
   if (candidate.schemaVersion !== "1.0.0" || !SNAPSHOT_STATUSES.includes(candidate.status)) return false;
-  if (!(["provider", "demo"].includes(candidate.mode))) return false;
+  if (!(["provider", "demo", "fixture"].includes(candidate.mode))) return false;
   if (!candidate.market || candidate.market.name !== "KOSPI" || candidate.market.currency !== "KRW") return false;
   if (!validateRankingRows(candidate.rows).valid) return false;
   if (candidate.provider !== null && typeof candidate.provider !== "object") return false;
   if (!candidate.meta || typeof candidate.meta !== "object" || !Object.hasOwn(candidate.meta, "source")) return false;
   if (candidate.meta.source !== null && !isSourceMetadata(candidate.meta.source)) return false;
+  if (candidate.mode === "fixture" && candidate.meta.isDemo !== true) return false;
   if (!candidate.pipeline || !PIPELINE_KEYS.every((key) => candidate.pipeline[key])) return false;
   return true;
 }

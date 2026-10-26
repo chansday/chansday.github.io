@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "demo",
+  "mode": "fixture",
+  "asOfDate": "2026-10-22",
+  "publishedAt": null,
+  "market": {
+    "name": "KOSPI",
+    "currency": "KRW",
+    "timezone": "Asia/Seoul"
+  },
+  "provider": {
+    "id": "fixture",
+    "status": "demo",
+    "label": "FIXTURE / SYNTHETIC ONLY / 2026-10-22",
+    "source": null
+  },
+  "pipeline": {
+    "previousResult": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 전일 결과 예시입니다. 실제 시장 관측값이 아닙니다." },
+    "analysis": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 분석 단계 예시입니다. 실제 입력·모델 결과가 아닙니다." },
+    "forecast": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 expected_* UI 값만 표시합니다. 08:30 KST 실제 입력 스냅샷이 없어 역사적 예측을 재구성하지 않았습니다." },
+    "closeSettlement": { "status": "demo", "attemptedAt": null, "provider_id": "fixture", "message": "합성 expected_*와 actual_*를 병합하는 정산 흐름 예시입니다. 실제 장마감 값이 아닙니다." }
+  },
+  "rows": [
+    { "rank": 1, "symbol": "FIXTURE-22-A", "name": "합성 레코드 A · fixture", "expected_open": 11, "expected_close": 12, "expected_return": 1, "actual_open": 10, "actual_close": 13, "actual_return": 3, "error": 2, "confidence": 0.25, "quality": "fixture_synthetic", "status": "demo" },
+    { "rank": 2, "symbol": "FIXTURE-22-B", "name": "합성 레코드 B · fixture", "expected_open": 21, "expected_close": 20, "expected_return": -1, "actual_open": 22, "actual_close": 18, "actual_return": -2, "error": -1, "confidence": 0.5, "quality": "fixture_synthetic", "status": "demo" },
+    { "rank": 3, "symbol": "FIXTURE-22-C", "name": "합성 레코드 C · fixture", "expected_open": 31, "expected_close": 34, "expected_return": 3, "actual_open": 30, "actual_close": 33, "actual_return": 10, "error": 7, "confidence": 0.75, "quality": "fixture_synthetic", "status": "demo" }
+  ],
+  "meta": {
+    "generatedBy": "data/fixtures/2026-10-22.json",
+    "lastAttemptAt": null,
+    "lastAttemptMode": "fixture",
+    "blockedReason": "Synthetic fixture only; not a financial measurement, prediction performance result, or reconstructed 08:30 forecast.",
+    "isDemo": true,
+    "fixture_note": "SYNTHETIC UI contract fixture. The date labels are test coverage anchors, not historical market evidence.",
+    "source": null
+  }
+}

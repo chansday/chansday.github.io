@@ -79,6 +79,12 @@ pending
 
 `KOSPI_PROVIDER` 기본값은 `none`이다. 이 경우 외부 요청을 하지 않고 `no_data`와 `blocked` 단계 상태만 기록한다. `demo`는 모든 금융 필드가 `null`인 UI 전용 행을 제공하며 `meta.isDemo=true`를 설정한다. Demo 행은 실측값이나 예측 성과로 표시하지 않는다.
 
+### 합성 fixture
+
+data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 운영 데이터가 아닌 테스트 전용 snapshot이다. provider.id는 fixture, top-level mode는 fixture, meta.isDemo는 true이며, 모든 값과 fixture_synthetic 품질은 합성임을 전제로 한다. 대표 행은 expected_*, actual_*, error의 UI·정산 병합을 확인할 수 있게 제공하지만 실제 종목·가격·수익률이 아니다.
+
+실제 08:30 KST 입력 snapshot이 없으므로 fixture의 expected_*는 역사적 예측을 사후 재구성한 값이 아니다. fixture provider는 forecast 단계에서 합성 expected 필드만, close-settlement 단계에서 합성 actual/error 필드를 반환하고, 화면에는 FIXTURE / SYNTHETIC ONLY와 SYN 접두사를 표시한다. KOSPI_PROVIDER=fixture는 자동 cron에서 사용하지 않으며, 수동 workflow_dispatch 또는 --provider fixture --fixture-date 2026-10-22|2026-10-23 dry-run에서만 선택한다.
+
 ### 공개 JSON provider
 
 `providers/public-json-provider.js`는 정책이 확인된 단일 공개 JSON endpoint를 위한 안전한 opt-in adapter다. 다음 조건을 모두 충족해야 요청한다.
@@ -106,7 +112,7 @@ UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-
 
 ## 7. 프론트엔드와 운영
 
-`index.html`과 `styles.css`는 정적 Pages UI를 제공한다. `app.js`는 snapshot을 검증한 뒤 검색·정렬·상태 필터·pipeline 상태·예상/실제 비교표를 렌더링한다. `?mode=demo`는 별도 demo adapter를 사용한다.
+`index.html`과 `styles.css`는 정적 Pages UI를 제공한다. `app.js`는 snapshot을 검증한 뒤 검색·정렬·상태 필터·pipeline 상태·예상/실제 비교표를 렌더링한다. `?mode=demo`는 숫자 없는 UI demo를, `?mode=fixture&date=2026-10-22|2026-10-23`은 명시적인 합성 fixture snapshot을 사용한다.
 
 Actions는 `workflow_dispatch`에서 `all`, `update-results`, `analysis`, `forecast`, `close-settlement` 중 하나를 선택할 수 있다. workflow는 `npm test`와 `npm run check` 후 provider-aware runner를 실행하고 변경된 snapshot만 커밋한다.
 

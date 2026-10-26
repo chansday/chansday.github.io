@@ -25,7 +25,10 @@
 ├─ schema/market-snapshot.schema.json
 ├─ providers/provider-adapter.js
 ├─ providers/demo-provider.js
+├─ providers/fixture-provider.js
 ├─ providers/public-json-provider.js
+├─ data/fixtures/2026-10-22.json
+├─ data/fixtures/2026-10-23.json
 ├─ scripts/update-results.mjs
 ├─ scripts/workflow-dry-run.mjs
 ├─ tests/snapshot.test.mjs
@@ -49,6 +52,19 @@ adapter는 한 번의 HTTPS JSON 요청만 수행하고, redirect를 거부하�
 
 실제 API 키는 코드·fixture·snapshot에 넣지 않습니다. 향후 provider가 인증을 요구할 경우에만 GitHub Actions Secret `KOSPI_PROVIDER_API_KEY`를 사용하며, 현재 `public-json` adapter는 키를 사용하지 않습니다.
 
+### 합성 fixture 모드
+
+data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 UI·스키마·정산 흐름을 확인하기 위한 합성 fixture입니다. 두 파일 모두 provider.id=fixture, mode=fixture, meta.isDemo=true를 명시하고, FIXTURE / SYNTHETIC ONLY 라벨과 fixture_synthetic 품질을 사용합니다. 값은 실제 종목·가격·수익률이 아니며, 실제 08:30 KST 입력 스냅샷이 없으므로 역사적 예측을 사후 재구성한 자료도 아닙니다.
+
+운영 cron은 fixture를 사용하지 않습니다. Actions의 workflow_dispatch에서 provider=fixture와 fixture_date=2026-10-22 또는 2026-10-23을 선택하거나, 로컬에서 다음처럼 스냅샷을 쓰지 않는 dry-run을 실행할 수 있습니다.
+
+~~~
+node scripts/update-results.mjs --provider fixture --fixture-date 2026-10-22 --mode forecast --dry-run
+npm run pipeline:dry-run -- --provider fixture --fixture-date 2026-10-23
+~~~
+
+브라우저에서는 ?mode=fixture&date=2026-10-22 또는 ?mode=fixture&date=2026-10-23을 사용합니다. 화면에는 FIXTURE / SYNTHETIC ONLY와 SYN 접두사가 표시됩니다.
+
 ## GitHub Actions 실행 시각
 
 GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9이고 서머타임이 없으므로 다음처럼 고정 변환합니다.
@@ -62,7 +78,7 @@ GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9�
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 장마감 단계는 KOSPI 정규장 종료 후 16:00 KST를 기준으로 하며 휴장일 또는 데이터 부족 시 상태만 기록합니다.
 
-Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `close-settlement` 중 하나를 선택할 수 있습니다. 기본 workflow는 provider가 없을 때도 숫자를 만들지 않습니다.
+Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `close-settlement` 중 하나와 provider(`none`, `fixture`, `demo`, `public-json`)를 선택할 수 있습니다. fixture를 고르면 두 테스트 날짜 중 하나를 추가로 선택합니다. 기본 workflow와 평일 cron은 기존 provider 설정을 사용하며 fixture를 자동 선택하지 않습니다.
 
 ## 로컬 실행과 검증
 

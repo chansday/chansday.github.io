@@ -8,6 +8,7 @@ import {
   validateRankingRows,
 } from "../providers/provider-adapter.js";
 import { createDemoProvider } from "../providers/demo-provider.js";
+import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 
 test("static snapshot follows the top-level contract", async () => {
@@ -59,4 +60,28 @@ test("public JSON provider is disabled without explicit source policy", async ()
   assert.equal(result.status, "degraded");
   assert.equal(result.rows.length, 0);
   assert.match(result.message, /explicit URL|license/i);
+});
+
+test("fixture snapshots are explicit synthetic data for both requested dates", async () => {
+  for (const date of FIXTURE_DATES) {
+    const snapshot = JSON.parse(await readFile(new URL(`../data/fixtures/${date}.json`, import.meta.url), "utf8"));
+    assert.equal(isSnapshot(snapshot), true);
+    assert.equal(snapshot.asOfDate, date);
+    assert.equal(snapshot.mode, "fixture");
+    assert.equal(snapshot.provider.id, "fixture");
+    assert.equal(snapshot.meta.isDemo, true);
+    assert.match(snapshot.meta.fixture_note, /SYNTHETIC/i);
+    assert.equal(snapshot.rows.length, 3);
+    assert.equal(snapshot.pipeline.forecast.status, "demo");
+    assert.match(snapshot.pipeline.forecast.message, /08:30|재구성하지 않았습니다/);
+
+    const provider = createFixtureProvider({ env: { KOSPI_FIXTURE_DATE: date } });
+    assert.equal(isProviderAdapter(provider), true);
+    const forecast = await provider.generateForecast();
+    const settlement = await provider.settleClose();
+    assert.equal(forecast.status, "demo");
+    assert.equal(forecast.rows.every((row) => row.expected_open !== null && row.actual_open === null && row.error === null), true);
+    assert.equal(settlement.status, "demo");
+    assert.equal(settlement.rows.every((row) => row.expected_open !== null && row.actual_open !== null && row.error !== null), true);
+  }
 });

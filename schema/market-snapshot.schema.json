@@ -8,7 +8,7 @@
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
     "status": { "enum": ["ready", "demo", "no_data", "degraded", "blocked", "pending"] },
-    "mode": { "enum": ["provider", "demo"] },
+    "mode": { "enum": ["provider", "demo", "fixture"] },
     "asOfDate": { "type": ["string", "null"], "format": "date" },
     "publishedAt": { "type": ["string", "null"], "format": "date-time" },
     "market": {
@@ -53,6 +53,7 @@
         "lastAttemptMode": { "type": ["string", "null"] },
         "blockedReason": { "type": ["string", "null"] },
         "isDemo": { "type": "boolean" },
+        "fixture_note": { "type": "string" },
         "source": { "$ref": "#/$defs/sourceMetadataOrNull" }
       },
       "additionalProperties": false
