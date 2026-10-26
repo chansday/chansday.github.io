@@ -130,7 +130,10 @@ function normalizeRow(row, index) {
   };
 }
 function emptySnapshot(message = "연결된 데이터 공급자가 없습니다.") { return noDataSnapshot({ provider: { id: null, status: "not_configured", label: "연결된 데이터 공급자 없음", source: null }, message }); }
-function validateRequestedDate(date, label) { if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`${label} date is invalid`); return date; }
+function validateRequestedDate(date, label) {
+  if (!isIsoDate(date)) throw new DateNavigationError("error", date, `${label} date is invalid: ${date}`);
+  return date;
+}
 async function fetchSnapshot(path, errorLabel) { const response = await fetch(path, { cache: "no-store" }); if (!response.ok) throw new Error(`${errorLabel}: ${response.status}`); return response.json(); }
 function historicalTestRunPath(date, stage = HISTORICAL_TEST_STAGE) { if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`Historical-test date is invalid: ${date}`); if (!/^\d{4}$/.test(stage)) throw new Error(`Historical-test stage is invalid: ${stage}`); return `${historicalTestDataRoot}/${date}/${stage}.json`; }
 function hasObservedHistoricalFields(row) { return Boolean(row && HISTORICAL_TEST_REQUIRED_FIELDS.every((field) => Object.hasOwn(row, field) && typeof row[field] === "number" && Number.isFinite(row[field])) && Number.isInteger(row.rank) && row.rank >= 1); }
@@ -459,6 +462,10 @@ function closeDatePopover({ restoreFocus = true } = {}) {
   if (restoreFocus) elementIds["ranking-date-button"]?.focus();
 }
 
+function restoreDateTriggerFocus() {
+  elementIds["ranking-date-button"]?.focus();
+}
+
 function renderDateNavigation() {
   const button = elementIds["ranking-date-button"];
   const grid = elementIds["calendar-grid"];
@@ -512,7 +519,8 @@ async function selectDate(date) {
   closeDatePopover({ restoreFocus: false });
   const token = ++dateRequestToken;
   renderDateState("loading", date);
-  await refresh({ showLoading: false, token });
+  try { await refresh({ showLoading: false, token }); }
+  finally { if (token === dateRequestToken) restoreDateTriggerFocus(); }
 }
 
 function moveCalendarMonth(delta) {
@@ -595,7 +603,7 @@ async function refresh({ showLoading = false, token = null } = {}) {
     if (token !== null && token !== dateRequestToken) return;
     console.error(error);
     if (error instanceof DateNavigationError) {
-      renderDateState(error.status, error.date, error.status === "not_collected" ? "이 날짜의 스냅샷이 아직 수집되지 않아 이전 결과를 표시하지 않습니다." : error.status === "holiday" ? "한국거래소 휴장일입니다. 수집·예측 결과가 없습니다." : "선택한 날짜의 스냅샷을 읽지 못했습니다.");
+      renderDateState(error.status, error.date, error.status === "error" ? `입력한 날짜를 확인하세요: ${error.date || "날짜 없음"}` : error.status === "not_collected" ? "이 날짜의 스냅샷이 아직 수집되지 않아 이전 결과를 표시하지 않습니다." : error.status === "holiday" ? "한국거래소 휴장일입니다. 수집·예측 결과가 없습니다." : "선택한 날짜의 스냅샷을 읽지 못했습니다.");
       return;
     }
     const failed = emptySnapshot("정적 스냅샷을 읽지 못했습니다. 로컬 HTTP 서버에서 다시 확인해 주세요.");
