@@ -52,6 +52,22 @@ adapter는 한 번의 HTTPS JSON 요청만 수행하고, redirect를 거부하�
 
 실제 API 키는 코드·fixture·snapshot에 넣지 않습니다. 향후 provider가 인증을 요구할 경우에만 GitHub Actions Secret `KOSPI_PROVIDER_API_KEY`를 사용하며, 현재 `public-json` adapter는 키를 사용하지 않습니다.
 
+### Baseline replay 모드
+
+2026-10-22·23 baseline replay는 전일 종가 기준 입력 계약, 예상값, 실제값, 오차 열을 검증하기 위한 합성 시뮬레이션입니다. 당시 08:30 입력 스냅샷이나 실제 시장값을 복원하지 않으며, 두 파일 모두 `mode=replay`, `provider.id=replay_baseline`, `meta.replay_type=replay_baseline`, `meta.isDemo=true`를 유지합니다.
+
+브라우저에서 다음 주소로 확인할 수 있습니다.
+
+- `https://chansday.github.io/?mode=replay&date=2026-10-22`
+- `https://chansday.github.io/?mode=replay&date=2026-10-23`
+
+로컬 검증 명령은 다음과 같습니다.
+
+~~~bash
+npm run replay:dry-run -- --date 2026-10-22
+npm run replay:dry-run -- --date 2026-10-23
+~~~
+
 ### 합성 fixture 모드
 
 data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 UI·스키마·정산 흐름을 확인하기 위한 합성 fixture입니다. 두 파일 모두 provider.id=fixture, mode=fixture, meta.isDemo=true를 명시하고, FIXTURE / SYNTHETIC ONLY 라벨과 fixture_synthetic 품질을 사용합니다. 값은 실제 종목·가격·수익률이 아니며, 실제 08:30 KST 입력 스냅샷이 없으므로 역사적 예측을 사후 재구성한 자료도 아닙니다.
