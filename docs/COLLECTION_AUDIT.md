@@ -36,6 +36,6 @@
 
 ## 정확도와 시간의 trade-off
 
-전체 CSV bulk 수집은 수백~수천 종목을 짧은 시간과 작은 호출량으로 확인하는 데 유리합니다. 반면 장전 호가·예상체결가가 없는 상태에서 가격을 추정하면 데이터가 아니라 모델 가정이 되므로, 운영 forecast는 전일 종가를 그대로 쓰는 `public_baseline_no_preopen_quote`만 계산합니다. historical-test도 구분 가능한 `previous_session_close` baseline만 사후 계산하며, 실제 08:20 예측 또는 09:00 실시간 정산을 복원한 것이 아닙니다.
+전체 CSV bulk 수집은 수백~수천 종목을 짧은 시간과 작은 호출량으로 확인하는 데 유리합니다. 반면 장전 호가·예상체결가가 없는 상태에서 가격을 추정하면 데이터가 아니라 모델 가정이 됩니다. 운영 forecast는 전일 종가를 그대로 쓰는 `public_baseline_no_preopen_quote`를 유지하고, historical-test는 직전 5개 공개 daily close의 `0.60 × 최근 3개 수익률 평균 - 0.10 × 최근 4개 변동성`을 ±5%로 제한한 `public_daily_momentum_volatility_v1` baseline을 사용합니다. 둘 다 실제 08:20 예측 또는 09:00 실시간 정산을 복원한 것이 아닙니다.
 
 `npm run collection:audit`는 저장된 스냅샷의 내부 정합성만 검사하며, 공개 원천의 최신성·라이선스 변경·GitHub Actions 실행 지연을 보장하지 않습니다.

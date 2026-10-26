@@ -69,18 +69,21 @@
 
 화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 임시 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
-baseline 공식은 다음과 같습니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다.
+historical baseline은 직전 5개 거래일의 공개 일별 종가만 사용합니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다. `features`에는 전일 수익률, 최근 3개 수익률 평균(momentum), 최근 4개 수익률의 모집단 표준편차(volatility)를 함께 저장합니다.
 
 ```text
 forecast input through 2026-10-22:
-  expected_open   = prior close
-  expected_return = expected_open / prior close - 1 = 0%
+  returns         = each prior close / previous close - 1
+  momentum        = mean(last 3 daily returns)
+  volatility      = population standard deviation(last 4 daily returns)
+  expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5%, +5%)
+  expected_open   = round(prior_close × (1 + expected_return / 100), 2)
   expected_close  = null (this test targets the 09:00 open)
-  actual_return   = actual_open / prior close - 1
+  actual_return   = round((actual_open / prior_close - 1) × 100, 2)
   error           = actual_return - expected_return
 ```
 
-2026-10-22 forecast는 2026-10-21까지의 값(10-20·10-21 일봉)을, 2026-10-23 forecast는 2026-10-22까지의 값(10-21·10-22 일봉)을 사용합니다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않습니다. 이 baseline은 장전 호가가 없는 상태에서의 재현용 사후 계산이며, 당시 08:20에 실제로 게시된 예측이 아니고 과거 운영 성과를 주장하지 않습니다.
+2026-10-22 forecast는 `10-15, 10-16, 10-19, 10-20, 10-21`, 2026-10-23 forecast는 `10-16, 10-19, 10-20, 10-21, 10-22` 공개 daily CSV를 사용합니다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않습니다. `expected_return`은 더 이상 0% 고정이 아니지만, 이 값은 장전 호가·예상체결가·호가잔량을 사용하지 않은 설명 가능한 사후 baseline입니다. 당시 08:20에 실제로 게시된 예측이 아니고 과거 운영 성과나 수익을 보장하지 않습니다. `confidence`는 pre-open quote 부재 정책에 따라 `null`입니다.
 
 원본을 다시 수집하고 두 스냅샷을 재생성하는 명령은 다음과 같습니다. 실제 API 키·주문·자동매매는 필요하지 않습니다.
 

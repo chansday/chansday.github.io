@@ -21,7 +21,11 @@ function checkHistoricalSnapshot(snapshot, date) {
   if (!String(snapshot.provider?.source?.url || "").startsWith("https://")) errors.push("source URL is not HTTPS");
   if (!snapshot.provider?.source?.retrieved_at || Number.isNaN(Date.parse(snapshot.provider.source.retrieved_at))) errors.push("retrieved_at is missing or invalid");
   if (!snapshot.baseline?.input_through_date || snapshot.baseline.input_through_date >= date) errors.push("baseline input includes target-date data");
+  if (snapshot.baseline?.model !== "public_daily_momentum_volatility_v1") errors.push("historical baseline model is missing or unexpected");
+  if (!Array.isArray(snapshot.baseline?.input_dates) || snapshot.baseline.input_dates.length !== 5) errors.push("historical baseline input_dates must contain five sessions");
   if (!pipelineKeys.every((key) => snapshot.pipeline?.[key]?.status)) errors.push("pipeline stage status is incomplete");
+
+  if (snapshot.rows.every((row) => row.expected_return === 0)) errors.push("expected_return is zero for every row");
 
   for (const row of snapshot.rows) {
     if (seen.has(row.symbol)) errors.push(`duplicate symbol: ${row.symbol}`);
@@ -34,6 +38,7 @@ function checkHistoricalSnapshot(snapshot, date) {
     const derivedExpectedReturn = ((row.expected_open / row.prior_close) - 1) * 100;
     if (Math.abs(derivedExpectedReturn - row.expected_return) > 0.011) errors.push(`expected_return mismatch: ${row.symbol}`);
     if (Math.abs((row.actual_return - row.expected_return) - row.error) > 0.011) errors.push(`error mismatch: ${row.symbol}`);
+    if (!row.features || !Number.isFinite(row.features.momentum) || !Number.isFinite(row.features.volatility)) errors.push(`baseline features missing: ${row.symbol}`);
   }
   const ranks = snapshot.rows.map((row) => row.rank);
   if (new Set(ranks).size !== ranks.length || ranks.some((rank, index) => rank !== index + 1)) errors.push("rank sequence is not contiguous");

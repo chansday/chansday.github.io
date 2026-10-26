@@ -29,6 +29,10 @@
         "reference_date": { "type": "string", "format": "date" },
         "input_through_date": { "type": "string", "format": "date" },
         "value_status": { "type": "string" },
+        "model": { "type": "string" },
+        "lookback_sessions": { "type": "integer", "minimum": 1 },
+        "input_dates": { "type": "array", "items": { "type": "string", "format": "date" } },
+        "coefficients": { "type": "object", "additionalProperties": { "type": "number" } },
         "formula": { "type": "string" },
         "note": { "type": "string" }
       },
@@ -148,6 +152,16 @@
         "error": { "type": ["number", "null"] },
         "actual_volume": { "type": ["number", "null"], "minimum": 0 },
         "prior_close": { "type": ["number", "null"], "minimum": 0 },
+        "features": {
+          "type": ["object", "null"],
+          "properties": {
+            "previous_return": { "type": ["number", "null"] },
+            "momentum": { "type": ["number", "null"] },
+            "volatility": { "type": ["number", "null"] },
+            "lookback_sessions": { "type": ["integer", "null"], "minimum": 1 }
+          },
+          "additionalProperties": false
+        },
         "confidence": { "type": ["number", "null"] },
         "quality": { "type": ["string", "null"] },
         "status": { "type": "string" }

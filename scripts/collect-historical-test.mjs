@@ -2,7 +2,11 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const TEST_DATES = Object.freeze(["2026-10-22", "2026-10-23"]);
-const INPUT_DATES = Object.freeze(["2026-10-21", "2026-10-22", "2026-10-23"]);
+const INPUT_DATES = Object.freeze(["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
+const LOOKBACK_SESSIONS = 5;
+const MOMENTUM_WEIGHT = 0.60;
+const VOLATILITY_PENALTY = 0.10;
+const MAX_EXPECTED_RETURN = 5;
 const SOURCE_ROOT = "https://aikstockdata.com/data/public/daily";
 const SOURCE_NAME = "한국주식데이터 (원천: 금융위원회 공공데이터포털·한국거래소)";
 const LICENSE_URL = "https://aikstockdata.com/licenses/aiksd-public-1.1.txt";
@@ -11,6 +15,26 @@ const LICENSE_STATUS = "confirmed";
 function round(value, digits = 2) {
   const factor = 10 ** digits;
   return Math.round((value + Number.EPSILON) * factor) / factor;
+}
+
+function mean(values) {
+  return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+}
+
+function standardDeviation(values) {
+  if (values.length < 2) return 0;
+  const average = mean(values);
+  return Math.sqrt(mean(values.map((value) => (value - average) ** 2)));
+}
+
+function clamp(value, minimum, maximum) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function priorDatesFor(date) {
+  if (date === "2026-10-22") return ["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21"];
+  if (date === "2026-10-23") return ["2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22"];
+  throw new Error(`Unsupported historical-test date: ${date}`);
 }
 
 function parseCsv(text) {
@@ -92,16 +116,26 @@ function sourceMetadata(url, retrievedAt) {
   };
 }
 
-function makeSnapshot(date, actual, prior, retrievedAt) {
-  const inputThroughDate = prior.date;
+function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
+  const inputThroughDate = priorDates.at(-1);
   const rows = [];
   for (const [symbol, actualRow] of actual.rows) {
-    const priorRow = prior.rows.get(symbol);
-    if (!priorRow) throw new Error(`${date}: missing prior input row for ${symbol}.`);
-    const priorClose = numeric(priorRow, "clpr", prior.date);
-    const expectedOpen = priorClose;
+    const history = priorDates.map((historyDate) => {
+      const historyFile = fetched.get(historyDate);
+      const historyRow = historyFile?.rows.get(symbol);
+      if (!historyRow) throw new Error(`${date}: missing ${historyDate} input row for ${symbol}.`);
+      return { date: historyDate, close: numeric(historyRow, "clpr", historyDate) };
+    });
+    const closes = history.map((item) => item.close);
+    const returns = closes.slice(1).map((close, index) => (close / closes[index] - 1) * 100);
+    const priorClose = closes.at(-1);
+    const previousReturn = round(returns.at(-1) || 0, 4);
+    const momentum = round(mean(returns.slice(-3)), 4);
+    const volatility = round(standardDeviation(returns), 4);
+    const rawExpectedReturn = MOMENTUM_WEIGHT * momentum - VOLATILITY_PENALTY * volatility;
+    const expectedReturn = round(clamp(rawExpectedReturn, -MAX_EXPECTED_RETURN, MAX_EXPECTED_RETURN), 2);
+    const expectedOpen = round(priorClose * (1 + expectedReturn / 100), 2);
     const expectedClose = null;
-    const expectedReturn = 0;
     const actualOpen = numeric(actualRow, "mkp", date);
     const actualClose = numeric(actualRow, "clpr", date);
     const actualVolume = numeric(actualRow, "trqu", date);
@@ -120,7 +154,8 @@ function makeSnapshot(date, actual, prior, retrievedAt) {
       prior_close: priorClose,
       error: round(actualReturn - expectedReturn, 2),
       confidence: null,
-      quality: "historical_baseline_no_preopen_quote",
+      quality: "historical_baseline_public_daily",
+      features: { previous_return: previousReturn, momentum, volatility, lookback_sessions: LOOKBACK_SESSIONS },
       status: "valid",
     });
   }
@@ -138,17 +173,21 @@ function makeSnapshot(date, actual, prior, retrievedAt) {
     market: { name: "KOSPI", currency: "KRW", timezone: "Asia/Seoul" },
     provider: { id: "historical-test", status: "ready", label: `HISTORICAL-TEST / TEST ONLY / ${date}`, source },
     baseline: {
-      basis: "previous_session_close",
+      basis: "public_daily_momentum_volatility",
       reference_date: inputThroughDate,
       input_through_date: inputThroughDate,
       value_status: "retrospective_baseline_no_preopen_quote",
-      formula: "expected_open = prior close; expected_return = expected_open / prior close - 1 = 0%; expected_close = null; actual_return = actual_open / prior close - 1; error = actual_return - expected_return.",
-      note: "This is a reproducible previous-close baseline generated after the fact because no historical 08:20 pre-open quote/order-book snapshot is available. It is not the historical 08:20 forecast and must not be described as one.",
+      model: "public_daily_momentum_volatility_v1",
+      lookback_sessions: LOOKBACK_SESSIONS,
+      input_dates: priorDates,
+      coefficients: { momentum_weight: MOMENTUM_WEIGHT, volatility_penalty: VOLATILITY_PENALTY, max_abs_expected_return: MAX_EXPECTED_RETURN },
+      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + expected_return / 100), 2); actual_return = actual_open / prior_close - 1; error = actual_return - expected_return.",
+      note: "This is a reproducible public-daily baseline generated after the fact because no historical 08:20 pre-open quote/order-book snapshot is available. It uses only the five prior trading-session daily closes, is not the historical 08:20 forecast, and must not be described as one.",
     },
     pipeline: {
       previousResult: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Actual prior-session input through ${inputThroughDate} was collected.` },
       analysis: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: "Historical-test input coverage and numeric fields passed validation." },
-      forecast: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `09:00 expected_open baseline uses only values through ${inputThroughDate}; no historical 08:20 quote snapshot is claimed.` },
+      forecast: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `09:00 expected_open uses public_daily_momentum_volatility_v1 through ${inputThroughDate}; no historical 08:20 quote snapshot is claimed.` },
       openSettlement: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Historical-test actual_open is from the source ${date} daily file; it was not captured live at 09:00.` },
       closeSettlement: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Actual close and volume are from the source ${date} daily file.` },
     },
@@ -161,7 +200,7 @@ function makeSnapshot(date, actual, prior, retrievedAt) {
       isDemo: false,
       historical_test: true,
       test_only: true,
-      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close; expected_open/expected_return are retrospective previous-close baseline values; expected_close is null because this test targets the open.",
+      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close; expected_open/expected_return are retrospective public-daily momentum/volatility baseline values; expected_close is null because this test targets the open.",
       source_collection_date: retrievedAt.slice(0, 10),
       source_range: rangeNote,
       source_rows: rows.length,
@@ -181,8 +220,8 @@ async function main() {
   await mkdir(outputDir, { recursive: true });
   for (const date of TEST_DATES) {
     const actual = fetched.get(date);
-    const prior = fetched.get(date === "2026-10-22" ? "2026-10-21" : "2026-10-22");
-    const snapshot = makeSnapshot(date, actual, prior, retrievedAt);
+    const priorDates = priorDatesFor(date);
+    const snapshot = makeSnapshot(date, actual, priorDates, fetched, retrievedAt);
     await writeFile(resolve(outputDir, `${date}.json`), `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
     console.log(JSON.stringify({ date, sourceRows: actual.rawRows, kospiRows: snapshot.rows.length, retrievedAt }));
   }

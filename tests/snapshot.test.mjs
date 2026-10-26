@@ -23,32 +23,49 @@ test("static snapshot follows the top-level contract and is visibly test-only", 
   assert.equal(snapshot.provider.id, "historical-test");
   assert.equal(snapshot.rows.length, 913);
   assert.equal(snapshot.meta.source_rows, 913);
+  assert.equal(snapshot.baseline.model, "public_daily_momentum_volatility_v1");
   assert.equal(snapshot.pipeline.openSettlement.status, "ready");
   assert.equal(snapshot.pipeline.closeSettlement.status, "ready");
 });
 
 test("historical-test snapshots contain observed OHLC-volume values and no future-leaking baseline inputs", async () => {
-  const expectedInputDates = { "2026-10-22": "2026-10-21", "2026-10-23": "2026-10-22" };
-  for (const date of Object.keys(expectedInputDates)) {
+  const expectedInputDates = {
+    "2026-10-22": ["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21"],
+    "2026-10-23": ["2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22"],
+  };
+  for (const [date, inputDates] of Object.entries(expectedInputDates)) {
     const snapshot = JSON.parse(await readFile(new URL(`../data/historical-test/${date}.json`, import.meta.url), "utf8"));
     assert.equal(isSnapshot(snapshot), true);
     assert.equal(snapshot.mode, "historical_test");
     assert.equal(snapshot.provider.id, "historical-test");
     assert.equal(snapshot.meta.historical_test, true);
     assert.equal(snapshot.meta.test_only, true);
-    assert.equal(snapshot.baseline.input_through_date, expectedInputDates[date]);
+    assert.equal(snapshot.baseline.input_through_date, inputDates.at(-1));
+    assert.equal(snapshot.baseline.basis, "public_daily_momentum_volatility");
+    assert.equal(snapshot.baseline.input_dates.length, 5);
+    assert.deepEqual(snapshot.baseline.input_dates, inputDates);
+    assert.equal(snapshot.baseline.model, "public_daily_momentum_volatility_v1");
     assert.equal(snapshot.meta.source_rows, snapshot.rows.length);
     assert.equal(snapshot.rows.length, 913);
     assert.equal(snapshot.rows.every((row) => ["expected_open", "expected_return", "actual_open", "actual_close", "actual_return", "actual_volume", "prior_close", "error"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
     assert.equal(snapshot.rows.every((row) => row.expected_close === null), true);
     assert.equal(snapshot.rows.every((row) => row.confidence === null), true);
-    assert.equal(snapshot.rows.every((row) => row.quality === "historical_baseline_no_preopen_quote"), true);
+    assert.equal(snapshot.rows.every((row) => row.quality === "historical_baseline_public_daily"), true);
+    assert.equal(snapshot.rows.some((row) => row.expected_return !== 0), true);
+    assert.equal(snapshot.rows.every((row) => row.features && Number.isFinite(row.features.momentum) && Number.isFinite(row.features.volatility)), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.actual_return - ((row.actual_open / row.prior_close - 1) * 100)) < 0.011), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.expected_return - ((row.expected_open / row.prior_close - 1) * 100)) < 0.011), true);
     assert.equal(snapshot.rows.every((row) => Math.abs(row.error - (row.actual_return - row.expected_return)) < 0.011), true);
-    assert.match(snapshot.pipeline.forecast.message, new RegExp(expectedInputDates[date]));
+    assert.match(snapshot.pipeline.forecast.message, new RegExp(inputDates.at(-1)));
     assert.match(snapshot.provider.source.url, new RegExp(date.replaceAll("-", "")));
   }
+});
+
+test("historical-test page exposes the baseline and missing pre-open quote status", async () => {
+  const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+  assert.match(app, /HISTORICAL-TEST \/ TEST ONLY/);
+  assert.match(app, /공개 일봉 모멘텀·변동성 baseline/);
+  assert.match(app, /장전 호가가 없어/);
 });
 
 test("ranking schema uses snake_case financial fields and rejects legacy names", () => {

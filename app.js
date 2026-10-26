@@ -16,7 +16,7 @@ const stateMessages = {
   fixture: "FIXTURE 모드입니다. 합성값만 표시하며 실제 금융 데이터나 08:20 예측을 재구성한 결과가 아닙니다.",
   replay: "BASELINE REPLAY입니다. 전일 종가 기준 입력 계약을 확인하는 합성 시뮬레이션이며 실제 과거 예측이 아닙니다.",
   backfill: "TEST ONLY / BACKFILL입니다. 08:20 KST 실제 원천 스냅샷이 없어 기존 합성 replay 수치 흐름만 다시 표시합니다. 미래 데이터 누수를 막기 위한 테스트 입력이며 실제 금융 데이터나 과거 예측 성과가 아닙니다.",
-  historicalTest: "HISTORICAL-TEST / TEST ONLY입니다. 실제 공개 일봉의 시가·종가·거래량과 사후 계산한 baseline forecast를 분리해 표시합니다. 당시 08:20 예측 성과를 주장하지 않습니다."
+  historicalTest: "HISTORICAL-TEST / TEST ONLY입니다. 실제 공개 일봉의 시가·종가·거래량과 공개 일봉 모멘텀·변동성으로 사후 계산한 historical baseline을 분리해 표시합니다. 장전 호가가 없어 당시 08:20 예측 성과를 주장하지 않습니다."
 };
 
 const el = Object.fromEntries(["mode-badge", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "snapshot-date", "provider-status", "provider-detail", "baseline-input", "source-url", "source-collection", "source-range", "notice-title", "notice-detail", "data-notice", "table-state", "ranking-body", "empty-state", "footer-status", "top-clock", "search-input", "status-filter", "sort-select", "refresh-button", "ranking-table"].map((id) => [id, document.getElementById(id)]));
@@ -135,7 +135,7 @@ function renderHeader(data) {
   setText(el["snapshot-date"], formatDate(data?.asOfDate || data?.trade_date));
   setText(el["provider-status"], stateLabels[providerStatus] || providerStatus);
   setText(el["provider-detail"], data?.provider?.label || "공개 데이터 공급자 대기");
-  setText(el["baseline-input"], isHistoricalTest ? `전일 종가·수익률 baseline · ${data?.baseline?.input_through_date || data?.baseline?.reference_date || "—"}까지 · 09:00 시가 비교` : isBackfill ? `replay 수치 흐름 · ${data?.meta?.backfill_source_replay_date || data?.asOfDate || "—"} · 테스트 전용` : isReplay ? `전일 종가 기준 · ${data?.baseline?.reference_date || "—"} · 값 복원 안 함` : "실제 provider 기준");
+  setText(el["baseline-input"], isHistoricalTest ? `공개 일봉 모멘텀·변동성 baseline · ${data?.baseline?.input_through_date || data?.baseline?.reference_date || "—"}까지 · 09:00 시가 비교` : isBackfill ? `replay 수치 흐름 · ${data?.meta?.backfill_source_replay_date || data?.asOfDate || "—"} · 테스트 전용` : isReplay ? `전일 종가 기준 · ${data?.baseline?.reference_date || "—"} · 값 복원 안 함` : "실제 provider 기준");
   const source = data?.meta?.source || data?.provider?.source || null;
   setText(el["source-collection"], data?.meta?.source_collection_date || (source?.retrieved_at ? formatDate(source.retrieved_at) : "—"));
   setText(el["source-range"], data?.meta?.source_range || (data?.meta?.source_rows ? `${data.meta.source_rows}행` : "—"));
