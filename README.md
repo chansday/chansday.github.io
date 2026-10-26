@@ -2,7 +2,7 @@
 
 정적 GitHub Pages 프론트엔드로 KOSPI 사전예측 랭킹을 기록하고, 장마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
-평일 운영 provider는 여전히 기본값 `none`이며 cron 설정도 변경하지 않았습니다. 다만 기본 화면의 최신 스냅샷에는 별도 `historical_test` / `TEST ONLY` 표시로 2026-10-22·23의 실제 공개 과거 일봉과 사후 계산 baseline을 연결했습니다. 당시 08:30 예측 스냅샷이나 예측 성과를 복원한 것은 아닙니다.
+평일 운영 provider 기본값은 계좌·API 키가 필요 없는 `public-csv`입니다. 다만 공개 일별 CSV는 장전 호가·예상체결가를 제공하지 않으므로 08:20 forecast 단계에서 예측값을 만들지 않고 `no_data`로 기록합니다. 기본 화면의 최신 스냅샷에는 별도 `historical_test` / `TEST ONLY` 표시로 2026-10-22·23의 실제 공개 과거 일봉과 사후 계산 baseline을 연결했습니다. 당시 08:30 예측 스냅샷이나 예측 성과를 복원한 것은 아닙니다.
 
 ## 범위와 운영 원칙
 
@@ -29,6 +29,7 @@
 ├─ providers/demo-provider.js
 ├─ providers/fixture-provider.js
 ├─ providers/public-json-provider.js
+├─ providers/public-csv-provider.js
 ├─ data/fixtures/2026-10-22.json
 ├─ data/fixtures/2026-10-23.json
 ├─ data/backfill-test/2026-10-22.json
@@ -42,14 +43,13 @@
 ├─ scripts/backfill-test-dry-run.mjs
 ├─ tests/snapshot.test.mjs
 ├─ docs/SYSTEM_DESIGN.md
+├─ docs/COLLECTION_AUDIT.md
 └─ .github/workflows/kospi-pipeline.yml
 ```
 
 ## 현재 데이터 출처 상태
 
-전체 수집 항목의 현재 상태와 자동 품질검사는 [`docs/COLLECTION_AUDIT.md`](docs/COLLECTION_AUDIT.md)에 기록되어 있습니다. `npm run collection:audit`는 저장된 테스트 스냅샷의 내부 정합성만 검사하며, 라이브 공급자 연결이나 예측 성능을 보장하지 않습니다.
-
-운영 provider로 활성화된 실데이터 출처는 없습니다. 기본 `KOSPI_PROVIDER`는 `none`이며, 평일 Actions는 기존처럼 `no_data`/`degraded` 정책을 따릅니다. 아래 historical-test 스냅샷만 별도 TEST ONLY 화면으로 실제 과거 파일을 표시합니다.
+운영 provider 기본값은 `public-csv`이며, 평일 Actions가 명시적 allowlist의 bulk CSV만 수집합니다. `KOSPI_PROVIDER=none`으로 끄거나, 공개 원천이 늦거나 품질 검사를 통과하지 못하면 `no_data`/`partial`/`degraded` 상태로 기록합니다. 아래 historical-test 스냅샷만 별도 TEST ONLY 화면으로 실제 과거 파일을 표시합니다.
 
 `data/historical-test/*.json`과 기본 `data/latest-snapshot.json`은 운영 provider와 분리된 검증용 과거 스냅샷입니다. 이 두 파일의 숫자는 합성 fixture가 아니라 아래 공개 일별 파일에서 수집한 실제 값입니다.
 
@@ -86,7 +86,17 @@ forecast input through 2026-10-22:
 npm run historical-test:collect
 ```
 
-이 경로는 평일 운영 cron, `KOSPI_PROVIDER`, `public-json` 설정, 기존 합성 fixture/replay/backfill 파일과 분리되어 있습니다.
+이 경로는 평일 운영 cron, `KOSPI_PROVIDER`, `public-csv` 운영 수집, 기존 합성 fixture/replay/backfill 파일과 분리되어 있습니다.
+
+### 공개 bulk 수집 전략과 08:30 cutoff
+
+운영 수집은 종목별 페이지를 순차 크롤링하지 않습니다. 기본 경로는 공개된 날짜별 전체 CSV 한 파일을 가져와 KOSPI 행을 일괄 파싱하는 방식입니다. 로그인·CAPTCHA·robots 차단·redirect·HTML 페이지를 우회하지 않으며, 명시적 allowlist인 `aikstockdata.com` 외 호스트는 거부합니다.
+
+- Actions forecast job은 08:20 KST에 시작하고, 수집기는 08:29:00 KST hard cutoff를 적용합니다. cutoff 이후 도착한 결과는 당일 값으로 재사용하지 않습니다.
+- source별 timeout(기본 8초), stage별 overall deadline(기본 20초), 최대 동시 요청 2개, 429/5xx에 대한 최대 2회 지수 backoff를 적용합니다.
+- deadline 초과·중복·필수 필드 결측·오래된 파일은 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 이전 snapshot을 당일 결과처럼 재사용하지 않습니다.
+- `meta.source`에는 source id, run id, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록합니다.
+- 전체 CSV는 빠르고 호출량이 작지만 장전 호가·예상체결가·체결강도·분봉을 제공하지 않습니다. 따라서 데이터 범위를 늘리는 것보다 정확도·시간 경계를 지키는 것을 우선하며, 없는 예측값은 생성하지 않습니다.
 
 정책이 확인된 단일 공개 JSON endpoint를 연결하려면 `KOSPI_PROVIDER=public-json`과 아래 설정을 모두 명시해야 합니다. 하나라도 빠지면 adapter는 네트워크 요청 없이 `degraded`를 반환합니다.
 
@@ -96,7 +106,7 @@ npm run historical-test:collect
 - `KOSPI_PUBLIC_SOURCE_LICENSE_URL` — HTTPS 이용약관/라이선스 URL
 - `KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS` — endpoint hostname의 명시적 allowlist
 
-adapter는 한 번의 HTTPS JSON 요청만 수행하고, redirect를 거부하며, `application/json`이 아닌 응답을 거부합니다. 응답에는 `asOfDate`와 검증된 `rows`가 있어야 합니다. 성공 시 `meta.source`에 출처명·URL·라이선스 상태·라이선스 URL·수집시각을 기록합니다.
+adapter는 단일 HTTPS JSON endpoint만 사용하고, redirect를 거부하며, `application/json`이 아닌 응답을 거부합니다. source timeout·overall deadline·429/5xx bounded backoff를 적용하고 응답에는 `asOfDate`와 검증된 `rows`가 있어야 합니다. 성공 시 `meta.source`에 출처명·URL·라이선스 상태·라이선스 URL·수집시각·run id·metrics를 기록합니다.
 
 실제 API 키는 코드·fixture·snapshot에 넣지 않습니다. 향후 provider가 인증을 요구할 경우에만 GitHub Actions Secret `KOSPI_PROVIDER_API_KEY`를 사용하며, 현재 `public-json` adapter는 키를 사용하지 않습니다.
 
@@ -155,12 +165,12 @@ GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9�
 | --- | --- | --- |
 | `0 22 * * 0-4` | 월–금 07:00 | 전일 결과 업데이트 |
 | `0 23 * * 0-4` | 월–금 08:00 | 당일 기초 분석 |
-| `30 23 * * 0-4` | 월–금 08:30 | 장전 사전예측 랭킹 |
+| `20 23 * * 0-4` | 월–금 08:20 | 08:29 cutoff 전 공개 bulk 수집·장전 상태 기록 |
 | `0 7 * * 1-5` | 월–금 16:00 | 장마감 실제 정산 |
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 장마감 단계는 KOSPI 정규장 종료 후 16:00 KST를 기준으로 하며 휴장일 또는 데이터 부족 시 상태만 기록합니다.
 
-Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `close-settlement` 중 하나와 provider(`none`, `fixture`, `demo`, `public-json`)를 선택할 수 있습니다. fixture를 고르면 두 테스트 날짜 중 하나를 추가로 선택합니다. 기본 workflow와 평일 cron은 기존 provider 설정을 사용하며 fixture를 자동 선택하지 않습니다.
+Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `close-settlement` 중 하나와 provider(`none`, `fixture`, `demo`, `public-json`, `public-csv`)를 선택할 수 있습니다. 기본 workflow와 평일 cron은 `public-csv`를 사용하며 fixture를 자동 선택하지 않습니다. `public-csv`는 계좌·API 키·Secret 없이 실행됩니다.
 
 ## 로컬 실행과 검증
 
@@ -201,4 +211,3 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
 ## 라이선스·위험 고지
 
 이 저장소는 데이터 공급자의 라이선스를 대신하지 않습니다. 데이터 수집·저장·재배포 가능 여부는 원출처 약관과 관련 법규를 따라야 합니다. 이 사이트의 예상·실제 비교·오차는 투자 조언이 아니며 미래 수익, 정확도 또는 손실 회피를 보장하지 않습니다. 자세한 상태 전이와 보안 경계는 [`docs/SYSTEM_DESIGN.md`](docs/SYSTEM_DESIGN.md)를 참고하세요.
-

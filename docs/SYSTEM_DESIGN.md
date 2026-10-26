@@ -78,7 +78,9 @@ pending
 
 ### 기본 상태
 
-`KOSPI_PROVIDER` 기본값은 `none`이다. 이 경우 외부 요청을 하지 않고 `no_data`와 `blocked` 단계 상태만 기록한다. `demo`는 모든 금융 필드가 `null`인 UI 전용 행을 제공하며 `meta.isDemo=true`를 설정한다. Demo 행은 실측값이나 예측 성과로 표시하지 않는다.
+`KOSPI_PROVIDER` 기본값은 계좌·API key가 필요 없는 `public-csv`이다. 이 provider는 명시적 allowlist의 공개 bulk CSV만 수집하고, HTML·로그인·CAPTCHA·차단 우회를 하지 않는다. `none`으로 설정하면 외부 요청을 하지 않고 `no_data`와 `blocked` 단계 상태만 기록한다. `demo`는 모든 금융 필드가 `null`인 UI 전용 행을 제공하며 `meta.isDemo=true`를 설정한다. Demo 행은 실측값이나 예측 성과로 표시하지 않는다.
+
+`public-csv`는 source timeout 8초, stage overall deadline 20초, 최대 동시 요청 2개, 429/5xx 최대 2회 backoff를 사용한다. forecast workflow는 08:20 KST에 시작하고 08:29:00 KST cutoff를 넘긴 응답은 당일 데이터로 사용하지 않는다. stale·partial·deadline 결과는 정상 순위가 아니라 `partial`/`degraded`/`no_data`로 기록하고 이전 snapshot을 재사용하지 않는다. `meta.source`에는 run id, 수집 시각, source 상태와 요청 metrics를 보존한다.
 
 ### 합성 fixture
 
@@ -116,7 +118,7 @@ GitHub Actions cron은 UTC 기준이며 KST는 UTC+9다. 한국은 서머타임�
 | --- | --- | --- | --- |
 | `0 22 * * 0-4` | 월–금 07:00 | `previousResult` | 전일 예상·실제 결과 업데이트 |
 | `0 23 * * 0-4` | 월–금 08:00 | `analysis` | 당일 기초 분석 |
-| `30 23 * * 0-4` | 월–금 08:30 | `forecast` | 장전 예상 랭킹 |
+| `20 23 * * 0-4` | 월–금 08:20 | `forecast` | 08:29 cutoff 전 공개 bulk 수집 및 장전 상태 |
 | `0 7 * * 1-5` | 월–금 16:00 | `closeSettlement` | 장마감 실제 정산 |
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. 장마감 단계는 정규장 종료 후 16:00 KST를 운영 기준으로 한다. 휴장일이나 데이터 부족 시 숫자를 만들지 않고 상태만 기록한다.

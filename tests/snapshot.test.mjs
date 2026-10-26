@@ -10,6 +10,7 @@ import {
 import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
+import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
 
 test("static snapshot follows the top-level contract and is visibly test-only", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../data/latest-snapshot.json", import.meta.url), "utf8"));
@@ -82,6 +83,40 @@ test("public JSON provider is disabled without explicit source policy", async ()
   assert.equal(result.status, "degraded");
   assert.equal(result.rows.length, 0);
   assert.match(result.message, /explicit URL|license/i);
+});
+
+test("public CSV provider uses bounded bulk collection and never fabricates pre-market values", async () => {
+  const csv = (date, close) => [
+    "basDt,mrktCtg,종목코드,종목명,mkp,clpr,trqu",
+    `${date},KOSPI,000001,공개종목,100,${close},1000`,
+    `${date},KOSPI,000002,다른종목,200,${close * 2},2000`,
+  ].join("\n");
+  const calls = [];
+  const fetchImpl = async (url) => {
+    calls.push(url);
+    const date = url.match(/quotes_(\d{8})\.csv/)?.[1];
+    const body = date === "20261023" ? csv(date, 110) : date === "20261022" ? csv(date, 100) : null;
+    if (!body) return { ok: false, status: 404, headers: { get: () => "text/plain" }, text: async () => "not found" };
+    return { ok: true, status: 200, headers: { get: (name) => name === "content-type" ? "text/csv" : null }, text: async () => body };
+  };
+  const provider = createPublicCsvProvider({
+    env: { KOSPI_PUBLIC_MAX_RETRIES: "0", KOSPI_PUBLIC_MAX_CONCURRENCY: "2", GITHUB_RUN_ID: "test-run" },
+    fetchImpl,
+    now: () => new Date("2026-10-26T00:00:00.000Z"),
+  });
+  const observed = await provider.fetchPreviousDay();
+  assert.equal(observed.status, "ready");
+  assert.equal(observed.rows.length, 2);
+  assert.equal(observed.rows.every((row) => row.expected_open === null && row.expected_return === null), true);
+  assert.equal(observed.source.source_id, "aikstockdata-public-daily-csv");
+  assert.equal(observed.source.run_id, "test-run");
+  assert.equal(observed.source.metrics.max_concurrency, 2);
+  assert.equal(observed.source.metrics.requested, calls.length);
+
+  const forecast = await provider.generateForecast();
+  assert.equal(forecast.status, "no_data");
+  assert.equal(forecast.rows.length, 0);
+  assert.match(forecast.message, /pre-market|order book|no_data/i);
 });
 
 test("fixture snapshots are explicit synthetic data for both requested dates", async () => {

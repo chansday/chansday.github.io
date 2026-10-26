@@ -9,6 +9,7 @@ import {
 import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
+import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
 
 export const MODES = {
   "update-results": { key: "previousResult", method: "fetchPreviousDay" },
@@ -44,6 +45,7 @@ function resolveProvider(env = process.env, options = {}) {
   if (providerId === "demo") return { provider: createDemoProvider(), providerId };
   if (providerId === "fixture") return { provider: createFixtureProvider({ env: providerEnv }), providerId };
   if (providerId === "public-json") return { provider: createPublicJsonProvider({ env: providerEnv }), providerId };
+  if (providerId === "public-csv") return { provider: createPublicCsvProvider({ env: providerEnv }), providerId };
   return { provider: null, providerId };
 }
 

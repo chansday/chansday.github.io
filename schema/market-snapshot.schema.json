@@ -7,7 +7,7 @@
   "required": ["schemaVersion", "status", "mode", "market", "provider", "pipeline", "rows", "meta"],
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
-    "status": { "enum": ["ready", "demo", "no_data", "degraded", "blocked", "pending"] },
+    "status": { "enum": ["ready", "demo", "no_data", "partial", "degraded", "blocked", "pending"] },
     "mode": { "enum": ["provider", "demo", "fixture", "replay", "backfill_test", "historical_test"] },
     "asOfDate": { "type": ["string", "null"], "format": "date" },
     "publishedAt": { "type": ["string", "null"], "format": "date-time" },
@@ -93,7 +93,29 @@
         "url": { "type": "string", "format": "uri" },
         "license_status": { "enum": ["confirmed", "unconfirmed", "unknown", "not_applicable"] },
         "license_url": { "type": ["string", "null"], "format": "uri-reference" },
-        "retrieved_at": { "type": ["string", "null"], "format": "date-time" }
+        "retrieved_at": { "type": ["string", "null"], "format": "date-time" },
+        "source_id": { "type": "string" },
+        "run_id": { "type": "string" },
+        "status": { "type": "string" },
+        "fetched_at": { "type": "string", "format": "date-time" },
+        "raw_rows": { "type": "integer", "minimum": 0 },
+        "source_rows": { "type": "integer", "minimum": 0 },
+        "partial": { "type": "boolean" },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "requested": { "type": "integer", "minimum": 0 },
+            "completed": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 },
+            "retries": { "type": "integer", "minimum": 0 },
+            "deadline_hit": { "type": "boolean" },
+            "elapsed_ms": { "type": "number", "minimum": 0 },
+            "estimated_ms": { "type": "number", "minimum": 0 },
+            "overall_deadline_ms": { "type": "number", "minimum": 0 },
+            "max_concurrency": { "type": "integer", "minimum": 1 }
+          },
+          "additionalProperties": false
+        }
       },
       "additionalProperties": false
     },

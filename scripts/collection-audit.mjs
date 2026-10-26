@@ -42,10 +42,10 @@ function buildMatrix(latest) {
   return [
     { area: "시간·거래일", currently_collected: "historical-test only", contract_only: "KST schedule and stage keys", not_contracted: "holiday/calendar source", note: "workflow cron is configured; actual Actions timing is not verified" },
     { area: "종목 마스터", currently_collected: "historical-test symbol/name", contract_only: "row schema", not_contracted: "security type, listing status, delisting, suspension", note: "source has no security-type field" },
-    { area: "일별 가격·거래", currently_collected: "historical-test actual open/close/volume", contract_only: "expected/actual fields", not_contracted: "operating daily provider", note: "operating provider is none" },
+    { area: "일별 가격·거래", currently_collected: "public-csv EOD bulk adapter + historical-test", contract_only: "expected/actual fields", not_contracted: "licensed intraday provider", note: "public-csv only exposes observed daily open/close/volume" },
     { area: "분봉·장전", currently_collected: "없음", contract_only: "없음", not_contracted: "minute candles, indicative price, 10-level book, depth, spread, trade strength", note: "no provider or credentials added" },
     { area: "시장·수급", currently_collected: "없음", contract_only: "없음", not_contracted: "KOSPI200, futures/basis, FX, sectors, foreign/institution/program flow", note: "must remain null/no_data until licensed source exists" },
-    { area: "품질", currently_collected: "historical-test source URL/license/retrieved_at and row checks", contract_only: "source metadata, schema, no_data/degraded", not_contracted: "staleness threshold, missing-rate telemetry, rate-limit/retry metrics", note: "audit checks only observed snapshots" },
+    { area: "품질", currently_collected: "source URL/license/timestamps plus public-csv stale/partial/deadline metrics", contract_only: "source metadata, schema, no_data/partial/degraded", not_contracted: "external alert delivery", note: "audit checks stored snapshots; live source health is run-specific" },
     { area: "저장·파이프라인", currently_collected: latest.status === "no_data" ? "no_data state" : latest.status, contract_only: "stage state, idempotent file replacement", not_contracted: "run ledger, immutable raw archive, alert delivery", note: "public JSON contains no secrets" },
   ];
 }
@@ -56,15 +56,15 @@ async function main() {
   for (const date of expectedHistoricalDates) historical.push(checkHistoricalSnapshot(await readJson(`data/historical-test/${date}.json`), date));
   const result = {
     generated_at: new Date().toISOString(),
-    operating_provider: "none",
-    operating_status: "not_configured",
+    operating_provider: process.env.KOSPI_PROVIDER || "public-csv",
+    operating_status: process.env.KOSPI_PROVIDER ? "configured_by_environment" : "default_public_csv",
     snapshot_provider: latest.provider?.id ?? null,
     snapshot_mode: latest.mode,
     matrix: buildMatrix(latest),
     historical_snapshots: historical,
     pass: historical.every((item) => item.errors.length === 0),
     limitations: [
-      "No live provider is enabled; no real pre-market or order-book values are generated.",
+      "The default public-csv provider collects daily bulk CSV only; no real pre-market or order-book values are generated.",
       "Historical daily files are not historical 08:30 snapshots and must not be reported as forecast performance.",
       "The public site must not publish raw licensed data beyond the source terms.",
     ],
@@ -77,4 +77,3 @@ main().catch((error) => {
   console.error(error.message);
   process.exitCode = 1;
 });
-

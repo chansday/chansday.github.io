@@ -4,11 +4,12 @@ import { createDemoProvider } from "./providers/demo-provider.js";
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const timeFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
-const stateLabels = { ready: "검증됨", valid: "valid", degraded: "degraded", no_data: "no_data", pending: "pending", blocked: "blocked", not_configured: "미연결", demo: "demo" };
+const stateLabels = { ready: "검증됨", valid: "valid", partial: "partial", degraded: "degraded", no_data: "no_data", pending: "pending", blocked: "blocked", not_configured: "미연결", demo: "demo" };
 const stateMessages = {
   ready: "검증된 데이터 스냅샷을 표시하고 있습니다.",
   no_data: "실제 가격·예측값·신뢰도를 임의로 생성하지 않고 no_data 상태로 표시합니다.",
   degraded: "일부 데이터가 지연되거나 품질 기준을 통과하지 못해 degraded 상태로 표시합니다.",
+  partial: "수집 deadline 또는 품질 검사를 통과하지 못한 부분 결과입니다. 정상 순위로 해석하지 않습니다.",
   pending: "아직 처리되지 않은 단계입니다. 결과가 게시되면 상태가 갱신됩니다.",
   blocked: "데이터 공급자 또는 검증 조건이 준비되지 않아 업데이트가 보류되었습니다.",
   demo: "DEMO 모드입니다. 금융 실측값이 아닌 UI 계약 확인용 상태입니다.",
@@ -31,7 +32,7 @@ function formatNumber(value) { return finite(value) ? numberFormatter.format(val
 function formatDate(value) { if (!value) return "—"; const d = new Date(value); return Number.isNaN(d.getTime()) ? "—" : dateFormatter.format(d).replaceAll(". ", "."); }
 function formatTime(value) { if (!value) return "—"; const d = new Date(value); return Number.isNaN(d.getTime()) ? "—" : `${timeFormatter.format(d)} KST`; }
 function normalizeStatus(status) { return String(status || "no_data").toLowerCase().replaceAll("-", "_"); }
-function statusBadgeClass(status) { const key = normalizeStatus(status); return ["ready", "valid"].includes(key) ? "badge-ready" : ["degraded", "pending"].includes(key) ? `badge-${key}` : ["blocked"].includes(key) ? "badge-error" : "badge-muted"; }
+function statusBadgeClass(status) { const key = normalizeStatus(status); return ["ready", "valid"].includes(key) ? "badge-ready" : ["degraded", "partial", "pending"].includes(key) ? `badge-${key === "partial" ? "degraded" : key}` : ["blocked"].includes(key) ? "badge-error" : "badge-muted"; }
 
 function normalizeRow(row, index) {
   const rawStatus = normalizeStatus(row?.status || row?.eligibility?.status || "no_data");
@@ -146,7 +147,7 @@ function renderHeader(data) {
   setText(el["table-state"], label);
   el["table-state"].className = `badge ${statusBadgeClass(status)}`;
   setText(el["footer-status"], `${label} · KST`);
-  setText(el["notice-title"], isHistoricalTest ? "HISTORICAL-TEST / TEST ONLY — 실제값과 사후 baseline을 구분합니다." : isBackfill ? "TEST ONLY / BACKFILL — 실제 금융 데이터가 아닙니다." : isReplay ? "SYNTHETIC / BASELINE REPLAY를 표시하고 있습니다." : isFixture ? "합성 fixture를 표시하고 있습니다." : status === "ready" ? "검증된 스냅샷을 표시하고 있습니다." : status === "degraded" ? "일부 데이터의 품질 상태를 확인하세요." : "데이터 공급자가 연결되지 않았습니다.");
+  setText(el["notice-title"], isHistoricalTest ? "HISTORICAL-TEST / TEST ONLY — 실제값과 사후 baseline을 구분합니다." : isBackfill ? "TEST ONLY / BACKFILL — 실제 금융 데이터가 아닙니다." : isReplay ? "SYNTHETIC / BASELINE REPLAY를 표시하고 있습니다." : isFixture ? "합성 fixture를 표시하고 있습니다." : status === "ready" ? "검증된 스냅샷을 표시하고 있습니다." : status === "partial" ? "PARTIAL — 정상 순위로 표시하지 않는 부분 수집 결과입니다." : status === "degraded" ? "일부 데이터의 품질 상태를 확인하세요." : "데이터 공급자가 연결되지 않았습니다.");
   setText(el["notice-detail"], isHistoricalTest ? stateMessages.historicalTest : isBackfill ? stateMessages.backfill : isReplay ? stateMessages.replay : isFixture ? stateMessages.fixture : stateMessages[status] || stateMessages.no_data);
   el["data-notice"]?.toggleAttribute("hidden", status === "ready" && data?.mode !== "demo" && !isBackfill && !isHistoricalTest);
   snapshot = { ...data, rows };

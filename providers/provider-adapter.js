@@ -28,6 +28,7 @@ export const SNAPSHOT_STATUSES = Object.freeze([
   "ready",
   "demo",
   "no_data",
+  "partial",
   "degraded",
   "blocked",
   "pending",
@@ -84,7 +85,15 @@ export function isSourceMetadata(source) {
     typeof source.url === "string" &&
     typeof source.license_status === "string" &&
     (source.license_url === null || typeof source.license_url === "string") &&
-    (source.retrieved_at === null || typeof source.retrieved_at === "string"),
+    (source.retrieved_at === null || typeof source.retrieved_at === "string") &&
+    (source.source_id === undefined || typeof source.source_id === "string") &&
+    (source.run_id === undefined || typeof source.run_id === "string") &&
+    (source.status === undefined || typeof source.status === "string") &&
+    (source.fetched_at === undefined || typeof source.fetched_at === "string") &&
+    (source.raw_rows === undefined || Number.isInteger(source.raw_rows)) &&
+    (source.source_rows === undefined || Number.isInteger(source.source_rows)) &&
+    (source.partial === undefined || typeof source.partial === "boolean") &&
+    (source.metrics === undefined || (source.metrics && typeof source.metrics === "object")),
   );
 }
 
@@ -94,14 +103,31 @@ export function createSourceMetadata({
   licenseStatus,
   licenseUrl = null,
   retrievedAt = null,
+  sourceId,
+  runId,
+  status,
+  fetchedAt,
+  rawRows,
+  sourceRows,
+  partial,
+  metrics,
 }) {
-  return {
+  const metadata = {
     name: name || "알 수 없는 출처",
     url: url || "",
     license_status: licenseStatus || "unknown",
     license_url: licenseUrl,
     retrieved_at: retrievedAt,
   };
+  if (sourceId !== undefined) metadata.source_id = sourceId;
+  if (runId !== undefined) metadata.run_id = runId;
+  if (status !== undefined) metadata.status = status;
+  if (fetchedAt !== undefined) metadata.fetched_at = fetchedAt;
+  if (rawRows !== undefined) metadata.raw_rows = rawRows;
+  if (sourceRows !== undefined) metadata.source_rows = sourceRows;
+  if (partial !== undefined) metadata.partial = partial;
+  if (metrics !== undefined) metadata.metrics = metrics;
+  return metadata;
 }
 
 export function isProviderResult(result) {
