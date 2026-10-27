@@ -8,10 +8,10 @@ const RUN_START = "2026-10-27T00:30:00.000Z";
 test("run-all dry-run gates stages by the actual KST run-start time", async () => {
   const cases = [
     ["08:30", "2026-10-26T23:30:00Z", ["planned", "planned", "planned", "pending", "pending"]],
-    ["09:00", "2026-10-27T00:00:00Z", ["planned", "planned", "pending", "planned", "pending"]],
-    ["12:09", "2026-10-27T03:09:00Z", ["planned", "planned", "pending", "planned", "pending"]],
-    ["15:30", "2026-10-27T06:30:00Z", ["planned", "planned", "pending", "planned", "planned"]],
-    ["16:00", "2026-10-27T07:00:00Z", ["planned", "planned", "pending", "planned", "planned"]],
+    ["09:00", "2026-10-27T00:00:00Z", ["planned", "planned", "planned", "planned", "pending"]],
+    ["12:09", "2026-10-27T03:09:00Z", ["planned", "planned", "planned", "planned", "pending"]],
+    ["15:30", "2026-10-27T06:30:00Z", ["planned", "planned", "planned", "planned", "planned"]],
+    ["16:00", "2026-10-27T07:00:00Z", ["planned", "planned", "planned", "planned", "planned"]],
   ];
   for (const [label, startedAt, expectedStatuses] of cases) {
     const summary = await runAll(["--run-date", "2026-10-27", "--run-started-at", startedAt, "--dry-run"]);
@@ -20,7 +20,8 @@ test("run-all dry-run gates stages by the actual KST run-start time", async () =
     assert.equal(summary.stages.filter(({ eligible }) => eligible).length, expectedStatuses.filter((status) => status === "planned").length, label);
   }
 });
-test("12:09 KST run never calls close-settlement and completes as normal partial", async () => {
+
+test("12:09 KST run calls forecast and open-settlement but not close-settlement", async () => {
   const calls = [];
   const summary = await runAll([
     "--run-date", "2026-10-27",
@@ -35,23 +36,67 @@ test("12:09 KST run never calls close-settlement and completes as normal partial
     consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
   });
 
-  assert.deepEqual(calls.map((args) => args[1]), ["update-results", "analysis", "open-settlement"]);
+  assert.deepEqual(calls.map((args) => args[1]), ["update-results", "analysis", "forecast", "open-settlement"]);
   assert.equal(calls.some((args) => args.includes("close-settlement")), false);
   assert.equal(summary.status, "partial");
-  assert.equal(summary.stages.find(({ stage }) => stage === "forecast").status, "pending");
+  assert.equal(summary.stages.find(({ stage }) => stage === "forecast").status, "ready");
   assert.equal(summary.stages.find(({ stage }) => stage === "close-settlement").status, "pending");
 });
 
-test("run-all dry-run blocks future dates and market-closed dates without collection", async () => {
-  const future = await runAll(["--run-date", "2026-10-28", "--run-started-at", RUN_START, "--dry-run"]);
+test("08:30 KST run calls forecast but not either settlement stage", async () => {
+  const calls = [];
+  await runAll([
+    "--run-date", "2026-10-27",
+    "--run-started-at", "2026-10-26T23:30:00Z",
+    "--attempted-at", "2026-10-26T23:30:00Z",
+    "--run-id", "regression-0830",
+  ], {
+    stageRunner: async (args) => {
+      calls.push(args);
+      return { status: "ready", message: "stubbed stage", stageFile: null };
+    },
+    consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
+  });
+
+  assert.deepEqual(calls.map((args) => args[1]), ["update-results", "analysis", "forecast"]);
+  assert.equal(calls.some((args) => args.includes("open-settlement")), false);
+  assert.equal(calls.some((args) => args.includes("close-settlement")), false);
+});
+
+test("15:30 KST run calls all five stages", async () => {
+  const calls = [];
+  await runAll([
+    "--run-date", "2026-10-27",
+    "--run-started-at", "2026-10-27T06:30:00Z",
+    "--attempted-at", "2026-10-27T06:30:00Z",
+    "--run-id", "regression-1530",
+  ], {
+    stageRunner: async (args) => {
+      calls.push(args);
+      return { status: "ready", message: "stubbed stage", stageFile: null };
+    },
+    consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
+  });
+
+  assert.deepEqual(calls.map((args) => args[1]), ["update-results", "analysis", "forecast", "open-settlement", "close-settlement"]);
+});
+
+test("run-all blocks future dates and market-closed dates without collection", async () => {
+  const calls = [];
+  const stageRunner = async (args) => {
+    calls.push(args);
+    return { status: "ready", message: "should not run", stageFile: null };
+  };
+  const future = await runAll(["--run-date", "2026-10-28", "--run-started-at", RUN_START], { stageRunner });
   assert.equal(future.status, "blocked");
   assert.equal(future.reason, "future_date");
-  const weekend = await runAll(["--run-date", "2026-10-24", "--run-started-at", RUN_START, "--dry-run"]);
+  const weekend = await runAll(["--run-date", "2026-10-24", "--run-started-at", RUN_START], { stageRunner });
   assert.equal(weekend.status, "blocked");
   assert.equal(weekend.reason, "weekend");
-  const holiday = await runAll(["--run-date", "2026-10-05", "--run-started-at", RUN_START, "--dry-run"]);
+  const holiday = await runAll(["--run-date", "2026-10-05", "--run-started-at", RUN_START], { stageRunner });
   assert.equal(holiday.status, "blocked");
   assert.equal(holiday.reason, "substitute_holiday");
+  assert.deepEqual(calls, []);
 });
 
 test("historical Naver registration uses exact public EOD values and never reconstructs pre-open", async () => {

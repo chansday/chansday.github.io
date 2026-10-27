@@ -125,7 +125,7 @@ npm run historical-test:collect
 
 운영 수집은 KOSPI market-list JSON을 페이지 단위로 한 번 읽고, 종목코드를 제한된 batch로 polling endpoint에 전달합니다. 로그인·CAPTCHA·robots 차단·redirect·HTML challenge를 우회하지 않으며, Naver 허용 호스트 외에는 요청하지 않습니다.
 
-- Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-now`는 클릭 시점의 caller run start를 명시적으로 reusable runner에 전달합니다. `run-now`는 그 시각을 KST로 변환해 `forecast`/`open-settlement`/`close-settlement`를 선택하고, 같은 crawl runner에서 quote freshness를 검증합니다.
+- Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-all now`는 클릭 시점의 caller run start를 명시적으로 reusable runner에 전달합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:30 이후에만 `close-settlement`를 추가 호출합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 모든 stage는 같은 crawl runner에서 quote freshness를 검증합니다.
 - source별 timeout(기본 8초), 전체 deadline(기본 120초), 순차 요청 간 최소 간격(기본 250ms), 최대 1회 bounded retry를 적용합니다. 403/429/challenge는 재시도하지 않습니다.
 - deadline 초과·중복·필수 필드 결측·오래된 파일은 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 이전 snapshot을 당일 결과처럼 재사용하지 않습니다.
 - `meta.source`에는 source id, run id, `source_date`, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록하고, snapshot top-level `asOfDate`는 실제 원본 날짜를 가리킵니다. stale/unsupported 결과도 이 날짜를 숨기지 않습니다.
@@ -224,13 +224,13 @@ GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9�
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 09:00 시가와 15:30 종가 단계는 공개 일별 CSV가 장중에 제공되지 않으면 `no_data`로 남으며, 이전 snapshot을 재사용하지 않습니다.
 
-Actions에는 기능별 workflow와 입력 없는 `KOSPI run now` workflow가 표시됩니다. `KOSPI run all now`는 workflow 첫 실행 step에서 실제 UTC timestamp를 생성해 `GITHUB_ENV`와 `GITHUB_OUTPUT`에 기록하고, 같은 유효한 ISO timestamp를 `run-all.mjs`의 run-start와 source-attempt 기준으로 전달합니다. 따라서 `github.run_started_at`의 빈 값이나 고정 schedule 시각을 stage 판정에 사용하지 않습니다. `run now`도 caller가 전달한 실제 run start를 KST로 변환해 09:00 전에는 `forecast`, 09:00~15:30에는 `open-settlement`, 15:30 이후에는 `close-settlement`를 선택합니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않으며, `naver-crawl`은 계좌·API 키·Secret 없이 실행됩니다. `run now`의 실제 stage 실패는 job을 실패시키지만, `run all now`의 아직 시간이 되지 않은 `pending`은 summary에 남기는 정상 `partial` 결과입니다.
+Actions에는 기능별 workflow와 입력 없는 `KOSPI run now` workflow가 표시됩니다. `KOSPI run all now`는 workflow 첫 실행 step에서 실제 UTC timestamp를 생성해 `GITHUB_ENV`와 `GITHUB_OUTPUT`에 기록하고, 같은 유효한 ISO timestamp를 `run-all.mjs`의 run-start와 source-attempt 기준으로 전달합니다. 따라서 `github.run_started_at`의 빈 값이나 고정 schedule 시각을 stage 판정에 사용하지 않습니다. `run all now`는 오늘 거래일에 실제 run-start 시각과 관계없이 `forecast`까지 실행하고, 09:00 이후 `open-settlement`, 15:30 이후 `close-settlement`를 추가합니다. 기존 `run now`는 caller가 전달한 실제 run start를 KST로 변환해 단일 `auto_stage`를 선택합니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않으며, `naver-crawl`은 계좌·API 키·Secret 없이 실행됩니다. `run now`의 실제 stage 실패는 job을 실패시키지만, `run all now`의 아직 시간이 되지 않은 `pending`은 summary에 남기는 정상 `partial` 결과입니다.
 
 ### KOSPI run all now / 전체 순서 실행
 
 특정 거래일의 run-all 계획을 실행하려면 Actions에서 **`KOSPI run all now` → `Run workflow`**를 선택하고 `run_date` 하나만 `YYYY-MM-DD`로 입력합니다. provider나 stage를 선택하는 입력은 없습니다. 계획 순서는 `update-results → analysis → forecast → open-settlement → close-settlement`로 고정되지만, 실제 명령은 실제 run-start KST 시각에 `planned/eligible`인 단계만 호출합니다. 실행하지 않은 단계는 `pending`과 이유를 summary에 남깁니다. 모든 실제 실행 단계는 같은 `run_id`, `run_date`, run-start timestamp를 사용하며, 마지막 eligible 실행 stage 파일만 `data/latest-snapshot.json`과 consistency check로 비교합니다. concurrency 잠금으로 다른 KOSPI 수집과의 data race를 막고, 단계 파일과 `data/latest-snapshot.json`은 마지막에 한 번만 commit합니다. 기존 `KOSPI run now`는 계속 현재 시각에 맞는 단일 `auto_stage` 실행용입니다.
 
-- 현재일: 실제 run-start KST가 09:00 전이면 `update-results`/`analysis`/`forecast`만, 09:00 이상 15:30 미만이면 `update-results`/`analysis`/`open-settlement`만, 15:30 이상이면 여기에 `close-settlement`를 추가합니다. 09:00 이후의 늦은 `forecast`와 아직 이르거나 실행하지 않은 정산 단계는 명령을 호출하지 않고 `pending`으로 기록합니다. 12:09 KST 실행은 `close-settlement`를 절대 호출하지 않습니다.
+- 현재일: 실제 run-start KST와 관계없이 `update-results`/`analysis`/`forecast`를 호출하며, 09:00 이상이면 `open-settlement`, 15:30 이상이면 `close-settlement`를 각각 추가합니다. 아직 이른 정산 단계는 명령을 호출하지 않고 `pending`으로 기록합니다. 따라서 08:30 KST는 앞의 세 stage만, 12:09 KST는 앞의 네 stage만, 15:30 이후는 다섯 stage 모두 호출합니다.
 - 과거일: 공개 historical daily crawl에서 입력 날짜와 직전 거래일의 실제 값을 확인합니다. 당시 pre-open quote/order-book history가 없으면 `forecast`는 `no_data`/`unsupported`이며 합성·재구성하지 않습니다. 실제 historical open/close가 있으면 `open-settlement`와 `close-settlement`에 반영합니다.
 - 미래일: `blocked`로 종료하고 snapshot을 만들지 않습니다. 주말·KRX 휴장일: `market_closed` 사유를 포함한 `blocked` 결과로 종료하고 수집·commit하지 않습니다.
 

@@ -69,20 +69,14 @@ function stagePlan(runDate, startedAt) {
     }));
   }
 
-  const eligibleStages = time < "09:00:00"
-    ? new Set(["update-results", "analysis", "forecast"])
-    : time < "15:30:00"
-      ? new Set(["update-results", "analysis", "open-settlement"])
-      : new Set(["update-results", "analysis", "open-settlement", "close-settlement"]);
+  const eligibleStages = new Set(["update-results", "analysis", "forecast"]);
+  if (time >= "09:00:00") eligibleStages.add("open-settlement");
+  if (time >= "15:30:00") eligibleStages.add("close-settlement");
 
   return STAGES.map((stage) => {
     const eligible = eligibleStages.has(stage);
     let reason = "live source is eligible at the actual run-start time.";
-    if (!eligible && stage === "forecast") {
-      reason = time < "09:00:00"
-        ? "forecast is eligible before 09:00 KST."
-        : "forecast is late at the actual run-start time; it is pending and is not collected retroactively.";
-    } else if (!eligible && stage === "open-settlement") {
+    if (!eligible && stage === "open-settlement") {
       reason = "open-settlement is pending until 09:00 KST; no value is synthesized before the open.";
     } else if (!eligible && stage === "close-settlement") {
       reason = "close-settlement is pending until 15:30 KST; no close command is called early.";
