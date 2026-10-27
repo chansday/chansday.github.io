@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "status": "no_data",
+  "status": "degraded",
   "mode": "provider",
   "asOfDate": null,
   "publishedAt": null,
@@ -11,16 +11,16 @@
   },
   "provider": {
     "id": "public-csv",
-    "status": "no_data",
+    "status": "degraded",
     "label": "PUBLIC CSV · EOD OBSERVATION ONLY",
     "source": null
   },
   "pipeline": {
     "previousResult": {
-      "status": "pending",
-      "attemptedAt": null,
-      "provider_id": null,
-      "message": null
+      "status": "degraded",
+      "attemptedAt": "2026-10-27T01:27:15.047Z",
+      "provider_id": "public-csv",
+      "message": "Public CSV is stale; partial or stale data is not published as a normal ranking."
     },
     "analysis": {
       "status": "pending",
@@ -29,10 +29,10 @@
       "message": null
     },
     "forecast": {
-      "status": "no_data",
-      "attemptedAt": "2026-10-27T01:23:55.675Z",
-      "provider_id": "public-csv",
-      "message": "Forecast collection cutoff 08:29:00 KST has passed; no late data is used and forecast remains no_data."
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
     },
     "openSettlement": {
       "status": "pending",
@@ -50,12 +50,36 @@
   "rows": [],
   "meta": {
     "generatedBy": "provider-adapter",
-    "lastAttemptAt": "2026-10-27T01:23:55.675Z",
-    "lastAttemptMode": "forecast",
-    "blockedReason": "Forecast collection cutoff 08:29:00 KST has passed; no late data is used and forecast remains no_data.",
+    "lastAttemptAt": "2026-10-27T01:27:15.047Z",
+    "lastAttemptMode": "update-results",
+    "blockedReason": "Public CSV is stale; partial or stale data is not published as a normal ranking.",
     "isDemo": false,
-    "source": null,
+    "source": {
+      "name": "한국주식데이터 (원천: 금융위원회 공공데이터포털·한국거래소)",
+      "url": "https://aikstockdata.com/data/public/daily/quotes_20261023.csv",
+      "license_status": "confirmed",
+      "license_url": "https://aikstockdata.com/licenses/aiksd-public-1.1.txt",
+      "retrieved_at": "2026-10-27T01:27:15.047Z",
+      "source_id": "aikstockdata-public-daily-csv",
+      "run_id": "2026-10-27-update-results",
+      "status": "stale",
+      "fetched_at": "2026-10-27T01:27:15.047Z",
+      "raw_rows": 2778,
+      "source_rows": 913,
+      "partial": true,
+      "metrics": {
+        "requested": 6,
+        "completed": 3,
+        "failed": 3,
+        "retries": 0,
+        "deadline_hit": false,
+        "elapsed_ms": 0,
+        "estimated_ms": 0,
+        "overall_deadline_ms": 20000,
+        "max_concurrency": 2
+      }
+    },
     "run_date": "2026-10-27",
-    "run_stage": "forecast"
+    "run_stage": "update-results"
   }
 }
