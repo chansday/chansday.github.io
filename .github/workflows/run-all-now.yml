@@ -21,7 +21,6 @@ jobs:
     env:
       KOSPI_PROVIDER: naver-crawl
       KOSPI_RUN_DATE: ${{ inputs.run_date }}
-      KOSPI_RUN_STARTED_AT: ${{ github.run_started_at }}
       KOSPI_RUN_ID: ${{ github.run_id }}.${{ github.run_attempt }}
       KOSPI_STABLE_SNAPSHOT: "1"
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
@@ -32,6 +31,18 @@ jobs:
       KOSPI_PUBLIC_SOURCE_LICENSE_URL: ${{ vars.KOSPI_PUBLIC_SOURCE_LICENSE_URL || '' }}
       KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS: ${{ vars.KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS || '' }}
     steps:
+      - name: Capture actual run start timestamp
+        id: run-context
+        shell: bash
+        run: |
+          run_started_at="$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
+          case "$run_started_at" in
+            ????-??-??T??:??:??.???Z) ;;
+            *) echo "Generated run-start timestamp is not ISO-8601 UTC: $run_started_at" >&2; exit 1 ;;
+          esac
+          echo "run_started_at=$run_started_at" >> "$GITHUB_OUTPUT"
+          echo "KOSPI_RUN_STARTED_AT=$run_started_at" >> "$GITHUB_ENV"
+
       - name: Check out repository
         uses: actions/checkout@v4
 
@@ -46,7 +57,7 @@ jobs:
       - name: Run all KOSPI stages sequentially
         id: run-all
         continue-on-error: true
-        run: node scripts/run-all.mjs --run-date "${{ inputs.run_date }}" --run-started-at "$KOSPI_RUN_STARTED_AT" --attempted-at "$KOSPI_RUN_STARTED_AT" --run-id "$KOSPI_RUN_ID"
+        run: node scripts/run-all.mjs --run-date "${{ inputs.run_date }}" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.run-context.outputs.run_started_at }}" --run-id "$KOSPI_RUN_ID"
 
       - name: Commit final run state once
         if: always() && steps.run-all.outcome != 'skipped'
@@ -66,7 +77,8 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ "${{ steps.run-all.outputs.overall_status }}" != "ready" ]; then
+          if [ "${{ steps.run-all.outputs.overall_status }}" = "blocked" ] || [ "${{ steps.run-all.outputs.overall_status }}" = "degraded" ]; then
             echo "KOSPI run all result: ${{ steps.run-all.outputs.overall_status }}" >&2
             exit 1
           fi
+          echo "KOSPI run all result: ${{ steps.run-all.outputs.overall_status }} (pending stages are an expected normal outcome when their cutoff has not arrived)."
