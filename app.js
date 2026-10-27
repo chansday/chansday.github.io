@@ -1,6 +1,8 @@
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js?v=20261027n";
 import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
+import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./providers/evaluation-contract.js";
+import { sortRankingRows } from "./providers/ranking-sort.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
@@ -122,13 +124,17 @@ function testLabel(data) {
 
 function normalizeRow(row, index) {
   const rawStatus = normalizeStatus(row?.status || row?.eligibility?.status || "no_data");
+  const expectedOpen = valueOf(row, "expected_open");
+  const expectedClose = valueOf(row, "expected_close");
+  const actualOpen = valueOf(row, "actual_open");
+  const actualClose = valueOf(row, "actual_close");
   return {
     rank: valueOf(row, "rank") ?? index + 1,
     symbol: valueOf(row, "symbol", "code", "instrument_id") || "—",
     name: valueOf(row, "name", "instrument_name") || "종목명 미정",
-    expectedOpen: valueOf(row, "expected_open"), expectedClose: valueOf(row, "expected_close"), expectedReturn: valueOf(row, "expected_return"),
-    actualOpen: valueOf(row, "actual_open"), actualClose: valueOf(row, "actual_close"), actualReturn: valueOf(row, "actual_return"), sessionReturn: valueOf(row, "session_return") ?? (finite(valueOf(row, "actual_open")) && finite(valueOf(row, "actual_close")) && valueOf(row, "actual_open") > 0 ? Math.round(((valueOf(row, "actual_close") / valueOf(row, "actual_open") - 1) * 100 + Number.EPSILON) * 100) / 100 : null), actualVolume: valueOf(row, "actual_volume"),
-    error: valueOf(row, "error"), confidence: valueOf(row, "confidence", "confidence_score"), quality: valueOf(row, "quality", "quality_status") || rawStatus,
+    expectedOpen, expectedClose, expectedReturn: deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }),
+    actualOpen, actualClose, sessionReturn: deriveSessionReturn({ actual_open: actualOpen, actual_close: actualClose }), actualVolume: valueOf(row, "actual_volume"),
+    error: deriveEvaluationError({ expected_open: expectedOpen, expected_close: expectedClose, actual_open: actualOpen, actual_close: actualClose }), confidence: valueOf(row, "confidence", "confidence_score"), quality: valueOf(row, "quality", "quality_status") || rawStatus,
     reasons: row?.eligibility?.reasons || row?.reasons || [], status: rawStatus === "ready" ? "valid" : rawStatus,
   };
 }
@@ -534,7 +540,7 @@ function moveCalendarMonth(delta) {
 }
 
 function toneClass(value) { return finite(value) ? value >= 0 ? "positive" : "negative" : ""; }
-function sortRows(rows, sortKey) { return rows.sort((a, b) => { if (sortKey === "name") return a.name.localeCompare(b.name, "ko"); const av = a[sortKey]; const bv = b[sortKey]; if (!finite(av) && !finite(bv)) return 0; if (!finite(av)) return 1; if (!finite(bv)) return -1; if (sortKey === "rank") return av - bv; if (sortKey === "error") return Math.abs(av) - Math.abs(bv); return bv - av; }); }
+function sortRows(rows, sortKey = "expectedReturn") { return sortRankingRows(rows, sortKey); }
 function rowMetric(label, value, tone = "") { return `<div><span>${label}</span><strong class="${tone}">${value}</strong></div>`; }
 function createMobileCard(row) {
   const card = document.createElement("article");

@@ -1,4 +1,4 @@
-import { evaluationRowStatus, isEvaluationSummary } from "./evaluation-contract.js";
+import { deriveEvaluationError, deriveExpectedReturn, evaluationRowStatus, isEvaluationSummary } from "./evaluation-contract.js";
 
 /**
  * Provider contract for the static KOSPI signal board.
@@ -96,6 +96,8 @@ export function isRankingRow(row) {
     if (Object.keys(row.features).some((field) => !featureFields.includes(field))) return false;
   }
   if (Object.hasOwn(row, "quality") && row.quality !== null && typeof row.quality !== "string") return false;
+  if (row.expected_return !== deriveExpectedReturn(row)) return false;
+  if (row.error !== deriveEvaluationError(row)) return false;
   return RANKING_FIELDS.every((field) => isFiniteOrNull(row[field]));
 }
 

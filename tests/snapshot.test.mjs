@@ -365,8 +365,10 @@ test("KR모터스 장중 수익률은 실제 시가에서 실제 종가로 계�
 test("ranking views expose actual close whenever settlement data is present", async () => {
   const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-  assert.match(app, /actualClose: valueOf\(row, "actual_close"\)/);
-  assert.match(app, /sessionReturn: valueOf\(row, "session_return"\)/);
+  assert.match(app, /const actualClose = valueOf\(row, "actual_close"\)/);
+  assert.match(app, /deriveExpectedReturn\(\{ expected_open: expectedOpen, expected_close: expectedClose \}\)/);
+  assert.match(app, /deriveEvaluationError\(\{ expected_open: expectedOpen, expected_close: expectedClose, actual_open: actualOpen, actual_close: actualClose \}\)/);
+  assert.match(app, /sessionReturn: deriveSessionReturn\(\{ actual_open: actualOpen, actual_close: actualClose \}\)/);
   assert.match(app, /rowMetric\("실제 종가", formatPrice\(row\.actualClose\)\)/);
   assert.match(app, /rowMetric\("실제 장중 수익률", formatPercent\(row\.sessionReturn/);
   assert.doesNotMatch(app, /평가용 시가 수익률/);
@@ -386,8 +388,8 @@ test("public documentation keeps the return definitions scoped to expected, sess
   assert.doesNotMatch(docs, /actual_return/);
   assert.doesNotMatch(docs, /전일 대비 실제 수익률/);
   assert.doesNotMatch(docs, /평가 수익률|평가용 시가 수익률/);
-  assert.match(docs, /expected_return\s*=\s*expected_close\s*\/\s*expected_open\s*-\s*1/);
-  assert.match(docs, /session_return\s*=\s*actual_close\s*\/\s*actual_open\s*-\s*1/);
+  assert.match(docs, /expected_return\s*=\s*\(?expected_close\s*\/\s*expected_open\s*-\s*1\)?\s*[×x]\s*100/);
+  assert.match(docs, /session_return\s*=\s*\(?actual_close\s*\/\s*actual_open\s*-\s*1\)?\s*[×x]\s*100/);
   assert.match(docs, /intraday_reference_return.*별도 실행시점 참고값/s);
   assert.match(docs, /expected_return.*error.*null.*no_data/s);
 });
@@ -422,6 +424,10 @@ test("expected close unavailable produces null expected return and error", () =>
   const row = { expected_open: 100, expected_close: null, expected_return: 2, prior_close: 95, actual_open: 100, actual_close: 101 };
   assert.equal(deriveExpectedReturn(row), null);
   assert.equal(deriveEvaluationError(row), null);
+});
+
+test("actual open without actual close cannot produce an evaluation error", () => {
+  assert.equal(deriveEvaluationError({ expected_open: 100, expected_close: 101, actual_open: 100, actual_close: null, error: 99 }), null);
 });
 
 test("demo provider implements the adapter without financial numbers", async () => {

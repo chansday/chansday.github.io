@@ -21,15 +21,15 @@ Pages가 읽는 최신 파일은 `data/latest-snapshot.json`이며 계약은 `sc
 | --- | --- | --- |
 | `expected_open` | 예상 시작가 | 유한한 숫자 또는 `null` |
 | `expected_close` | 예상 종가 | 유한한 숫자 또는 `null` |
-| `expected_return` | 예상 시가→예상 종가 수익률 (`expected_close / expected_open - 1`) | 유한한 숫자 또는 `null` |
+| `expected_return` | 예상 시가→예상 종가 수익률 (`(expected_close / expected_open - 1) × 100`); `prior_close`는 사용하지 않음 | 유한한 숫자 또는 `null`; `expected_close`가 없으면 `null` |
 | `actual_open` | 실제 시작가 | 유한한 숫자 또는 `null` |
 | `actual_close` | 실제 종가 | 유한한 숫자 또는 `null` |
 | `session_return` | 실제 시가→종가 장중 수익률 | 유한한 숫자 또는 `null` |
 | `intraday_reference_return` | 별도 실행시점 참고값; `expected_return`과 구분 | 유한한 숫자 또는 `null` |
-| `error` | 예상과 실제의 오차 | 유한한 숫자 또는 `null` |
+| `error` | `session_return - expected_return`; expected_return·actual_open·actual_close가 모두 확정된 뒤에만 계산 | 유한한 숫자 또는 `null`; actual_open만 있으면 `null` |
 | `actual_volume` | 실제 거래량(주) | 유한한 숫자 또는 `null` |
 
-`confidence`와 `quality`는 선택적 설명 필드이며 투자 성과나 성공 확률을 뜻하지 않는다. 기존 camelCase 가격 필드는 저장 계약으로 허용하지 않는다. `providers/provider-adapter.js`가 필드 존재·타입·유한수·추가 필드를 검사하고 JSON Schema가 정적 계약을 재확인한다.
+`confidence`와 `quality`는 선택적 설명 필드이며 투자 성과나 성공 확률을 뜻하지 않는다. 기존 호환성용 수익률 필드는 화면에 표시하지 않는다. 기존 camelCase 가격 필드는 저장 계약으로 허용하지 않는다. `providers/provider-adapter.js`가 필드 존재·타입·유한수·추가 필드와 expected_return/error 계산 계약을 검사하고 JSON Schema가 정적 계약을 재확인한다.
 
 `no_data`, `degraded`, `blocked` 상태에서는 runner가 `rows: []`로 기록한다. 데이터 부족 시 이전 숫자를 새 단계의 결과인 것처럼 재사용하지 않는다.
 
@@ -99,7 +99,7 @@ data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 운영 데이�
 
 `?mode=historical-test&date=2026-10-22|2026-10-23`은 운영 provider와 합성 fixture/replay/backfill을 건드리지 않는 과거 데이터 검증 경로다. 브라우저와 운영 fallback은 `data/runs/historical-test/YYYY-MM-DD/1530.json`을 읽으며, 운영 `data/latest-snapshot.json`과 코드·상태·메타데이터를 덮어쓰지 않는다. 각 run은 공개 일별 파일의 `mrktCtg=KOSPI` 전체 행을 저장하며, 날짜별 913행의 `actual_open`/`actual_close`/`actual_volume`을 실제 값으로 표시한다. 공개 원본에 security type이 없으므로 우선주 포함 가능성을 `meta.source_range`에 명시한다.
 
-`expected_*`는 당시 08:20 예측이 아니다. historical baseline은 대상일을 제외한 직전 5개 거래일 공개 daily CSV의 종가만 사용한다. 2026-10-22는 `10-15, 10-16, 10-19, 10-20, 10-21`, 2026-10-23은 `10-16, 10-19, 10-20, 10-21, 10-22`가 입력이다. 각 종목에 대해 `r_t = close_t / close_(t-1) - 1`, `momentum = mean(last 3 r_t)`, `volatility = population_stddev(last 4 r_t)`를 계산해 open signal을 만들고 `expected_open = round(prior_close × (1 + open_signal / 100), 2)`를 저장한다. 이 입력에는 expected close 모델이 없으므로 `expected_return = expected_close / expected_open - 1`을 계산하지 않고 `expected_return`과 `error`를 `null`/`no_data`로 둔다. `actual_open`과 `actual_close`는 각각 정산 원천의 관측값이며, `session_return = actual_close / actual_open - 1`이다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않는다. 이 모델은 공개 일봉만으로 재현 가능한 historical baseline이며 실제 장전 호가·예상체결가·주문잔량을 사용하지 않는다. 따라서 `confidence`는 `null`이고 `quality`는 단계에 따라 `historical_baseline_public_daily*`로 표시한다. fallback은 실제 run의 관측값과 null 상태를 그대로 로드하고 숫자를 합성하지 않는다. 운영 live 상태가 `no_data`일 때만 화면 최상단에 정확히 `HISTORICAL TEST / NOT LIVE`를 표시하며, `partial`·`degraded`·stale에서는 fallback하지 않는다. 최근 가격 급등락 때문에 예측력·수익률·실전 성과를 의미하지 않는다.
+`expected_*`는 당시 08:20 예측이 아니다. historical baseline은 대상일을 제외한 직전 5개 거래일 공개 daily CSV의 종가만 사용한다. 2026-10-22는 `10-15, 10-16, 10-19, 10-20, 10-21`, 2026-10-23은 `10-16, 10-19, 10-20, 10-21, 10-22`가 입력이다. 각 종목에 대해 `r_t = close_t / close_(t-1) - 1`, `momentum = mean(last 3 r_t)`, `volatility = population_stddev(last 4 r_t)`를 계산해 open signal을 만들고 `expected_open = round(prior_close × (1 + open_signal / 100), 2)`를 저장한다. 이 입력에는 expected close 모델이 없으므로 `expected_return = (expected_close / expected_open - 1) × 100`을 계산하지 않고 `expected_return`과 `error`를 `null`/`no_data`로 둔다. `actual_open`과 `actual_close`는 각각 정산 원천의 관측값이며, `session_return = (actual_close / actual_open - 1) × 100`이다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않는다. 이 모델은 공개 일봉만으로 재현 가능한 historical baseline이며 실제 장전 호가·예상체결가·주문잔량을 사용하지 않는다. 따라서 `confidence`는 `null`이고 `quality`는 단계에 따라 `historical_baseline_public_daily*`로 표시한다. fallback은 실제 run의 관측값과 null 상태를 그대로 로드하고 숫자를 합성하지 않는다. 운영 live 상태가 `no_data`일 때만 화면 최상단에 정확히 `HISTORICAL TEST / NOT LIVE`를 표시하며, `partial`·`degraded`·stale에서는 fallback하지 않는다. 최근 가격 급등락 때문에 예측력·수익률·실전 성과를 의미하지 않는다.
 
 ### 공개 JSON provider
 
@@ -129,7 +129,7 @@ UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-
 
 ## 7. 프론트엔드와 운영
 
-`index.html`과 `styles.css`는 정적 Pages UI를 제공한다. `app.js`는 snapshot을 검증한 뒤 검색·정렬·상태 필터·pipeline 상태·예상/실제 비교표를 렌더링한다. `?mode=demo`는 숫자 없는 UI demo를, `?mode=fixture&date=2026-10-22|2026-10-23`은 명시적인 합성 fixture snapshot을 사용한다.
+`index.html`과 `styles.css`는 정적 Pages UI를 제공한다. `app.js`는 snapshot을 검증한 뒤 검색·정렬·상태 필터·pipeline 상태·예상/실제 비교표를 렌더링한다. 기본 정렬은 `providers/ranking-sort.js`의 expected_return 내림차순 비교기이며 유한하지 않은 값은 마지막, 동률은 symbol/name/index 순으로 안정화한다. 상태 배지는 desktop 표와 mobile 카드 모두 폭 제한 안에서 줄바꿈하고, desktop 표 컨테이너는 필요한 경우 가로 스크롤을 허용한다. `?mode=demo`는 숫자 없는 UI demo를, `?mode=fixture&date=2026-10-22|2026-10-23`은 명시적인 합성 fixture snapshot을 사용한다.
 
 종목 비교 섹션의 날짜 버튼은 `data/date-index.json`의 mode별 `availableDates`와 `data/krx-market-holidays.json`을 결합해 달력 상태를 계산한다. `historical-test`의 선택 날짜는 `data/runs/historical-test/YYYY-MM-DD/1530.json`을 직접 읽고, 운영 mode는 `data/runs/YYYY-MM-DD/1530.json`을 직접 읽는다. fixture/replay/backfill은 각각의 날짜 파일을 직접 읽는다. 날짜가 인덱스에 없거나 파일 요청이 실패하면 행을 이전 날짜에서 복사하지 않고 빈 결과 상태를 보여준다.
 

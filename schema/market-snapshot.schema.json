@@ -255,13 +255,13 @@
         "name": { "type": ["string", "null"] },
         "expected_open": { "type": ["number", "null"] },
         "expected_close": { "type": ["number", "null"] },
-        "expected_return": { "type": ["number", "null"] },
+        "expected_return": { "type": ["number", "null"], "description": "Only expected_close / expected_open - 1 × 100; null when expected_close is unavailable. prior_close is never used for this field." },
         "actual_open": { "type": ["number", "null"] },
         "actual_close": { "type": ["number", "null"] },
         "actual_return": { "type": ["number", "null"] },
         "session_return": { "type": ["number", "null"] },
         "intraday_reference_return": { "type": ["number", "null"] },
-        "error": { "type": ["number", "null"] },
+        "error": { "type": ["number", "null"], "description": "Only computed after expected_return, actual_open, and actual_close are all finite; otherwise null." },
         "actual_volume": { "type": ["number", "null"], "minimum": 0 },
         "prior_close": { "type": ["number", "null"], "minimum": 0 },
         "features": {
@@ -281,6 +281,22 @@
         "market_status": { "type": ["string", "null"] },
         "status": { "type": "string" }
       },
+      "allOf": [
+        {
+          "if": { "properties": { "expected_close": { "type": "null" } } },
+          "then": { "properties": { "expected_return": { "type": "null" } } }
+        },
+        {
+          "if": {
+            "anyOf": [
+              { "properties": { "expected_return": { "type": "null" } } },
+              { "properties": { "actual_open": { "type": "null" } } },
+              { "properties": { "actual_close": { "type": "null" } } }
+            ]
+          },
+          "then": { "properties": { "error": { "type": "null" } } }
+        }
+      ],
       "additionalProperties": false
     }
   },

@@ -182,6 +182,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
       }
       const sessionReturn = derivedSessionReturn(merged);
       if (sessionReturn !== null) merged.session_return = sessionReturn;
+      merged.expected_return = deriveExpectedReturn(merged);
       merged.error = derivedError(merged);
       return merged;
     }
@@ -191,6 +192,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
       if (incoming[field] === null && existing[field] !== null) merged[field] = existing[field];
     }
     merged.expected_return = deriveExpectedReturn(merged);
+    merged.error = derivedError(merged);
     return merged;
   });
   for (const existing of existingRows) {
@@ -200,7 +202,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
 }
 
 function carryExpectedRowsForUnavailableSettlement(rows, mode) {
-  return rows.map((row) => ({ ...row, error: derivedError(row) }));
+  return rows.map((row) => ({ ...row, expected_return: deriveExpectedReturn(row), error: derivedError(row) }));
 }
 
 function unavailableRows(snapshot, mode, providerId = null) {

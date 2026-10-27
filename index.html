@@ -10,8 +10,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261026h">
-    <script type="module" src="./app.js?v=20261026o"></script>
+    <link rel="stylesheet" href="./styles.css?v=20261027j">
+    <script type="module" src="./app.js?v=20261027p"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content" onclick="event.preventDefault(); const target = document.getElementById('main-content'); if (target) { target.focus({ preventScroll: true }); target.scrollIntoView(); }">본문으로 바로가기</a>
@@ -81,7 +81,7 @@
           <p class="ranking-lede">예상 시가·예상 종가가 모두 있을 때만 예상 수익률을 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.</p>
           <div class="ranking-toolbar glass-panel">
             <label class="search-box"><span aria-hidden="true">⌕</span><span class="sr-only">종목명 또는 종목코드 검색</span><input id="search-input" type="search" placeholder="종목명이나 종목코드를 입력하세요" autocomplete="off"></label>
-            <div class="toolbar-selects"><label><span>상태별 보기</span><select id="status-filter"><option value="all">전체 종목</option><option value="valid">정상 확인된 종목</option><option value="pending">대기 중인 종목</option><option value="degraded">품질이 낮은 종목</option><option value="no_data">데이터 없는 종목</option></select></label><label><span>정렬 기준</span><select id="sort-select"><option value="rank">순위순</option><option value="expectedReturn">예상 수익률 높은 순</option><option value="sessionReturn">장중 수익률 높은 순</option><option value="error">오차가 작은 순</option><option value="name">종목명 가나다순</option></select></label></div>
+            <div class="toolbar-selects"><label><span>상태별 보기</span><select id="status-filter"><option value="all">전체 종목</option><option value="valid">정상 확인된 종목</option><option value="pending">대기 중인 종목</option><option value="degraded">품질이 낮은 종목</option><option value="no_data">데이터 없는 종목</option></select></label><label><span>정렬 기준</span><select id="sort-select"><option value="expectedReturn" selected>예상 수익률 높은 순</option><option value="rank">순위순</option><option value="sessionReturn">장중 수익률 높은 순</option><option value="error">오차가 작은 순</option><option value="name">종목명 가나다순</option></select></label></div>
           </div>
           <div class="ranking-layout">
             <div class="ranking-table-wrap glass-panel">

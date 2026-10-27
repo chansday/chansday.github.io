@@ -153,7 +153,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .hero-meta-grid span, .selected-grid span { display: block; margin-bottom: 5px; color: var(--dim); font-size: 10px; }
 .hero-meta-grid strong { display: block; overflow: hidden; color: var(--text); font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 
-.status-pill, .step-status { display: inline-flex; align-items: center; justify-content: center; max-width: 100%; border: 1px solid var(--line-strong); border-radius: 99px; padding: 4px 8px; font-size: 9px; font-weight: 700; line-height: 1.35; text-align: center; }
+.status-pill, .step-status { display: inline-flex; min-width: 0; align-items: center; justify-content: center; max-width: 100%; border: 1px solid var(--line-strong); border-radius: 99px; padding: 4px 8px; font-size: 9px; font-weight: 700; line-height: 1.35; text-align: center; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
 .status-valid { border-color: rgba(130, 231, 183, .38); background: rgba(130, 231, 183, .1); color: var(--green); }
 .status-degraded, .status-partial, .status-pending { border-color: rgba(255, 210, 123, .34); background: rgba(255, 210, 123, .09); color: var(--yellow); }
 .status-blocked { border-color: rgba(255, 141, 156, .38); background: rgba(255, 141, 156, .1); color: var(--red); }
@@ -254,8 +254,8 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .toolbar-selects select { min-width: 136px; padding: 7px 26px 7px 9px; border: 1px solid var(--line); border-radius: 7px; outline: 0; background: #10243a; color: var(--muted); font-size: 11px; }
 .toolbar-selects select:hover, .toolbar-selects select:focus { border-color: var(--blue); }
 .ranking-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
-.ranking-table-wrap { overflow: hidden; border-radius: 14px; }
-.ranking-table-wrap table { width: 100%; border-collapse: collapse; }
+.ranking-table-wrap { overflow-x: auto; overflow-y: hidden; border-radius: 14px; }
+.ranking-table-wrap table { width: 100%; min-width: 1060px; border-collapse: collapse; }
 .ranking-table-wrap th { padding: 13px; border-bottom: 1px solid var(--line-strong); color: var(--dim); font-size: 10px; font-weight: 600; text-align: right; white-space: nowrap; }
 .ranking-table-wrap th:first-child, .ranking-table-wrap th:nth-child(2) { text-align: left; }
 .ranking-table-wrap td { padding: 11px 13px; border-bottom: 1px solid rgba(164, 191, 221, .1); color: var(--muted); font-family: "DM Mono", monospace; font-size: 11px; text-align: right; white-space: nowrap; }
@@ -264,11 +264,13 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .ranking-table-wrap tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 2px 0 var(--blue); }
 .ranking-table-wrap td:first-child { color: var(--blue-strong); font-weight: 500; text-align: left; }
 .ranking-table-wrap td:nth-child(2) { min-width: 175px; text-align: left; }
+.ranking-table-wrap th:last-child, .ranking-table-wrap td:last-child { width: 9rem; min-width: 9rem; }
+.ranking-table-wrap td:last-child { white-space: normal; }
 .positive { color: var(--green) !important; }
 .negative { color: var(--red) !important; }
 .instrument-name { display: block; color: var(--text); font-family: "Noto Sans KR", sans-serif; font-size: 11px; font-weight: 700; }
 .instrument-code { display: block; margin-top: 2px; color: var(--dim); font-size: 9px; }
-.row-status { display: inline-flex; border: 1px solid var(--line); border-radius: 99px; padding: 3px 7px; color: var(--muted); font-size: 9px; }
+.row-status { display: inline-flex; max-width: 100%; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 99px; padding: 3px 7px; color: var(--muted); font-size: 9px; line-height: 1.35; text-align: center; white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
 .row-status.valid { border-color: rgba(130, 231, 183, .3); color: var(--green); }
 .row-status.pending, .row-status.degraded { border-color: rgba(255, 210, 123, .3); color: var(--yellow); }
 .row-status.blocked { border-color: rgba(255, 141, 156, .3); color: var(--red); }

@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
 
 const root = resolve(process.cwd());
 const expectedHistoricalDates = ["2026-10-22", "2026-10-23"];
@@ -33,13 +34,11 @@ function checkHistoricalSnapshot(snapshot, date) {
     if (!(row.actual_open >= 0 && row.actual_close > 0 && row.actual_volume >= 0)) errors.push(`invalid observed value: ${row.symbol}`);
     if (row.actual_open === 0 || row.actual_volume === 0) zeroObservedCount += 1;
     if (!(row.prior_close > 0)) errors.push(`prior_close missing: ${row.symbol}`);
-    const derivedSessionReturn = row.actual_open > 0 ? ((row.actual_close / row.actual_open) - 1) * 100 : null;
+    const derivedSessionReturn = deriveSessionReturn(row);
     if (derivedSessionReturn === null ? row.session_return !== null : Math.abs(derivedSessionReturn - row.session_return) > 0.011) errors.push(`session_return mismatch: ${row.symbol}`);
-    const derivedExpectedReturn = row.expected_open > 0 && typeof row.expected_close === "number"
-      ? ((row.expected_close / row.expected_open) - 1) * 100
-      : null;
+    const derivedExpectedReturn = deriveExpectedReturn(row);
     if (derivedExpectedReturn === null ? row.expected_return !== null : Math.abs(derivedExpectedReturn - row.expected_return) > 0.011) errors.push(`expected_return mismatch: ${row.symbol}`);
-    const derivedError = derivedExpectedReturn !== null && row.session_return !== null ? row.session_return - derivedExpectedReturn : null;
+    const derivedError = deriveEvaluationError(row);
     if (derivedError === null ? row.error !== null : Math.abs(derivedError - row.error) > 0.011) errors.push(`error mismatch: ${row.symbol}`);
     if (!row.features || !Number.isFinite(row.features.momentum) || !Number.isFinite(row.features.volatility)) errors.push(`baseline features missing: ${row.symbol}`);
   }
