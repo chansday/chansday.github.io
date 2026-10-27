@@ -420,6 +420,9 @@ export async function run(argv = process.argv.slice(2)) {
     wroteFile: wroteLatestFile,
   };
   await appendJobSummary(summary);
+  if (process.env.GITHUB_OUTPUT) {
+    await appendFile(process.env.GITHUB_OUTPUT, `status=${summary.status}\n`);
+  }
   console.log(JSON.stringify(summary));
   return summary;
 }

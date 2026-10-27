@@ -33,7 +33,7 @@
 
 ## 시간·호출 품질 정책
 
-- caller run-start를 KST stage 기준으로 사용하고, 실제 fetch time과 `localTradedAt`의 max age를 확인합니다.
+- runner에서 캡처한 run-start를 KST stage 기준으로 사용하고, 실제 fetch time과 `localTradedAt`의 max age를 확인합니다.
 - source timeout은 기본 8초, stage overall deadline은 기본 120초, 요청 간 기본 간격은 250ms입니다.
 - quote는 최대 100개 batch로 순차 요청하고 bounded retry는 1회입니다. HTTP 403/429/challenge는 재시도하지 않고 즉시 `blocked`로 기록합니다.
 - stale·빈 응답·필수 필드 결측이 있는 결과는 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 09:00 이후에는 `openPriceRaw`가 `actual_open`, 장마감 후에는 `closePriceRaw`가 `actual_close`가 됩니다.

@@ -9,16 +9,12 @@ on:
         default: ""
         type: string
       auto_stage:
-        description: "Resolve forecast/open/close from the caller run start in KST"
+        description: "Resolve forecast/open/close from the runner-captured start in KST"
         required: false
         default: false
         type: boolean
       provider:
         description: "Fixed provider supplied by the caller workflow"
-        required: true
-        type: string
-      run_started_at:
-        description: "Caller workflow run start in UTC; never read from reusable context"
         required: true
         type: string
       run_id:
@@ -47,7 +43,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KOSPI_PROVIDER: ${{ inputs.provider }}
-      KOSPI_RUN_STARTED_AT: ${{ inputs.run_started_at }}
       KOSPI_RUN_ID: ${{ inputs.run_id }}.${{ inputs.run_attempt }}
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
       KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
@@ -57,16 +52,31 @@ jobs:
       KOSPI_PUBLIC_SOURCE_LICENSE_URL: ${{ vars.KOSPI_PUBLIC_SOURCE_LICENSE_URL || '' }}
       KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS: ${{ vars.KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS || '' }}
     steps:
+      - name: Capture actual runner start timestamp
+        id: capture-run-context
+        shell: bash
+        run: |
+          set -euo pipefail
+          run_started_at="$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
+          case "$run_started_at" in
+            ????-??-??T??:??:??.???Z) ;;
+            *) echo "Generated run-start timestamp is not ISO-8601 UTC: $run_started_at" >&2; exit 1 ;;
+          esac
+          echo "run_started_at=$run_started_at" >> "$GITHUB_OUTPUT"
+          echo "KOSPI_RUN_STARTED_AT=$run_started_at" >> "$GITHUB_ENV"
+
       - name: Check out repository
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Set up Node.js
+        id: setup-node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Validate caller run context
-        id: run-context
+        id: validate-run-context
         run: node scripts/run-context.mjs
 
       - name: Guard KOSPI trading day
@@ -85,9 +95,19 @@ jobs:
 
       - name: Run resolved KOSPI stage
         id: stage
-        if: always() && steps.market-day.outputs.should_run == 'true' && steps.static-contract.outcome == 'success'
+        if: >-
+          always() &&
+          steps.capture-run-context.outcome == 'success' &&
+          steps.capture-run-context.outputs.run_started_at != '' &&
+          steps.checkout.outcome == 'success' &&
+          steps.setup-node.outcome == 'success' &&
+          steps.validate-run-context.outcome == 'success' &&
+          steps.market-day.outcome == 'success' &&
+          steps.market-day.outputs.should_run == 'true' &&
+          (inputs.auto_stage != true || steps.auto_stage.outcome == 'success') &&
+          steps.static-contract.outcome == 'success'
         continue-on-error: true
-        run: node scripts/update-results.mjs --mode "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" --run-started-at "${{ inputs.run_started_at }}" --attempted-at "${{ inputs.run_started_at }}"
+        run: node scripts/update-results.mjs --mode "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" --run-started-at "${{ steps.capture-run-context.outputs.run_started_at }}" --attempted-at "${{ steps.capture-run-context.outputs.run_started_at }}"
 
       - name: Write workflow summary
         if: always()
@@ -105,17 +125,32 @@ jobs:
               echo "### KOSPI stage workflow"
               echo "- stage: \`${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}\`"
               echo "- provider: \`${KOSPI_PROVIDER}\`"
-              echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (caller run start UTC; KST stage is derived from the same value)"
+              echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (runner-captured start UTC; KST stage is derived from the same value)"
               echo "- manual button and schedule use the same stage command"
               echo "- no_data/partial/degraded/blocked results fail the job after the snapshot and summary are written"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Commit snapshot state when changed
-        if: always() && steps.market-day.outputs.should_run == 'true' && steps.static-contract.outcome == 'success' && (steps.stage.outcome == 'success' || steps.stage.outcome == 'failure')
+        id: commit
+        if: >-
+          always() &&
+          steps.capture-run-context.outcome == 'success' &&
+          steps.capture-run-context.outputs.run_started_at != '' &&
+          steps.checkout.outcome == 'success' &&
+          steps.setup-node.outcome == 'success' &&
+          steps.validate-run-context.outcome == 'success' &&
+          steps.market-day.outcome == 'success' &&
+          steps.market-day.outputs.should_run == 'true' &&
+          (inputs.auto_stage != true || steps.auto_stage.outcome == 'success') &&
+          steps.static-contract.outcome == 'success' &&
+          steps.stage.outcome == 'success' &&
+          steps.stage.outputs.status == 'ready'
         shell: bash
         run: |
-          if git diff --quiet -- data/latest-snapshot.json data/runs; then
+          set -euo pipefail
+          changes="$(git status --short -- data/latest-snapshot.json data/runs)"
+          if [ -z "$changes" ]; then
             echo "No snapshot changes to commit."
             exit 0
           fi
@@ -126,14 +161,52 @@ jobs:
           git push
 
       - name: Fail when the stage is not ready
-        if: always() && steps.market-day.outputs.should_run == 'true'
+        if: always()
         shell: bash
         run: |
+          run_started_at="${{ steps.capture-run-context.outputs.run_started_at }}"
+          if [ "${{ steps.capture-run-context.outcome }}" != "success" ] || [ -z "$run_started_at" ]; then
+            echo "Runner timestamp capture failed or was skipped." >&2
+            exit 1
+          fi
+          case "$run_started_at" in
+            ????-??-??T??:??:??.???Z) ;;
+            *) echo "Runner timestamp capture produced an invalid or empty ISO-8601 UTC timestamp: '$run_started_at'" >&2; exit 1 ;;
+          esac
+          if [ "${{ steps.checkout.outcome }}" != "success" ] || [ "${{ steps.setup-node.outcome }}" != "success" ]; then
+            echo "Repository checkout or Node.js setup failed or was skipped." >&2
+            exit 1
+          fi
+          if [ "${{ steps.validate-run-context.outcome }}" != "success" ]; then
+            echo "Run-context validation failed or was skipped." >&2
+            exit 1
+          fi
+          if [ "${{ steps.market-day.outcome }}" != "success" ]; then
+            echo "Trading-day guard failed or was skipped." >&2
+            exit 1
+          fi
+          if [ "${{ steps.market-day.outputs.should_run }}" != "true" ]; then
+            echo "Trading-day guard blocked this date; no stage runner executed." >&2
+            exit 1
+          fi
           if [ "${{ steps.static-contract.outcome }}" != "success" ]; then
             echo "Static contract validation failed." >&2
             exit 1
           fi
-          if [ "${{ steps.stage.outcome }}" = "failure" ]; then
+          if [ "${{ inputs.auto_stage }}" = "true" ] && [ "${{ steps.auto_stage.outcome }}" != "success" ]; then
+            echo "Automatic stage resolution failed or was skipped." >&2
+            exit 1
+          fi
+          if [ "${{ steps.stage.outcome }}" != "success" ]; then
             echo "Stage '${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}' returned no_data, partial, degraded, blocked, or another failure." >&2
+            exit 1
+          fi
+          status="${{ steps.stage.outputs.status }}"
+          if [ "$status" != "ready" ]; then
+            echo "Stage '${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}' did not return the required ready status: '$status'." >&2
+            exit 1
+          fi
+          if [ "${{ steps.commit.outcome }}" != "success" ]; then
+            echo "Snapshot commit step failed or was skipped." >&2
             exit 1
           fi

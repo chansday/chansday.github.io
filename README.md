@@ -125,7 +125,7 @@ npm run historical-test:collect
 
 운영 수집은 KOSPI market-list JSON을 페이지 단위로 한 번 읽고, 종목코드를 제한된 batch로 polling endpoint에 전달합니다. 로그인·CAPTCHA·robots 차단·redirect·HTML challenge를 우회하지 않으며, Naver 허용 호스트 외에는 요청하지 않습니다.
 
-- Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-all now`는 클릭 시점의 caller run start를 명시적으로 reusable runner에 전달합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:30 이후에만 `close-settlement`를 추가 호출합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 모든 stage는 같은 crawl runner에서 quote freshness를 검증합니다.
+- Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-all now`는 reusable runner에서 실제 실행 시각을 UTC ISO-8601로 생성해 사용합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:30 이후에만 `close-settlement`를 추가 호출합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 모든 stage는 같은 crawl runner에서 quote freshness를 검증합니다.
 - source별 timeout(기본 8초), 전체 deadline(기본 120초), 순차 요청 간 최소 간격(기본 250ms), 최대 1회 bounded retry를 적용합니다. 403/429/challenge는 재시도하지 않습니다.
 - deadline 초과·중복·필수 필드 결측·오래된 파일은 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 이전 snapshot을 당일 결과처럼 재사용하지 않습니다.
 - `meta.source`에는 source id, run id, `source_date`, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록하고, snapshot top-level `asOfDate`는 실제 원본 날짜를 가리킵니다. stale/unsupported 결과도 이 날짜를 숨기지 않습니다.
@@ -224,7 +224,7 @@ GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9�
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 09:00 시가와 15:30 종가 단계는 공개 일별 CSV가 장중에 제공되지 않으면 `no_data`로 남으며, 이전 snapshot을 재사용하지 않습니다.
 
-Actions에는 기능별 workflow와 입력 없는 `KOSPI run now` workflow가 표시됩니다. `KOSPI run all now`는 workflow 첫 실행 step에서 실제 UTC timestamp를 생성해 `GITHUB_ENV`와 `GITHUB_OUTPUT`에 기록하고, 같은 유효한 ISO timestamp를 `run-all.mjs`의 run-start와 source-attempt 기준으로 전달합니다. 따라서 `github.run_started_at`의 빈 값이나 고정 schedule 시각을 stage 판정에 사용하지 않습니다. `run all now`는 오늘 거래일에 실제 run-start 시각과 관계없이 `forecast`까지 실행하고, 09:00 이후 `open-settlement`, 15:30 이후 `close-settlement`를 추가합니다. 기존 `run now`는 caller가 전달한 실제 run start를 KST로 변환해 단일 `auto_stage`를 선택합니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않으며, `naver-crawl`은 계좌·API 키·Secret 없이 실행됩니다. `run now`의 실제 stage 실패는 job을 실패시키지만, `run all now`의 아직 시간이 되지 않은 `pending`은 summary에 남기는 정상 `partial` 결과입니다.
+Actions에는 기능별 workflow와 입력 없는 `KOSPI run now` workflow가 표시됩니다. `KOSPI run all now`와 reusable stage runner는 runner 첫 실행 step에서 실제 UTC timestamp를 생성해 `GITHUB_ENV`와 `GITHUB_OUTPUT`에 기록하고, 같은 유효한 ISO timestamp를 stage command의 run-start와 source-attempt 기준으로 전달합니다. 따라서 `github.run_started_at`의 빈 값이나 고정 schedule 시각을 stage 판정에 사용하지 않습니다. `run all now`는 오늘 거래일에 실제 run-start 시각과 관계없이 `forecast`까지 실행하고, 09:00 이후 `open-settlement`, 15:30 이후 `close-settlement`를 추가합니다. `run now`는 reusable runner가 캡처한 실제 run start를 KST로 변환해 단일 `auto_stage`를 선택합니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않으며, `naver-crawl`은 계좌·API 키·Secret 없이 실행됩니다. `run now`의 실제 stage 실패는 job을 실패시키고, `run all now`의 아직 시간이 되지 않은 `pending`은 summary에 남기는 정상 `partial` 결과입니다. 필수 step이 실패·skip되거나 stage/overall status가 비어 있거나 알 수 없으면 최종 gate가 실패합니다.
 
 ### KOSPI run all now / 전체 순서 실행
 
@@ -263,7 +263,7 @@ Summary에는 각 stage의 `planned`, `pending`, `skipped`, 실제 호출 여부
 
 ### 한국 거래일·공휴일 guard
 
-cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 checkout/setup 직후 [`scripts/market-session-guard.mjs`](scripts/market-session-guard.mjs)를 실행합니다. guard는 caller가 전달한 run-start의 한국시간 날짜를 [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 정상 종료하고 검증·stage 실행·수집·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
+cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 runner에서 캡처한 실제 시작 시각과 checkout/setup 직후 [`scripts/market-session-guard.mjs`](scripts/market-session-guard.mjs)를 사용합니다. guard는 runner-captured run-start의 한국시간 날짜를 [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 수집을 차단하고 검증·stage 실행·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않으며, 최종 gate는 실행되지 않은 stage를 성공으로 승격하지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
 
 캘린더는 코드에 내장하지 않고 연도별 체크인 JSON으로 관리합니다. 2026년 목록에는 신정·설/추석·근로자의 날·제헌절·연말휴장일과 2026년에 확인된 대체휴일·임시공휴일을 포함합니다. 매년 KRX가 공표한 휴장일을 원문에서 재확인하여 목록, 대체휴일, 임시공휴일 변경을 갱신해야 합니다. 캘린더 커버리지 밖의 평일은 `calendar_coverage_missing` 오류로 fail-closed하며 수집을 시작하지 않습니다. 따라서 네트워크 API가 다운되거나 목록이 갱신되지 않은 상태에서 공휴일을 평일로 오판해 파일을 덮어쓰는 대신 workflow가 실패하고 운영자가 캘린더를 갱신해야 합니다. 이 저장소는 공휴일 API를 실행 시점에 호출하지 않으며, 자동 갱신을 보장하지 않습니다.
 

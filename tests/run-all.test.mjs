@@ -39,6 +39,10 @@ test("12:09 KST run calls forecast and open-settlement but not close-settlement"
   assert.deepEqual(calls.map((args) => args[1]), ["update-results", "analysis", "forecast", "open-settlement"]);
   assert.equal(calls.some((args) => args.includes("close-settlement")), false);
   assert.equal(summary.status, "partial");
+  assert.equal(summary.pendingOnlyPartial, true);
+  assert.equal(summary.executedStagesReady, true);
+  assert.equal(summary.commitAllowed, true);
+  assert.match(summary.reason, /Only pending/);
   assert.equal(summary.stages.find(({ stage }) => stage === "forecast").status, "ready");
   assert.equal(summary.stages.find(({ stage }) => stage === "close-settlement").status, "pending");
 });
@@ -97,6 +101,74 @@ test("run-all blocks future dates and market-closed dates without collection", a
   assert.equal(holiday.status, "blocked");
   assert.equal(holiday.reason, "substitute_holiday");
   assert.deepEqual(calls, []);
+});
+
+test("run-all fails closed for every executed non-ready stage outcome", async () => {
+  const run = (stageStatus) => runAll([
+    "--run-date", "2026-10-27",
+    "--run-started-at", "2026-10-27T00:30:00Z",
+    "--attempted-at", "2026-10-27T00:30:00Z",
+    "--run-id", `status-${stageStatus}`,
+  ], {
+    stageRunner: async () => ({ status: stageStatus, message: `stubbed ${stageStatus}`, stageFile: null }),
+    consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
+  });
+
+  assert.equal((await run("blocked")).status, "blocked");
+  assert.equal((await run("degraded")).status, "degraded");
+  for (const stageStatus of ["no_data", "partial"]) {
+    const summary = await run(stageStatus);
+    assert.equal(summary.status, "degraded", stageStatus);
+    assert.equal(summary.executedStagesReady, false, stageStatus);
+    assert.equal(summary.pendingOnlyPartial, false, stageStatus);
+    assert.equal(summary.commitAllowed, false, stageStatus);
+    assert.match(summary.reason, /Executed stage\(s\) were not ready/, stageStatus);
+  }
+
+  const readySummary = await runAll([
+    "--run-date", "2026-10-27",
+    "--run-started-at", "2026-10-27T06:30:00Z",
+    "--attempted-at", "2026-10-27T06:30:00Z",
+    "--run-id", "status-ready",
+  ], {
+    stageRunner: async () => ({ status: "ready", message: "stubbed ready", stageFile: null }),
+    consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
+  });
+  assert.equal(readySummary.status, "ready");
+  assert.equal(readySummary.executedStagesReady, true);
+  assert.equal(readySummary.commitAllowed, true);
+});
+
+test("run-all rejects a non-ready consistency result even when every stage is ready", async () => {
+  for (const consistencyStatus of ["degraded", "blocked"]) {
+    const summary = await runAll([
+      "--run-date", "2026-10-27",
+      "--run-started-at", "2026-10-27T06:30:00Z",
+      "--attempted-at", "2026-10-27T06:30:00Z",
+      "--run-id", `consistency-${consistencyStatus}`,
+    ], {
+      stageRunner: async () => ({ status: "ready", message: "stubbed ready", stageFile: null }),
+      consistencyChecker: async () => ({ status: consistencyStatus, message: `stubbed consistency ${consistencyStatus}` }),
+    });
+
+    assert.equal(summary.status, consistencyStatus, consistencyStatus);
+    assert.equal(summary.executedStagesReady, false, consistencyStatus);
+    assert.equal(summary.commitAllowed, false, consistencyStatus);
+    assert.equal(summary.stages.find(({ stage }) => stage === "consistency").status, consistencyStatus);
+  }
+});
+
+test("run-all fails closed when a stage returns an empty or unknown status", async () => {
+  const summary = await runAll([
+    "--run-date", "2026-10-27",
+    "--run-started-at", "2026-10-27T00:30:00Z",
+    "--run-id", "status-unknown",
+  ], {
+    stageRunner: async () => ({ status: "mystery", message: "invalid stage status", stageFile: null }),
+    consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
+  });
+
+  assert.equal(summary.status, "blocked");
 });
 
 test("historical Naver registration uses exact public EOD values and never reconstructs pre-open", async () => {

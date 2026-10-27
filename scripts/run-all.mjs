@@ -11,6 +11,7 @@ const STAGES = Object.freeze([
   "open-settlement",
   "close-settlement",
 ]);
+const KNOWN_STAGE_STATUSES = new Set(["blocked", "degraded", "partial", "ready", "no_data", "pending", "planned"]);
 
 function isIsoDate(value) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(value || ""))) return false;
@@ -85,13 +86,71 @@ function stagePlan(runDate, startedAt) {
   });
 }
 
-function overallStatus(results) {
-  const executed = results.filter((result) => result.executed || result.stage === "consistency");
-  if (executed.some((result) => result.status === "blocked")) return "blocked";
-  if (executed.some((result) => result.status === "degraded")) return "degraded";
-  if (results.some((result) => result.status === "pending")) return "partial";
-  if (executed.some((result) => ["no_data", "partial"].includes(result.status))) return "partial";
-  return "ready";
+function stageLabel(result) {
+  return `${result?.stage || "unknown"}=${result?.status || "missing"}`;
+}
+
+function overallDecision(results) {
+  const invalid = results.filter((result) => !result || typeof result.status !== "string" || !KNOWN_STAGE_STATUSES.has(result.status));
+  const executed = results.filter((result) => result?.executed || result?.stage === "consistency");
+  const pending = results.filter((result) => result?.status === "pending" && !result?.executed);
+  const unexpectedNonReady = results.filter((result) => !result?.executed
+    && !["pending", "planned", "ready"].includes(result?.status));
+  const executedNonReady = executed.filter((result) => result.status !== "ready");
+  const executedStagesReady = executedNonReady.length === 0 && invalid.length === 0;
+
+  if (invalid.length > 0) {
+    return {
+      status: "blocked",
+      reason: `Unknown or missing stage status: ${invalid.map(stageLabel).join(", ")}.`,
+      executedStagesReady: false,
+      pendingOnlyPartial: false,
+      commitAllowed: false,
+    };
+  }
+  if (unexpectedNonReady.length > 0) {
+    return {
+      status: "blocked",
+      reason: `Non-executed stage has an invalid non-ready status: ${unexpectedNonReady.map(stageLabel).join(", ")}.`,
+      executedStagesReady: false,
+      pendingOnlyPartial: false,
+      commitAllowed: false,
+    };
+  }
+  if (executed.some((result) => result.status === "blocked")) {
+    return {
+      status: "blocked",
+      reason: `Executed stage(s) returned blocked: ${executedNonReady.map(stageLabel).join(", ")}.`,
+      executedStagesReady: false,
+      pendingOnlyPartial: false,
+      commitAllowed: false,
+    };
+  }
+  if (!executedStagesReady) {
+    return {
+      status: "degraded",
+      reason: `Executed stage(s) were not ready: ${executedNonReady.map(stageLabel).join(", ")}.`,
+      executedStagesReady: false,
+      pendingOnlyPartial: false,
+      commitAllowed: false,
+    };
+  }
+  if (pending.length > 0) {
+    return {
+      status: "partial",
+      reason: "Only pending stage(s) remain; every executed stage returned ready.",
+      executedStagesReady: true,
+      pendingOnlyPartial: true,
+      commitAllowed: true,
+    };
+  }
+  return {
+    status: "ready",
+    reason: "All eligible stages returned ready.",
+    executedStagesReady: true,
+    pendingOnlyPartial: false,
+    commitAllowed: true,
+  };
 }
 
 async function verifyFinalState(runDate, runId, sourceTimestamp, executedStages) {
@@ -135,9 +194,13 @@ async function appendSummary(summary) {
   const lines = [
     "### KOSPI run all now",
     `- overall: \`${summary.status}\``,
+    `- overall reason: ${summary.overallReason || summary.reason || "not provided"}`,
     `- run date: \`${summary.runDate}\``,
     `- run id: \`${summary.runId}\``,
     `- source timestamp: \`${summary.sourceTimestamp}\``,
+    `- executed stages ready: \`${summary.executedStagesReady}\``,
+    `- pending-only partial: \`${summary.pendingOnlyPartial}\``,
+    `- commit allowed: \`${summary.commitAllowed}\``,
     "",
     "| order | stage | status | execution | reason |",
     "| ---: | --- | --- | --- | --- |",
@@ -162,18 +225,19 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
   };
 
   if (options.runDate > currentDate) {
-    const summary = { ...base, status: "blocked", reason: "future_date", collection: "skipped", stages: STAGES.map((stage) => ({ stage, status: "blocked", eligible: false, executed: false, reason: "Future run dates are blocked; no collection or snapshot write is allowed." })) };
+    const summary = { ...base, status: "blocked", reason: "future_date", overallReason: "future_date: future run dates are blocked; no collection or snapshot write is allowed.", executedStagesReady: false, pendingOnlyPartial: false, commitAllowed: false, collection: "skipped", stages: STAGES.map((stage) => ({ stage, status: "blocked", eligible: false, executed: false, reason: "Future run dates are blocked; no collection or snapshot write is allowed." })) };
     await appendSummary(summary);
     return summary;
   }
   if (market.status !== "run") {
-    const summary = { ...base, status: "blocked", reason: market.reason, policy: "market_closed", marketState: "market_closed", collection: "skipped", market, stages: STAGES.map((stage) => ({ stage, status: "blocked", eligible: false, executed: false, reason: `market_closed: ${market.message} No collection or snapshot write is allowed.` })) };
+    const summary = { ...base, status: "blocked", reason: market.reason, overallReason: `${market.reason}: ${market.message} No collection or snapshot write is allowed.`, executedStagesReady: false, pendingOnlyPartial: false, commitAllowed: false, policy: "market_closed", marketState: "market_closed", collection: "skipped", market, stages: STAGES.map((stage) => ({ stage, status: "blocked", eligible: false, executed: false, reason: `market_closed: ${market.message} No collection or snapshot write is allowed.` })) };
     await appendSummary(summary);
     return summary;
   }
   const plan = stagePlan(options.runDate, options.runStartedAt);
   if (options.dryRun) {
-    const summary = { ...base, status: overallStatus(plan), mode: "plan_only", stages: plan };
+    const decision = overallDecision(plan);
+    const summary = { ...base, ...decision, mode: "plan_only", stages: plan };
     await appendSummary(summary);
     return summary;
   }
@@ -225,9 +289,17 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     executed: false,
     message: planned.reason,
   });
-  const consistency = await consistencyChecker(options.runDate, options.runId, options.attemptedAt, executedStages);
+  let consistency;
+  try {
+    consistency = await consistencyChecker(options.runDate, options.runId, options.attemptedAt, executedStages);
+    if (!consistency || typeof consistency.status !== "string" || !KNOWN_STAGE_STATUSES.has(consistency.status)) {
+      consistency = { status: "blocked", message: "Final consistency check returned an empty or unknown status." };
+    }
+  } catch (error) {
+    consistency = { status: "blocked", message: `Final consistency check failed: ${error.message}` };
+  }
   if (consistency.status !== "ready") stages.push({ stage: "consistency", status: consistency.status, executed: true, message: consistency.message });
-  const summary = { ...base, status: overallStatus(stages), stages };
+  const summary = { ...base, ...overallDecision(stages), stages };
   await appendSummary(summary);
   return summary;
 }
@@ -236,8 +308,13 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   runAll().then(async (summary) => {
     if (summary.help) return;
     if (process.env.GITHUB_OUTPUT) {
+      const outputReason = String(summary.overallReason || summary.reason || "").replaceAll("\r", "").replaceAll("\n", " ");
       await writeFile(process.env.GITHUB_OUTPUT, [
         `overall_status=${summary.status}`,
+        `overall_reason=${outputReason}`,
+        `executed_stages_ready=${summary.executedStagesReady}`,
+        `pending_only_partial=${summary.pendingOnlyPartial}`,
+        `commit_allowed=${summary.commitAllowed}`,
         `run_date=${summary.runDate}`,
         `run_id=${summary.runId}`,
         `source_timestamp=${summary.sourceTimestamp}`,

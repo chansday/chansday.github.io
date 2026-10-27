@@ -35,6 +35,7 @@ jobs:
         id: run-context
         shell: bash
         run: |
+          set -euo pipefail
           run_started_at="$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
           case "$run_started_at" in
             ????-??-??T??:??:??.???Z) ;;
@@ -44,14 +45,17 @@ jobs:
           echo "KOSPI_RUN_STARTED_AT=$run_started_at" >> "$GITHUB_ENV"
 
       - name: Check out repository
+        id: checkout
         uses: actions/checkout@v4
 
       - name: Set up Node.js
+        id: setup-node
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Validate the static contract
+        id: static-contract
         run: npm test && npm run check && npm run collection:audit
 
       - name: Run all KOSPI stages sequentially
@@ -60,7 +64,20 @@ jobs:
         run: node scripts/run-all.mjs --run-date "${{ inputs.run_date }}" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.run-context.outputs.run_started_at }}" --run-id "$KOSPI_RUN_ID"
 
       - name: Commit final run state once
-        if: always() && steps.run-all.outcome != 'skipped'
+        id: commit
+        if: >-
+          always() &&
+          steps.run-context.outcome == 'success' &&
+          steps.checkout.outcome == 'success' &&
+          steps.setup-node.outcome == 'success' &&
+          steps.static-contract.outcome == 'success' &&
+          steps.run-all.outcome == 'success' &&
+          steps.run-all.outputs.executed_stages_ready == 'true' &&
+          steps.run-all.outputs.commit_allowed == 'true' &&
+          (
+            steps.run-all.outputs.overall_status == 'ready' ||
+            (steps.run-all.outputs.overall_status == 'partial' && steps.run-all.outputs.pending_only_partial == 'true')
+          )
         shell: bash
         run: |
           if git diff --quiet -- data/latest-snapshot.json data/runs; then
@@ -77,8 +94,60 @@ jobs:
         if: always()
         shell: bash
         run: |
-          if [ "${{ steps.run-all.outputs.overall_status }}" = "blocked" ] || [ "${{ steps.run-all.outputs.overall_status }}" = "degraded" ]; then
-            echo "KOSPI run all result: ${{ steps.run-all.outputs.overall_status }}" >&2
+          if [ "${{ steps.run-context.outcome }}" != "success" ]; then
+            echo "Runner timestamp capture failed or was skipped." >&2
             exit 1
           fi
-          echo "KOSPI run all result: ${{ steps.run-all.outputs.overall_status }} (pending stages are an expected normal outcome when their cutoff has not arrived)."
+          if [ "${{ steps.checkout.outcome }}" != "success" ] || [ "${{ steps.setup-node.outcome }}" != "success" ]; then
+            echo "Repository checkout or Node.js setup failed or was skipped." >&2
+            exit 1
+          fi
+          if [ "${{ steps.static-contract.outcome }}" != "success" ]; then
+            echo "Static contract validation failed or was skipped; run-all did not execute." >&2
+            exit 1
+          fi
+          if [ "${{ steps.run-all.outcome }}" = "skipped" ]; then
+            echo "Run-all stage was skipped." >&2
+            exit 1
+          fi
+          status="${{ steps.run-all.outputs.overall_status }}"
+          case "$status" in
+            ready)
+              if [ "${{ steps.run-all.outputs.executed_stages_ready }}" != "true" ] || [ "${{ steps.run-all.outputs.commit_allowed }}" != "true" ]; then
+                echo "Ready overall status did not satisfy the executed-stage commit gate." >&2
+                exit 1
+              fi
+              if [ "${{ steps.run-all.outcome }}" != "success" ]; then
+                echo "Run-all step failed for status $status." >&2
+                exit 1
+              fi
+              if [ "${{ steps.commit.outcome }}" != "success" ]; then
+                echo "Final snapshot commit failed or was skipped for status $status." >&2
+                exit 1
+              fi
+              echo "KOSPI run all result: $status."
+              ;;
+            partial)
+              if [ "${{ steps.run-all.outputs.pending_only_partial }}" != "true" ] || [ "${{ steps.run-all.outputs.executed_stages_ready }}" != "true" ] || [ "${{ steps.run-all.outputs.commit_allowed }}" != "true" ]; then
+                echo "Partial overall status is not pending-only or an executed stage was not ready." >&2
+                exit 1
+              fi
+              if [ "${{ steps.run-all.outcome }}" != "success" ]; then
+                echo "Run-all step failed for status $status." >&2
+                exit 1
+              fi
+              if [ "${{ steps.commit.outcome }}" != "success" ]; then
+                echo "Final snapshot commit failed or was skipped for status $status." >&2
+                exit 1
+              fi
+              echo "KOSPI run all result: $status (pending stages are the only non-executed stages; every executed stage was ready)."
+              ;;
+            blocked|degraded|no_data)
+              echo "KOSPI run all result: $status" >&2
+              exit 1
+              ;;
+            *)
+              echo "KOSPI run all returned an empty or unknown overall_status: '$status'" >&2
+              exit 1
+              ;;
+          esac

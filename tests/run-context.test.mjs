@@ -54,12 +54,18 @@ test("public-csv no longer rejects a manual forecast solely because a schedule c
   assert.doesNotMatch(runner, /cutoff|deadline.*forecast|forecast.*deadline/i);
 });
 
-test("run-now and fixed workflows use the crawl provider and forward the caller run start", async () => {
+test("manual and fixed workflows generate the run start on the runner", async () => {
   const runNow = await readFile(new URL("../.github/workflows/run-now.yml", import.meta.url), "utf8");
   const runner = await readFile(new URL("../.github/workflows/_run-stage.yml", import.meta.url), "utf8");
   const fixed = await readFile(new URL("../.github/workflows/forecast.yml", import.meta.url), "utf8");
   assert.match(runNow, /provider:\s*naver-crawl/);
   assert.match(fixed, /provider:\s*naver-crawl/);
-  assert.match(runner, /--run-started-at.*inputs\.run_started_at/);
-  assert.match(runner, /--attempted-at.*inputs\.run_started_at/);
+  assert.doesNotMatch(runNow, /github\.run_started_at/);
+  assert.doesNotMatch(fixed, /github\.run_started_at/);
+  assert.doesNotMatch(runner, /inputs\.run_started_at/);
+  assert.match(runner, /Capture actual runner start timestamp/);
+  assert.match(runner, /echo "run_started_at=\$run_started_at" >> "\$GITHUB_OUTPUT"/);
+  assert.match(runner, /echo "KOSPI_RUN_STARTED_AT=\$run_started_at" >> "\$GITHUB_ENV"/);
+  assert.match(runner, /--run-started-at "\$\{\{ steps\.capture-run-context\.outputs\.run_started_at \}\}"/);
+  assert.match(runner, /--attempted-at "\$\{\{ steps\.capture-run-context\.outputs\.run_started_at \}\}"/);
 });

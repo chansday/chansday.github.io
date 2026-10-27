@@ -95,20 +95,63 @@ test("feature workflows expose input-free buttons and route through the shared g
     assert.match(workflow, new RegExp(`stage: ${stage}`));
     assert.match(workflow, /provider: naver-crawl/);
     assert.doesNotMatch(workflow, /inputs:/);
+    assert.doesNotMatch(workflow, /github\.run_started_at/);
     assert.match(workflow, /uses: \.\/\.github\/workflows\/_run-stage\.yml/);
   }
   const shared = await readFile(new URL("_run-stage.yml", workflowRoot), "utf8");
   assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("Run resolved KOSPI stage"));
-  assert.match(shared, /run_started_at:/);
-  assert.match(shared, /inputs\.run_started_at/);
+  assert.match(shared, /Capture actual runner start timestamp/);
+  assert.match(shared, /GITHUB_OUTPUT/);
+  assert.match(shared, /GITHUB_ENV/);
+  assert.doesNotMatch(shared, /inputs\.run_started_at/);
   assert.match(shared, /scripts\/run-context\.mjs/);
   const runNow = await readFile(new URL("run-now.yml", workflowRoot), "utf8");
   assert.match(runNow, /auto_stage: true/);
-  assert.match(runNow, /run_started_at: \$\{\{ github\.run_started_at \}\}/);
+  assert.doesNotMatch(runNow, /github\.run_started_at/);
   assert.match(runNow, /uses: \.\/\.github\/workflows\/_run-stage\.yml/);
   assert.match(shared, /npm test && npm run check/);
   assert.match(shared, /no_data\/partial\/degraded\/blocked/);
+  assert.match(shared, /steps\.stage\.outcome.*success/);
+  assert.match(shared, /steps\.stage\.outputs\.status == 'ready'/);
+  assert.match(shared, /steps\.capture-run-context\.outcome == 'success'/);
+  assert.match(shared, /steps\.capture-run-context\.outputs\.run_started_at != ''/);
+  assert.match(shared, /steps\.checkout\.outcome == 'success'/);
+  assert.match(shared, /steps\.setup-node\.outcome == 'success'/);
+  assert.match(shared, /steps\.validate-run-context\.outcome == 'success'/);
+  assert.match(shared, /-z "\$run_started_at"/);
+  assert.match(shared, /\?\?\?\?-\?\?-\?\?T\?\?:\?\?:\?\?\.\?\?\?Z/);
+  assert.doesNotMatch(shared, /steps\.stage\.outcome == 'failure'/);
+  assert.match(shared, /steps\.market-day\.outcome.*success/);
   assert.match(shared, /git push/);
+});
+
+test("a non-ready stage exposes its status and cannot satisfy the snapshot commit gate", async () => {
+  const workflow = await readFile(new URL("../.github/workflows/_run-stage.yml", import.meta.url), "utf8");
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-stage-no-commit-"));
+  const outputPath = join(tempRoot, "github-output");
+  const script = fileURLToPath(new URL("../scripts/update-results.mjs", import.meta.url));
+  try {
+    await assert.rejects(
+      execFileAsync(process.execPath, [
+        script,
+        "--mode", "forecast",
+        "--provider", "none",
+        "--run-date", "2026-10-27",
+        "--run-started-at", "2026-10-27T00:15:00.000Z",
+        "--attempted-at", "2026-10-27T00:15:00.000Z",
+      ], {
+        cwd: tempRoot,
+        env: { ...process.env, GITHUB_OUTPUT: outputPath, KOSPI_RUN_ID: "test-run.1" },
+      }),
+      (error) => error.code === 2 || error.status === 2,
+    );
+    assert.match(await readFile(outputPath, "utf8"), /^status=no_data\r?$/m);
+    assert.match(workflow, /steps\.stage\.outcome == 'success'/);
+    assert.match(workflow, /steps\.stage\.outputs\.status == 'ready'/);
+    assert.doesNotMatch(workflow, /steps\.stage\.outcome == 'failure'/);
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
 });
 
 test("run all now exposes only run_date and commits the final state once", async () => {
@@ -120,6 +163,22 @@ test("run all now exposes only run_date and commits the final state once", async
   assert.doesNotMatch(workflow, /inputs:\s*\n\s+stage:/);
   assert.match(workflow, /KOSPI_RUN_ID: \$\{\{ github\.run_id \}\}\.\$\{\{ github\.run_attempt \}\}/);
   assert.match(workflow, /KOSPI_RUN_DATE: \$\{\{ inputs\.run_date \}\}/);
+  assert.match(workflow, /Capture actual run start timestamp/);
+  assert.match(workflow, /echo "run_started_at=\$run_started_at" >> "\$GITHUB_OUTPUT"/);
+  assert.match(workflow, /echo "KOSPI_RUN_STARTED_AT=\$run_started_at" >> "\$GITHUB_ENV"/);
+  assert.doesNotMatch(workflow, /KOSPI_RUN_STARTED_AT: \$\{\{ github\.run_started_at \}\}/);
+  assert.match(workflow, /--run-started-at "\$\{\{ steps\.run-context\.outputs\.run_started_at \}\}"/);
+  assert.match(workflow, /steps\.run-all\.outcome.*skipped/);
+  assert.match(workflow, /partial\)/);
+  assert.match(workflow, /ready\)/);
+  assert.match(workflow, /blocked\|degraded/);
+  assert.match(workflow, /empty or unknown overall_status/);
+  assert.match(workflow, /outputs\.overall_status == 'ready'/);
+  assert.match(workflow, /outputs\.overall_status == 'partial'/);
+  assert.match(workflow, /outputs\.pending_only_partial == 'true'/);
+  assert.match(workflow, /outputs\.executed_stages_ready == 'true'/);
+  assert.match(workflow, /outputs\.commit_allowed == 'true'/);
+  assert.match(workflow, /only non-executed stages; every executed stage was ready/);
   assert.match(workflow, /group: kospi-signal-board-pipeline/);
   assert.match(workflow, /git add data\/latest-snapshot\.json data\/runs/);
   assert.equal((workflow.match(/git commit -m/g) || []).length, 1);
