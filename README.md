@@ -8,7 +8,7 @@
 
 + 종목 범위는 운영 provider에서 KOSPI 정규시장 보통주를 기본으로 합니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
 - 가격 기준은 provider가 확인한 KOSPI 정규장 공식 시작가·종가이며 통화는 KRW, 시간대는 `Asia/Seoul`입니다. 조정주가·호가·추정값을 자동으로 섞지 않습니다.
-- `expected_open`, `expected_return`은 09:00 시작가 목표를 위한 장전 기록이고 `actual_open`, `actual_return`, `error`는 09:00 시가 정산 필드입니다. `actual_return`은 전일 종가→실제 시가 평가용이며, `session_return`은 실제 시가→실제 종가 장중 수익률입니다. `actual_close`는 15:30 종가 정산용이며, 시작가 테스트에서는 `expected_close`를 `null`로 둡니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
+- `expected_return = expected_close / expected_open - 1`은 예상 시가와 예상 종가가 모두 있을 때만 계산합니다. 예상 종가 모델이 없으면 `expected_return`과 `error`는 `null`/`no_data`입니다. `session_return = actual_close / actual_open - 1`은 실제 시가→실제 종가 기준입니다. `intraday_reference_return`은 별도 실행시점 참고값이며 `expected_return`과 구분합니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
 - Naver 공개 웹 크롤링은 출처와 비공식·지연 가능성을 화면과 snapshot metadata에 표시하며, 403/429/CAPTCHA·challenge·HTML 응답은 즉시 중단합니다. HTML 우회, rate-limit 우회, 무한 재시도는 하지 않습니다.
@@ -62,9 +62,9 @@
 - 사용 필드: `openPriceRaw`, `closePriceRaw`, `localTradedAt`, `marketStatus`, `stockName`, `symbolCode` (가능한 경우 전일 대비 원시값과 누적 거래량도 계산 보조용으로 기록)
 - 각 행에 `quote_at`과 `quote_age_seconds`, `market_status`를 보존하고, source metadata에 `retrieved_at`, 요청 수, freshness max age, universe/quote endpoint와 지연 가능성을 기록합니다.
 - 장전(`KST < 09:00`): 현재 날짜의 신선한 `openPriceRaw`가 있을 때만 `expected_open`을 계산합니다. 없으면 전일 종가로 예상값을 합성하지 않고 `no_data`입니다.
-- 장중(`09:00 ≤ KST < 15:30`): 신선한 `openPriceRaw`를 `actual_open`으로 저장하고 전일 대비 실제 수익률을 계산합니다.
+- 장중(`09:00 ≤ KST < 15:30`): 신선한 `openPriceRaw`를 `actual_open`으로 저장합니다.
 - 장마감 후(`KST ≥ 15:30`): 당일 `openPriceRaw`와 `closePriceRaw`를 실제 시가·종가로 저장합니다. 장마감 quote의 허용 max age는 별도로 검증합니다.
-- 수동 `run-all`이 오늘 장중에 시작되면 `update-results`/`analysis`/`forecast`도 장중 신선한 `closePriceRaw` current quote를 수집합니다. 이 경로의 `expected_open`은 09:00 전 예측이 아니라 실행 시점 current-quote baseline이며, `openPriceRaw`는 `open-settlement`에서만 `actual_open`으로 기록합니다. `close-settlement`는 15:30 KST 이후에만 실행됩니다. 장전 수동 실행은 기존대로 `openPriceRaw`가 없으면 `no_data`입니다.
+- 수동 `run-all`이 오늘 장중에 시작되면 `update-results`/`analysis`/`forecast`도 장중 신선한 `closePriceRaw` current quote를 수집합니다. 이 경로의 `expected_open`은 09:00 전 예측이 아니라 실행 시점 current-quote baseline이며, `intraday_reference_return`은 별도 실행시점 참고값으로만 기록하고 `expected_return`으로 사용하지 않습니다. `openPriceRaw`는 `open-settlement`에서만 `actual_open`으로 기록합니다. `close-settlement`는 15:30 KST 이후에만 실행됩니다. 장전 수동 실행은 기존대로 `openPriceRaw`가 없으면 `no_data`입니다.
 - `run-started-at`은 단계 eligibility와 target 거래일을 정하는 기준시각이고, `meta.source.retrieved_at`은 각 provider 요청이 실제로 수집된 시각입니다. 두 시각을 동일한 값으로 가장하지 않으며, Naver `localTradedAt`은 실제 수집시각보다 최대 5초 앞선 서버 clock skew만 허용합니다. 그 밖의 stale·missing·다른 날짜 timestamp는 계속 `degraded`/`no_data`입니다.
 - Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 이 값은 source metadata에 그대로 보존합니다. fresh·current-day·schema-valid quote는 operational `ready`로 저장하되 `meta.source_warning`과 pipeline/job summary에 라이선스 미확인 경고를 남깁니다. stale·missing·out-of-date timestamp, HTTP/parse failure는 계속 `no_data`/`degraded`/`blocked`로 처리되어 run-all commit을 허용하지 않습니다.
 
@@ -96,7 +96,7 @@
 
 `data/date-index.json`은 [`scripts/generate-date-index.mjs`](scripts/generate-date-index.mjs)가 `data/runs` 및 mode별 fixture/replay/backfill 폴더를 스캔해 생성합니다. 새 run stage를 추가할 때는 이 인덱스를 갱신하고, 브라우저는 mode별 실제 경로를 다시 읽습니다. 달력은 색상뿐 아니라 `결과 있음·조회 중·미수집·휴장일·오류` 텍스트, `aria-selected`, `aria-disabled`, `aria-live`로 상태를 전달합니다. 모바일에서는 860px 이하에서 제목·달력·컨텍스트가 줄바꿈되고 달력 폭은 viewport 안으로 제한됩니다.
 
-화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. 화면의 `실제 수익률`은 모든 종목에서 실제 시가→실제 종가로 계산하며, `평가용 시가 수익률`은 전일 종가→실제 시가로 평가엔진과 오차 계산에 사용합니다. fallback에서는 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `session_return`, `error`를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
+화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `예상 수익률`은 예상 시가→예상 종가가 확인된 경우에만 표시하며, `실제 장중 수익률`은 실제 시가→실제 종가로 계산합니다. fallback에서는 실제 run의 필드를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
 historical baseline은 직전 5개 거래일의 공개 일별 종가만 사용합니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다. `features`에는 전일 수익률, 최근 3개 수익률 평균(momentum), 최근 4개 수익률의 모집단 표준편차(volatility)를 함께 저장합니다.
 
@@ -105,15 +105,15 @@ forecast input through 2026-10-22:
   returns         = each prior close / previous close - 1
   momentum        = mean(last 3 daily returns)
   volatility      = population standard deviation(last 4 daily returns)
-  expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5%, +5%)
-  expected_open   = round(prior_close × (1 + expected_return / 100), 2)
-  expected_close  = null (this test targets the 09:00 open)
-  actual_return   = round((actual_open / prior_close - 1) × 100, 2)
-  session_return  = round((actual_close / actual_open - 1) × 100, 2)
-  error           = actual_return - expected_return
+  open_signal     = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5%, +5%)
+  expected_open   = round(prior_close × (1 + open_signal / 100), 2)
+  expected_close  = null (no close forecast is available from this input)
+  expected_return = null (expected_close is unavailable)
+  session_return  = actual_close / actual_open - 1
+  error           = null (expected_return is unavailable)
 ```
 
-2026-10-22 forecast는 `10-15, 10-16, 10-19, 10-20, 10-21`, 2026-10-23 forecast는 `10-16, 10-19, 10-20, 10-21, 10-22` 공개 daily CSV를 사용합니다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않습니다. `expected_return`은 더 이상 0% 고정이 아니지만, 이 값은 장전 호가·예상체결가·호가잔량을 사용하지 않은 설명 가능한 사후 baseline입니다. 당시 08:20에 실제로 게시된 예측이 아니고 과거 운영 성과나 수익을 보장하지 않습니다. `confidence`는 pre-open quote 부재 정책에 따라 `null`입니다.
+2026-10-22 forecast는 `10-15, 10-16, 10-19, 10-20, 10-21`, 2026-10-23 forecast는 `10-16, 10-19, 10-20, 10-21, 10-22` 공개 daily CSV를 사용합니다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않습니다. 이 입력에는 예상 종가 모델이 없으므로 `expected_close`와 `expected_return`은 `null`입니다. 당시 08:20에 실제로 게시된 예측이 아니고 과거 운영 성과나 수익을 보장하지 않습니다. `confidence`는 pre-open quote 부재 정책에 따라 `null`입니다.
 
 원본을 다시 수집하고 두 스냅샷을 재생성하는 명령은 다음과 같습니다. 실제 API 키·주문·자동매매는 필요하지 않습니다.
 
@@ -145,7 +145,7 @@ adapter는 단일 HTTPS JSON endpoint만 사용하고, redirect를 거부하며,
 
 실제 API 키는 코드·fixture·snapshot에 넣지 않습니다. 향후 provider가 인증을 요구할 경우에만 GitHub Actions Secret `KOSPI_PROVIDER_API_KEY`를 사용하며, 현재 `public-json` adapter는 키를 사용하지 않습니다.
 
-운영 단계 저장은 `node scripts/update-results.mjs --mode <stage> --run-date YYYY-MM-DD`로 수행합니다. 기본 단계 시각은 KST 07:00, 08:00, 08:20, 09:00, 15:30으로 고정되어 동일 입력 재실행 시 JSON 내용이 달라지지 않습니다. 09:00은 `actual_open`/`actual_return`만, 15:30은 `actual_close`/`session_return`/`actual_volume`을 이전 단계에 병합하며 expected 필드는 보존합니다. `--dry-run`은 파일을 쓰지 않습니다.
+운영 단계 저장은 `node scripts/update-results.mjs --mode <stage> --run-date YYYY-MM-DD`로 수행합니다. 기본 단계 시각은 KST 07:00, 08:00, 08:20, 09:00, 15:30으로 고정되어 동일 입력 재실행 시 JSON 내용이 달라지지 않습니다. 09:00은 `actual_open`만, 15:30은 `actual_close`/`session_return`/`actual_volume`을 이전 단계에 병합하며 expected 필드는 보존합니다. `--dry-run`은 파일을 쓰지 않습니다.
 
 ### Baseline replay 모드
 
@@ -165,7 +165,7 @@ npm run replay:dry-run -- --date 2026-10-23
 
 ### 오늘 전용 backfill 테스트
 
-2026-10-26의 backfill 테스트는 운영 data/latest-snapshot.json, 실제 provider 설정, 평일 Actions cron과 엄격히 분리되어 있습니다. 다음 주소는 기존 합성 replay의 expected_open/close/return 및 actual_open/close/return/error 숫자 흐름을 테스트 입력으로 채운 화면을 엽니다.
+2026-10-26의 backfill 테스트는 운영 data/latest-snapshot.json, 실제 provider 설정, 평일 Actions cron과 엄격히 분리되어 있습니다. 다음 주소는 기존 합성 replay의 expected_open/close/return 및 actual_open/close/error 숫자 흐름을 테스트 입력으로 채운 화면을 엽니다.
 
 - https://chansday.github.io/?mode=backfill-test&date=2026-10-22
 - https://chansday.github.io/?mode=backfill-test&date=2026-10-23
@@ -192,7 +192,7 @@ npm run historical-test:verify
 
 파일은 `data/runs/historical-test/YYYY-MM-DD/{0700,0800,0820,0900,1530}.json`에 생성되며, 순서 변경 검증과 결과 보고서는 `docs/HISTORICAL_STAGE_VERIFICATION.md`에 기록합니다. 모든 파일은 `test_only=true`, `historical_test=true`이며 `data/latest-snapshot.json`을 갱신하지 않습니다.
 
-각 historical-test snapshot에는 화면이 평가 결과를 평면 필드 추측 없이 사용할 수 있도록 top-level `evaluation` 계약도 포함됩니다. `evaluation.target`은 `expected_return`(예측), `actual_return`(실제), `error`(오차)의 정규화된 필드 매핑과 `actual_return - expected_return` 공식을 선언합니다. `sample_count`, `evaluated_sample_count`, `missing_sample_count`, `evaluation_range`, MAE/RMSE/평균 오차 집계 및 `test_only=true`, `dataset=historical_test`를 함께 기록합니다. 07:00~08:20 단계는 평가 상태가 `pending`, 09:00 이후 정산 단계는 `evaluated`이며, 오차가 없는 행을 표본으로 세지 않습니다.
+각 historical-test snapshot에는 화면이 평가 결과를 평면 필드 추측 없이 사용할 수 있도록 top-level `evaluation` 계약도 포함됩니다. `evaluation.target`은 `expected_return`(예측), `session_return`(실제), `error`(오차)의 정규화된 필드 매핑과 `session_return - expected_return` 공식을 선언합니다. 현재 historical 입력에는 expected close가 없어 모든 단계가 `pending`이며, 두 값이 모두 존재하는 별도 snapshot만 `evaluated`가 됩니다. `sample_count`, `evaluated_sample_count`, `missing_sample_count`, `evaluation_range`, MAE/RMSE/평균 오차 집계 및 `test_only=true`, `dataset=historical_test`를 함께 기록합니다.
 
 원본 JSON의 `expected_open`, `expected_close`, `expected_return` 값은 저장 정밀도를 그대로 보존합니다. 화면 표시가 필요할 때만 `evaluation.display_policy`의 `maximum_fraction_digits=0`, `rounding=half_up` 정책을 사용해 소수점 없는 표시값을 만들며, 이 정책은 저장값·실제값·오차 계산을 변경하지 않습니다.
 

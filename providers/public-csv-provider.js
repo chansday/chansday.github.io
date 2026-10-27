@@ -2,6 +2,7 @@ import {
   createSourceMetadata,
   isProviderResult,
 } from "./provider-adapter.js";
+import { deriveSessionReturn } from "./evaluation-contract.js";
 
 const SOURCE_HOST = "aikstockdata.com";
 const DEFAULT_BASE_URL = "https://aikstockdata.com/data/public/daily";
@@ -260,38 +261,28 @@ function noData(message, source = null, status = "no_data", asOfDate = source?.s
   return { status, message, rows: [], source, asOfDate };
 }
 
-function deriveError(actualReturn, expectedReturn) {
-  return typeof actualReturn === "number" && typeof expectedReturn === "number"
-    ? Math.round((actualReturn - expectedReturn + Number.EPSILON) * 100) / 100
-    : null;
-}
-
 function makeRows(latest, prior, { includeClose = true } = {}) {
-  const priorBySymbol = new Map((prior?.rows || []).map((row) => [row.symbol, row]));
   const rows = latest.rows.map((row) => {
-    const previous = priorBySymbol.get(row.symbol);
-    const expectedReturn = null;
-    const actualReturn = previous?.close > 0 ? Math.round(((row.open / previous.close - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
-    const sessionReturn = includeClose && row.open > 0 ? Math.round(((row.close / row.open - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
+    const sessionReturn = includeClose ? deriveSessionReturn({ actual_open: row.open, actual_close: row.close }) : null;
     return {
       rank: null,
       symbol: row.symbol,
       name: row.name,
       expected_open: null,
       expected_close: null,
-      expected_return: expectedReturn,
+      expected_return: null,
       actual_open: row.open,
       actual_close: includeClose ? row.close : null,
-      actual_return: actualReturn,
+      actual_return: null,
       session_return: sessionReturn,
       actual_volume: row.volume,
-      error: deriveError(actualReturn, expectedReturn),
+      error: null,
       confidence: null,
       quality: "public_eod_observed",
       status: "valid",
     };
   });
-  rows.sort((a, b) => (b.actual_return ?? -Infinity) - (a.actual_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+  rows.sort((a, b) => (b.session_return ?? -Infinity) - (a.session_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
 }

@@ -1,4 +1,4 @@
-import { isEvaluationSummary } from "./evaluation-contract.js";
+import { evaluationRowStatus, isEvaluationSummary } from "./evaluation-contract.js";
 
 /**
  * Provider contract for the static KOSPI signal board.
@@ -31,6 +31,7 @@ export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "actual_volume",
   "prior_close",
   "session_return",
+  "intraday_reference_return",
   "features",
   "quote_at",
   "quote_age_seconds",
@@ -83,6 +84,7 @@ export function isRankingRow(row) {
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
   if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
   if (Object.hasOwn(row, "session_return") && !isFiniteOrNull(row.session_return)) return false;
+  if (Object.hasOwn(row, "intraday_reference_return") && !isFiniteOrNull(row.intraday_reference_return)) return false;
   if (Object.hasOwn(row, "quote_at") && row.quote_at !== null && typeof row.quote_at !== "string") return false;
   if (Object.hasOwn(row, "quote_age_seconds") && !isFiniteOrNull(row.quote_age_seconds)) return false;
   if (Object.hasOwn(row, "market_status") && row.market_status !== null && typeof row.market_status !== "string") return false;
@@ -179,7 +181,7 @@ export function isSnapshot(candidate) {
   if (candidate.meta.source !== null && !isSourceMetadata(candidate.meta.source)) return false;
   if (candidate.evaluation !== undefined && !isEvaluationSummary(candidate.evaluation)) return false;
   if (candidate.evaluation && candidate.evaluation.sample_count !== candidate.rows.length) return false;
-  if (candidate.evaluation && candidate.evaluation.evaluated_sample_count !== candidate.rows.filter((row) => typeof row.expected_return === "number" && typeof row.actual_return === "number" && typeof row.error === "number").length) return false;
+  if (candidate.evaluation && candidate.evaluation.evaluated_sample_count !== candidate.rows.filter((row) => evaluationRowStatus(row) === "evaluated").length) return false;
   if (["fixture", "replay", "backfill_test"].includes(candidate.mode) && candidate.meta.isDemo !== true) return false;
   if (candidate.mode === "backfill_test" && (candidate.meta.backfill !== true || candidate.provider?.id !== "backfill-test")) return false;
   if (candidate.mode === "historical_test" && (candidate.meta.historical_test !== true || candidate.meta.test_only !== true || candidate.provider?.id !== "historical-test")) return false;
@@ -200,6 +202,8 @@ export function emptyRow(overrides = {}) {
     actual_open: null,
     actual_close: null,
     actual_return: null,
+    session_return: null,
+    intraday_reference_return: null,
     error: null,
     confidence: null,
     quality: "no_data",

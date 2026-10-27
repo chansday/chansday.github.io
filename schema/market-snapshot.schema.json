@@ -167,10 +167,10 @@
           "required": ["prediction_field", "actual_field", "error_field", "unit", "error_formula"],
           "properties": {
             "prediction_field": { "const": "expected_return" },
-            "actual_field": { "const": "actual_return" },
+            "actual_field": { "const": "session_return" },
             "error_field": { "const": "error" },
             "unit": { "const": "percentage_points" },
-            "error_formula": { "const": "actual_return - expected_return" }
+            "error_formula": { "const": "session_return - expected_return" }
           },
           "additionalProperties": false
         },
@@ -260,6 +260,7 @@
         "actual_close": { "type": ["number", "null"] },
         "actual_return": { "type": ["number", "null"] },
         "session_return": { "type": ["number", "null"] },
+        "intraday_reference_return": { "type": ["number", "null"] },
         "error": { "type": ["number", "null"] },
         "actual_volume": { "type": ["number", "null"], "minimum": 0 },
         "prior_close": { "type": ["number", "null"], "minimum": 0 },

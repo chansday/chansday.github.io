@@ -25,7 +25,7 @@ function checkHistoricalSnapshot(snapshot, date) {
   if (!Array.isArray(snapshot.baseline?.input_dates) || snapshot.baseline.input_dates.length !== 5) errors.push("historical baseline input_dates must contain five sessions");
   if (!pipelineKeys.every((key) => snapshot.pipeline?.[key]?.status)) errors.push("pipeline stage status is incomplete");
 
-  if (snapshot.rows.every((row) => row.expected_return === 0)) errors.push("expected_return is zero for every row");
+  if (snapshot.rows.every((row) => row.expected_open === null)) errors.push("expected_open is missing for every row");
 
   for (const row of snapshot.rows) {
     if (seen.has(row.symbol)) errors.push(`duplicate symbol: ${row.symbol}`);
@@ -33,13 +33,14 @@ function checkHistoricalSnapshot(snapshot, date) {
     if (!(row.actual_open >= 0 && row.actual_close > 0 && row.actual_volume >= 0)) errors.push(`invalid observed value: ${row.symbol}`);
     if (row.actual_open === 0 || row.actual_volume === 0) zeroObservedCount += 1;
     if (!(row.prior_close > 0)) errors.push(`prior_close missing: ${row.symbol}`);
-    const derivedActualReturn = ((row.actual_open / row.prior_close) - 1) * 100;
-    if (Math.abs(derivedActualReturn - row.actual_return) > 0.011) errors.push(`actual_return mismatch: ${row.symbol}`);
     const derivedSessionReturn = row.actual_open > 0 ? ((row.actual_close / row.actual_open) - 1) * 100 : null;
     if (derivedSessionReturn === null ? row.session_return !== null : Math.abs(derivedSessionReturn - row.session_return) > 0.011) errors.push(`session_return mismatch: ${row.symbol}`);
-    const derivedExpectedReturn = ((row.expected_open / row.prior_close) - 1) * 100;
-    if (Math.abs(derivedExpectedReturn - row.expected_return) > 0.011) errors.push(`expected_return mismatch: ${row.symbol}`);
-    if (Math.abs((row.actual_return - row.expected_return) - row.error) > 0.011) errors.push(`error mismatch: ${row.symbol}`);
+    const derivedExpectedReturn = row.expected_open > 0 && typeof row.expected_close === "number"
+      ? ((row.expected_close / row.expected_open) - 1) * 100
+      : null;
+    if (derivedExpectedReturn === null ? row.expected_return !== null : Math.abs(derivedExpectedReturn - row.expected_return) > 0.011) errors.push(`expected_return mismatch: ${row.symbol}`);
+    const derivedError = derivedExpectedReturn !== null && row.session_return !== null ? row.session_return - derivedExpectedReturn : null;
+    if (derivedError === null ? row.error !== null : Math.abs(derivedError - row.error) > 0.011) errors.push(`error mismatch: ${row.symbol}`);
     if (!row.features || !Number.isFinite(row.features.momentum) || !Number.isFinite(row.features.volatility)) errors.push(`baseline features missing: ${row.symbol}`);
   }
   const ranks = snapshot.rows.map((row) => row.rank);

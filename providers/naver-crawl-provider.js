@@ -2,6 +2,7 @@ import {
   createSourceMetadata,
 } from "./provider-adapter.js";
 import { createPublicCsvProvider } from "./public-csv-provider.js";
+import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 
 const QUOTE_ENDPOINT = "https://polling.finance.naver.com/api/realtime/domestic/stock/";
 const UNIVERSE_ENDPOINT = "https://m.stock.naver.com/api/stocks/marketValue/KOSPI";
@@ -266,27 +267,27 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol) {
     : intradayExpectedStart !== null
       ? intradayExpectedStart
       : (existing?.expected_open ?? null);
-  const expectedReturn = phase === "before-open" || intradayExpectedStart !== null
-    ? percent(expectedOpen, quote.priorClose)
-    : (existing?.expected_return ?? null);
+  const expectedClose = existing?.expected_close ?? null;
+  const expectedReturn = deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose });
   const actualOpen = ["open-settlement", "close-settlement"].includes(stage) ? quote.openPrice : null;
   const actualClose = stage === "close-settlement" ? quote.closePrice : null;
-  const actualReturn = percent(actualOpen, quote.priorClose);
-  const sessionReturn = percent(actualClose, actualOpen);
+  const sessionReturn = deriveSessionReturn({ actual_open: actualOpen, actual_close: actualClose });
+  const intradayReferenceReturn = intradayExpectedStart !== null ? percent(intradayExpectedStart, quote.priorClose) : null;
   return {
     rank: null,
     symbol: quote.symbol,
     name: quote.name,
     expected_open: expectedOpen,
-    expected_close: existing?.expected_close ?? null,
+    expected_close: expectedClose,
     expected_return: expectedReturn,
     actual_open: actualOpen,
     actual_close: actualClose,
-    actual_return: actualReturn,
+    actual_return: null,
     session_return: sessionReturn,
+    ...(intradayReferenceReturn !== null ? { intraday_reference_return: intradayReferenceReturn } : {}),
     actual_volume: quote.volume,
     prior_close: quote.priorClose,
-    error: actualReturn !== null && expectedReturn !== null ? round(actualReturn - expectedReturn) : null,
+    error: deriveEvaluationError({ expected_open: expectedOpen, expected_close: expectedClose, actual_open: actualOpen, actual_close: actualClose }),
     confidence: null,
     quality: phase === "before-open"
       ? "naver_preopen_quote"
@@ -305,7 +306,7 @@ function isForecastStage(stage) {
 }
 
 function rankRows(rows, phase) {
-  const key = phase === "before-open" ? "expected_return" : phase === "after-close" ? "session_return" : "actual_return";
+  const key = phase === "before-open" ? "expected_return" : "session_return";
   rows.sort((a, b) => (b[key] ?? -Infinity) - (a[key] ?? -Infinity) || a.symbol.localeCompare(b.symbol));
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;

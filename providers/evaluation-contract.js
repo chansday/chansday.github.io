@@ -3,10 +3,10 @@ export const EVALUATION_DATASETS = Object.freeze(["operational", "historical_tes
 
 export const EVALUATION_TARGET = Object.freeze({
   prediction_field: "expected_return",
-  actual_field: "actual_return",
+  actual_field: "session_return",
   error_field: "error",
   unit: "percentage_points",
-  error_formula: "actual_return - expected_return",
+  error_formula: "session_return - expected_return",
 });
 
 export const EXPECTED_DISPLAY_POLICY = Object.freeze({
@@ -24,6 +24,26 @@ function round(value, digits = 4) {
   return Math.round((value + Number.EPSILON) * factor) / factor;
 }
 
+export function deriveExpectedReturn(row) {
+  return finite(row?.expected_open) && row.expected_open > 0 && finite(row?.expected_close)
+    ? round((row.expected_close / row.expected_open - 1) * 100, 2)
+    : null;
+}
+
+export function deriveSessionReturn(row) {
+  return finite(row?.actual_open) && row.actual_open > 0 && finite(row?.actual_close)
+    ? round((row.actual_close / row.actual_open - 1) * 100, 2)
+    : null;
+}
+
+export function deriveEvaluationError(row) {
+  const expectedReturn = deriveExpectedReturn(row);
+  const sessionReturn = deriveSessionReturn(row);
+  return finite(expectedReturn) && finite(sessionReturn)
+    ? round(sessionReturn - expectedReturn, 2)
+    : null;
+}
+
 function dateOrNull(value) {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null;
 }
@@ -33,8 +53,10 @@ function range(start, end) {
 }
 
 export function evaluationRowStatus(row) {
-  if (finite(row?.expected_return) && finite(row?.actual_return) && finite(row?.error)) return "evaluated";
-  if (finite(row?.expected_return)) return "pending";
+  const expectedReturn = deriveExpectedReturn(row);
+  const sessionReturn = deriveSessionReturn(row);
+  if (finite(expectedReturn) && finite(sessionReturn) && finite(row?.error)) return "evaluated";
+  if (finite(expectedReturn)) return "pending";
   return "pending";
 }
 

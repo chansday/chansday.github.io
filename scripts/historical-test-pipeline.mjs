@@ -2,7 +2,7 @@ import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isSnapshot } from "../providers/provider-adapter.js";
-import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
+import { buildEvaluationSummary, deriveEvaluationError, deriveSessionReturn } from "../providers/evaluation-contract.js";
 
 const SUPPORTED_DATES = ["2026-10-22", "2026-10-23"];
 const STAGES = [
@@ -59,22 +59,12 @@ function stageRows(sourceRows, currentStageIndex) {
       row.actual_close = null;
       row.session_return = null;
       row.actual_volume = null;
-      row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0
-        ? round((row.actual_open / row.prior_close - 1) * 100)
-        : null;
-      row.error = typeof row.actual_return === "number" && typeof row.expected_return === "number"
-        ? round(row.actual_return - row.expected_return)
-        : null;
+      row.actual_return = null;
+      row.error = null;
     } else {
-      row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0
-        ? round((row.actual_open / row.prior_close - 1) * 100)
-        : null;
-      row.session_return = typeof row.actual_open === "number" && typeof row.actual_close === "number" && row.actual_open > 0
-        ? round((row.actual_close / row.actual_open - 1) * 100)
-        : null;
-      row.error = typeof row.actual_return === "number" && typeof row.expected_return === "number"
-        ? round(row.actual_return - row.expected_return)
-        : null;
+      row.actual_return = null;
+      row.session_return = deriveSessionReturn(row);
+      row.error = deriveEvaluationError(row);
     }
     row.quality = currentStageIndex < 3 ? "historical_baseline_public_daily_pending_settlement" : currentStageIndex === 3 ? "historical_baseline_public_daily_open_settled" : "historical_baseline_public_daily_settled";
     row.status = "valid";
@@ -95,7 +85,7 @@ function buildStageSnapshot(source, date, stageIndex) {
     rows,
     baseline: {
       ...source.baseline,
-      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + expected_return / 100), 2); actual_return = actual_open / prior_close - 1; session_return = actual_close / actual_open - 1; error = actual_return - expected_return.",
+      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); open_signal = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + open_signal / 100), 2); expected_close and expected_return are null because this input has no close forecast; session_return = actual_close / actual_open - 1; error = session_return - expected_return when both values exist.",
     },
     evaluation: buildEvaluationSummary(rows, {
       testOnly: true,
@@ -117,7 +107,7 @@ function buildStageSnapshot(source, date, stageIndex) {
       data_classification: "test_only",
       evaluation_dataset: "historical_test",
       evaluation_test_only: true,
-      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close for evaluation; session_return is actual_close versus actual_open for intraday display; expected_open/expected_return are retrospective public-daily momentum/volatility baseline values; expected_close is null because this test targets the open.",
+      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is retained only for row-schema compatibility and is not calculated or displayed; session_return is actual_close versus actual_open; expected_open is a retrospective public-daily open baseline, while expected_close/expected_return/error are null because no close forecast is available.",
     },
     provider: {
       ...source.provider,

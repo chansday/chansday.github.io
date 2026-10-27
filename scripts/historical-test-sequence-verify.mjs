@@ -3,7 +3,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { isSnapshot } from "../providers/provider-adapter.js";
-import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
+import { buildEvaluationSummary, deriveEvaluationError, deriveSessionReturn } from "../providers/evaluation-contract.js";
 
 const DATES = ["2026-10-22", "2026-10-23"];
 const NORMAL_ORDER = ["0700", "0800", "0820", "0900", "1530"];
@@ -27,8 +27,8 @@ function settleRows(sourceRows, currentRows, stage) {
     }
     if (stage === "0900") {
       row.actual_open = sourceRow.actual_open;
-      row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0 ? round((row.actual_open / row.prior_close - 1) * 100) : null;
-      row.error = typeof row.actual_return === "number" && typeof row.expected_return === "number" ? round(row.actual_return - row.expected_return) : null;
+      row.actual_return = null;
+      row.error = deriveEvaluationError(row);
       row.actual_close = current.actual_close ?? null;
       row.session_return = current.session_return ?? null;
       row.actual_volume = current.actual_volume ?? null;
@@ -36,9 +36,9 @@ function settleRows(sourceRows, currentRows, stage) {
     if (stage === "1530") {
       row.actual_close = sourceRow.actual_close;
       row.actual_volume = sourceRow.actual_volume;
-      row.session_return = typeof row.actual_open === "number" && typeof row.actual_close === "number" && row.actual_open > 0 ? round((row.actual_close / row.actual_open - 1) * 100) : null;
-      row.actual_return = typeof row.actual_open === "number" && typeof row.prior_close === "number" && row.prior_close > 0 ? round((row.actual_open / row.prior_close - 1) * 100) : null;
-      row.error = typeof row.actual_return === "number" && typeof row.expected_return === "number" ? round(row.actual_return - row.expected_return) : null;
+      row.session_return = deriveSessionReturn(row);
+      row.actual_return = null;
+      row.error = deriveEvaluationError(row);
     }
     return row;
   });
@@ -55,7 +55,7 @@ function buildSnapshot(source, date, stage, sequence, rows) {
       dataset: "historical_test",
       asOfDate: date,
       forecastStage: "0820",
-      actualStage: ["0900", "1530"].includes(stage) ? "0900" : null,
+      actualStage: stage === "1530" ? "1530" : null,
       inputDates: source.baseline?.input_dates || [],
       note: "Sequence verification is test-only and isolated from operating snapshots.",
     }),
@@ -106,10 +106,10 @@ async function verifySequence(date, source, sequence, label) {
     assert.equal(snapshot.rows.map((row) => [row.symbol, row.expected_open, row.expected_return]).every((value, index) => JSON.stringify(value) === JSON.stringify(expected[index])), true, `${date}/${label}/${stage}: expected fields changed`);
   }
   const final = JSON.parse(await readFile(files.at(-1), "utf8"));
-  assert.equal(final.rows.every((row) => row.actual_open !== null && row.actual_close !== null && row.actual_return !== null && row.error !== null), true, `${date}/${label}: final settlement is incomplete`);
-  assert.equal(final.rows.every((row) => row.actual_return === round((row.actual_open / row.prior_close - 1) * 100)), true, `${date}/${label}: actual_return formula mismatch`);
-  assert.equal(final.rows.every((row) => row.session_return === (row.actual_open > 0 ? round((row.actual_close / row.actual_open - 1) * 100) : null)), true, `${date}/${label}: session_return formula mismatch`);
-  assert.equal(final.rows.every((row) => row.error === round(row.actual_return - row.expected_return)), true, `${date}/${label}: error formula mismatch`);
+  assert.equal(final.rows.every((row) => row.actual_open !== null && row.actual_close !== null), true, `${date}/${label}: final settlement is incomplete`);
+  assert.equal(final.rows.every((row) => row.actual_return === null), true, `${date}/${label}: actual_return must remain compatibility-only`);
+  assert.equal(final.rows.every((row) => row.session_return === deriveSessionReturn(row)), true, `${date}/${label}: session_return formula mismatch`);
+  assert.equal(final.rows.every((row) => row.error === deriveEvaluationError(row)), true, `${date}/${label}: error formula mismatch`);
   return { date, sequence, label, files, rows: final.rows.length, expected_preserved: true, actual_open_formula: true, error_formula: true };
 }
 

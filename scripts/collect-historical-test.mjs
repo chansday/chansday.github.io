@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
+import { deriveSessionReturn } from "../providers/evaluation-contract.js";
 
 const TEST_DATES = Object.freeze(["2026-10-22", "2026-10-23"]);
 const INPUT_DATES = Object.freeze(["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
@@ -134,14 +135,15 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
     const momentum = round(mean(returns.slice(-3)), 4);
     const volatility = round(standardDeviation(returns), 4);
     const rawExpectedReturn = MOMENTUM_WEIGHT * momentum - VOLATILITY_PENALTY * volatility;
-    const expectedReturn = round(clamp(rawExpectedReturn, -MAX_EXPECTED_RETURN, MAX_EXPECTED_RETURN), 2);
-    const expectedOpen = round(priorClose * (1 + expectedReturn / 100), 2);
+    const openSignal = round(clamp(rawExpectedReturn, -MAX_EXPECTED_RETURN, MAX_EXPECTED_RETURN), 2);
+    const expectedOpen = round(priorClose * (1 + openSignal / 100), 2);
     const expectedClose = null;
     const actualOpen = numeric(actualRow, "mkp", date);
     const actualClose = numeric(actualRow, "clpr", date);
     const actualVolume = numeric(actualRow, "trqu", date);
-    const actualReturn = round((actualOpen / priorClose - 1) * 100, 2);
-    const sessionReturn = actualOpen > 0 ? round((actualClose / actualOpen - 1) * 100, 2) : null;
+    const expectedReturn = null;
+    const actualReturn = null;
+    const sessionReturn = deriveSessionReturn({ actual_open: actualOpen, actual_close: actualClose });
     rows.push({
       rank: null,
       symbol,
@@ -155,14 +157,14 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       session_return: sessionReturn,
       actual_volume: actualVolume,
       prior_close: priorClose,
-      error: round(actualReturn - expectedReturn, 2),
+      error: null,
       confidence: null,
       quality: "historical_baseline_public_daily",
       features: { previous_return: previousReturn, momentum, volatility, lookback_sessions: LOOKBACK_SESSIONS },
       status: "valid",
     });
   }
-  rows.sort((a, b) => b.expected_return - a.expected_return || a.symbol.localeCompare(b.symbol));
+  rows.sort((a, b) => (b.expected_open ?? -Infinity) - (a.expected_open ?? -Infinity) || a.symbol.localeCompare(b.symbol));
   rows.forEach((row, index) => { row.rank = index + 1; });
 
   const source = sourceMetadata(actual.url, retrievedAt);
@@ -184,7 +186,7 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       lookback_sessions: LOOKBACK_SESSIONS,
       input_dates: priorDates,
       coefficients: { momentum_weight: MOMENTUM_WEIGHT, volatility_penalty: VOLATILITY_PENALTY, max_abs_expected_return: MAX_EXPECTED_RETURN },
-      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + expected_return / 100), 2); actual_return = actual_open / prior_close - 1; session_return = actual_close / actual_open - 1; error = actual_return - expected_return.",
+      formula: "previous_return = prior close / prior-prior close - 1; momentum = mean(last 3 daily returns); volatility = population standard deviation(last 4 daily returns); open_signal = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5); expected_open = round(prior_close × (1 + open_signal / 100), 2); expected_close and expected_return are null because this input has no close forecast; session_return = actual_close / actual_open - 1; error is null until both expected_return and session_return exist.",
       note: "This is a reproducible public-daily baseline generated after the fact because no historical 08:20 pre-open quote/order-book snapshot is available. It uses only the five prior trading-session daily closes, is not the historical 08:20 forecast, and must not be described as one.",
     },
     evaluation: buildEvaluationSummary(rows, {
@@ -194,7 +196,7 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       forecastStage: "0820",
       actualStage: "0900",
       inputDates: priorDates,
-      note: "Historical-test only. expected_return is the retrospective public-daily baseline; actual_return is the observed open return; error is actual_return - expected_return. This dataset is never an operating snapshot.",
+      note: "Historical-test only. The public-daily baseline can produce an expected_open but has no expected_close model, so expected_return and error are no_data. session_return is the observed actual_open-to-actual_close return. This dataset is never an operating snapshot.",
     }),
     pipeline: {
       previousResult: { status: "ready", attemptedAt: retrievedAt, provider_id: "historical-test", message: `Actual prior-session input through ${inputThroughDate} was collected.` },
@@ -212,7 +214,7 @@ function makeSnapshot(date, actual, priorDates, fetched, retrievedAt) {
       isDemo: false,
       historical_test: true,
       test_only: true,
-      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is 09:00 actual_open versus prior close for evaluation; session_return is actual_close versus actual_open for intraday display; expected_open/expected_return are retrospective public-daily momentum/volatility baseline values; expected_close is null because this test targets the open.",
+      actual_field_note: "actual_open/actual_close/actual_volume are observed source values; actual_return is retained only for row-schema compatibility and is not calculated or displayed; session_return is actual_close versus actual_open; expected_open is a retrospective public-daily open baseline, while expected_close/expected_return/error are null because no close forecast is available.",
       source_collection_date: retrievedAt.slice(0, 10),
       source_range: rangeNote,
       source_rows: rows.length,

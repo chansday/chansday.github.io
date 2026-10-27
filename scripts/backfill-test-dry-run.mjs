@@ -23,7 +23,7 @@ for (const date of dates) {
   assert.equal(backfill.meta?.backfill_source_replay_date, date);
   assert.equal(backfill.rows.length, replay.rows.length);
 
-  const fields = ["expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "actual_return", "error"];
+  const fields = ["expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "session_return", "error"];
   for (let index = 0; index < backfill.rows.length; index += 1) {
     for (const field of fields) assert.equal(backfill.rows[index][field], replay.rows[index][field], date + " row " + (index + 1) + " " + field + " diverged from replay");
     for (const field of fields) assert.equal(typeof backfill.rows[index][field], "number", date + " row " + (index + 1) + " " + field + " is not populated");

@@ -12,6 +12,7 @@ import { createFixtureProvider } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
 import { createNaverCrawlProvider } from "../providers/naver-crawl-provider.js";
+import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
 import { calculateRunContext } from "./run-context.mjs";
 
 export const MODES = {
@@ -25,7 +26,7 @@ export const MODES = {
 const NON_READY_STATUSES = new Set(["no_data", "partial", "degraded", "blocked"]);
 
 const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expected_return"]);
-const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open", "actual_return"]);
+const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open"]);
 const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "session_return", "actual_volume"]);
 
 export { calculateRunContext } from "./run-context.mjs";
@@ -145,21 +146,11 @@ async function appendJobSummary(summary) {
 }
 
 function derivedError(row) {
-  return typeof row.actual_return === "number" && typeof row.expected_return === "number"
-    ? Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100
-    : null;
-}
-
-function derivedActualReturn(row) {
-  return typeof row.actual_open === "number" && row.actual_open >= 0 && typeof row.prior_close === "number" && row.prior_close > 0
-    ? Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100
-    : null;
+  return deriveEvaluationError(row);
 }
 
 function derivedSessionReturn(row) {
-  return typeof row.actual_open === "number" && row.actual_open > 0 && typeof row.actual_close === "number"
-    ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100
-    : null;
+  return deriveSessionReturn(row);
 }
 
 export function mergeRows(existingRows, incomingRows, mode) {
@@ -167,15 +158,19 @@ export function mergeRows(existingRows, incomingRows, mode) {
   const incomingSymbols = new Set(incomingRows.filter((row) => row.symbol).map((row) => row.symbol));
   const mergedRows = incomingRows.map((incoming) => {
     const existing = incoming.symbol ? bySymbol.get(incoming.symbol) : null;
-    if (!existing) return incoming;
+    if (!existing) {
+      const normalized = { ...incoming, expected_return: deriveExpectedReturn(incoming) };
+      normalized.error = derivedError(normalized);
+      return normalized;
+    }
 
     if (mode === "open-settlement") {
       const merged = { ...existing };
       for (const field of ["rank", "symbol", "name", "quality", "status", ...OPEN_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
-      const actualReturn = derivedActualReturn(merged);
-      if (actualReturn !== null) merged.actual_return = actualReturn;
+      const expectedReturn = deriveExpectedReturn(merged);
+      merged.expected_return = expectedReturn;
       merged.error = derivedError(merged);
       return merged;
     }
@@ -195,6 +190,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
     for (const field of EXPECTED_FIELDS) {
       if (incoming[field] === null && existing[field] !== null) merged[field] = existing[field];
     }
+    merged.expected_return = deriveExpectedReturn(merged);
     return merged;
   });
   for (const existing of existingRows) {

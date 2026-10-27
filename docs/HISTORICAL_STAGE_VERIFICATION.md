@@ -40,12 +40,12 @@ data/runs/historical-test-verification/2026-10-23/out-of-order/*.json
 data/runs/historical-test-verification/verification-report.json
 ```
 
-순서 변경 시나리오는 `0900 → 0700 → 1530 → 0800 → 0820`이다. 모든 단계에서 `expected_open`, `expected_return`이 보존되며, 최종 파일에서 다음 공식이 통과한다.
+순서 변경 시나리오는 `0900 → 0700 → 1530 → 0800 → 0820`이다. 모든 단계에서 `expected_open`, `expected_close`, `expected_return`이 보존되며, 최종 파일에서 다음 공식이 통과한다. 현재 historical 입력은 expected close를 제공하지 않으므로 `expected_close`, `expected_return`, `error`는 null이다.
 
 ```text
-actual_return = round((actual_open / prior_close - 1) × 100, 2)
 session_return = round((actual_close / actual_open - 1) × 100, 2)
-error = round(actual_return - expected_return, 2)
+expected_return = round((expected_close / expected_open - 1) × 100, 2) when both expected prices exist
+error = round(session_return - expected_return, 2) when both returns exist
 ```
 
 ## 결과
@@ -53,9 +53,8 @@ error = round(actual_return - expected_return, 2)
 - 날짜별 913행 생성
 - 정상 순서·순서 변경 모두 `expected_*` 보존
 - 재실행 가능한 결정적 파일 생성
-- `actual_return`은 실제 시가 기준으로 검증
 - `session_return`은 실제 시가에서 실제 종가까지의 장중 수익률로 검증
-- `error`는 실제 시가 수익률과 예상 수익률의 차이로 검증
+- `error`는 실제 장중 수익률과 예상 시가→종가 수익률의 차이로 검증
 - `data/latest-snapshot.json` 변경 없음
 - 운영 기본 로더는 혹시 테스트 snapshot이 들어와도 `no_data`로 차단
 - `historical-test` 쿼리에서만 과거 테스트 snapshot 표시

@@ -14,7 +14,7 @@ for (const date of dates) {
   if (snapshot.provider?.id !== "replay_baseline" || snapshot.baseline?.basis !== "previous_session_close") {
     throw new Error(`Missing previous-session-close baseline contract: ${date}`);
   }
-  if (!snapshot.rows.length || snapshot.rows.some((row) => [row.expected_open, row.expected_close, row.expected_return, row.actual_open, row.actual_close, row.actual_return, row.error].some((value) => typeof value !== "number"))) {
+  if (!snapshot.rows.length || snapshot.rows.some((row) => [row.expected_open, row.expected_close, row.expected_return, row.actual_open, row.actual_close, row.session_return, row.error].some((value) => typeof value !== "number"))) {
     throw new Error(`Replay rows are incomplete: ${date}`);
   }
   console.log(JSON.stringify({ date, mode: snapshot.meta.replay_type, rows: snapshot.rows.length, dryRun: true }));

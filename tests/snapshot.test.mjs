@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
-import { tmpdir } from "node:os";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
@@ -20,7 +19,7 @@ import {
   isLiveNoDataSnapshot,
   markHistoricalTestFallback,
 } from "../providers/historical-test-fallback.js";
-import { EXPECTED_DISPLAY_POLICY, isEvaluationSummary } from "../providers/evaluation-contract.js";
+import { EXPECTED_DISPLAY_POLICY, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, isEvaluationSummary } from "../providers/evaluation-contract.js";
 import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
@@ -92,10 +91,10 @@ test("historical-test snapshots expose a normalized, test-only evaluation contra
     assert.deepEqual(snapshot.evaluation.display_policy, EXPECTED_DISPLAY_POLICY);
     assert.deepEqual(snapshot.evaluation.target, {
       prediction_field: "expected_return",
-      actual_field: "actual_return",
+      actual_field: "session_return",
       error_field: "error",
       unit: "percentage_points",
-      error_formula: "actual_return - expected_return",
+      error_formula: "session_return - expected_return",
     });
     assert.equal(snapshot.evaluation.sample_count, snapshot.rows.length);
     assert.equal(snapshot.evaluation.missing_sample_count, snapshot.evaluation.sample_count - snapshot.evaluation.evaluated_sample_count);
@@ -103,12 +102,12 @@ test("historical-test snapshots expose a normalized, test-only evaluation contra
   assert.equal(forecast.evaluation.status, "pending");
   assert.equal(forecast.evaluation.evaluated_sample_count, 0);
   assert.equal(forecast.evaluation.evaluation_range.actual_stage, null);
-  assert.equal(settled.evaluation.status, "evaluated");
-  assert.equal(settled.evaluation.evaluated_sample_count, settled.rows.length);
-  assert.equal(settled.evaluation.evaluation_range.actual_stage, "0900");
-  assert.equal(settled.evaluation.metrics.mean_absolute_error > 0, true);
+  assert.equal(settled.evaluation.status, "pending");
+  assert.equal(settled.evaluation.evaluated_sample_count, 0);
+  assert.equal(settled.evaluation.evaluation_range.actual_stage, null);
+  assert.equal(settled.evaluation.metrics.mean_absolute_error, null);
   assert.equal(settled.meta.evaluation_test_only, true);
-  assert.equal(source.rows.some((row) => typeof row.expected_return === "number" && !Number.isInteger(row.expected_return)), true);
+  assert.equal(source.rows.every((row) => row.expected_close === null && row.expected_return === null && row.error === null), true);
   assert.deepEqual(source.rows.map((row) => row.expected_return), settled.rows.map((row) => row.expected_return));
 });
 
@@ -147,7 +146,7 @@ test("operating UI tries the historical fallback before rejecting a no_data snap
 });
 
 test("canonical stage runs preserve fields, settle cumulatively, and are idempotent", async () => {
-  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-run-"));
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-run-"));
   const fixtureSource = join(PROJECT_ROOT, "data", "fixtures", "2026-10-23.json");
   const fixtureTarget = join(tempRoot, "data", "fixtures", "2026-10-23.json");
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
@@ -183,15 +182,15 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
 });
 
 test("unavailable settlement preserves previously successful actual fields", async () => {
-  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-unavailable-settlement-"));
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-unavailable-settlement-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
   const dataFile = join(tempRoot, "latest.json");
   const row = {
     rank: 1,
     symbol: "KEEP",
     name: "보존종목",
-    expected_open: 101,
-    expected_close: null,
+    expected_open: 100,
+    expected_close: 101,
     expected_return: 1,
     actual_open: 102,
     actual_close: 105,
@@ -208,7 +207,7 @@ test("unavailable settlement preserves previously successful actual fields", asy
     for (const mode of ["open-settlement", "close-settlement"]) {
       await execExpectNonReady(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-23", "--data-file", dataFile], { cwd: PROJECT_ROOT });
       const observed = JSON.parse(await readFile(dataFile, "utf8"));
-      assert.deepEqual(observed.rows[0], { ...row, error: 1 });
+      assert.deepEqual(observed.rows[0], { ...row, error: 1.94 });
     }
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
@@ -216,7 +215,7 @@ test("unavailable settlement preserves previously successful actual fields", asy
 });
 
 test("independent settlement stages do not fall back to stale latest rows when the current run predecessor is missing", async () => {
-  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-stale-stage-"));
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-stale-stage-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
   const stale = {
     schemaVersion: "1.0.0",
@@ -263,13 +262,13 @@ test("independent settlement stages do not fall back to stale latest rows when t
   }
 });
 
-test("close settlement preserves actual_return and recalculates error", () => {
+test("close settlement preserves compatibility actual_return and recalculates session error", () => {
   const existing = {
     rank: 1,
     symbol: "CLOSE",
     name: "종가정산",
-    expected_open: 101,
-    expected_close: null,
+    expected_open: 100,
+    expected_close: 101,
     expected_return: 1,
     actual_open: 102,
     actual_close: null,
@@ -285,11 +284,11 @@ test("close settlement preserves actual_return and recalculates error", () => {
   assert.equal(merged.actual_close, 105);
   assert.equal(merged.actual_volume, 5000);
   assert.equal(merged.actual_return, 2);
-  assert.equal(merged.error, 1);
+  assert.equal(merged.error, 1.94);
 });
 
 test("historical-test pipeline writes five isolated stage files without touching operating latest", async () => {
-  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-historical-stage-"));
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-historical-stage-"));
   const script = join(PROJECT_ROOT, "scripts", "historical-test-pipeline.mjs");
   const latestBefore = await readFile(join(PROJECT_ROOT, "data", "latest-snapshot.json"), "utf8");
   try {
@@ -298,11 +297,11 @@ test("historical-test pipeline writes five isolated stage files without touching
       const stageFiles = ["0700", "0800", "0820", "0900", "1530"].map((stage) => join(tempRoot, "data", "runs", "historical-test", date, `${stage}.json`));
       const snapshots = await Promise.all(stageFiles.map((path) => readFile(path, "utf8").then(JSON.parse)));
       assert.equal(snapshots.every((snapshot) => snapshot.mode === "historical_test" && snapshot.meta.test_only === true && snapshot.meta.historical_test === true), true);
-      assert.equal(snapshots[0].rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null && row.actual_return === null && row.error === null), true);
-      assert.equal(snapshots[2].rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null), true);
-      assert.equal(snapshots[3].rows.every((row) => row.actual_open !== null && row.session_return === null && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
-      assert.equal(snapshots[4].rows.every((row) => row.actual_close !== null && row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null) && row.actual_return === Math.round(((row.actual_open / row.prior_close - 1) * 100 + Number.EPSILON) * 100) / 100 && row.error === Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100), true);
-      assert.deepEqual(snapshots[2].rows.map((row) => [row.symbol, row.expected_open, row.expected_return]), snapshots[4].rows.map((row) => [row.symbol, row.expected_open, row.expected_return]));
+      assert.equal(snapshots[0].rows.every((row) => row.expected_open !== null && row.expected_return === null && row.actual_open === null && row.actual_return === null && row.error === null), true);
+      assert.equal(snapshots[2].rows.every((row) => row.expected_open !== null && row.expected_return === null && row.actual_open === null), true);
+      assert.equal(snapshots[3].rows.every((row) => row.actual_open !== null && row.session_return === null && row.actual_return === null && row.error === null), true);
+      assert.equal(snapshots[4].rows.every((row) => row.actual_close !== null && row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null) && row.actual_return === null && row.error === null), true);
+      assert.deepEqual(snapshots[2].rows.map((row) => [row.symbol, row.expected_open, row.expected_close, row.expected_return]), snapshots[4].rows.map((row) => [row.symbol, row.expected_open, row.expected_close, row.expected_return]));
     }
     assert.equal(await readFile(join(PROJECT_ROOT, "data", "latest-snapshot.json"), "utf8"), latestBefore);
   } finally {
@@ -329,17 +328,15 @@ test("historical-test snapshots contain observed OHLC-volume values and no futur
     assert.equal(snapshot.baseline.model, "public_daily_momentum_volatility_v1");
     assert.equal(snapshot.meta.source_rows, snapshot.rows.length);
     assert.equal(snapshot.rows.length, 913);
-    assert.equal(snapshot.rows.every((row) => ["expected_open", "expected_return", "actual_open", "actual_close", "actual_return", "actual_volume", "prior_close", "error"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
+    assert.equal(snapshot.rows.every((row) => ["expected_open", "actual_open", "actual_close", "actual_volume", "prior_close"].every((field) => typeof row[field] === "number" && Number.isFinite(row[field]))), true);
     assert.equal(snapshot.rows.every((row) => row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null)), true);
     assert.equal(snapshot.rows.every((row) => row.expected_close === null), true);
     assert.equal(snapshot.rows.every((row) => row.confidence === null), true);
     assert.equal(snapshot.rows.every((row) => ["historical_baseline_public_daily", "historical_baseline_public_daily_settled"].includes(row.quality)), true);
-    assert.equal(snapshot.rows.some((row) => row.expected_return !== 0), true);
+    assert.equal(snapshot.rows.every((row) => row.expected_return === null), true);
     assert.equal(snapshot.rows.every((row) => row.features && Number.isFinite(row.features.momentum) && Number.isFinite(row.features.volatility)), true);
-    assert.equal(snapshot.rows.every((row) => Math.abs(row.actual_return - ((row.actual_open / row.prior_close - 1) * 100)) < 0.011), true);
     assert.equal(snapshot.rows.every((row) => row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null)), true);
-    assert.equal(snapshot.rows.every((row) => Math.abs(row.expected_return - ((row.expected_open / row.prior_close - 1) * 100)) < 0.011), true);
-    assert.equal(snapshot.rows.every((row) => Math.abs(row.error - (row.actual_return - row.expected_return)) < 0.011), true);
+    assert.equal(snapshot.rows.every((row) => row.expected_close === null && row.expected_return === null && row.actual_return === null && row.error === null), true);
     assert.match(snapshot.pipeline.forecast.message, new RegExp(`${inputDates.at(-1)}|Historical-test stage 0820`));
     assert.match(snapshot.provider.source.url, new RegExp(date.replaceAll("-", "")));
   }
@@ -359,10 +356,10 @@ test("KR모터스 장중 수익률은 실제 시가에서 실제 종가로 계�
   assert.ok(row);
   assert.equal(row.actual_open, 1202);
   assert.equal(row.actual_close, 1165);
-  assert.equal(row.actual_return, 2.56);
+  assert.equal(row.actual_return, null);
   assert.equal(row.session_return, -3.08);
   assert.equal(row.session_return, Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100);
-  assert.equal(row.error, Math.round((row.actual_return - row.expected_return + Number.EPSILON) * 100) / 100);
+  assert.equal(row.error, null);
 });
 
 test("ranking views expose actual close whenever settlement data is present", async () => {
@@ -371,15 +368,28 @@ test("ranking views expose actual close whenever settlement data is present", as
   assert.match(app, /actualClose: valueOf\(row, "actual_close"\)/);
   assert.match(app, /sessionReturn: valueOf\(row, "session_return"\)/);
   assert.match(app, /rowMetric\("실제 종가", formatPrice\(row\.actualClose\)\)/);
-  assert.match(app, /rowMetric\("실제 수익률", formatPercent\(row\.sessionReturn/);
-  assert.match(app, /rowMetric\("평가용 시가 수익률", formatPercent\(row\.actualReturn/);
+  assert.match(app, /rowMetric\("실제 장중 수익률", formatPercent\(row\.sessionReturn/);
+  assert.doesNotMatch(app, /평가용 시가 수익률/);
   assert.match(app, /setText\(elementIds\["selected-actual-close"\], formatPrice\(row\.actualClose\)\)/);
   assert.match(app, /setText\(elementIds\["selected-actual-return"\], formatPercent\(row\.sessionReturn\)\)/);
-  assert.match(app, /setText\(elementIds\["selected-evaluation-return"\], formatPercent\(row\.actualReturn\)\)/);
+  assert.doesNotMatch(app, /selected-evaluation-return/);
   assert.match(html, />실제 종가<\/th>/);
-  assert.match(html, />실제 수익률<\/th>/);
-  assert.match(html, />평가용 시가 수익률<\/th>/);
+  assert.match(html, />실제 장중 수익률<\/th>/);
+  assert.doesNotMatch(html, /평가용 시가 수익률/);
   assert.match(html, /id="selected-actual-close"/);
+});
+
+test("public documentation keeps the return definitions scoped to expected, session, and intraday reference fields", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  const systemDesign = await readFile(new URL("../docs/SYSTEM_DESIGN.md", import.meta.url), "utf8");
+  const docs = `${readme}\n${systemDesign}`;
+  assert.doesNotMatch(docs, /actual_return/);
+  assert.doesNotMatch(docs, /전일 대비 실제 수익률/);
+  assert.doesNotMatch(docs, /평가 수익률|평가용 시가 수익률/);
+  assert.match(docs, /expected_return\s*=\s*expected_close\s*\/\s*expected_open\s*-\s*1/);
+  assert.match(docs, /session_return\s*=\s*actual_close\s*\/\s*actual_open\s*-\s*1/);
+  assert.match(docs, /intraday_reference_return.*별도 실행시점 참고값/s);
+  assert.match(docs, /expected_return.*error.*null.*no_data/s);
 });
 
 test("ranking schema uses snake_case financial fields and rejects legacy names", () => {
@@ -393,6 +403,25 @@ test("ranking schema uses snake_case financial fields and rejects legacy names",
   });
   assert.equal(validateRankingRows([row]).valid, true);
   assert.equal(validateRankingRows([{ ...row, expectedOpen: 100 }]).valid, false);
+});
+
+test("expected_return uses expected close over expected open, never prior close", () => {
+  const row = { expected_open: 100, expected_close: 101, prior_close: 95 };
+  assert.equal(deriveExpectedReturn(row), 1);
+  assert.notEqual(deriveExpectedReturn(row), 6.32);
+  assert.equal(deriveEvaluationError({ ...row, actual_open: 100, actual_close: 102 }), 1);
+});
+
+test("session_return is the separate actual-open to actual-close measure", () => {
+  const row = { actual_open: 100, actual_close: 101, actual_return: 6.32 };
+  assert.equal(deriveSessionReturn(row), 1);
+  assert.equal(deriveEvaluationError({ expected_open: 100, expected_close: 101, ...row }), 0);
+});
+
+test("expected close unavailable produces null expected return and error", () => {
+  const row = { expected_open: 100, expected_close: null, expected_return: 2, prior_close: 95, actual_open: 100, actual_close: 101 };
+  assert.equal(deriveExpectedReturn(row), null);
+  assert.equal(deriveEvaluationError(row), null);
 });
 
 test("demo provider implements the adapter without financial numbers", async () => {
@@ -505,7 +534,8 @@ test("manual run-all uses a fresh intraday current quote for the forecast baseli
   const forecast = await provider.generateForecast();
   assert.equal(forecast.status, "ready");
   assert.equal(forecast.rows[0].expected_open, 102);
-  assert.equal(forecast.rows[0].expected_return, 2);
+  assert.equal(forecast.rows[0].expected_return, null);
+  assert.equal(forecast.rows[0].intraday_reference_return, 2);
   assert.equal(forecast.rows[0].actual_open, null);
   assert.equal(forecast.rows[0].quality, "naver_intraday_quote_baseline");
   assert.equal(forecast.rows[0].quote_age_seconds, 0);
@@ -547,7 +577,7 @@ test("Naver crawl provider maps open and close stages to actual fields", async (
   assert.equal(open.status, "ready");
   assert.equal(open.rows[0].actual_open, 101);
   assert.equal(open.rows[0].actual_close, null);
-  assert.equal(open.rows[0].actual_return, 1);
+  assert.equal(open.rows[0].actual_return, null);
 
   const close = await makeProvider(new Date("2026-10-27T08:00:00.000Z"), { symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "103", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T15:30:00+09:00", marketStatus: "CLOSE" }).settleClose();
   assert.equal(close.status, "ready");
@@ -677,7 +707,7 @@ test("public CSV provider uses bounded bulk collection and never fabricates pre-
   assert.equal(observed.status, "ready");
   assert.equal(observed.rows.length, 2);
   assert.equal(observed.rows.every((row) => row.expected_open === null && row.expected_return === null), true);
-  assert.equal(observed.rows.every((row) => row.actual_return === 0 && row.error === null), true);
+  assert.equal(observed.rows.every((row) => row.actual_return === null && row.error === null), true);
   assert.equal(observed.rows.every((row) => row.session_return === 10), true);
   assert.equal(observed.rows.every((row) => row.actual_close === 110 || row.actual_close === 220), true);
   assert.equal(observed.source.source_id, "aikstockdata-public-daily-csv");
@@ -792,7 +822,7 @@ test("baseline replay snapshots are explicit synthetic previous-close simulation
 });
 
 test("backfill test snapshots are isolated synthetic copies of replay numeric flow", async () => {
-  const fields = ["expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "actual_return", "error"];
+  const fields = ["expected_open", "expected_close", "expected_return", "actual_open", "actual_close", "session_return", "error"];
   for (const date of ["2026-10-22", "2026-10-23"]) {
     const backfill = JSON.parse(await readFile(new URL("../data/backfill-test/" + date + ".json", import.meta.url), "utf8"));
     const replay = JSON.parse(await readFile(new URL("../data/replays/" + date + ".json", import.meta.url), "utf8"));

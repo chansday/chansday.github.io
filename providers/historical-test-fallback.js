@@ -5,10 +5,8 @@ export const HISTORICAL_TEST_STAGE = "1530";
 export const HISTORICAL_TEST_REQUIRED_FIELDS = Object.freeze([
   "rank",
   "expected_open",
-  "expected_return",
   "actual_open",
-  "actual_return",
-  "error",
+  "actual_close",
 ]);
 
 export function historicalTestRunPath(date, stage = HISTORICAL_TEST_STAGE) {

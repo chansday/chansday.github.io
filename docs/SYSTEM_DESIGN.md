@@ -21,11 +21,11 @@ Pages가 읽는 최신 파일은 `data/latest-snapshot.json`이며 계약은 `sc
 | --- | --- | --- |
 | `expected_open` | 예상 시작가 | 유한한 숫자 또는 `null` |
 | `expected_close` | 예상 종가 | 유한한 숫자 또는 `null` |
-| `expected_return` | 예상 수익률 | 유한한 숫자 또는 `null` |
+| `expected_return` | 예상 시가→예상 종가 수익률 (`expected_close / expected_open - 1`) | 유한한 숫자 또는 `null` |
 | `actual_open` | 실제 시작가 | 유한한 숫자 또는 `null` |
 | `actual_close` | 실제 종가 | 유한한 숫자 또는 `null` |
-| `actual_return` | 실제 09:00 시가 수익률(전일 종가 대비) | 유한한 숫자 또는 `null` |
 | `session_return` | 실제 시가→종가 장중 수익률 | 유한한 숫자 또는 `null` |
+| `intraday_reference_return` | 별도 실행시점 참고값; `expected_return`과 구분 | 유한한 숫자 또는 `null` |
 | `error` | 예상과 실제의 오차 | 유한한 숫자 또는 `null` |
 | `actual_volume` | 실제 거래량(주) | 유한한 숫자 또는 `null` |
 
@@ -99,7 +99,7 @@ data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 운영 데이�
 
 `?mode=historical-test&date=2026-10-22|2026-10-23`은 운영 provider와 합성 fixture/replay/backfill을 건드리지 않는 과거 데이터 검증 경로다. 브라우저와 운영 fallback은 `data/runs/historical-test/YYYY-MM-DD/1530.json`을 읽으며, 운영 `data/latest-snapshot.json`과 코드·상태·메타데이터를 덮어쓰지 않는다. 각 run은 공개 일별 파일의 `mrktCtg=KOSPI` 전체 행을 저장하며, 날짜별 913행의 `actual_open`/`actual_close`/`actual_volume`을 실제 값으로 표시한다. 공개 원본에 security type이 없으므로 우선주 포함 가능성을 `meta.source_range`에 명시한다.
 
-`expected_*`는 당시 08:20 예측이 아니다. historical baseline은 대상일을 제외한 직전 5개 거래일 공개 daily CSV의 종가만 사용한다. 2026-10-22는 `10-15, 10-16, 10-19, 10-20, 10-21`, 2026-10-23은 `10-16, 10-19, 10-20, 10-21, 10-22`가 입력이다. 각 종목에 대해 `r_t = close_t / close_(t-1) - 1`, `momentum = mean(last 3 r_t)`, `volatility = population_stddev(last 4 r_t)`를 계산하고, `expected_return = clamp(round(0.60 × momentum - 0.10 × volatility, 2), -5, +5)`로 저장한다. 그 다음 `expected_open = round(prior_close × (1 + expected_return / 100), 2)`를 유지한다. `actual_return = round((actual_open / prior_close - 1) × 100, 2)`, `session_return = round((actual_close / actual_open - 1) × 100, 2)`, `error = actual_return - expected_return`이다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않는다. 이 모델은 공개 일봉만으로 재현 가능한 historical baseline이며 실제 장전 호가·예상체결가·주문잔량을 사용하지 않는다. 따라서 `confidence`는 `null`이고 `quality`는 단계에 따라 `historical_baseline_public_daily*`로 표시한다. fallback은 실제 run의 `rank`, `expected_open`, `expected_return`, `actual_open`, `actual_return`, `session_return`, `error`를 그대로 로드하고 숫자를 합성하지 않는다. 운영 live 상태가 `no_data`일 때만 화면 최상단에 정확히 `HISTORICAL TEST / NOT LIVE`를 표시하며, `partial`·`degraded`·stale에서는 fallback하지 않는다. 최근 가격 급등락과 상한 ±5% 때문에 예측력·수익률·실전 성과를 의미하지 않는다.
+`expected_*`는 당시 08:20 예측이 아니다. historical baseline은 대상일을 제외한 직전 5개 거래일 공개 daily CSV의 종가만 사용한다. 2026-10-22는 `10-15, 10-16, 10-19, 10-20, 10-21`, 2026-10-23은 `10-16, 10-19, 10-20, 10-21, 10-22`가 입력이다. 각 종목에 대해 `r_t = close_t / close_(t-1) - 1`, `momentum = mean(last 3 r_t)`, `volatility = population_stddev(last 4 r_t)`를 계산해 open signal을 만들고 `expected_open = round(prior_close × (1 + open_signal / 100), 2)`를 저장한다. 이 입력에는 expected close 모델이 없으므로 `expected_return = expected_close / expected_open - 1`을 계산하지 않고 `expected_return`과 `error`를 `null`/`no_data`로 둔다. `actual_open`과 `actual_close`는 각각 정산 원천의 관측값이며, `session_return = actual_close / actual_open - 1`이다. 대상 날짜의 actual 값은 forecast 입력에 사용하지 않는다. 이 모델은 공개 일봉만으로 재현 가능한 historical baseline이며 실제 장전 호가·예상체결가·주문잔량을 사용하지 않는다. 따라서 `confidence`는 `null`이고 `quality`는 단계에 따라 `historical_baseline_public_daily*`로 표시한다. fallback은 실제 run의 관측값과 null 상태를 그대로 로드하고 숫자를 합성하지 않는다. 운영 live 상태가 `no_data`일 때만 화면 최상단에 정확히 `HISTORICAL TEST / NOT LIVE`를 표시하며, `partial`·`degraded`·stale에서는 fallback하지 않는다. 최근 가격 급등락 때문에 예측력·수익률·실전 성과를 의미하지 않는다.
 
 ### 공개 JSON provider
 
@@ -125,7 +125,7 @@ GitHub Actions cron은 UTC 기준이며 KST는 UTC+9다. 한국은 서머타임�
 | `0 0 * * 1-5` | 월–금 09:00 | `openSettlement` | 실제 시작가 정산 |
 | `30 6 * * 1-5` | 월–금 15:30 | `closeSettlement` | 장마감 실제 정산 |
 
-UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. Naver crawl은 장전 신선한 openPriceRaw가 있을 때만 expected_open을 계산하고, 09:00 이후 openPriceRaw를 actual_open으로 저장하며, 장마감 후 closePriceRaw를 actual_close로 저장한다. 단, 수동 run-all의 오늘 장중 forecast 계열은 신선한 closePriceRaw current quote를 expected_open의 intraday baseline으로 기록할 수 있으며, 이는 pre-open forecast가 아니다. actual_open/actual_close는 각각 open-settlement/close-settlement 단계에서만 기록한다. 휴장일·빈 응답·stale·차단이면 숫자를 대체 생성하지 않고 상태만 기록한다.
+UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. Naver crawl은 장전 신선한 openPriceRaw가 있을 때만 expected_open을 계산하고, 09:00 이후 openPriceRaw를 actual_open으로 저장하며, 장마감 후 closePriceRaw를 actual_close로 저장한다. 단, 수동 run-all의 오늘 장중 forecast 계열은 신선한 closePriceRaw current quote를 expected_open의 intraday baseline으로 기록할 수 있으며, 이 값의 `intraday_reference_return`은 expected_return과 별개이고 pre-open forecast가 아니다. actual_open/actual_close는 각각 open-settlement/close-settlement 단계에서만 기록한다. 휴장일·빈 응답·stale·차단이면 숫자를 대체 생성하지 않고 상태만 기록한다.
 
 ## 7. 프론트엔드와 운영
 

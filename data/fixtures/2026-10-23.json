@@ -54,14 +54,15 @@
       "name": "합성 레코드 A · fixture",
       "expected_open": 41,
       "expected_close": 44,
-      "expected_return": 4,
+      "expected_return": 7.32,
       "actual_open": 40,
       "actual_close": 42,
       "actual_return": 5,
-      "error": 1,
+      "error": -2.32,
       "confidence": 0.35,
       "quality": "fixture_synthetic",
-      "status": "demo"
+      "status": "demo",
+      "session_return": 5
     },
     {
       "rank": 2,
@@ -69,14 +70,15 @@
       "name": "합성 레코드 B · fixture",
       "expected_open": 51,
       "expected_close": 50,
-      "expected_return": -2,
+      "expected_return": -1.96,
       "actual_open": 52,
       "actual_close": 49,
       "actual_return": -5,
-      "error": -3,
+      "error": -3.81,
       "confidence": 0.45,
       "quality": "fixture_synthetic",
-      "status": "demo"
+      "status": "demo",
+      "session_return": -5.77
     },
     {
       "rank": 3,
@@ -84,14 +86,15 @@
       "name": "합성 레코드 C · fixture",
       "expected_open": 61,
       "expected_close": 66,
-      "expected_return": 5,
+      "expected_return": 8.2,
       "actual_open": 60,
       "actual_close": 65,
       "actual_return": 8.33,
-      "error": 3.33,
+      "error": 0.13,
       "confidence": 0.55,
       "quality": "fixture_synthetic",
-      "status": "demo"
+      "status": "demo",
+      "session_return": 8.33
     }
   ],
   "meta": {
