@@ -95,6 +95,7 @@ jobs:
           EXPERIMENT_DATE: ${{ inputs.run_date }}
           EXPERIMENT_CANDIDATES: ${{ steps.run-all.outputs.experiment_candidates }}
           RETROSPECTIVE_STATUS: ${{ steps.run-all.outputs.retrospective_status }}
+          RETROSPECTIVE_SOURCE_RUN_ID: ${{ steps.run-all.outputs.retrospective_source_run_id }}
         run: |
           set -euo pipefail
           if [ "$OPERATING_ALLOWED" = true ] && ! git diff --quiet -- data/latest-snapshot.json data/runs; then
@@ -102,8 +103,8 @@ jobs:
           fi
           if [ "$OPERATING_ALLOWED" = true ] && [ "$RETROSPECTIVE_STATUS" = ready ]; then
             [[ "$EXPERIMENT_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
-            [[ "$KOSPI_RUN_ID" =~ ^[A-Za-z0-9._-]+$ ]]
-            git add -- "data/runs/$EXPERIMENT_DATE/retrospective-$KOSPI_RUN_ID.json"
+            [[ "$RETROSPECTIVE_SOURCE_RUN_ID" =~ ^[A-Za-z0-9._-]+$ ]]
+            git add -- "data/runs/$EXPERIMENT_DATE/retrospective-$RETROSPECTIVE_SOURCE_RUN_ID.json"
           fi
           bash scripts/stage-daily-experiment.sh
           if git diff --cached --quiet; then echo "No permitted changes to commit."; exit 0; fi
@@ -175,7 +176,7 @@ jobs:
           esac
 
       - name: Fail when the isolated experiment failed
-        if: always() && steps.static-contract.outcome == 'success' && steps.run-all.outputs.overall_status != ''
+        if: always() && steps.static-contract.outcome == 'success' && steps.run-all.outputs.overall_status != '' && !(steps.run-all.outputs.retrospective_historical == 'true' && steps.run-all.outputs.retrospective_status == 'ready')
         shell: bash
         env:
           EXPERIMENT_STATUS: ${{ steps.run-all.outputs.experiment_status }}

@@ -252,6 +252,27 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     return summary;
   }
 
+  // A previous day's validated settlement is an observed input, not a fresh
+  // market run. Preserve its stage files and attach a separate evaluation.
+  if (options.runDate < currentDate && retrospectiveRunner) {
+    let retrospective;
+    try {
+      const stageFile = `data/runs/${options.runDate}/1530.json`;
+      const settled = JSON.parse(await readFile(stageFile, "utf8"));
+      const sourceRunId = settled.meta?.run_id;
+      if (settled.status !== "ready" || settled.provider?.id !== "naver-crawl" || settled.asOfDate !== options.runDate || settled.meta?.run_date !== options.runDate || settled.meta?.run_stage !== "close-settlement" || settled.meta?.source?.source_date !== options.runDate || !/^[A-Za-z0-9._-]+$/.test(sourceRunId || "")) throw new Error("Stored settlement is not a ready, same-date observed Naver run");
+      const result = await retrospectiveRunner({ runDate: options.runDate, runId: sourceRunId, stageFile });
+      if (result.status !== "ready") throw new Error("Retrospective evaluation did not return ready");
+      retrospective = { ...result, historical: true, sourceRunId, message: `${result.evaluated}/${result.total} rows evaluated from the existing settlement` };
+    } catch (error) {
+      retrospective = { status: "blocked", historical: true, message: `Historical retrospective failed: ${error.message}` };
+    }
+    const ready = retrospective.status === "ready";
+    const summary = { ...base, status: ready ? "ready" : "blocked", reason: retrospective.message, executedStagesReady: ready, pendingOnlyPartial: false, commitAllowed: ready, stages: [{ stage: "retrospective", status: retrospective.status, executed: true, message: retrospective.message }], experiment: { status: "not_run", saved: false }, retrospective };
+    await appendSummary(summary);
+    return summary;
+  }
+
   const experimentPostClose = isPostCloseCurrentRun(options.runDate, options.runStartedAt);
   let experiment = { status: "not_run", saved: false, notApplicable: false, postClose: experimentPostClose };
   if (experimentRunner && !options.dryRun) {
@@ -361,6 +382,8 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
         `experiment_status_saved=${summary.experiment?.statusSaved === true}`,
         `experiment_status_hash=${summary.experiment?.statusHash || ""}`,
         `retrospective_status=${summary.retrospective?.status || "not_run"}`,
+        `retrospective_historical=${summary.retrospective?.historical === true}`,
+        `retrospective_source_run_id=${summary.retrospective?.sourceRunId || summary.runId}`,
       ].join("\n") + "\n", "utf8");
     }
     console.log(JSON.stringify(summary));

@@ -30,7 +30,7 @@ test("prior sessions determine both estimates; same-day observations only change
   assert.equal(missing.error, null);
 });
 
-test("post-close evaluation saves isolated record and refuses wrong run and overwrite", async () => {
+test("post-close evaluation saves isolated record, refuses wrong run and preserves existing result", async () => {
   const root = await mkdtemp(join(tmpdir(), "post-close-"));
   const previous = process.cwd();
   try {
@@ -46,7 +46,10 @@ test("post-close evaluation saves isolated record and refuses wrong run and over
     assert.equal(record.evaluation.evaluated_sample_count, 1);
     assert.equal(record.kind, "post_close_retrospective");
     assert.match(record.notice, /after close/);
-    await assert.rejects(runPostCloseEvaluation({ runDate: "2026-10-27", runId: "42.1", stageFile, historyFetcher }), /EEXIST/);
+    const original = await readFile(result.path, "utf8");
+    const preserved = await runPostCloseEvaluation({ runDate: "2026-10-27", runId: "42.1", stageFile, historyFetcher });
+    assert.equal(preserved.preserved, true);
+    assert.equal(await readFile(result.path, "utf8"), original);
   } finally { process.chdir(previous); await rm(root, { recursive: true, force: true }); }
 });
 
@@ -91,4 +94,27 @@ test("retrospective overlays the existing sheet without changing observed values
   assert.equal(snapshot.rows[0].expected_open, undefined);
   assert.throws(() => mergePostCloseEvaluation(snapshot, { ...record, run_id: "42.2" }), /identity/);
   assert.throws(() => mergePostCloseEvaluation(snapshot, { ...record, rows: [{ ...estimated, actual_close: 100 }] }), /mismatch/);
+});
+
+test("past-date manual run evaluates the stored settlement without collecting or overwriting it", async () => {
+  const root = await mkdtemp(join(tmpdir(), "past-settlement-"));
+  const previous = process.cwd();
+  try {
+    process.chdir(root);
+    const dir = join(root, "data", "runs", "2026-10-27");
+    await mkdir(dir, { recursive: true });
+    const file = join(dir, "1530.json");
+    const settlement = { status: "ready", asOfDate: "2026-10-27", provider: { id: "naver-crawl" }, meta: { run_date: "2026-10-27", run_id: "40517864324.1", run_stage: "close-settlement", source: { source_date: "2026-10-27" } }, rows: [actual] };
+    const original = JSON.stringify(settlement);
+    await writeFile(file, original);
+    let called = 0;
+    const summary = await runAll(["--run-date", "2026-10-27", "--run-started-at", "2026-10-27T15:58:22Z", "--run-id", "40536268679.1"], {
+      stageRunner: async () => { throw new Error("stage collection must not run"); },
+      experimentRunner: async () => { throw new Error("experiment must not run"); },
+      retrospectiveRunner: async ({ runDate, runId, stageFile }) => { called += 1; assert.equal(runId, "40517864324.1"); assert.equal(runDate, "2026-10-27"); assert.equal(stageFile, "data/runs/2026-10-27/1530.json"); return { status: "ready", evaluated: 1, total: 1 }; },
+    });
+    assert.equal(called, 1); assert.equal(summary.status, "ready");
+    assert.equal(summary.retrospective.historical, true); assert.equal(summary.commitAllowed, true);
+    assert.equal(await readFile(file, "utf8"), original);
+  } finally { process.chdir(previous); await rm(root, { recursive: true, force: true }); }
 });
