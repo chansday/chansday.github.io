@@ -3,7 +3,7 @@
   "status": "ready",
   "mode": "provider",
   "asOfDate": "2026-10-27",
-  "publishedAt": "2026-10-27T12:34:33.817Z",
+  "publishedAt": "2026-10-27T14:06:15.358Z",
   "market": {
     "name": "KOSPI",
     "currency": "KRW",
@@ -48,7 +48,7 @@
     },
     "closeSettlement": {
       "status": "ready",
-      "attemptedAt": "2026-10-27T12:34:33.817Z",
+      "attemptedAt": "2026-10-27T14:06:15.358Z",
       "provider_id": "naver-crawl",
       "message": "Collected 913 fresh-enough Naver post-close quotes; actual_open/actual_close are observed fields. Warning: Source license_status is unconfirmed; operational readiness does not confirm licensing or redistribution rights."
     }
@@ -19230,7 +19230,7 @@
   ],
   "meta": {
     "generatedBy": "provider-adapter",
-    "lastAttemptAt": "2026-10-27T12:34:33.817Z",
+    "lastAttemptAt": "2026-10-27T14:06:15.358Z",
     "lastAttemptMode": "close-settlement",
     "blockedReason": null,
     "isDemo": false,
@@ -19239,11 +19239,11 @@
       "url": "https://polling.finance.naver.com/api/realtime/domestic/stock/",
       "license_status": "unconfirmed",
       "license_url": null,
-      "retrieved_at": "2026-10-27T12:34:50.346Z",
+      "retrieved_at": "2026-10-27T14:07:13.548Z",
       "source_id": "naver-public-polling-crawl",
-      "run_id": "40504830186.1",
+      "run_id": "40517864324.1",
       "status": "ready",
-      "fetched_at": "2026-10-27T12:34:50.346Z",
+      "fetched_at": "2026-10-27T14:07:13.548Z",
       "source_date": "2026-10-27",
       "raw_rows": 3400,
       "source_rows": 913,
@@ -19254,15 +19254,15 @@
         "failed": 0,
         "retries": 0,
         "deadline_hit": false,
-        "elapsed_ms": 12398,
+        "elapsed_ms": 11509,
         "estimated_ms": 120000,
         "overall_deadline_ms": 120000,
         "max_concurrency": 1,
         "max_age_seconds": 180,
         "close_max_age_seconds": 86400,
         "quote_count": 913,
-        "min_quote_age_seconds": 5690.35,
-        "max_quote_age_seconds": 5690.35,
+        "min_quote_age_seconds": 11233.55,
+        "max_quote_age_seconds": 11233.55,
         "universe_endpoint": "https://m.stock.naver.com/api/stocks/marketValue/KOSPI",
         "quote_endpoint_template": "https://polling.finance.naver.com/api/realtime/domestic/stock/{codes}",
         "delayed_data_possible": true,
@@ -19272,7 +19272,7 @@
     },
     "run_date": "2026-10-27",
     "run_stage": "close-settlement",
-    "run_id": "40504830186.1",
+    "run_id": "40517864324.1",
     "source_warning": "Source license_status is unconfirmed; operational readiness does not confirm licensing or redistribution rights."
   }
 }
