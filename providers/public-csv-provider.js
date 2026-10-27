@@ -2,6 +2,8 @@ import {
   createSourceMetadata,
   isProviderResult,
 } from "./provider-adapter.js";
+import { checkRobotsUrl } from "./robots-policy.js";
+import { classifyMarketDate, loadMarketCalendar } from "../scripts/market-calendar.mjs";
 import { deriveSessionReturn } from "./evaluation-contract.js";
 
 const SOURCE_HOST = "aikstockdata.com";
@@ -116,7 +118,7 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics }) {
+async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics, forecastPolicy }) {
   let attempt = 0;
   while (attempt <= config.maxRetries) {
     const remaining = deadlineAt - Date.now();
@@ -139,7 +141,7 @@ async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics }) {
         metrics.completed += 1;
         return { ok: true, text: await response.text() };
       }
-      const retryable = response.status === 429 || response.status >= 500;
+      const retryable = (!forecastPolicy && response.status === 429) || response.status >= 500;
       if (!retryable || attempt >= config.maxRetries) {
         metrics.failed += 1;
         return { ok: false, status: response.status, reason: `HTTP ${response.status}` };
@@ -178,8 +180,13 @@ async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics }) {
 
 async function fetchDate(date, context) {
   const url = sourceUrl(context.config.baseUrl, date);
+  if (context.forecastPolicy) {
+    const policy = await checkRobotsUrl(context, url, USER_AGENT);
+    if (!policy.ok) return { date, url, found: false, blocked: true, reason: policy.reason };
+    context.lastRobotsPolicy = policy;
+  }
   const response = await fetchWithRetry(url, context);
-  if (!response.ok) return { date, url, found: false, reason: response.reason, status: response.status };
+  if (!response.ok) return { date, url, found: false, blocked: [403, 429].includes(response.status), reason: response.reason, status: response.status };
   const rows = parseCsv(response.text);
   const kospi = rows.filter((row) => row.mrktCtg === "KOSPI");
   const symbols = new Set();
@@ -285,6 +292,44 @@ function makeRows(latest, prior, { includeClose = true } = {}) {
   rows.sort((a, b) => (b.session_return ?? -Infinity) - (a.session_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
+}
+
+// A forecast crawl needs a current explicit robots decision, rather than
+// treating absence, errors or another crawler's allow-list as permission.
+// Fetch three prior daily files at prediction time. A missing file is recorded;
+// other source failures fail closed. Never infer a missing trading session.
+export async function fetchForecastHistory({ env = {}, fetchImpl = globalThis.fetch, now = () => new Date(), targetDate, maxMissingSessions = 0 }) {
+  const config = parseConfig(env);
+  if (!config.enabled || !/^\d{4}-\d{2}-\d{2}$/.test(targetDate) || !Number.isInteger(maxMissingSessions) || maxMissingSessions < 0 || maxMissingSessions > 1) return { ok: false, reason: "history configuration invalid" };
+  const startedAt = Date.now();
+  const context = { config, fetchImpl, deadlineAt: startedAt + config.overallDeadlineMs,
+    now, forecastPolicy: true, metrics: { requested: 0, completed: 0, failed: 0, retries: 0, deadlineHit: false } };
+  const sessions = [], unavailable = [];
+  let calendar;
+  try { calendar = await loadMarketCalendar(); } catch (error) { return { ok: false, reason: `market calendar unavailable: ${error.message}` }; }
+  const targetMarket = classifyMarketDate(targetDate, calendar);
+  if (targetMarket.status !== "run") return { ok: false, reason: `calendar ${targetDate}: ${targetMarket.reason}` };
+  const requestCache = new Map(); // scoped to this collection; never reused across predictions
+  for (let offset = 1; offset <= 30 && sessions.length < 3; offset += 1) {
+    const date = subtractDays(targetDate, offset);
+    let day;
+    try { day = classifyMarketDate(date, calendar); } catch (error) { return { ok: false, reason: `calendar ${date}: ${error.message}` }; }
+    if (day.status === "skip") continue;
+    if (day.status !== "run") return { ok: false, reason: `calendar ${date}: ${day.reason}` };
+    // One request at a time; no persistent cache can leak a later revision into a previous prediction.
+    if (!requestCache.has(date)) { await sleep(250); requestCache.set(date, await fetchDate(date, context)); }
+    const entry = requestCache.get(date);
+    if (!entry.found || !entry.rows?.length) {
+      if (entry.status === 404 && unavailable.length < maxMissingSessions) { unavailable.push(date); continue; }
+      return { ok: false, blocked: Boolean(entry.blocked), reason: `required trading session ${date}: ${entry.reason || "empty or invalid CSV"}` };
+    }
+    if (entry.invalidRows > 0) return { ok: false, reason: `history ${date}: invalid or duplicate source rows` };
+    sessions.push(entry);
+  }
+  const retrieved = now();
+  if (!(retrieved instanceof Date) || !Number.isFinite(retrieved.getTime()) || sessions.length !== 3)
+    return { ok: false, reason: "fewer than three verified prior daily files" };
+  return { ok: true, sessions, unavailable, retrieved_at: retrieved.toISOString(), robots_url: context.lastRobotsPolicy.robotsUrl, robots_checked_at: context.lastRobotsPolicy.checkedAt };
 }
 
 export function createPublicCsvProvider({

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
-import { join } from "node:path";
+import { mkdtemp, readFile, rm, readdir, stat } from "node:fs/promises";
+import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
 import { classifyDate, isIsoDate, normalizeDateIndex, snapshotPath } from "../providers/date-navigation.js";
@@ -37,10 +37,16 @@ test("date index generator lists only dates with the configured stage file", asy
   try {
     const generated = await buildDateIndex({ output });
     assert.deepEqual(generated.availableDates["historical-test"], ["2026-10-22", "2026-10-23"]);
-    assert.deepEqual(generated.availableDates.provider, []);
+    const runRoot = new URL("../data/runs/", import.meta.url);
+    const names = await readdir(runRoot, { withFileTypes: true });
+    const expected = [];
+    for (const entry of names) if (entry.isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(entry.name)) {
+      try { if ((await stat(new URL(`${entry.name}/1530.json`, runRoot))).isFile()) expected.push(entry.name); } catch (error) { if (error.code !== "ENOENT") throw error; }
+    }
+    assert.deepEqual(generated.availableDates.provider, expected.sort());
     assert.deepEqual(JSON.parse(await readFile(output, "utf8")).availableDates, generated.availableDates);
   } finally {
-    await rm(output.replace(/\\date-index\.json$/, ""), { recursive: true, force: true });
+    await rm(dirname(output), { recursive: true, force: true });
   }
 });
 

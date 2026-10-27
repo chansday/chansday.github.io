@@ -15,7 +15,7 @@
     "historical-test:collect": "node scripts/collect-historical-test.mjs",
     "historical-test:pipeline": "node scripts/historical-test-pipeline.mjs",
     "historical-test:verify": "node scripts/historical-test-sequence-verify.mjs",
-    "collection:audit": "node scripts/collection-audit.mjs"
+    "collection:audit": "node scripts/collection-audit.mjs",
+    "check:experiment": "node --check providers/daily-baseline-experiment.js && node --check providers/daily-experiment-contract.js && node --check providers/daily-experiment-view.js && node --check providers/robots-policy.js && node --check scripts/daily-baseline-run.mjs && node --check scripts/stage-daily-experiment.mjs && node --check scripts/stage-experiment-status.mjs"
   }
 }
-

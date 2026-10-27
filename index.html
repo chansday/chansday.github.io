@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css?v=20261027j">
     <script type="module" src="./app.js?v=20261027p"></script>
+    <script type="module" src="./providers/daily-experiment-view.js"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content" onclick="event.preventDefault(); const target = document.getElementById('main-content'); if (target) { target.focus({ preventScroll: true }); target.scrollIntoView(); }">본문으로 바로가기</a>
@@ -93,6 +94,14 @@
           </div>
         </section>
 
+        <section id="daily-experiment" class="section page-width" aria-labelledby="daily-experiment-title">
+          <h2 id="daily-experiment-title">일봉 기준가 실험 · 실제 시세 아님</h2>
+          <p>추정 기준가는 이전 일봉 종가입니다. 예상 시가나 현재가가 아닙니다. 예상 종가와 수익률은 기준가 대비 실험 추정치이며 실제 종가 정산은 별도입니다.</p>
+          <p id="daily-experiment-status" aria-live="polite">실험 기록을 확인하는 중입니다.</p>
+          <label for="daily-experiment-date">실험 날짜</label> <input id="daily-experiment-date" type="date">
+          <label for="daily-experiment-search">실험 종목 검색</label> <input id="daily-experiment-search" type="search" placeholder="종목명 또는 코드">
+          <div id="daily-experiment-results"></div>
+        </section>
         <section id="provenance" class="section page-width provenance-section" aria-labelledby="provenance-title">
           <div class="section-heading"><div><p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> 출처와 한계</p><h2 id="provenance-title">숫자가 어디서 왔는지 확인하세요</h2></div><p class="section-note">계산 기준, 데이터 출처와 운영상 한계를 한곳에 모았습니다.</p></div>
           <div class="provenance-grid">

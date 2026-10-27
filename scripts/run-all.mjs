@@ -3,6 +3,7 @@ import { pathToFileURL } from "node:url";
 import { checkMarketDate, kstDate } from "./market-calendar.mjs";
 import { resolveStage } from "./run-context.mjs";
 import { run as runStage } from "./update-results.mjs";
+import { runDailyBaseline } from "./daily-baseline-run.mjs";
 
 const STAGES = Object.freeze([
   "update-results",
@@ -193,7 +194,7 @@ async function appendSummary(summary) {
   if (!summaryPath) return;
   const lines = [
     "### KOSPI run all now",
-    `- overall: \`${summary.status}\``,
+    `- operating overall: \`${summary.status}\``,
     `- overall reason: ${summary.overallReason || summary.reason || "not provided"}`,
     `- run date: \`${summary.runDate}\``,
     `- run id: \`${summary.runId}\``,
@@ -202,6 +203,7 @@ async function appendSummary(summary) {
     `- executed stages ready: \`${summary.executedStagesReady}\``,
     `- pending-only partial: \`${summary.pendingOnlyPartial}\``,
     `- commit allowed: \`${summary.commitAllowed}\``,
+    `- isolated daily experiment: \`${summary.experiment?.status || "not_run"}\` (${summary.experiment?.reason || "not run"}); status record saved: ${summary.experiment?.statusSaved === true}`,
     "",
     "| order | stage | status | execution | reason |",
     "| ---: | --- | --- | --- | --- |",
@@ -211,7 +213,7 @@ async function appendSummary(summary) {
   await appendFile(summaryPath, lines.join("\n"), "utf8");
 }
 
-export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState } = {}) {
+export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState, experimentRunner = stageRunner === runStage ? runDailyBaseline : null } = {}) {
   const options = parseArgs(argv);
   if (!options) return { help: true };
   const market = await checkMarketDate(options.runDate);
@@ -241,6 +243,12 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     const summary = { ...base, ...decision, mode: "plan_only", stages: plan };
     await appendSummary(summary);
     return summary;
+  }
+
+  let experiment = { status: "not_run", saved: false };
+  if (experimentRunner && !options.dryRun) {
+    try { experiment = await experimentRunner({ targetDate: options.runDate }); }
+    catch (error) { experiment = { status: "failed", saved: false, reason: error.message }; }
   }
 
   const previousEnv = {
@@ -302,7 +310,7 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     consistency = { status: "blocked", message: `Final consistency check failed: ${error.message}` };
   }
   if (consistency.status !== "ready") stages.push({ stage: "consistency", status: consistency.status, executed: true, message: consistency.message });
-  const summary = { ...base, ...overallDecision(stages), stages };
+  const summary = { ...base, ...overallDecision(stages), stages, experiment };
   await appendSummary(summary);
   return summary;
 }
@@ -321,6 +329,13 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
         `run_date=${summary.runDate}`,
         `run_id=${summary.runId}`,
         `source_timestamp=${summary.sourceTimestamp}`,
+        `experiment_saved=${summary.experiment?.saved === true}`,
+        `experiment_phase=${summary.experiment?.phase || ""}`,
+        `experiment_candidates=${summary.experiment?.candidatePhases?.join(",") || ""}`,
+        `experiment_candidate=${summary.experiment?.candidate === true}`,
+        `experiment_status=${summary.experiment?.status || "not_run"}`,
+        `experiment_status_saved=${summary.experiment?.statusSaved === true}`,
+        `experiment_status_hash=${summary.experiment?.statusHash || ""}`,
       ].join("\n") + "\n", "utf8");
     }
     console.log(JSON.stringify(summary));

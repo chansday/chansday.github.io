@@ -57,7 +57,7 @@ jobs:
 
       - name: Validate the static contract
         id: static-contract
-        run: npm test && npm run check && npm run collection:audit
+        run: npm test && npm run check && npm run collection:audit && npm run check:experiment
 
       - name: Capture collection invocation timestamp
         id: collection-context
@@ -79,27 +79,30 @@ jobs:
       - name: Commit final run state once
         id: commit
         if: >-
-          always() &&
-          steps.run-context.outcome == 'success' &&
-          steps.checkout.outcome == 'success' &&
-          steps.setup-node.outcome == 'success' &&
-          steps.static-contract.outcome == 'success' &&
-          steps.run-all.outcome == 'success' &&
-          steps.run-all.outputs.executed_stages_ready == 'true' &&
-          steps.run-all.outputs.commit_allowed == 'true' &&
-          (
-            steps.run-all.outputs.overall_status == 'ready' ||
-            (steps.run-all.outputs.overall_status == 'partial' && steps.run-all.outputs.pending_only_partial == 'true')
-          )
+          always() && steps.run-context.outcome == 'success' && steps.checkout.outcome == 'success' &&
+          steps.setup-node.outcome == 'success' && steps.static-contract.outcome == 'success' &&
+          ((steps.run-all.outcome == 'success' && steps.run-all.outputs.executed_stages_ready == 'true' &&
+            steps.run-all.outputs.commit_allowed == 'true' &&
+            (steps.run-all.outputs.overall_status == 'ready' ||
+             (steps.run-all.outputs.overall_status == 'partial' && steps.run-all.outputs.pending_only_partial == 'true'))) ||
+           steps.run-all.outputs.experiment_saved == 'true' || steps.run-all.outputs.experiment_status_saved == 'true')
         shell: bash
+        env:
+          OPERATING_ALLOWED: ${{ steps.run-all.outcome == 'success' && steps.run-all.outputs.executed_stages_ready == 'true' && steps.run-all.outputs.commit_allowed == 'true' && (steps.run-all.outputs.overall_status == 'ready' || (steps.run-all.outputs.overall_status == 'partial' && steps.run-all.outputs.pending_only_partial == 'true')) }}
+          EXPERIMENT_CANDIDATE: ${{ steps.run-all.outputs.experiment_candidate }}
+          STATUS_SAVED: ${{ steps.run-all.outputs.experiment_status_saved }}
+          STATUS_HASH: ${{ steps.run-all.outputs.experiment_status_hash }}
+          EXPERIMENT_DATE: ${{ inputs.run_date }}
+          EXPERIMENT_CANDIDATES: ${{ steps.run-all.outputs.experiment_candidates }}
         run: |
-          if git diff --quiet -- data/latest-snapshot.json data/runs; then
-            echo "No snapshot changes to commit."
-            exit 0
+          set -euo pipefail
+          if [ "$OPERATING_ALLOWED" = true ] && ! git diff --quiet -- data/latest-snapshot.json data/runs; then
+            git add data/latest-snapshot.json data/runs
           fi
+          bash scripts/stage-daily-experiment.sh
+          if git diff --cached --quiet; then echo "No permitted changes to commit."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/latest-snapshot.json data/runs
           git commit -m "chore(data): record KOSPI run all ${{ inputs.run_date }}"
           git push
 
@@ -164,3 +167,16 @@ jobs:
               exit 1
               ;;
           esac
+
+      - name: Fail when the isolated experiment failed
+        if: always() && steps.static-contract.outcome == 'success' && steps.run-all.outputs.overall_status != ''
+        shell: bash
+        run: |
+          case "${{ steps.run-all.outputs.experiment_status }}" in
+            experimental|preserved) ;;
+            *) echo "Isolated experiment failed or was not run: ${{ steps.run-all.outputs.experiment_status }}" >&2; exit 1 ;;
+          esac
+          if [ "${{ steps.run-all.outputs.experiment_status_saved }}" != "true" ] || [ "${{ steps.commit.outcome }}" != "success" ]; then
+            echo "Experiment status could not be saved." >&2
+            exit 1
+          fi

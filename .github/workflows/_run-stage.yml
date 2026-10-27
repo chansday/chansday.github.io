@@ -91,7 +91,17 @@ jobs:
       - name: Validate the static contract
         id: static-contract
         if: steps.market-day.outputs.should_run == 'true'
-        run: npm test && npm run check
+        run: npm test && npm run check && npm run check:experiment
+
+      - name: Collect isolated daily baseline
+        id: daily-experiment
+        if: >-
+          steps.static-contract.outcome == 'success' &&
+          (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'forecast'
+        continue-on-error: true
+        env:
+          EXPERIMENT_DATE: ${{ steps.validate-run-context.outputs.run_date }}
+        run: node scripts/daily-baseline-run.mjs "$EXPERIMENT_DATE"
 
       - name: Run resolved KOSPI stage
         id: stage
@@ -127,6 +137,7 @@ jobs:
               echo "- provider: \`${KOSPI_PROVIDER}\`"
               echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (runner-captured start UTC; KST stage is derived from the same value)"
               echo "- manual button and schedule use the same stage command"
+              echo "- isolated daily experiment status: ${{ steps.daily-experiment.outputs.status || 'not_run_or_status_write_failed' }}; step: ${{ steps.daily-experiment.outcome }}; status saved: ${{ steps.daily-experiment.outputs.status_saved || 'false' }}"
               echo "- no_data/partial/degraded/blocked results fail the job after the snapshot and summary are written"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -158,6 +169,27 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/latest-snapshot.json data/runs
           git commit -m "chore(data): record KOSPI ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }} stage"
+          git push
+
+      - name: Save isolated daily baseline
+        id: save-experiment
+        if: >-
+          always() && steps.static-contract.outcome == 'success' &&
+          (steps.daily-experiment.outputs.saved == 'true' || steps.daily-experiment.outputs.status_saved == 'true')
+        shell: bash
+        env:
+          EXPERIMENT_DATE: ${{ steps.validate-run-context.outputs.run_date }}
+          EXPERIMENT_CANDIDATES: ${{ steps.daily-experiment.outputs.candidates }}
+          EXPERIMENT_CANDIDATE: ${{ steps.daily-experiment.outputs.candidate }}
+          STATUS_SAVED: ${{ steps.daily-experiment.outputs.status_saved }}
+          STATUS_HASH: ${{ steps.daily-experiment.outputs.status_hash }}
+        run: |
+          set -euo pipefail
+          bash scripts/stage-daily-experiment.sh
+          if git diff --cached --quiet; then echo "No experiment changes to commit."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): record isolated daily experiment $EXPERIMENT_DATE"
           git push
 
       - name: Fail when the stage is not ready
@@ -208,5 +240,14 @@ jobs:
           fi
           if [ "${{ steps.commit.outcome }}" != "success" ]; then
             echo "Snapshot commit step failed or was skipped." >&2
+            exit 1
+          fi
+
+      - name: Fail when the isolated experiment failed
+        if: always() && (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'forecast' && steps.static-contract.outcome == 'success'
+        shell: bash
+        run: |
+          if [ "${{ steps.daily-experiment.outcome }}" != "success" ] || [ "${{ steps.daily-experiment.outputs.status_saved }}" != "true" ] || [ "${{ steps.save-experiment.outcome }}" != "success" ]; then
+            echo "Isolated experiment failed, was not recorded, or could not be saved." >&2
             exit 1
           fi
