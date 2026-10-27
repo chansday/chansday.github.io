@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "status": "no_data",
+  "status": "degraded",
   "mode": "provider",
   "asOfDate": null,
   "publishedAt": null,
@@ -10,9 +10,9 @@
     "timezone": "Asia/Seoul"
   },
   "provider": {
-    "id": null,
-    "status": "not_configured",
-    "label": "연결된 데이터 공급자 없음",
+    "id": "public-csv",
+    "status": "degraded",
+    "label": "PUBLIC CSV · EOD OBSERVATION ONLY",
     "source": null
   },
   "pipeline": {
@@ -23,16 +23,16 @@
       "message": null
     },
     "analysis": {
+      "status": "degraded",
+      "attemptedAt": "2026-10-27T01:23:11.204Z",
+      "provider_id": "public-csv",
+      "message": "Public CSV is stale; partial or stale data is not published as a normal ranking."
+    },
+    "forecast": {
       "status": "pending",
       "attemptedAt": null,
       "provider_id": null,
       "message": null
-    },
-    "forecast": {
-      "status": "blocked",
-      "attemptedAt": "2026-10-26T23:20:00.000Z",
-      "provider_id": null,
-      "message": "No market data provider is configured. No financial values are generated."
     },
     "openSettlement": {
       "status": "pending",
@@ -50,12 +50,36 @@
   "rows": [],
   "meta": {
     "generatedBy": "provider-adapter",
-    "lastAttemptAt": "2026-10-26T23:20:00.000Z",
-    "lastAttemptMode": "forecast",
-    "blockedReason": "No market data provider is configured. No financial values are generated.",
+    "lastAttemptAt": "2026-10-27T01:23:11.204Z",
+    "lastAttemptMode": "analysis",
+    "blockedReason": "Public CSV is stale; partial or stale data is not published as a normal ranking.",
     "isDemo": false,
-    "source": null,
+    "source": {
+      "name": "한국주식데이터 (원천: 금융위원회 공공데이터포털·한국거래소)",
+      "url": "https://aikstockdata.com/data/public/daily/quotes_20261023.csv",
+      "license_status": "confirmed",
+      "license_url": "https://aikstockdata.com/licenses/aiksd-public-1.1.txt",
+      "retrieved_at": "2026-10-27T01:23:11.204Z",
+      "source_id": "aikstockdata-public-daily-csv",
+      "run_id": "2026-10-27-analysis",
+      "status": "stale",
+      "fetched_at": "2026-10-27T01:23:11.204Z",
+      "raw_rows": 2778,
+      "source_rows": 913,
+      "partial": true,
+      "metrics": {
+        "requested": 6,
+        "completed": 3,
+        "failed": 3,
+        "retries": 0,
+        "deadline_hit": false,
+        "elapsed_ms": 0,
+        "estimated_ms": 0,
+        "overall_deadline_ms": 20000,
+        "max_concurrency": 2
+      }
+    },
     "run_date": "2026-10-27",
-    "run_stage": "forecast"
+    "run_stage": "analysis"
   }
 }
