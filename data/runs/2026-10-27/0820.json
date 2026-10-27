@@ -10,9 +10,9 @@
     "timezone": "Asia/Seoul"
   },
   "provider": {
-    "id": null,
-    "status": "not_configured",
-    "label": "연결된 데이터 공급자 없음",
+    "id": "public-csv",
+    "status": "no_data",
+    "label": "PUBLIC CSV · EOD OBSERVATION ONLY",
     "source": null
   },
   "pipeline": {
@@ -29,10 +29,10 @@
       "message": null
     },
     "forecast": {
-      "status": "blocked",
-      "attemptedAt": "2026-10-26T23:20:00.000Z",
-      "provider_id": null,
-      "message": "No market data provider is configured. No financial values are generated."
+      "status": "no_data",
+      "attemptedAt": "2026-10-27T01:23:55.675Z",
+      "provider_id": "public-csv",
+      "message": "Forecast collection cutoff 08:29:00 KST has passed; no late data is used and forecast remains no_data."
     },
     "openSettlement": {
       "status": "pending",
@@ -50,9 +50,9 @@
   "rows": [],
   "meta": {
     "generatedBy": "provider-adapter",
-    "lastAttemptAt": "2026-10-26T23:20:00.000Z",
+    "lastAttemptAt": "2026-10-27T01:23:55.675Z",
     "lastAttemptMode": "forecast",
-    "blockedReason": "No market data provider is configured. No financial values are generated.",
+    "blockedReason": "Forecast collection cutoff 08:29:00 KST has passed; no late data is used and forecast remains no_data.",
     "isDemo": false,
     "source": null,
     "run_date": "2026-10-27",
