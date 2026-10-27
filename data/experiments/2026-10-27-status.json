@@ -3,6 +3,7 @@
   "target_date": "2026-10-27",
   "status": "no_data",
   "reason": "data_unavailable",
-  "attempted_at": "2026-10-27T14:06:15.495Z",
+  "not_applicable": false,
+  "attempted_at": "2026-10-27T15:58:43.207Z",
   "phase": null
 }
