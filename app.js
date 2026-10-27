@@ -1,4 +1,4 @@
-import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js?v=20261026o";
+import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js?v=20261027n";
 import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
 
@@ -28,6 +28,9 @@ const qualityLabels = {
   historical_test: "시험용 과거 검증",
   test_only: "시험용 데이터",
   historical_fallback: "과거 검증 데이터",
+  naver_preopen_quote: "네이버 장전 공개 호가",
+  naver_live_quote: "네이버 실시간 공개 시세",
+  unconfirmed: "이용 조건 확인 필요",
 };
 const stateMessages = {
   ready: "정상 데이터 스냅샷을 표시하고 있습니다.",
@@ -99,7 +102,7 @@ function qualityLabel(value) {
 function displayEnumLabel(value, fallback = "정보 없음") { const key = String(value || "").trim().toLowerCase(); return qualityLabels[key] || stateLabels[key] || rowStateLabels[key] || fallback; }
 function providerDisplayName(data) {
   const providerId = String(data?.provider?.id || "").trim().toLowerCase();
-  const labels = { "historical-test": "과거 기준 데이터", "public-csv": "공개 일별 데이터", "public-json": "공개 데이터", fixture: "합성 시험 데이터", replay_baseline: "합성 재생 기준선", "backfill-test": "시험용 보충 데이터", demo: "화면 확인용 데이터" };
+  const labels = { "historical-test": "과거 기준 데이터", "public-csv": "공개 일별 데이터", "public-json": "공개 데이터", "naver-crawl": "네이버 공개 웹 크롤링", fixture: "합성 시험 데이터", replay_baseline: "합성 재생 기준선", "backfill-test": "시험용 보충 데이터", demo: "화면 확인용 데이터" };
   return labels[providerId] || "데이터 공급자 정보";
 }
 function sourceDisplayName(source, data) { const sourceName = String(source?.name || "").trim(); return sourceName && !/^[a-z0-9_-]+$/i.test(sourceName) ? sourceName : providerDisplayName(data); }
@@ -335,7 +338,8 @@ function renderProvenance(data, source, status) {
   const model = modelDisplayName(data);
   const sourceRows = data?.meta?.source_rows || data?.rows?.length || 0;
   const range = historical ? `KOSPI 공개 원본 ${formatNumber(sourceRows)}개 행` : data?.meta?.source_range || (sourceRows ? `${formatNumber(sourceRows)}개 행` : "—");
-  const limitation = historical ? "장전 호가·예상체결가·호가잔량은 원천 데이터에 없습니다." : data?.status === "no_data" ? "데이터 없음 · 숫자를 만들지 않습니다." : "결측·지연·품질 상태를 공개합니다.";
+  const isNaverCrawl = data?.provider?.id === "naver-crawl" || source?.source_id === "naver-public-polling-crawl";
+  const limitation = historical ? "장전 호가·예상체결가·호가잔량은 원천 데이터에 없습니다." : isNaverCrawl ? "네이버 공개 웹 크롤링 · 비공식 출처 · 지연 가능 · 이용 조건 확인 필요" : data?.status === "no_data" ? "데이터 없음 · 숫자를 만들지 않습니다." : "결측·지연·품질 상태를 공개합니다.";
   setText(elementIds["source-name"], sourceDisplayName(source, data));
   setText(elementIds["source-license"], source?.license_status ? `이용 조건: ${displayEnumLabel(source.license_status, "확인 필요")}` : "이용 조건 —");
   const urlNode = elementIds["source-url"];
@@ -348,7 +352,7 @@ function renderProvenance(data, source, status) {
   setText(elementIds["baseline-input"], historical ? `직전 ${baseline.lookback_sessions || 5}개 거래일 종가 기반 · ${baseline.input_through_date || "기준일 미상"}` : "연결된 데이터 기준");
   setText(elementIds["model-note"], historical ? "당시 08:20 예측이 아닌 사후 재현 가능한 기준선" : `예상 기준 상태: ${model === "미설정" ? "미설정" : status}`);
   setText(elementIds["limit-title"], historical ? "장전 정보가 없습니다" : "없는 값은 만들지 않습니다");
-  setText(elementIds["quality-summary"], historical ? `${limitation} 예상값은 실제 과거 예측이 아닙니다.` : stateMessages[status] || stateMessages.no_data);
+  setText(elementIds["quality-summary"], historical ? `${limitation} 예상값은 실제 과거 예측이 아닙니다.` : isNaverCrawl ? limitation : stateMessages[status] || stateMessages.no_data);
   setText(elementIds["quality-source"], `${sourceDisplayName(source, data)} · 갱신 ${formatShortTime(data?.publishedAt || data?.meta?.lastAttemptAt)}`);
   setText(elementIds["data-timestamp"], formatTime(data?.publishedAt || data?.meta?.lastAttemptAt));
 }

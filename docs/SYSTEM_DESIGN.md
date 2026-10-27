@@ -43,11 +43,12 @@ Pages가 읽는 최신 파일은 `data/latest-snapshot.json`이며 계약은 `sc
   "url": "https://example.invalid/data.json",
   "license_status": "confirmed",
   "license_url": "https://example.invalid/terms",
-  "retrieved_at": "2026-10-26T07:00:00.000Z"
+  "retrieved_at": "2026-10-26T07:00:00.000Z",
+  "source_date": "2026-10-23"
 }
 ```
 
-`retrieved_at`은 성공한 데이터 요청의 수집시각이다. 실행 시각은 `meta.lastAttemptAt`, 단계의 `attemptedAt`, `publishedAt`에 별도로 기록한다. 활성 source가 없으면 `meta.source`는 `null`이다.
+`retrieved_at`은 성공한 데이터 요청의 수집시각이고 `source_date`는 원본 파일이 실제로 나타내는 거래일이다. 실행 시각은 `meta.lastAttemptAt`, 단계의 `attemptedAt`, `publishedAt`에 별도로 기록한다. snapshot의 `asOfDate`도 원본 날짜를 가리키며, stale/no_data 결과에서 날짜를 오늘로 바꾸지 않는다. 활성 source가 없으면 `meta.source`는 `null`이다.
 
 ## 4. 상태 모델
 
@@ -80,9 +81,9 @@ pending
 
 ### 기본 상태
 
-`KOSPI_PROVIDER` 기본값은 계좌·API key가 필요 없는 `public-csv`이다. 이 provider는 명시적 allowlist의 공개 bulk CSV만 수집하고, HTML·로그인·CAPTCHA·차단 우회를 하지 않는다. `none`으로 설정하면 외부 요청을 하지 않고 `no_data`와 `blocked` 단계 상태만 기록한다. `demo`는 모든 금융 필드가 `null`인 UI 전용 행을 제공하며 `meta.isDemo=true`를 설정한다. Demo 행은 실측값이나 예측 성과로 표시하지 않는다.
+`KOSPI_PROVIDER` 기본값은 계좌·API key가 필요 없는 `naver-crawl`이다. 이 provider는 Naver 공개 market-list JSON과 polling quote endpoint를 제한된 batch·간격으로 읽고, HTML·로그인·CAPTCHA·차단 우회를 하지 않는다. `none`으로 설정하면 외부 요청을 하지 않고 `no_data`/`blocked` 단계 상태를 기록하며 runner는 non-zero exit으로 종료한다. Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았으므로 source는 `license_status=unconfirmed`로 기록된다. 실제 quote 행을 수집해도 ready 게이트는 `degraded`로 낮추며, 관찰 행·출처·지연 가능성을 보존한다. 장전 openPriceRaw가 없거나 quote가 stale이면 이전 종가를 이용해 expected 값을 합성하지 않는다. `demo`는 모든 금융 필드가 `null`인 UI 전용 행을 제공하며 `meta.isDemo=true`를 설정한다.
 
-`public-csv`는 source timeout 8초, stage overall deadline 20초, 최대 동시 요청 2개, 429/5xx 최대 2회 backoff를 사용한다. forecast workflow는 08:20 KST에 시작하고 08:29:00 KST cutoff를 넘긴 응답은 당일 데이터로 사용하지 않는다. stale·partial·deadline 결과는 정상 순위가 아니라 `partial`/`degraded`/`no_data`로 기록하고 이전 snapshot을 재사용하지 않는다. `meta.source`에는 run id, 수집 시각, source 상태와 요청 metrics를 보존한다.
+`naver-crawl`은 source timeout 8초, stage overall deadline 120초, 순차 요청 간 기본 250ms 간격, 최대 1회 bounded retry를 사용한다. 403/429/challenge는 즉시 `blocked`로 중단한다. forecast/open/close 단계는 caller run-start를 KST로 변환해 판단하고, quote `localTradedAt`과 실제 fetch time의 max age를 검증한다. stale·partial·deadline 결과는 정상 순위가 아니라 `partial`/`degraded`/`no_data`로 기록하고 이전 snapshot을 재사용하지 않는다. `meta.source`에는 run id, 수집 시각, source 상태와 요청 metrics를 보존한다.
 
 ### 합성 fixture
 
@@ -120,11 +121,11 @@ GitHub Actions cron은 UTC 기준이며 KST는 UTC+9다. 한국은 서머타임�
 | --- | --- | --- | --- |
 | `0 22 * * 0-4` | 월–금 07:00 | `previousResult` | 전일 예상·실제 결과 업데이트 |
 | `0 23 * * 0-4` | 월–금 08:00 | `analysis` | 당일 기초 분석 |
-| `20 23 * * 0-4` | 월–금 08:20 | `forecast` | 08:29 cutoff 전 공개 bulk 수집 및 장전 상태 |
+| `20 23 * * 0-4` | 월–금 08:20 | `forecast` | Naver quote freshness 검증 및 장전 상태 |
 | `0 0 * * 1-5` | 월–금 09:00 | `openSettlement` | 실제 시작가 정산 |
 | `30 6 * * 1-5` | 월–금 15:30 | `closeSettlement` | 장마감 실제 정산 |
 
-UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. 공개 일별 CSV만으로는 09:00 시작가를 실시간 수집할 수 없으므로 `openSettlement`는 연결된 licensed intraday/open provider가 없으면 `no_data`를 기록한다. 휴장일이나 데이터 부족 시 숫자를 만들지 않고 상태만 기록한다.
+UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. Naver crawl은 장전 신선한 openPriceRaw가 있을 때만 expected_open을 계산하고, 09:00 이후 openPriceRaw를 actual_open으로 저장하며, 장마감 후 closePriceRaw를 actual_close로 저장한다. 휴장일·빈 응답·stale·차단이면 숫자를 대체 생성하지 않고 상태만 기록한다.
 
 ## 7. 프론트엔드와 운영
 
@@ -134,7 +135,7 @@ UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-
 
 달력 상태 계약은 `available`(결과 있음), `loading`(조회 중), `not_collected`(미수집), `holiday`(KRX 휴장일·주말), `error`(날짜/파일/계약 오류)다. 상태는 텍스트와 색상, `aria-selected`, `aria-disabled`, `aria-live`를 함께 사용한다. 조회 날짜 선택은 현재 `mode` 쿼리 파라미터를 보존하고 `date=YYYY-MM-DD`만 갱신한다. `data/date-index.json`은 `node scripts/generate-date-index.mjs`로 실제 stage 파일을 스캔해 갱신하며, 미래의 `data/runs` 날짜 확장을 위해 브라우저 코드에 날짜를 하드코딩하지 않는다.
 
-Actions는 `workflow_dispatch`에서 `all`, `update-results`, `analysis`, `forecast`, `open-settlement`, `close-settlement` 중 하나를 선택할 수 있다. workflow는 checkout/setup 직후 `scripts/market-session-guard.mjs`로 KST 거래일을 확인한 뒤, 통과한 경우에만 `npm test`, `npm run check`, provider-aware runner와 snapshot commit을 실행한다. 주말·KRX 휴장일은 정상 skip이며, guard가 휴장일 목록을 판정할 수 없는 커버리지 밖 평일·캘린더 오류는 fail-closed로 job을 실패시킨다. 모든 collection step과 commit은 guard output으로 조건부 실행되므로 skip 시 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않는다.
+Actions는 `workflow_dispatch`에서 기능별 stage를 선택할 수 있고 `run-now`는 caller의 `github.run_started_at`을 reusable runner와 stage command에 명시적으로 전달한다. 수동 provider 기본값은 `naver-crawl`이고 명시적 `none`은 실패한다. schedule은 `naver-crawl`을 사용하며 변수의 `none` 값은 fail-closed로 거부한다. push는 validation-only로 `npm test`/`npm run check`만 실행하고 stage/수집/commit을 실행하지 않는다. workflow는 checkout/setup 직후 schedule/manual에 대해 `scripts/market-session-guard.mjs`로 KST 거래일을 확인한 뒤, 통과한 경우에만 provider-aware runner와 snapshot commit을 실행한다. runner가 `no_data`, `partial`, `degraded`, `blocked`를 반환하면 job summary에 단계 사유를 남기고 job을 실패시킨다. 주말·KRX 휴장일은 정상 skip이며, guard가 휴장일 목록을 판정할 수 없는 커버리지 밖 평일·캘린더 오류는 fail-closed로 job을 실패시킨다. 모든 collection step과 commit은 guard output으로 조건부 실행되므로 skip 시 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않는다.
 
 공휴일 계약은 `data/krx-market-holidays.json`에 둔다. 출처는 한국거래소 휴장일 조회이며, 2026년 목록에 일반 공휴일·근로자의 날·대체휴일·임시공휴일·연말휴장일을 구분해 기록한다. 실행 시 네트워크 API에 의존하지 않고 체크인 목록을 사용한다. 매년 KRX 공표 후 `coverage`, `holidays`, `source.retrievedAt`을 갱신하고, 공표 전의 미래 평일은 목록 누락을 정상 거래일로 추정하지 않는다.
 

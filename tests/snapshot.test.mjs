@@ -23,7 +23,9 @@ import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
-import { calculateRunContext, mergeRows, run as runStage } from "../scripts/update-results.mjs";
+import { createNaverCrawlProvider, parseLocalTradedAt, resolveCrawlStage } from "../providers/naver-crawl-provider.js";
+import { calculateRunContext, run as runStage } from "../scripts/update-results.mjs";
+import { mergeRows } from "../scripts/update-results.mjs";
 
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
@@ -149,10 +151,10 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
   const modes = ["update-results", "analysis", "forecast", "open-settlement", "close-settlement"];
   const args = ["--provider", "fixture", "--fixture-date", "2026-10-23", "--run-date", "2026-10-23"];
-  const deterministicEnv = { ...process.env, KOSPI_RUN_STARTED_AT: "2026-10-23T00:00:00.000Z" };
   try {
     await mkdir(join(tempRoot, "data", "fixtures"), { recursive: true });
     await cp(fixtureSource, fixtureTarget);
+    const deterministicEnv = { ...process.env, KOSPI_RUN_STARTED_AT: "2026-10-23T00:00:00.000Z" };
     for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot, env: deterministicEnv });
 
     const stage = async (name) => JSON.parse(await readFile(join(tempRoot, "data", "runs", "2026-10-23", `${name}.json`), "utf8"));
@@ -177,7 +179,6 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
-
 test("unavailable settlement preserves previously successful actual fields", async () => {
   const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-unavailable-settlement-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
@@ -210,7 +211,6 @@ test("unavailable settlement preserves previously successful actual fields", asy
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
-
 test("independent settlement stages do not fall back to stale latest rows when the current run predecessor is missing", async () => {
   const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-stale-stage-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
@@ -258,7 +258,6 @@ test("independent settlement stages do not fall back to stale latest rows when t
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
-
 test("close settlement preserves actual_return and recalculates error", () => {
   const existing = {
     rank: 1,
@@ -418,6 +417,114 @@ test("public JSON provider is disabled without explicit source policy", async ()
   assert.match(result.message, /explicit URL|license/i);
 });
 
+test("Naver crawl provider parses batched quotes and preserves freshness metadata", async () => {
+  const now = new Date("2026-10-26T23:59:30.000Z");
+  const response = (payload, status = 200) => ({
+    ok: status >= 200 && status < 300,
+    status,
+    headers: { get: (name) => name === "content-type" ? "application/json" : null },
+    text: async () => typeof payload === "string" ? payload : JSON.stringify(payload),
+  });
+  const fetchImpl = async (url) => {
+    if (url.includes("m.stock.naver.com")) return response({ totalCount: 2, stocks: [
+      { itemCode: "000001", stockName: "첫종목", stockEndType: "stock", sosok: "0" },
+      { itemCode: "000002", stockName: "둘종목", stockEndType: "stock", sosok: "0" },
+    ] });
+    assert.match(url, /polling\.finance\.naver\.com\/api\/realtime\/domestic\/stock\/000001,000002/);
+    return response({ datas: [
+      { symbolCode: "000001", stockName: "첫종목", openPriceRaw: "102", closePriceRaw: "100", compareToPreviousClosePriceRaw: "0", localTradedAt: "2026-10-27T08:59:25+09:00", marketStatus: "PREOPEN" },
+      { symbolCode: "000002", stockName: "둘종목", openPriceRaw: "98", closePriceRaw: "100", compareToPreviousClosePriceRaw: "0", localTradedAt: "2026-10-27T08:59:20+09:00", marketStatus: "PREOPEN" },
+    ] });
+  };
+  const provider = createNaverCrawlProvider({
+    env: { KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0", KOSPI_RUN_ID: "test-crawl" },
+    fetchImpl,
+    now: () => now,
+  });
+  const result = await provider.generateForecast();
+  assert.equal(resolveCrawlStage(now), "before-open");
+  assert.equal(parseLocalTradedAt("2026-10-27T08:59:25+09:00").toISOString(), "2026-10-26T23:59:25.000Z");
+  assert.equal(result.status, "ready");
+  assert.equal(result.rows.length, 2);
+  assert.equal(result.rows[0].expected_open, 102);
+  assert.equal(result.rows[0].actual_open, null);
+  assert.equal(result.rows[0].quote_at, "2026-10-26T23:59:25.000Z");
+  assert.equal(result.rows[0].market_status, "PREOPEN");
+  assert.equal(result.source.source_id, "naver-public-polling-crawl");
+  assert.equal(result.source.license_status, "unconfirmed");
+  assert.equal(result.source.metrics.quote_count, 2);
+});
+
+test("Naver crawl provider refuses synthesized pre-open values and stale quotes", async () => {
+  const response = (payload, status = 200) => ({
+    ok: status >= 200 && status < 300,
+    status,
+    headers: { get: (name) => name === "content-type" ? "application/json" : null },
+    text: async () => typeof payload === "string" ? payload : JSON.stringify(payload),
+  });
+  const now = new Date("2026-10-26T23:59:30.000Z");
+  const makeProvider = (quote) => createNaverCrawlProvider({
+    env: { KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0" },
+    fetchImpl: async (url) => url.includes("m.stock.naver.com")
+      ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
+      : response({ datas: [quote] }),
+    now: () => now,
+  });
+  const noOpen = await makeProvider({ symbolCode: "000001", stockName: "종목", openPriceRaw: null, closePriceRaw: "100", localTradedAt: "2026-10-27T08:59:25+09:00", marketStatus: "PREOPEN" }).generateForecast();
+  assert.equal(noOpen.status, "no_data");
+  assert.equal(noOpen.rows.length, 0);
+  assert.match(noOpen.message, /previous close|synthesi/i);
+
+  const stale = await makeProvider({ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "100", localTradedAt: "2026-10-26T15:30:00+09:00", marketStatus: "CLOSE" }).generateForecast();
+  assert.equal(stale.status, "degraded");
+  assert.equal(stale.rows.length, 0);
+  assert.equal(stale.source.status, "stale");
+});
+
+test("Naver crawl provider maps open and close stages to actual fields", async () => {
+  const response = (payload) => ({ ok: true, status: 200, headers: { get: () => "application/json" }, text: async () => JSON.stringify(payload) });
+  const makeProvider = (now, quote) => createNaverCrawlProvider({
+    env: { KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0" },
+    fetchImpl: async (url) => url.includes("m.stock.naver.com")
+      ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
+      : response({ datas: [quote] }),
+    now: () => now,
+  });
+  const open = await makeProvider(new Date("2026-10-27T01:00:00.000Z"), { symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T10:00:00+09:00", marketStatus: "OPEN" }).settleOpen();
+  assert.equal(open.status, "ready");
+  assert.equal(open.rows[0].actual_open, 101);
+  assert.equal(open.rows[0].actual_close, null);
+  assert.equal(open.rows[0].actual_return, 1);
+
+  const close = await makeProvider(new Date("2026-10-27T08:00:00.000Z"), { symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "103", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T15:30:00+09:00", marketStatus: "CLOSE" }).settleClose();
+  assert.equal(close.status, "ready");
+  assert.equal(close.rows[0].actual_open, 101);
+  assert.equal(close.rows[0].actual_close, 103);
+  assert.equal(close.rows[0].session_return, 1.98);
+});
+
+test("Naver crawl provider stops on 403, 429, and empty responses", async () => {
+  const response = (payload, status) => ({ ok: false, status, headers: { get: () => "application/json" }, text: async () => payload });
+  for (const status of [403, 429]) {
+    const provider = createNaverCrawlProvider({
+      env: { KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "2" },
+      fetchImpl: async () => response(status === 403 ? "Forbidden" : "Too many requests", status),
+      now: () => new Date("2026-10-26T23:59:30.000Z"),
+    });
+    const result = await provider.generateForecast();
+    assert.equal(result.status, "blocked");
+    assert.equal(result.source.metrics.requested, 1);
+  }
+  const empty = createNaverCrawlProvider({
+    env: { KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0" },
+    fetchImpl: async () => ({ ok: true, status: 200, headers: { get: () => "application/json" }, text: async () => JSON.stringify({ totalCount: 0, stocks: [] }) }),
+    now: () => new Date("2026-10-26T23:59:30.000Z"),
+  });
+  const emptyResult = await empty.generateForecast();
+  assert.equal(emptyResult.status, "no_data");
+  assert.equal(emptyResult.rows.length, 0);
+});
+
 test("public CSV provider uses bounded bulk collection and never fabricates pre-market values", async () => {
   const csv = (date, close) => [
     "basDt,mrktCtg,종목코드,종목명,mkp,clpr,trqu",
@@ -450,19 +557,45 @@ test("public CSV provider uses bounded bulk collection and never fabricates pre-
   assert.equal(observed.source.metrics.requested, calls.length);
 
   const forecast = await provider.generateForecast();
-  assert.equal(forecast.status, "ready");
-  assert.equal(forecast.rows.length, 2);
-  assert.equal(forecast.rows.every((row) => row.expected_open !== null && row.expected_return !== null && row.actual_open === null && row.quality === "public_baseline_no_preopen_quote"), true);
-  assert.match(forecast.message, /baseline|pre-market|order book/i);
+  assert.equal(forecast.status, "no_data");
+  assert.equal(forecast.rows.length, 0);
+  assert.equal(forecast.asOfDate, "2026-10-23");
+  assert.equal(forecast.source.source_date, "2026-10-23");
+  assert.match(forecast.message, /unsupported|pre-market|order book/i);
   const openSettlement = await provider.settleOpen();
   assert.equal(openSettlement.status, "no_data");
   assert.match(openSettlement.message, /09:00|actual_open|no_data/i);
+});
+
+test("public CSV forecast rejects an old source as degraded and keeps its source date", async () => {
+  const csv = [
+    "basDt,mrktCtg,종목코드,종목명,mkp,clpr,trqu",
+    "20261023,KOSPI,000001,공개종목,100,110,1000",
+  ].join("\n");
+  const fetchImpl = async (url) => {
+    const date = url.match(/quotes_(\d{8})\.csv/)?.[1];
+    if (date === "20261023") return { ok: true, status: 200, headers: { get: (name) => name === "content-type" ? "text/csv" : null }, text: async () => csv };
+    return { ok: false, status: 404, headers: { get: () => "text/plain" }, text: async () => "not found" };
+  };
+  const provider = createPublicCsvProvider({
+    env: { KOSPI_PUBLIC_MAX_RETRIES: "0" },
+    fetchImpl,
+    now: () => new Date("2026-10-27T23:10:00.000Z"),
+  });
+  const forecast = await provider.generateForecast();
+  assert.equal(forecast.status, "degraded");
+  assert.equal(forecast.rows.length, 0);
+  assert.equal(forecast.asOfDate, "2026-10-23");
+  assert.equal(forecast.source.source_date, "2026-10-23");
+  assert.equal(forecast.source.status, "stale");
+  assert.match(forecast.message, /stale/i);
 });
 
 test("manual and scheduled runs share the GitHub run-start reference time", async () => {
   const context = calculateRunContext("2026-10-27T00:15:00.000Z");
   assert.equal(context.runDate, "2026-10-27");
   assert.equal(context.referenceTime, "2026-10-27T00:15:00.000Z");
+
   const previous = process.env.KOSPI_RUN_STARTED_AT;
   process.env.KOSPI_RUN_STARTED_AT = "2026-10-27T00:15:00.000Z";
   try {

@@ -122,6 +122,7 @@
         "run_id": { "type": "string" },
         "status": { "type": "string" },
         "fetched_at": { "type": "string", "format": "date-time" },
+        "source_date": { "type": ["string", "null"], "format": "date" },
         "raw_rows": { "type": "integer", "minimum": 0 },
         "source_rows": { "type": "integer", "minimum": 0 },
         "partial": { "type": "boolean" },
@@ -136,7 +137,16 @@
             "elapsed_ms": { "type": "number", "minimum": 0 },
             "estimated_ms": { "type": "number", "minimum": 0 },
             "overall_deadline_ms": { "type": "number", "minimum": 0 },
-            "max_concurrency": { "type": "integer", "minimum": 1 }
+            "max_concurrency": { "type": "integer", "minimum": 1 },
+            "max_age_seconds": { "type": "number", "minimum": 0 },
+            "close_max_age_seconds": { "type": "number", "minimum": 0 },
+            "quote_count": { "type": "integer", "minimum": 0 },
+            "min_quote_age_seconds": { "type": ["number", "null"], "minimum": 0 },
+            "max_quote_age_seconds": { "type": ["number", "null"], "minimum": 0 },
+            "universe_endpoint": { "type": "string", "format": "uri" },
+            "quote_endpoint_template": { "type": "string", "format": "uri-reference" },
+            "delayed_data_possible": { "type": "boolean" },
+            "license_note": { "type": "string" }
           },
           "additionalProperties": false
         }
@@ -264,6 +274,9 @@
         },
         "confidence": { "type": ["number", "null"] },
         "quality": { "type": ["string", "null"] },
+        "quote_at": { "type": ["string", "null"], "format": "date-time" },
+        "quote_age_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "market_status": { "type": ["string", "null"] },
         "status": { "type": "string" }
       },
       "additionalProperties": false

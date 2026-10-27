@@ -51,11 +51,11 @@ function checkHistoricalSnapshot(snapshot, date) {
 function buildMatrix(latest) {
   return [
     { area: "시간·거래일", currently_collected: "historical-test only", contract_only: "KST schedule and stage keys", not_contracted: "holiday/calendar source", note: "workflow cron is configured; actual Actions timing is not verified" },
-    { area: "종목 마스터", currently_collected: "historical-test symbol/name", contract_only: "row schema", not_contracted: "security type, listing status, delisting, suspension", note: "source has no security-type field" },
-    { area: "일별 가격·거래", currently_collected: "public-csv EOD bulk adapter + historical-test", contract_only: "expected/actual fields", not_contracted: "licensed intraday provider", note: "public-csv only exposes observed daily open/close/volume" },
-    { area: "분봉·장전", currently_collected: "없음", contract_only: "없음", not_contracted: "minute candles, indicative price, 10-level book, depth, spread, trade strength", note: "no provider or credentials added" },
+    { area: "종목 마스터", currently_collected: "naver-crawl KOSPI market-list JSON", contract_only: "row schema", not_contracted: "listing status, delisting, suspension", note: "Naver public list is unofficial and stock-type filtering may change" },
+    { area: "일별 가격·거래", currently_collected: "public-csv EOD adapter + naver-crawl quote fields", contract_only: "expected/actual fields", not_contracted: "licensed redistribution rights", note: "Naver quote timestamps and close/open raw values are preserved per row" },
+    { area: "분봉·장전", currently_collected: "Naver pre-open openPriceRaw when fresh", contract_only: "quote_at/max-age fields", not_contracted: "minute candles, indicative price, 10-level book, depth, spread, trade strength", note: "pre-open value is no_data when openPriceRaw is absent" },
     { area: "시장·수급", currently_collected: "없음", contract_only: "없음", not_contracted: "KOSPI200, futures/basis, FX, sectors, foreign/institution/program flow", note: "must remain null/no_data until licensed source exists" },
-    { area: "품질", currently_collected: "source URL/license/timestamps plus public-csv stale/partial/deadline metrics", contract_only: "source metadata, schema, no_data/partial/degraded", not_contracted: "external alert delivery", note: "audit checks stored snapshots; live source health is run-specific" },
+    { area: "품질", currently_collected: "source URL/license/timestamps plus Naver freshness/block/deadline metrics", contract_only: "source metadata, schema, no_data/partial/degraded/blocked", not_contracted: "external alert delivery", note: "audit checks stored snapshots; live source health is run-specific" },
     { area: "저장·파이프라인", currently_collected: latest.status === "no_data" ? "no_data state" : latest.status, contract_only: "stage state, idempotent file replacement", not_contracted: "run ledger, immutable raw archive, alert delivery", note: "public JSON contains no secrets" },
   ];
 }
@@ -66,15 +66,15 @@ async function main() {
   for (const date of expectedHistoricalDates) historical.push(checkHistoricalSnapshot(await readJson(`data/historical-test/${date}.json`), date));
   const result = {
     generated_at: new Date().toISOString(),
-    operating_provider: process.env.KOSPI_PROVIDER || "public-csv",
-    operating_status: process.env.KOSPI_PROVIDER ? "configured_by_environment" : "default_public_csv",
+    operating_provider: process.env.KOSPI_PROVIDER || "naver-crawl",
+    operating_status: process.env.KOSPI_PROVIDER ? "configured_by_environment" : "default_naver_crawl",
     snapshot_provider: latest.provider?.id ?? null,
     snapshot_mode: latest.mode,
     matrix: buildMatrix(latest),
     historical_snapshots: historical,
     pass: historical.every((item) => item.errors.length === 0),
     limitations: [
-      "The default public-csv provider collects daily bulk CSV only; no real pre-market or order-book values are generated.",
+      "The default naver-crawl provider uses an unofficial public polling endpoint; quote freshness, blocking, and unconfirmed usage terms remain operational risks.",
       "Historical daily files are not historical 08:20 snapshots and must not be reported as forecast performance.",
       "The public site must not publish raw licensed data beyond the source terms.",
     ],

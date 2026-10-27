@@ -1,9 +1,11 @@
 import { appendFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { checkMarketDate, kstDate } from "./market-calendar.mjs";
+import { calculateRunContext } from "./run-context.mjs";
 
 function parseArgs(argv) {
-  let date = process.env.KOSPI_GUARD_DATE || kstDate();
+  let date = process.env.KOSPI_GUARD_DATE
+    || (process.env.KOSPI_RUN_STARTED_AT ? calculateRunContext(process.env.KOSPI_RUN_STARTED_AT, { requireValue: true }).runDate : kstDate());
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === "--date") date = argv[++index];
     else if (argv[index] === "--help") {

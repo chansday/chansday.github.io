@@ -2,7 +2,7 @@
 
 정적 GitHub Pages 프론트엔드로 KOSPI 사전예측 랭킹을 기록하고, 장마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
-평일 운영 provider 기본값은 계좌·API 키가 필요 없는 `public-csv`입니다. 공개 일별 CSV는 장전 호가·예상체결가를 제공하지 않으므로 08:20 forecast 단계에서는 전일 정보만 이용한 `public_baseline_no_preopen_quote`를 계산하고, 고정밀 호가 기반 예측으로 표시하지 않습니다. 운영 루트는 live snapshot 상태가 정확히 `no_data`일 때만 분리된 historical-test run을 선택하며, 화면 최상단에 `TEST ONLY · HISTORICAL BASELINE · NOT LIVE`를 표시합니다. 이는 당시 08:20 예측 스냅샷이나 예측 성과를 복원한 것이 아닙니다.
+평일 운영 provider 기본값과 GitHub Actions provider는 `naver-crawl`입니다. Naver 공개 polling endpoint에서 현재 KOSPI quote를 읽어 장전 예상시가·장중 실제시가·장마감 실제값을 계산하지만, Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았습니다. 따라서 source metadata는 `license_status=unconfirmed`를 유지하며 기존 ready 품질 게이트를 우회하지 않습니다. crawl 결과가 지연·빈 응답·차단이면 `no_data`/`degraded`/`blocked`를 기록하고 fixture, demo 또는 이전 snapshot을 대체값으로 사용하지 않습니다.
 
 ## 범위와 운영 원칙
 
@@ -11,7 +11,7 @@
 - `expected_open`, `expected_return`은 09:00 시작가 목표를 위한 장전 기록이고 `actual_open`, `actual_return`, `error`는 09:00 시가 정산 필드입니다. `actual_return`은 전일 종가→실제 시가 평가용이며, `session_return`은 실제 시가→실제 종가 장중 수익률입니다. `actual_close`는 15:30 종가 정산용이며, 시작가 테스트에서는 `expected_close`를 `null`로 둡니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
-- 실제 출처의 약관·재배포 권한이 확인되지 않으면 연결하지 않습니다. HTML 크롤링이나 우회 요청을 하지 않습니다.
+- Naver 공개 웹 크롤링은 출처와 비공식·지연 가능성을 화면과 snapshot metadata에 표시하며, 403/429/CAPTCHA·challenge·HTML 응답은 즉시 중단합니다. HTML 우회, rate-limit 우회, 무한 재시도는 하지 않습니다.
 - `?mode=demo`는 UI/스키마 확인 전용이며 금융 실측값이나 예측 성과를 의미하지 않습니다.
 
 ## 구조
@@ -33,6 +33,7 @@
 ├─ providers/fixture-provider.js
 ├─ providers/public-json-provider.js
 ├─ providers/public-csv-provider.js
+├─ providers/naver-crawl-provider.js
 ├─ data/fixtures/2026-10-22.json
 ├─ data/fixtures/2026-10-23.json
 ├─ data/backfill-test/2026-10-22.json
@@ -46,12 +47,23 @@
 ├─ tests/snapshot.test.mjs
 ├─ docs/SYSTEM_DESIGN.md
 ├─ docs/COLLECTION_AUDIT.md
-└─ .github/workflows/{update-results,analysis,forecast,open-settlement,close-settlement}.yml
+└─ .github/workflows/{run-now,update-results,analysis,forecast,open-settlement,close-settlement}.yml
 ```
 
 ## 현재 데이터 출처 상태
 
-운영 provider 기본값은 `public-csv`이며, 평일 Actions가 명시적 allowlist의 bulk CSV만 수집합니다. `KOSPI_PROVIDER=none`으로 끄거나, 공개 원천이 늦거나 품질 검사를 통과하지 못하면 `no_data`/`partial`/`degraded` 상태로 기록합니다. 운영 루트는 `no_data`에서만 `data/runs/historical-test`의 settled run을 fallback으로 읽고, `partial`·`degraded`·stale 등 다른 상태에서는 fallback하지 않습니다.
+운영 provider 기본값은 `naver-crawl`이며, 고정 stage workflow와 `run-now`가 같은 reusable runner를 사용합니다. `KOSPI_PROVIDER=none`은 명시적 비활성화로만 허용되며 해당 stage는 `no_data`를 기록하고 non-zero exit로 종료합니다. 공개 원천이 늦거나 품질 검사를 통과하지 못하면 `no_data`/`partial`/`degraded`/`blocked` 상태로 기록합니다. 운영 루트는 정확히 `no_data`일 때만 `data/runs/historical-test`의 settled run을 fallback으로 읽고, `partial`·`degraded`·`blocked`·stale 상태에서는 fallback하지 않습니다.
+
+### Naver 공개 crawl provider
+
+- quote endpoint: `https://polling.finance.naver.com/api/realtime/domestic/stock/{codes}`
+- KOSPI universe endpoint: `https://m.stock.naver.com/api/stocks/marketValue/KOSPI?sortType=marketValue&category=KOSPI&page={page}&pageSize={pageSize}`
+- 사용 필드: `openPriceRaw`, `closePriceRaw`, `localTradedAt`, `marketStatus`, `stockName`, `symbolCode` (가능한 경우 전일 대비 원시값과 누적 거래량도 계산 보조용으로 기록)
+- 각 행에 `quote_at`과 `quote_age_seconds`, `market_status`를 보존하고, source metadata에 `retrieved_at`, 요청 수, freshness max age, universe/quote endpoint와 지연 가능성을 기록합니다.
+- 장전(`KST < 09:00`): 현재 날짜의 신선한 `openPriceRaw`가 있을 때만 `expected_open`을 계산합니다. 없으면 전일 종가로 예상값을 합성하지 않고 `no_data`입니다.
+- 장중(`09:00 ≤ KST < 15:30`): 신선한 `openPriceRaw`를 `actual_open`으로 저장하고 전일 대비 실제 수익률을 계산합니다.
+- 장마감 후(`KST ≥ 15:30`): 당일 `openPriceRaw`와 `closePriceRaw`를 실제 시가·종가로 저장합니다. 장마감 quote의 허용 max age는 별도로 검증합니다.
+- Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 현재 `update-results.mjs`의 ready 게이트가 상태를 `degraded`로 낮춥니다. 실제로 수집된 행은 관찰용 degraded snapshot에 보존하되 정상 `ready`로 표시하지 않습니다. 이는 라이선스를 `confirmed`로 거짓 표시하지 않기 위한 의도된 안전장치입니다.
 
 `data/runs/historical-test/YYYY-MM-DD/*.json`은 운영 run과 분리된 검증용 과거 스냅샷입니다. `data/latest-snapshot.json`은 운영 provider의 최신 run 복사본이며, fallback 선택 시에도 파일·운영 상태·메타데이터를 덮어쓰지 않습니다. historical-test 수집기는 latest 운영 복사본을 갱신하지 않습니다.
 
@@ -106,17 +118,17 @@ forecast input through 2026-10-22:
 npm run historical-test:collect
 ```
 
-이 경로는 평일 운영 cron, `KOSPI_PROVIDER`, `public-csv` 운영 수집, 기존 합성 fixture/replay/backfill 파일과 분리되어 있습니다.
+이 경로는 평일 운영 cron, `KOSPI_PROVIDER`, `naver-crawl` 운영 수집, 기존 합성 fixture/replay/backfill 파일과 분리되어 있습니다.
 
-### 공개 bulk 수집 전략과 08:20 cutoff
+### 공개 crawl 수집 전략과 08:20 cutoff
 
-운영 수집은 종목별 페이지를 순차 크롤링하지 않습니다. 기본 경로는 공개된 날짜별 전체 CSV 한 파일을 가져와 KOSPI 행을 일괄 파싱하는 방식입니다. 로그인·CAPTCHA·robots 차단·redirect·HTML 페이지를 우회하지 않으며, 명시적 allowlist인 `aikstockdata.com` 외 호스트는 거부합니다.
+운영 수집은 KOSPI market-list JSON을 페이지 단위로 한 번 읽고, 종목코드를 제한된 batch로 polling endpoint에 전달합니다. 로그인·CAPTCHA·robots 차단·redirect·HTML challenge를 우회하지 않으며, Naver 허용 호스트 외에는 요청하지 않습니다.
 
-- Actions forecast job은 08:20 KST에 시작하고, 수집기는 08:29:00 KST hard cutoff를 적용합니다. cutoff 이후 도착한 결과는 당일 값으로 재사용하지 않습니다. 09:00 단계는 별도의 `open-settlement` 계약으로 실제 시작가를 정산합니다.
-- source별 timeout(기본 8초), stage별 overall deadline(기본 20초), 최대 동시 요청 2개, 429/5xx에 대한 최대 2회 지수 backoff를 적용합니다.
+- Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-now`는 클릭 시점의 caller run start를 명시적으로 reusable runner에 전달합니다. `run-now`는 그 시각을 KST로 변환해 `forecast`/`open-settlement`/`close-settlement`를 선택하고, 같은 crawl runner에서 quote freshness를 검증합니다.
+- source별 timeout(기본 8초), 전체 deadline(기본 120초), 순차 요청 간 최소 간격(기본 250ms), 최대 1회 bounded retry를 적용합니다. 403/429/challenge는 재시도하지 않습니다.
 - deadline 초과·중복·필수 필드 결측·오래된 파일은 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 이전 snapshot을 당일 결과처럼 재사용하지 않습니다.
-- `meta.source`에는 source id, run id, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록합니다.
-- 전체 CSV는 빠르고 호출량이 작지만 장전 호가·예상체결가·체결강도·분봉을 제공하지 않습니다. 따라서 데이터 범위를 늘리는 것보다 정확도·시간 경계를 지키는 것을 우선하며, 없는 예측값은 생성하지 않습니다.
+- `meta.source`에는 source id, run id, `source_date`, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록하고, snapshot top-level `asOfDate`는 실제 원본 날짜를 가리킵니다. stale/unsupported 결과도 이 날짜를 숨기지 않습니다.
+- Naver quote는 공식 API가 아니며 응답 지연·필드 변경·차단 가능성이 있습니다. 따라서 `localTradedAt`와 fetch time의 max age를 확인하고, 없는 예측값·실제가를 생성하지 않습니다.
 
 정책이 확인된 단일 공개 JSON endpoint를 연결하려면 `KOSPI_PROVIDER=public-json`과 아래 설정을 모두 명시해야 합니다. 하나라도 빠지면 adapter는 네트워크 요청 없이 `degraded`를 반환합니다.
 
@@ -187,7 +199,7 @@ npm run historical-test:verify
 
 data/fixtures/2026-10-22.json과 data/fixtures/2026-10-23.json은 UI·스키마·정산 흐름을 확인하기 위한 합성 fixture입니다. 두 파일 모두 provider.id=fixture, mode=fixture, meta.isDemo=true를 명시하고, FIXTURE / SYNTHETIC ONLY 라벨과 fixture_synthetic 품질을 사용합니다. 값은 실제 종목·가격·수익률이 아니며, 실제 08:20 KST 입력 스냅샷이 없으므로 역사적 예측을 사후 재구성한 자료도 아닙니다.
 
-운영 cron은 fixture를 사용하지 않습니다. Actions의 workflow_dispatch에서 provider=fixture와 fixture_date=2026-10-22 또는 2026-10-23을 선택하거나, 로컬에서 다음처럼 스냅샷을 쓰지 않는 dry-run을 실행할 수 있습니다.
+운영 cron은 fixture를 사용하지 않습니다. fixture 확인은 로컬 dry-run으로만 수행합니다.
 
 ~~~
 node scripts/update-results.mjs --provider fixture --fixture-date 2026-10-22 --mode forecast --dry-run
@@ -201,16 +213,16 @@ npm run pipeline:dry-run -- --provider fixture --fixture-date 2026-10-23
 GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9이고 서머타임이 없으므로 다음처럼 고정 변환합니다.
 
 | 버튼 / workflow | UTC cron | KST 실행 | stage / provider |
-| --- | --- | --- | --- |
-| `KOSPI update-results` → **Run workflow** | `0 22 * * 0-4` | 월–금 07:00 | `update-results` / `public-csv` |
-| `KOSPI analysis` → **Run workflow** | `0 23 * * 0-4` | 월–금 08:00 | `analysis` / `public-csv` |
-| `KOSPI forecast` → **Run workflow** | `20 23 * * 0-4` | 월–금 08:20 | `forecast` / `public-csv` |
-| `KOSPI open-settlement` → **Run workflow** | `0 0 * * 1-5` | 월–금 09:00 | `open-settlement` / `public-csv` |
-| `KOSPI close-settlement` → **Run workflow** | `30 6 * * 1-5` | 월–금 15:30 | `close-settlement` / `public-csv` |
+| --- | --- | --- |
+| `KOSPI update-results` → **Run workflow** | `0 22 * * 0-4` | 월–금 07:00 | `update-results` / `naver-crawl` |
+| `KOSPI analysis` → **Run workflow** | `0 23 * * 0-4` | 월–금 08:00 | `analysis` / `naver-crawl` |
+| `KOSPI forecast` → **Run workflow** | `20 23 * * 0-4` | 월–금 08:20 | `forecast` / `naver-crawl` |
+| `KOSPI open-settlement` → **Run workflow** | `0 0 * * 1-5` | 월–금 09:00 | `open-settlement` / `naver-crawl` |
+| `KOSPI close-settlement` → **Run workflow** | `30 6 * * 1-5` | 월–금 15:30 | `close-settlement` / `naver-crawl` |
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 09:00 시가와 15:30 종가 단계는 공개 일별 CSV가 장중에 제공되지 않으면 `no_data`로 남으며, 이전 snapshot을 재사용하지 않습니다.
 
-Actions에는 기능별 workflow가 5개 표시됩니다. 각 workflow의 **Run workflow** 버튼은 입력을 요구하지 않으며, workflow 파일 안에 `provider: public-csv`가 고정되어 스케줄과 같은 코드 경로를 실행합니다. 즉, `stage`나 provider를 선택하는 통합 버튼은 없습니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않습니다. GitHub가 제공하는 `github.run_started_at`을 runner의 기준시각으로 전달하고, runner의 공통 `calculateRunContext` 함수가 이를 KST 기준일과 source freshness/forecast cutoff의 기준시각으로 사용합니다. 스케줄 실행도 똑같은 함수를 사용합니다. `public-csv`는 계좌·API 키·Secret 없이 실행됩니다. `no_data`, `partial`, `degraded`, `blocked` stage는 job summary에 상태와 사유를 남긴 뒤 job을 실패시킵니다. 주말·KRX 휴장일 skip만 정상 성공입니다.
+Actions에는 기능별 workflow와 입력 없는 `KOSPI run now` workflow가 표시됩니다. 각 workflow는 caller의 `github.run_started_at`, `github.run_id`, `github.run_attempt`를 reusable runner에 명시적으로 전달합니다. `run now`는 그 UTC run start를 KST로 변환해 09:00 전에는 `forecast`, 09:00~15:30에는 `open-settlement`, 15:30 이후에는 `close-settlement`를 선택하고 같은 crawl runner에 run start를 명시적으로 전달합니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않으며, `naver-crawl`은 계좌·API 키·Secret 없이 실행됩니다. `no_data`, `partial`, `degraded`, `blocked` stage는 job summary에 상태와 사유를 남긴 뒤 job을 실패시킵니다. 주말·KRX 휴장일 skip만 정상 성공입니다.
 
 ### Which button should I press? / 어떤 버튼을 누르나요?
 
@@ -221,12 +233,13 @@ Actions에는 기능별 workflow가 5개 표시됩니다. 각 workflow의 **Run 
 | 장전 forecast 상태 | `KOSPI forecast` → **Run workflow** | Choose `KOSPI forecast` → **Run workflow** |
 | 09:00 시가 정산 | `KOSPI open-settlement` → **Run workflow** | Choose `KOSPI open-settlement` → **Run workflow** |
 | 15:30 종가 정산 | `KOSPI close-settlement` → **Run workflow** | Choose `KOSPI close-settlement` → **Run workflow** |
+| 현재 시각 기준 자동 실행 | `KOSPI run now` → **Run workflow** | Choose `KOSPI run now` → **Run workflow** |
 
-버튼을 누른 뒤 입력값은 비워 두면 됩니다. 스케줄은 각 기능 workflow에 직접 선언되어 있고, 수동 실행도 같은 reusable stage runner를 호출합니다. `validation.yml`은 `push` 전용 검증 workflow이며 snapshot을 수집하거나 commit하지 않습니다.
+버튼을 누른 뒤 입력값은 비워 두면 됩니다. 기능별 스케줄은 기존 시각 기준으로 유지되고, `run now`는 실행 시각 기준 stage를 자동 선택해 같은 reusable stage runner를 호출합니다. `validation.yml`은 `push` 전용 검증 workflow이며 snapshot을 수집하거나 commit하지 않습니다.
 
 ### 한국 거래일·공휴일 guard
 
-cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 checkout/setup 직후 [`scripts/market-session-guard.mjs`](scripts/market-session-guard.mjs)를 실행합니다. guard는 한국시간 현재 날짜를 [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 정상 종료하고 검증·stage 실행·수집·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
+cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 checkout/setup 직후 [`scripts/market-session-guard.mjs`](scripts/market-session-guard.mjs)를 실행합니다. guard는 caller가 전달한 run-start의 한국시간 날짜를 [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 정상 종료하고 검증·stage 실행·수집·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
 
 캘린더는 코드에 내장하지 않고 연도별 체크인 JSON으로 관리합니다. 2026년 목록에는 신정·설/추석·근로자의 날·제헌절·연말휴장일과 2026년에 확인된 대체휴일·임시공휴일을 포함합니다. 매년 KRX가 공표한 휴장일을 원문에서 재확인하여 목록, 대체휴일, 임시공휴일 변경을 갱신해야 합니다. 캘린더 커버리지 밖의 평일은 `calendar_coverage_missing` 오류로 fail-closed하며 수집을 시작하지 않습니다. 따라서 네트워크 API가 다운되거나 목록이 갱신되지 않은 상태에서 공휴일을 평일로 오판해 파일을 덮어쓰는 대신 workflow가 실패하고 운영자가 캘린더를 갱신해야 합니다. 이 저장소는 공휴일 API를 실행 시점에 호출하지 않으며, 자동 갱신을 보장하지 않습니다.
 
@@ -270,7 +283,7 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
    `gh workflow run forecast.yml --ref main`
 
 2. provider 상태, `meta.source.source_date`/`retrieved_at`, top-level `asOfDate`, `data/latest-snapshot.json`의 단계 상태와 job summary를 확인합니다. summary의 `reference time (run start)`은 해당 수동/스케줄 실행의 기준시각입니다.
-3. `forecast`/`open-settlement`은 public-csv 한계상 성공적인 live 수집으로 해석하지 않습니다. 실제 장전·09:00 시가가 필요하면 라이선스가 확인된 intraday/open provider를 별도로 연결해야 하며, 현재는 `no_data`가 정직한 결과입니다.
+3. `forecast`/`open-settlement`/`close-settlement`은 Naver 공개 crawl의 실제 quote와 `localTradedAt` freshness를 함께 확인합니다. 이용정책이 확인되지 않은 상태에서는 snapshot의 `license_status=unconfirmed`가 ready 게이트에 의해 `degraded`로 남을 수 있으며, 이는 라이선스를 `confirmed`로 표시하지 않기 위한 의도된 제한입니다.
 4. `fixture`/`demo`는 UI·계약 확인용 로컬 dry-run에서만 사용하고 운영 데이터로 해석하지 않습니다. 기능 workflow는 provider 선택을 노출하지 않습니다.
 5. 문제가 있으면 해당 기능 workflow의 summary와 `data/latest-snapshot.json`의 stage 상태를 확인합니다. provider를 바꾸거나 `none`으로 우회하는 설정은 workflow에 포함하지 않습니다.
 

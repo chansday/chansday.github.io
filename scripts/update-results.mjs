@@ -11,6 +11,8 @@ import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
+import { createNaverCrawlProvider } from "../providers/naver-crawl-provider.js";
+import { calculateRunContext } from "./run-context.mjs";
 
 export const MODES = {
   "update-results": { key: "previousResult", method: "fetchPreviousDay" },
@@ -26,28 +28,7 @@ const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expec
 const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open", "actual_return"]);
 const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "session_return", "actual_volume"]);
 
-function kstDate(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(date).reduce((result, part) => ({ ...result, [part.type]: part.value }), {});
-  return `${parts.year}-${parts.month}-${parts.day}`;
-}
-
-export function calculateRunContext(startedAt = null) {
-  const rawStartedAt = startedAt || process.env.KOSPI_RUN_STARTED_AT || new Date();
-  const referenceTime = rawStartedAt instanceof Date ? rawStartedAt : new Date(rawStartedAt);
-  if (Number.isNaN(referenceTime.getTime())) {
-    throw new Error(`Invalid KOSPI_RUN_STARTED_AT value: ${rawStartedAt}`);
-  }
-  return {
-    startedAt: new Date(referenceTime.getTime()),
-    runDate: kstDate(referenceTime),
-    referenceTime: referenceTime.toISOString(),
-  };
-}
+export { calculateRunContext } from "./run-context.mjs";
 
 function validDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
@@ -86,9 +67,10 @@ function parseArgs(argv) {
     else if (arg === "--provider") { options.provider = argv[index + 1]; index += 1; }
     else if (arg === "--fixture-date") { options.fixtureDate = argv[index + 1]; index += 1; }
     else if (arg === "--run-date" || arg === "--date") { options.runDate = argv[index + 1]; index += 1; }
+    else if (arg === "--run-started-at") { options.runStartedAt = argv[index + 1]; index += 1; }
     else if (arg === "--attempted-at") { options.attemptedAt = argv[index + 1]; index += 1; }
     else if (arg === "--help") {
-      console.log("Usage: node scripts/update-results.mjs --mode <update-results|analysis|forecast|open-settlement|close-settlement> [--provider id] [--fixture-date YYYY-MM-DD] [--run-date YYYY-MM-DD] [--attempted-at ISO] [--data-file path] [--dry-run]");
+      console.log("Usage: node scripts/update-results.mjs --mode <update-results|analysis|forecast|open-settlement|close-settlement> [--provider id] [--fixture-date YYYY-MM-DD] [--run-date YYYY-MM-DD] [--run-started-at ISO] [--attempted-at ISO] [--data-file path] [--dry-run]");
       return null;
     } else throw new Error(`Unknown argument: ${arg}`);
   }
@@ -104,13 +86,14 @@ function parseArgs(argv) {
 }
 
 function resolveProvider(env = process.env, options = {}) {
-  const providerId = (options.provider ?? env.KOSPI_PROVIDER ?? "public-csv").trim().toLowerCase();
+  const requestedProvider = (options.provider ?? env.KOSPI_PROVIDER ?? "").trim().toLowerCase();
+  const providerId = requestedProvider || "naver-crawl";
   const providerEnv = {
     ...env,
     ...(options.fixtureDate ? { KOSPI_FIXTURE_DATE: options.fixtureDate } : {}),
     KOSPI_RUN_DATE: options.runDate,
     KOSPI_RUN_STARTED_AT: options.runStartedAt,
-    KOSPI_RUN_ID: `${options.runDate}-${options.mode}`,
+    KOSPI_RUN_ID: env.KOSPI_RUN_ID || `${options.runDate}-${options.mode}`,
     KOSPI_STABLE_SNAPSHOT: "1",
     GITHUB_RUN_ID: undefined,
   };
@@ -120,6 +103,7 @@ function resolveProvider(env = process.env, options = {}) {
   if (providerId === "fixture") return { provider: createFixtureProvider({ env: providerEnv }), providerId };
   if (providerId === "public-json") return { provider: createPublicJsonProvider({ env: providerEnv, now }), providerId };
   if (providerId === "public-csv") return { provider: createPublicCsvProvider({ env: providerEnv, now }), providerId };
+  if (providerId === "naver-crawl") return { provider: createNaverCrawlProvider({ env: providerEnv, now: () => new Date(), runStartedAt: options.runStartedAt }), providerId };
   return { provider: null, providerId };
 }
 
@@ -215,7 +199,8 @@ function carryExpectedRowsForUnavailableSettlement(rows, mode) {
   return rows.map((row) => ({ ...row, error: derivedError(row) }));
 }
 
-function unavailableRows(snapshot, mode) {
+function unavailableRows(snapshot, mode, providerId = null) {
+  if (providerId === "naver-crawl") return [];
   if (["open-settlement", "close-settlement"].includes(mode) && snapshot.rows.length > 0) {
     return carryExpectedRowsForUnavailableSettlement(snapshot.rows, mode);
   }
@@ -230,7 +215,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: unavailableRows(snapshot, mode),
+      rows: unavailableRows(snapshot, mode, providerId),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source: provider?.getSourceMetadata?.() || null },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -238,15 +223,30 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
 
   const source = result.source || provider?.getSourceMetadata?.() || null;
   if (result.status === "ready" && (!source || source.license_status !== "confirmed" || !source.retrieved_at)) {
-    const reason = "Ready data requires confirmed source licensing and a retrieval timestamp.";
+    const reason = "Live values were collected, but ready display is blocked until source licensing is confirmed; the snapshot remains degraded and keeps the observed rows with source warnings.";
+    const rows = mergeRows(snapshot.rows, result.rows, mode);
+    const rowValidation = validateRankingRows(rows);
+    if (!rowValidation.valid) {
+      return {
+        ...snapshot,
+        status: "degraded",
+        mode: "provider",
+        provider: providerInfo(provider, providerId, "degraded"),
+        rows: unavailableRows(snapshot, mode, providerId),
+        meta: { ...snapshot.meta, blockedReason: `${reason} Provider rows failed schema validation.`, isDemo: false, source },
+        pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
+      };
+    }
     return {
       ...snapshot,
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: unavailableRows(snapshot, mode),
-      meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source },
-      pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
+      asOfDate: result.asOfDate || snapshot.asOfDate || null,
+      publishedAt: attemptedAt,
+      rows: rowValidation.rows,
+      meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source: { ...source, status: "license_unconfirmed" } },
+      pipeline: { ...snapshot.pipeline, [MODES[mode].key]: { status: "degraded", attemptedAt, provider_id: providerId || null, message: `${result.message} ${reason}` } },
     };
   }
 
@@ -263,7 +263,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: unavailableRows(snapshot, mode),
+        rows: unavailableRows(snapshot, mode, providerId),
       meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source },
       pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -355,8 +355,8 @@ export async function run(argv = process.argv.slice(2)) {
       ...nextSnapshot,
       status,
       mode: "provider",
-      provider: providerInfo(null, providerId, providerId ? "unsupported" : "not_configured"),
-      rows: unavailableRows(nextSnapshot, options.mode),
+      provider: providerInfo(null, providerId, providerId === "none" ? "disabled" : "unsupported"),
+      rows: unavailableRows(nextSnapshot, options.mode, providerId),
       meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: null },
       pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
@@ -367,7 +367,7 @@ export async function run(argv = process.argv.slice(2)) {
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      rows: unavailableRows(nextSnapshot, options.mode),
+      rows: unavailableRows(nextSnapshot, options.mode, providerId),
       meta: { ...nextSnapshot.meta, isDemo: false, blockedReason: reason, source: provider.getSourceMetadata?.() || null },
       pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
     };

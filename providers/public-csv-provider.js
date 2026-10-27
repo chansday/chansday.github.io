@@ -14,7 +14,6 @@ const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_BASE_MS = 250;
 const DEFAULT_MAX_AGE_HOURS = 72;
 const DEFAULT_MAX_CONCURRENCY = 2;
-const DEFAULT_FORECAST_CUTOFF = "08:29:00";
 const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
 
 function numberEnv(env, key, fallback, minimum = 0) {
@@ -33,10 +32,6 @@ function parseConfig(env) {
   if (baseUrl.protocol !== "https:" || baseUrl.hostname.toLowerCase() !== SOURCE_HOST) {
     return { enabled: false, reason: `Public CSV host must be the explicit allowlisted host ${SOURCE_HOST}.` };
   }
-  const cutoff = (env.KOSPI_PUBLIC_FORECAST_CUTOFF_KST || DEFAULT_FORECAST_CUTOFF).trim();
-  if (!/^([01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(cutoff)) {
-    return { enabled: false, reason: "Forecast cutoff must be HH:MM:SS in KST." };
-  }
   return {
     enabled: true,
     baseUrl: baseUrl.toString(),
@@ -46,7 +41,6 @@ function parseConfig(env) {
     retryBaseMs: Math.min(3_000, numberEnv(env, "KOSPI_PUBLIC_RETRY_BASE_MS", DEFAULT_RETRY_BASE_MS, 0)),
     maxAgeHours: numberEnv(env, "KOSPI_PUBLIC_MAX_AGE_HOURS", DEFAULT_MAX_AGE_HOURS, 1),
     maxConcurrency: Math.min(2, Math.max(1, numberEnv(env, "KOSPI_PUBLIC_MAX_CONCURRENCY", DEFAULT_MAX_CONCURRENCY, 1))),
-    forecastCutoff: cutoff,
   };
 }
 
@@ -115,11 +109,6 @@ function parseNumeric(value) {
 
 function runId(env) {
   return String(env.GITHUB_RUN_ID || env.KOSPI_RUN_ID || `local-${Date.now()}`);
-}
-
-function kstCutoffPassed(now, cutoff) {
-  const parts = kstParts(now);
-  return `${parts.hour}:${parts.minute}:${parts.second}` >= cutoff;
 }
 
 function sleep(ms) {
@@ -229,7 +218,8 @@ async function fetchHistory(startDate, context, exactOnly = false) {
 
 function freshnessStatus(date, now, maxAgeHours) {
   const closeTime = new Date(`${date}T15:30:00+09:00`).getTime();
-  return Number.isFinite(closeTime) && (now.getTime() - closeTime) / 3_600_000 <= maxAgeHours ? "fresh" : "stale";
+  const ageHours = Number.isFinite(closeTime) ? (now.getTime() - closeTime) / 3_600_000 : Number.POSITIVE_INFINITY;
+  return ageHours >= 0 && ageHours <= maxAgeHours ? "fresh" : "stale";
 }
 
 function makeSource({ latest, context, status, partial = false }) {
@@ -248,6 +238,7 @@ function makeSource({ latest, context, status, partial = false }) {
     runId: context.runId,
     status,
     fetchedAt: nowIso,
+    sourceDate: latest?.date || null,
     rawRows: latest?.rawRows,
     sourceRows: latest?.rows?.length,
     partial,
@@ -265,8 +256,8 @@ function makeSource({ latest, context, status, partial = false }) {
   });
 }
 
-function noData(message, source = null, status = "no_data") {
-  return { status, message, rows: [], source, asOfDate: null };
+function noData(message, source = null, status = "no_data", asOfDate = source?.source_date || null) {
+  return { status, message, rows: [], source, asOfDate };
 }
 
 function deriveError(actualReturn, expectedReturn) {
@@ -305,34 +296,6 @@ function makeRows(latest, prior) {
   return rows;
 }
 
-function makeForecastRows(latest, prior) {
-  const rows = latest.rows.map((row) => {
-    const expectedOpen = row.close;
-    const expectedReturn = 0;
-    return {
-      rank: null,
-      symbol: row.symbol,
-      name: row.name,
-      expected_open: expectedOpen,
-      expected_close: null,
-      expected_return: expectedReturn,
-      actual_open: null,
-      actual_close: null,
-      actual_return: null,
-      session_return: null,
-      actual_volume: null,
-      prior_close: row.close,
-      error: null,
-      confidence: null,
-      quality: "public_baseline_no_preopen_quote",
-      status: "valid",
-    };
-  }).filter(Boolean);
-  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
-  rows.forEach((row, index) => { row.rank = index + 1; });
-  return rows;
-}
-
 export function createPublicCsvProvider({ env = globalThis.process?.env || {}, fetchImpl = globalThis.fetch, now = () => new Date() } = {}) {
   const config = parseConfig(env);
   const provider = {
@@ -344,20 +307,27 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
     async runAnalysis() { return collectObserved(provider, "analysis", false); },
     async generateForecast() {
       if (!config.enabled) return noData(config.reason);
-      if (kstCutoffPassed(now(), config.forecastCutoff)) return noData(`Forecast collection cutoff ${config.forecastCutoff} KST has passed; no late data is used and forecast remains no_data.`);
       const context = createContext();
       const history = await fetchHistory(subtractDays(kstDate(now()), 1), context);
-      const source = makeSource({ latest: history.latest, context, status: "forecast_unavailable", partial: true });
-      if (!history.latest || context.metrics.deadlineHit) return noData("Public daily CSV baseline inputs are incomplete before the forecast deadline; forecast remains no_data.", source);
-      const rows = makeForecastRows(history.latest, history.prior);
-      if (rows.length === 0) return noData("Public daily CSV has no overlapping prior-session rows for a baseline forecast.", source);
-      return {
-        status: "ready",
-        message: `Generated ${rows.length} baseline expected_open rows from daily CSV through ${history.latest.date}; pre-market quote/order-book fields are unavailable.`,
-        rows,
-        source: makeSource({ latest: history.latest, context, status: "ready" }),
-        asOfDate: kstDate(now()),
-      };
+      const freshness = history.latest ? freshnessStatus(history.latest.date, now(), config.maxAgeHours) : "stale";
+      const source = makeSource({
+        latest: history.latest,
+        context,
+        status: freshness === "stale" ? "stale" : "forecast_unsupported",
+        partial: true,
+      });
+      if (!history.latest || context.metrics.deadlineHit) {
+        return noData("Public daily CSV baseline inputs are incomplete before the forecast deadline; forecast remains no_data.", source);
+      }
+      if (freshness !== "fresh") {
+        return noData(`Public daily CSV source date ${history.latest.date} is stale for today's forecast; no stale forecast is published.`, source, "degraded", history.latest.date);
+      }
+      return noData(
+        `Unsupported: public-csv has no live pre-market quote/order-book data. EOD source ${history.latest.date} is recorded, but no ready forecast is published.`,
+        source,
+        "no_data",
+        history.latest.date,
+      );
     },
     async settleOpen() {
       if (!config.enabled) return noData(config.reason);
@@ -371,8 +341,8 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
       const priorContext = createContext();
       const prior = await fetchHistory(subtractDays(history.latest.date, 1), priorContext, true);
       const freshness = freshnessStatus(history.latest.date, now(), config.maxAgeHours);
-      if (freshness !== "fresh" || context.metrics.deadlineHit || history.latest.invalidRows > 0) {
-        return noData("Current-day CSV is stale, partial, or past the collection deadline; no stale snapshot is reused.", makeSource({ latest: history.latest, context, status: freshness === "stale" ? "stale" : "partial", partial: true }), freshness === "stale" ? "degraded" : "partial");
+      if (freshness !== "fresh" || context.metrics.deadlineHit || history.latest.invalidRows > 0 || !prior.latest) {
+        return noData("Current-day CSV is stale, partial, missing its prior-session input, or past the collection deadline; no stale snapshot is reused.", makeSource({ latest: history.latest, context, status: freshness === "stale" ? "stale" : "partial", partial: true }), freshness === "stale" ? "degraded" : "partial", history.latest.date);
       }
       return {
         status: "ready",
@@ -407,7 +377,7 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
     const freshness = freshnessStatus(history.latest.date, now(), config.maxAgeHours);
     const partial = context.metrics.deadlineHit || history.latest.invalidRows > 0 || !history.prior;
     const sourceStatus = freshness === "stale" ? "stale" : partial ? "partial" : "ready";
-    if (freshness !== "fresh" || partial) return noData(`Public CSV is ${sourceStatus}; partial or stale data is not published as a normal ranking.`, makeSource({ latest: history.latest, context, status: sourceStatus, partial: true }), freshness === "stale" ? "degraded" : "partial");
+    if (freshness !== "fresh" || partial) return noData(`Public CSV is ${sourceStatus}; partial or stale data is not published as a normal ranking.`, makeSource({ latest: history.latest, context, status: sourceStatus, partial: true }), freshness === "stale" ? "degraded" : "partial", history.latest.date);
     const rows = makeRows(history.latest, history.prior);
     return {
       status: "ready",

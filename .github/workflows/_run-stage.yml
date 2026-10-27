@@ -5,10 +5,28 @@ on:
     inputs:
       stage:
         description: "Fixed operating stage supplied by the caller workflow"
-        required: true
+        required: false
+        default: ""
         type: string
+      auto_stage:
+        description: "Resolve forecast/open/close from the caller run start in KST"
+        required: false
+        default: false
+        type: boolean
       provider:
         description: "Fixed provider supplied by the caller workflow"
+        required: true
+        type: string
+      run_started_at:
+        description: "Caller workflow run start in UTC; never read from reusable context"
+        required: true
+        type: string
+      run_id:
+        description: "Caller workflow run id"
+        required: true
+        type: string
+      run_attempt:
+        description: "Caller workflow run attempt"
         required: true
         type: string
     secrets:
@@ -29,7 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KOSPI_PROVIDER: ${{ inputs.provider }}
-      KOSPI_RUN_STARTED_AT: ${{ github.run_started_at }}
+      KOSPI_RUN_STARTED_AT: ${{ inputs.run_started_at }}
+      KOSPI_RUN_ID: ${{ inputs.run_id }}.${{ inputs.run_attempt }}
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
       KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
       KOSPI_PUBLIC_SOURCE_NAME: ${{ vars.KOSPI_PUBLIC_SOURCE_NAME || '' }}
@@ -46,20 +65,29 @@ jobs:
         with:
           node-version: 22
 
+      - name: Validate caller run context
+        id: run-context
+        run: node scripts/run-context.mjs
+
       - name: Guard KOSPI trading day
         id: market-day
         run: node scripts/market-session-guard.mjs
+
+      - name: Resolve current KST stage
+        id: auto_stage
+        if: steps.market-day.outputs.should_run == 'true' && inputs.auto_stage == true
+        run: node scripts/run-context.mjs
 
       - name: Validate the static contract
         id: static-contract
         if: steps.market-day.outputs.should_run == 'true'
         run: npm test && npm run check
 
-      - name: Run fixed KOSPI stage
+      - name: Run resolved KOSPI stage
         id: stage
         if: always() && steps.market-day.outputs.should_run == 'true' && steps.static-contract.outcome == 'success'
         continue-on-error: true
-        run: node scripts/update-results.mjs --mode "${{ inputs.stage }}"
+        run: node scripts/update-results.mjs --mode "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" --run-started-at "${{ inputs.run_started_at }}" --attempted-at "${{ inputs.run_started_at }}"
 
       - name: Write workflow summary
         if: always()
@@ -68,21 +96,20 @@ jobs:
           if [ "${{ steps.market-day.outputs.should_run }}" != "true" ]; then
             {
               echo "### KOSPI stage: market closed"
-              echo "- stage: \`${{ inputs.stage }}\`"
+              echo "- stage: \`${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}\`"
               echo "- provider: \`${KOSPI_PROVIDER}\`"
               echo "- collection and snapshot mutation: **not run**"
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
               echo "### KOSPI stage workflow"
-              echo "- stage: \`${{ inputs.stage }}\`"
+              echo "- stage: \`${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}\`"
               echo "- provider: \`${KOSPI_PROVIDER}\`"
-              echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (GitHub run start; KST is derived in the runner)"
+              echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (caller run start UTC; KST stage is derived from the same value)"
               echo "- manual button and schedule use the same stage command"
               echo "- no_data/partial/degraded/blocked results fail the job after the snapshot and summary are written"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
-
       - name: Commit snapshot state when changed
         if: always() && steps.market-day.outputs.should_run == 'true' && steps.static-contract.outcome == 'success' && (steps.stage.outcome == 'success' || steps.stage.outcome == 'failure')
         shell: bash
@@ -94,7 +121,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/latest-snapshot.json data/runs
-          git commit -m "chore(data): record KOSPI ${{ inputs.stage }} stage"
+          git commit -m "chore(data): record KOSPI ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }} stage"
           git push
 
       - name: Fail when the stage is not ready
@@ -106,6 +133,6 @@ jobs:
             exit 1
           fi
           if [ "${{ steps.stage.outcome }}" = "failure" ]; then
-            echo "Stage '${{ inputs.stage }}' returned no_data, partial, degraded, blocked, or another failure." >&2
+            echo "Stage '${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}' returned no_data, partial, degraded, blocked, or another failure." >&2
             exit 1
           fi

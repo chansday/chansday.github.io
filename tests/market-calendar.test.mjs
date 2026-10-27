@@ -93,12 +93,19 @@ test("feature workflows expose input-free buttons and route through the shared g
     assert.match(workflow, /workflow_dispatch:\r?\n/);
     assert.match(workflow, new RegExp(`cron: "${cron.replaceAll("*", "\\*")}"`));
     assert.match(workflow, new RegExp(`stage: ${stage}`));
-    assert.match(workflow, /provider: public-csv/);
+    assert.match(workflow, /provider: naver-crawl/);
     assert.doesNotMatch(workflow, /inputs:/);
     assert.match(workflow, /uses: \.\/\.github\/workflows\/_run-stage\.yml/);
   }
   const shared = await readFile(new URL("_run-stage.yml", workflowRoot), "utf8");
-  assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("Run fixed KOSPI stage"));
+  assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("Run resolved KOSPI stage"));
+  assert.match(shared, /run_started_at:/);
+  assert.match(shared, /inputs\.run_started_at/);
+  assert.match(shared, /scripts\/run-context\.mjs/);
+  const runNow = await readFile(new URL("run-now.yml", workflowRoot), "utf8");
+  assert.match(runNow, /auto_stage: true/);
+  assert.match(runNow, /run_started_at: \$\{\{ github\.run_started_at \}\}/);
+  assert.match(runNow, /uses: \.\/\.github\/workflows\/_run-stage\.yml/);
   assert.match(shared, /npm test && npm run check/);
   assert.match(shared, /no_data\/partial\/degraded\/blocked/);
   assert.match(shared, /git push/);

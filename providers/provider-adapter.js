@@ -25,7 +25,17 @@ export const RANKING_FIELDS = Object.freeze([
   "error",
 ]);
 
-export const OPTIONAL_ROW_FIELDS = Object.freeze(["confidence", "quality", "actual_volume", "prior_close", "session_return", "features"]);
+export const OPTIONAL_ROW_FIELDS = Object.freeze([
+  "confidence",
+  "quality",
+  "actual_volume",
+  "prior_close",
+  "session_return",
+  "features",
+  "quote_at",
+  "quote_age_seconds",
+  "market_status",
+]);
 
 export const SNAPSHOT_STATUSES = Object.freeze([
   "ready",
@@ -73,6 +83,9 @@ export function isRankingRow(row) {
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
   if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
   if (Object.hasOwn(row, "session_return") && !isFiniteOrNull(row.session_return)) return false;
+  if (Object.hasOwn(row, "quote_at") && row.quote_at !== null && typeof row.quote_at !== "string") return false;
+  if (Object.hasOwn(row, "quote_age_seconds") && !isFiniteOrNull(row.quote_age_seconds)) return false;
+  if (Object.hasOwn(row, "market_status") && row.market_status !== null && typeof row.market_status !== "string") return false;
   if (Object.hasOwn(row, "features")) {
     if (!row.features || typeof row.features !== "object" || Array.isArray(row.features)) return false;
     const featureFields = ["previous_return", "momentum", "volatility", "lookback_sessions"];
@@ -103,6 +116,7 @@ export function isSourceMetadata(source) {
     (source.run_id === undefined || typeof source.run_id === "string") &&
     (source.status === undefined || typeof source.status === "string") &&
     (source.fetched_at === undefined || typeof source.fetched_at === "string") &&
+    (source.source_date === undefined || source.source_date === null || typeof source.source_date === "string") &&
     (source.raw_rows === undefined || Number.isInteger(source.raw_rows)) &&
     (source.source_rows === undefined || Number.isInteger(source.source_rows)) &&
     (source.partial === undefined || typeof source.partial === "boolean") &&
@@ -120,6 +134,7 @@ export function createSourceMetadata({
   runId,
   status,
   fetchedAt,
+  sourceDate,
   rawRows,
   sourceRows,
   partial,
@@ -136,6 +151,7 @@ export function createSourceMetadata({
   if (runId !== undefined) metadata.run_id = runId;
   if (status !== undefined) metadata.status = status;
   if (fetchedAt !== undefined) metadata.fetched_at = fetchedAt;
+  if (sourceDate !== undefined) metadata.source_date = sourceDate;
   if (rawRows !== undefined) metadata.raw_rows = rawRows;
   if (sourceRows !== undefined) metadata.source_rows = sourceRows;
   if (partial !== undefined) metadata.partial = partial;
@@ -191,7 +207,6 @@ export function emptyRow(overrides = {}) {
     ...overrides,
   };
 }
-
 export function noDataSnapshot({ mode = "provider", provider = null, message = "데이터 공급자가 연결되지 않았습니다." } = {}) {
   return {
     schemaVersion: "1.0.0",

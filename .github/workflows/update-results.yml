@@ -13,5 +13,8 @@ jobs:
     uses: ./.github/workflows/_run-stage.yml
     with:
       stage: update-results
-      provider: public-csv
+      provider: naver-crawl
+      run_started_at: ${{ github.run_started_at }}
+      run_id: ${{ github.run_id }}
+      run_attempt: ${{ github.run_attempt }}
     secrets: inherit
