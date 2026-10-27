@@ -1,0 +1,17 @@
+name: KOSPI update-results
+
+on:
+  schedule:
+    - cron: "0 22 * * 0-4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-results:
+    uses: ./.github/workflows/_run-stage.yml
+    with:
+      stage: update-results
+      provider: public-csv
+    secrets: inherit

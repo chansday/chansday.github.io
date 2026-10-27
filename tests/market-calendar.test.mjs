@@ -79,12 +79,35 @@ test("CLI guard fails closed when the calendar has no coverage", async () => {
   }
 });
 
-test("workflow guard gates validation, every collection stage, and commit while retaining manual dispatch", async () => {
-  const workflow = await readFile(new URL("../.github/workflows/kospi-pipeline.yml", import.meta.url), "utf8");
-  const guardIndex = workflow.indexOf("Guard KOSPI trading day");
-  const firstCollectionIndex = workflow.indexOf("Run previous-day result update");
-  assert.ok(workflow.includes("workflow_dispatch:"));
-  assert.ok(guardIndex >= 0 && guardIndex < firstCollectionIndex);
-  assert.equal((workflow.match(/steps\.market-day\.outputs\.should_run == 'true'/g) || []).length >= 8, true);
-  assert.match(workflow, /name: Commit snapshot state when changed\r?\n\s+if: steps\.market-day\.outputs\.should_run == 'true'/);
+test("feature workflows expose input-free buttons and route through the shared guarded runner", async () => {
+  const workflowRoot = new URL("../.github/workflows/", import.meta.url);
+  const expected = {
+    "update-results.yml": ["0 22 * * 0-4", "update-results"],
+    "analysis.yml": ["0 23 * * 0-4", "analysis"],
+    "forecast.yml": ["20 23 * * 0-4", "forecast"],
+    "open-settlement.yml": ["0 0 * * 1-5", "open-settlement"],
+    "close-settlement.yml": ["30 6 * * 1-5", "close-settlement"],
+  };
+  for (const [file, [cron, stage]] of Object.entries(expected)) {
+    const workflow = await readFile(new URL(file, workflowRoot), "utf8");
+    assert.match(workflow, /workflow_dispatch:\r?\n/);
+    assert.match(workflow, new RegExp(`cron: "${cron.replaceAll("*", "\\*")}"`));
+    assert.match(workflow, new RegExp(`stage: ${stage}`));
+    assert.match(workflow, /provider: public-csv/);
+    assert.doesNotMatch(workflow, /inputs:/);
+    assert.match(workflow, /uses: \.\/\.github\/workflows\/_run-stage\.yml/);
+  }
+  const shared = await readFile(new URL("_run-stage.yml", workflowRoot), "utf8");
+  assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("Run fixed KOSPI stage"));
+  assert.match(shared, /npm test && npm run check/);
+  assert.match(shared, /no_data\/partial\/degraded\/blocked/);
+  assert.match(shared, /git push/);
+});
+
+test("push validation is isolated from the feature workflows and cannot write snapshots", async () => {
+  const validation = await readFile(new URL("../.github/workflows/validation.yml", import.meta.url), "utf8");
+  assert.match(validation, /push:/);
+  assert.match(validation, /npm test && npm run check && npm run collection:audit/);
+  assert.match(validation, /git diff --exit-code -- data\/latest-snapshot\.json data\/runs/);
+  assert.doesNotMatch(validation, /workflow_dispatch:/);
 });

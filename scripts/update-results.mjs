@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
@@ -20,13 +20,7 @@ export const MODES = {
   "close-settlement": { key: "closeSettlement", method: "settleClose" },
 };
 
-export const RUN_STAGE_TIMES = Object.freeze({
-  "update-results": "07:00:00",
-  analysis: "08:00:00",
-  forecast: "08:20:00",
-  "open-settlement": "09:00:00",
-  "close-settlement": "15:30:00",
-});
+const NON_READY_STATUSES = new Set(["no_data", "partial", "degraded", "blocked"]);
 
 const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expected_return"]);
 const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open", "actual_return"]);
@@ -42,16 +36,25 @@ function kstDate(date = new Date()) {
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
+export function calculateRunContext(startedAt = null) {
+  const rawStartedAt = startedAt || process.env.KOSPI_RUN_STARTED_AT || new Date();
+  const referenceTime = rawStartedAt instanceof Date ? rawStartedAt : new Date(rawStartedAt);
+  if (Number.isNaN(referenceTime.getTime())) {
+    throw new Error(`Invalid KOSPI_RUN_STARTED_AT value: ${rawStartedAt}`);
+  }
+  return {
+    startedAt: new Date(referenceTime.getTime()),
+    runDate: kstDate(referenceTime),
+    referenceTime: referenceTime.toISOString(),
+  };
+}
+
 function validDate(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`));
 }
 
-function stageAttemptedAt(runDate, mode) {
-  return new Date(`${runDate}T${RUN_STAGE_TIMES[mode]}+09:00`).toISOString();
-}
-
-function parseAttemptedAt(value, runDate, mode) {
-  const attemptedAt = value || stageAttemptedAt(runDate, mode);
+function parseAttemptedAt(value, runContext) {
+  const attemptedAt = value || runContext.referenceTime;
   if (Number.isNaN(Date.parse(attemptedAt))) throw new Error(`Invalid --attempted-at value: ${attemptedAt}`);
   return new Date(attemptedAt).toISOString();
 }
@@ -71,7 +74,8 @@ function parseArgs(argv) {
     dryRun: false,
     provider: null,
     fixtureDate: null,
-    runDate: process.env.KOSPI_RUN_DATE || kstDate(),
+    runDate: process.env.KOSPI_RUN_DATE || null,
+    runStartedAt: process.env.KOSPI_RUN_STARTED_AT || null,
     attemptedAt: null,
   };
   for (let index = 0; index < argv.length; index += 1) {
@@ -91,23 +95,27 @@ function parseArgs(argv) {
   if (!options.mode || !MODES[options.mode]) {
     throw new Error("--mode must be one of: update-results, analysis, forecast, open-settlement, close-settlement");
   }
+  const runContext = calculateRunContext(options.runStartedAt);
+  options.runDate ||= runContext.runDate;
   if (!validDate(options.runDate)) throw new Error(`--run-date must be YYYY-MM-DD: ${options.runDate}`);
-  options.attemptedAt = parseAttemptedAt(options.attemptedAt, options.runDate, options.mode);
+  options.runStartedAt = runContext.referenceTime;
+  options.attemptedAt = parseAttemptedAt(options.attemptedAt, runContext);
   return options;
 }
 
 function resolveProvider(env = process.env, options = {}) {
-  const providerId = (options.provider ?? env.KOSPI_PROVIDER ?? "").trim().toLowerCase();
+  const providerId = (options.provider ?? env.KOSPI_PROVIDER ?? "public-csv").trim().toLowerCase();
   const providerEnv = {
     ...env,
     ...(options.fixtureDate ? { KOSPI_FIXTURE_DATE: options.fixtureDate } : {}),
     KOSPI_RUN_DATE: options.runDate,
+    KOSPI_RUN_STARTED_AT: options.runStartedAt,
     KOSPI_RUN_ID: `${options.runDate}-${options.mode}`,
     KOSPI_STABLE_SNAPSHOT: "1",
     GITHUB_RUN_ID: undefined,
   };
   const now = () => new Date(options.attemptedAt);
-  if (!providerId || providerId === "none") return { provider: null, providerId: null };
+  if (providerId === "none") return { provider: null, providerId };
   if (providerId === "demo") return { provider: createDemoProvider(), providerId };
   if (providerId === "fixture") return { provider: createFixtureProvider({ env: providerEnv }), providerId };
   if (providerId === "public-json") return { provider: createPublicJsonProvider({ env: providerEnv, now }), providerId };
@@ -126,6 +134,22 @@ function providerInfo(provider, providerId, status = "degraded") {
     label: provider?.label || "연결된 데이터 공급자 없음",
     source: provider?.getSourceMetadata?.() || null,
   };
+}
+
+async function appendJobSummary(summary) {
+  const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+  if (!summaryPath) return;
+  const message = String(summary.message || "").replaceAll("\n", " ");
+  await appendFile(summaryPath, [
+    `### KOSPI stage: ${summary.mode}`,
+    `- status: \`${summary.status}\``,
+    `- provider: \`${summary.provider || "none"}\``,
+    `- run date: \`${summary.runDate}\``,
+    `- reference time (run start): \`${summary.attemptedAt}\``,
+    `- snapshot write: \`${summary.wroteFile ? "yes" : "no (dry-run)"}\``,
+    `- message: ${message || "(none)"}`,
+    "",
+  ].join("\n"), "utf8");
 }
 
 function derivedError(row) {
@@ -323,10 +347,10 @@ export async function run(argv = process.argv.slice(2)) {
   };
 
   if (!provider) {
-    const reason = providerId
-      ? `Provider '${providerId}' is not registered. Register an adapter before enabling it.`
-      : "No market data provider is configured. No financial values are generated.";
-    const status = providerId ? "degraded" : "no_data";
+    const reason = providerId === "none"
+      ? "Provider 'none' was explicitly selected. No financial values are generated and this stage is not successful."
+      : `Provider '${providerId}' is not registered. Register an adapter before enabling it.`;
+    const status = providerId === "none" ? "no_data" : "degraded";
     nextSnapshot = {
       ...nextSnapshot,
       status,
@@ -373,19 +397,25 @@ export async function run(argv = process.argv.slice(2)) {
     mode: options.mode,
     runDate: options.runDate,
     attemptedAt,
+    referenceTime: attemptedAt,
     provider: providerId,
     status: nextSnapshot.status,
+    message: nextSnapshot.pipeline?.[modeConfig.key]?.message || nextSnapshot.meta?.blockedReason || null,
+    dryRun: options.dryRun,
     stageFile: explicitDataFile ? null : runPath,
     wroteRunFile,
     wroteLatestFile,
     wroteFile: wroteLatestFile,
   };
+  await appendJobSummary(summary);
   console.log(JSON.stringify(summary));
   return summary;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
-  run().catch((error) => {
+  run().then((summary) => {
+    if (!summary.help && !summary.dryRun && NON_READY_STATUSES.has(summary.status)) process.exitCode = 2;
+  }).catch((error) => {
     console.error(error.message);
     process.exitCode = 1;
   });

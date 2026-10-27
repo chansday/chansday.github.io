@@ -46,7 +46,7 @@
 ├─ tests/snapshot.test.mjs
 ├─ docs/SYSTEM_DESIGN.md
 ├─ docs/COLLECTION_AUDIT.md
-└─ .github/workflows/kospi-pipeline.yml
+└─ .github/workflows/{update-results,analysis,forecast,open-settlement,close-settlement}.yml
 ```
 
 ## 현재 데이터 출처 상태
@@ -196,21 +196,33 @@ npm run pipeline:dry-run -- --provider fixture --fixture-date 2026-10-23
 
 브라우저에서는 ?mode=fixture&date=2026-10-22 또는 ?mode=fixture&date=2026-10-23을 사용합니다. 화면에는 FIXTURE / SYNTHETIC ONLY와 SYN 접두사가 표시됩니다.
 
-## GitHub Actions 실행 시각
+## GitHub Actions 버튼과 실행 시각
 
 GitHub Actions cron은 **UTC 기준**입니다. 한국 표준시(KST)는 UTC+9이고 서머타임이 없으므로 다음처럼 고정 변환합니다.
 
-| UTC cron | KST 실행 | 단계 |
-| --- | --- | --- |
-| `0 22 * * 0-4` | 월–금 07:00 | 전일 결과 업데이트 |
-| `0 23 * * 0-4` | 월–금 08:00 | 당일 기초 분석 |
-| `20 23 * * 0-4` | 월–금 08:20 | 08:29 cutoff 전 공개 bulk 수집·장전 상태 기록 |
-| `0 0 * * 1-5` | 월–금 09:00 | 실제 시작가 정산 |
-| `30 6 * * 1-5` | 월–금 15:30 | 장마감 실제 정산 |
+| 버튼 / workflow | UTC cron | KST 실행 | stage / provider |
+| --- | --- | --- | --- |
+| `KOSPI update-results` → **Run workflow** | `0 22 * * 0-4` | 월–금 07:00 | `update-results` / `public-csv` |
+| `KOSPI analysis` → **Run workflow** | `0 23 * * 0-4` | 월–금 08:00 | `analysis` / `public-csv` |
+| `KOSPI forecast` → **Run workflow** | `20 23 * * 0-4` | 월–금 08:20 | `forecast` / `public-csv` |
+| `KOSPI open-settlement` → **Run workflow** | `0 0 * * 1-5` | 월–금 09:00 | `open-settlement` / `public-csv` |
+| `KOSPI close-settlement` → **Run workflow** | `30 6 * * 1-5` | 월–금 15:30 | `close-settlement` / `public-csv` |
 
 UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행됩니다. 09:00 시가와 15:30 종가 단계는 공개 일별 CSV가 장중에 제공되지 않으면 `no_data`로 남으며, 이전 snapshot을 재사용하지 않습니다.
 
-Actions의 `workflow_dispatch`에서는 `all`, `update-results`, `analysis`, `forecast`, `open-settlement`, `close-settlement` 중 하나와 provider(`none`, `fixture`, `demo`, `public-json`, `public-csv`)를 선택할 수 있습니다. 기본 workflow와 평일 cron은 `public-csv`를 사용하며 fixture를 자동 선택하지 않습니다. `public-csv`는 계좌·API 키·Secret 없이 실행됩니다.
+Actions에는 기능별 workflow가 5개 표시됩니다. 각 workflow의 **Run workflow** 버튼은 입력을 요구하지 않으며, workflow 파일 안에 `provider: public-csv`가 고정되어 스케줄과 같은 코드 경로를 실행합니다. 즉, `stage`나 provider를 선택하는 통합 버튼은 없습니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않습니다. GitHub가 제공하는 `github.run_started_at`을 runner의 기준시각으로 전달하고, runner의 공통 `calculateRunContext` 함수가 이를 KST 기준일과 source freshness/forecast cutoff의 기준시각으로 사용합니다. 스케줄 실행도 똑같은 함수를 사용합니다. `public-csv`는 계좌·API 키·Secret 없이 실행됩니다. `no_data`, `partial`, `degraded`, `blocked` stage는 job summary에 상태와 사유를 남긴 뒤 job을 실패시킵니다. 주말·KRX 휴장일 skip만 정상 성공입니다.
+
+### Which button should I press? / 어떤 버튼을 누르나요?
+
+| 목적 | 한국어 안내 | English instruction |
+| --- | --- | --- |
+| 전일 EOD 결과 | `KOSPI update-results` → **Run workflow** | Choose `KOSPI update-results` → **Run workflow** |
+| 당일 기초 분석 | `KOSPI analysis` → **Run workflow** | Choose `KOSPI analysis` → **Run workflow** |
+| 장전 forecast 상태 | `KOSPI forecast` → **Run workflow** | Choose `KOSPI forecast` → **Run workflow** |
+| 09:00 시가 정산 | `KOSPI open-settlement` → **Run workflow** | Choose `KOSPI open-settlement` → **Run workflow** |
+| 15:30 종가 정산 | `KOSPI close-settlement` → **Run workflow** | Choose `KOSPI close-settlement` → **Run workflow** |
+
+버튼을 누른 뒤 입력값은 비워 두면 됩니다. 스케줄은 각 기능 workflow에 직접 선언되어 있고, 수동 실행도 같은 reusable stage runner를 호출합니다. `validation.yml`은 `push` 전용 검증 workflow이며 snapshot을 수집하거나 commit하지 않습니다.
 
 ### 한국 거래일·공휴일 guard
 
@@ -253,10 +265,14 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
 
 저장소의 **Settings → Pages**에서 `Deploy from a branch`, branch `main`, folder `/ (root)`를 선택하면 루트 `index.html`이 제공됩니다.
 
-1. Actions에서 `KOSPI signal board pipeline`을 수동 실행합니다.
-2. provider 상태, 출처 메타데이터, `data/latest-snapshot.json`의 단계 상태를 확인합니다.
-3. 실제 숫자가 포함되는 경우 원출처·라이선스·수집시각·정규시장 기준을 수동 검토합니다.
-4. 문제가 있으면 `KOSPI_PROVIDER=none`으로 되돌리고 `no_data` 상태를 유지합니다.
+1. Actions에서 목적에 맞는 기능 workflow를 선택하고 **Run workflow**를 누릅니다. 입력은 없습니다. 예를 들어 장전 상태를 확인하려면 `KOSPI forecast`, 09:00 정산을 확인하려면 `KOSPI open-settlement`, 15:30 정산을 확인하려면 `KOSPI close-settlement`를 선택합니다. GitHub CLI도 입력 없이 실행합니다.
+
+   `gh workflow run forecast.yml --ref main`
+
+2. provider 상태, `meta.source.source_date`/`retrieved_at`, top-level `asOfDate`, `data/latest-snapshot.json`의 단계 상태와 job summary를 확인합니다. summary의 `reference time (run start)`은 해당 수동/스케줄 실행의 기준시각입니다.
+3. `forecast`/`open-settlement`은 public-csv 한계상 성공적인 live 수집으로 해석하지 않습니다. 실제 장전·09:00 시가가 필요하면 라이선스가 확인된 intraday/open provider를 별도로 연결해야 하며, 현재는 `no_data`가 정직한 결과입니다.
+4. `fixture`/`demo`는 UI·계약 확인용 로컬 dry-run에서만 사용하고 운영 데이터로 해석하지 않습니다. 기능 workflow는 provider 선택을 노출하지 않습니다.
+5. 문제가 있으면 해당 기능 workflow의 summary와 `data/latest-snapshot.json`의 stage 상태를 확인합니다. provider를 바꾸거나 `none`으로 우회하는 설정은 workflow에 포함하지 않습니다.
 
 ## 라이선스·위험 고지
 

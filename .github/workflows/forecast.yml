@@ -1,0 +1,17 @@
+name: KOSPI forecast
+
+on:
+  schedule:
+    - cron: "20 23 * * 0-4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  forecast:
+    uses: ./.github/workflows/_run-stage.yml
+    with:
+      stage: forecast
+      provider: public-csv
+    secrets: inherit

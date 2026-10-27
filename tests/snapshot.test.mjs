@@ -23,12 +23,20 @@ import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
-import { mergeRows } from "../scripts/update-results.mjs";
+import { calculateRunContext, mergeRows, run as runStage } from "../scripts/update-results.mjs";
 
 const execFileAsync = promisify(execFile);
 const PROJECT_ROOT = resolve(fileURLToPath(new URL("..", import.meta.url)));
+const OPERATING_RUN_STAGES = new Set(["update-results", "analysis", "forecast", "open-settlement", "close-settlement"]);
 
-test("latest snapshot is an operating screen copy, not the historical-test dataset", async () => {
+async function execExpectNonReady(command, args, options) {
+  await assert.rejects(
+    execFileAsync(command, args, options),
+    (error) => error.code === 2 || error.status === 2,
+  );
+}
+
+test("latest snapshot is an operating screen copy and uses the immutable stage contract", async () => {
   const snapshot = JSON.parse(await readFile(new URL("../data/latest-snapshot.json", import.meta.url), "utf8"));
   assert.equal(isSnapshot(snapshot), true);
   assert.equal(snapshot.market.name, "KOSPI");
@@ -36,7 +44,7 @@ test("latest snapshot is an operating screen copy, not the historical-test datas
   assert.notEqual(snapshot.mode, "historical_test");
   assert.notEqual(snapshot.meta?.historical_test, true);
   assert.notEqual(snapshot.meta?.test_only, true);
-  assert.equal(snapshot.meta.run_stage, "update-results");
+  assert.equal(OPERATING_RUN_STAGES.has(snapshot.meta.run_stage), true);
 });
 
 test("historical fallback is eligible only for live no_data and keeps observed fields from the isolated run", async () => {
@@ -141,10 +149,11 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
   const modes = ["update-results", "analysis", "forecast", "open-settlement", "close-settlement"];
   const args = ["--provider", "fixture", "--fixture-date", "2026-10-23", "--run-date", "2026-10-23"];
+  const deterministicEnv = { ...process.env, KOSPI_RUN_STARTED_AT: "2026-10-23T00:00:00.000Z" };
   try {
     await mkdir(join(tempRoot, "data", "fixtures"), { recursive: true });
     await cp(fixtureSource, fixtureTarget);
-    for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot });
+    for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot, env: deterministicEnv });
 
     const stage = async (name) => JSON.parse(await readFile(join(tempRoot, "data", "runs", "2026-10-23", `${name}.json`), "utf8"));
     const stage0700 = await stage("0700");
@@ -161,7 +170,7 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
     assert.deepEqual(JSON.parse(await readFile(join(tempRoot, "data", "latest-snapshot.json"), "utf8")), stage1530);
 
     const before = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0820" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
-    for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot });
+    for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot, env: deterministicEnv });
     const after = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0820" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
     assert.deepEqual(after, before);
   } finally {
@@ -193,7 +202,7 @@ test("unavailable settlement preserves previously successful actual fields", asy
   try {
     await writeFile(dataFile, `${JSON.stringify(snapshot)}\n`, "utf8");
     for (const mode of ["open-settlement", "close-settlement"]) {
-      await execFileAsync(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-23", "--data-file", dataFile], { cwd: PROJECT_ROOT });
+      await execExpectNonReady(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-23", "--data-file", dataFile], { cwd: PROJECT_ROOT });
       const observed = JSON.parse(await readFile(dataFile, "utf8"));
       assert.deepEqual(observed.rows[0], { ...row, error: 1 });
     }
@@ -235,7 +244,7 @@ test("independent settlement stages do not fall back to stale latest rows when t
     await mkdir(join(tempRoot, "data"), { recursive: true });
     await writeFile(join(tempRoot, "data", "latest-snapshot.json"), `${JSON.stringify(stale)}\n`, "utf8");
     for (const mode of ["open-settlement", "close-settlement"]) {
-      await execFileAsync(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-27"], { cwd: tempRoot });
+      await execExpectNonReady(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-27"], { cwd: tempRoot });
       const stage = mode === "open-settlement" ? "0900" : "1530";
       const output = JSON.parse(await readFile(join(tempRoot, "data", "runs", "2026-10-27", `${stage}.json`), "utf8"));
       assert.equal(output.meta.run_date, "2026-10-27");
@@ -448,6 +457,37 @@ test("public CSV provider uses bounded bulk collection and never fabricates pre-
   const openSettlement = await provider.settleOpen();
   assert.equal(openSettlement.status, "no_data");
   assert.match(openSettlement.message, /09:00|actual_open|no_data/i);
+});
+
+test("manual and scheduled runs share the GitHub run-start reference time", async () => {
+  const context = calculateRunContext("2026-10-27T00:15:00.000Z");
+  assert.equal(context.runDate, "2026-10-27");
+  assert.equal(context.referenceTime, "2026-10-27T00:15:00.000Z");
+  const previous = process.env.KOSPI_RUN_STARTED_AT;
+  process.env.KOSPI_RUN_STARTED_AT = "2026-10-27T00:15:00.000Z";
+  try {
+    const summary = await runStage(["--mode", "forecast", "--provider", "none", "--dry-run"]);
+    assert.equal(summary.runDate, "2026-10-27");
+    assert.equal(summary.attemptedAt, "2026-10-27T00:15:00.000Z");
+    assert.equal(summary.referenceTime, summary.attemptedAt);
+    assert.equal(summary.status, "no_data");
+  } finally {
+    if (previous === undefined) delete process.env.KOSPI_RUN_STARTED_AT;
+    else process.env.KOSPI_RUN_STARTED_AT = previous;
+  }
+});
+
+test("an omitted run-start reference uses the current execution time, never the Unix epoch", () => {
+  const previous = process.env.KOSPI_RUN_STARTED_AT;
+  delete process.env.KOSPI_RUN_STARTED_AT;
+  try {
+    const context = calculateRunContext();
+    assert.notEqual(context.referenceTime, "1970-01-01T00:00:00.000Z");
+    assert.ok(Date.parse(context.referenceTime) > Date.parse("2026-01-01T00:00:00.000Z"));
+  } finally {
+    if (previous === undefined) delete process.env.KOSPI_RUN_STARTED_AT;
+    else process.env.KOSPI_RUN_STARTED_AT = previous;
+  }
 });
 
 test("fixture snapshots are explicit synthetic data for both requested dates", async () => {

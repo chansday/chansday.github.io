@@ -1,0 +1,17 @@
+name: KOSPI analysis
+
+on:
+  schedule:
+    - cron: "0 23 * * 0-4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  analysis:
+    uses: ./.github/workflows/_run-stage.yml
+    with:
+      stage: analysis
+      provider: public-csv
+    secrets: inherit

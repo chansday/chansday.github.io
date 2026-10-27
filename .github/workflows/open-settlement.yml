@@ -1,0 +1,17 @@
+name: KOSPI open-settlement
+
+on:
+  schedule:
+    - cron: "0 0 * * 1-5"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  open-settlement:
+    uses: ./.github/workflows/_run-stage.yml
+    with:
+      stage: open-settlement
+      provider: public-csv
+    secrets: inherit

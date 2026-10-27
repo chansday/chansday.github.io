@@ -1,0 +1,36 @@
+name: KOSPI validation
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/**"
+      - "package.json"
+      - "app.js"
+      - "providers/**"
+      - "scripts/**"
+      - "schema/**"
+      - "tests/**"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run static validation only
+        run: npm test && npm run check && npm run collection:audit
+
+      - name: Confirm that validation did not collect snapshots
+        shell: bash
+        run: git diff --exit-code -- data/latest-snapshot.json data/runs

@@ -1,0 +1,111 @@
+name: KOSPI shared stage runner
+
+on:
+  workflow_call:
+    inputs:
+      stage:
+        description: "Fixed operating stage supplied by the caller workflow"
+        required: true
+        type: string
+      provider:
+        description: "Fixed provider supplied by the caller workflow"
+        required: true
+        type: string
+    secrets:
+      KOSPI_PROVIDER_API_KEY:
+        required: false
+      KOSPI_PROVIDER_BASE_URL:
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+
+jobs:
+  run-stage:
+    runs-on: ubuntu-latest
+    env:
+      KOSPI_PROVIDER: ${{ inputs.provider }}
+      KOSPI_RUN_STARTED_AT: ${{ github.run_started_at }}
+      KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
+      KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
+      KOSPI_PUBLIC_SOURCE_NAME: ${{ vars.KOSPI_PUBLIC_SOURCE_NAME || '' }}
+      KOSPI_PUBLIC_SOURCE_URL: ${{ vars.KOSPI_PUBLIC_SOURCE_URL || '' }}
+      KOSPI_PUBLIC_SOURCE_LICENSE_STATUS: ${{ vars.KOSPI_PUBLIC_SOURCE_LICENSE_STATUS || 'unconfirmed' }}
+      KOSPI_PUBLIC_SOURCE_LICENSE_URL: ${{ vars.KOSPI_PUBLIC_SOURCE_LICENSE_URL || '' }}
+      KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS: ${{ vars.KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS || '' }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Guard KOSPI trading day
+        id: market-day
+        run: node scripts/market-session-guard.mjs
+
+      - name: Validate the static contract
+        id: static-contract
+        if: steps.market-day.outputs.should_run == 'true'
+        run: npm test && npm run check
+
+      - name: Run fixed KOSPI stage
+        id: stage
+        if: always() && steps.market-day.outputs.should_run == 'true' && steps.static-contract.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/update-results.mjs --mode "${{ inputs.stage }}"
+
+      - name: Write workflow summary
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.market-day.outputs.should_run }}" != "true" ]; then
+            {
+              echo "### KOSPI stage: market closed"
+              echo "- stage: \`${{ inputs.stage }}\`"
+              echo "- provider: \`${KOSPI_PROVIDER}\`"
+              echo "- collection and snapshot mutation: **not run**"
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            {
+              echo "### KOSPI stage workflow"
+              echo "- stage: \`${{ inputs.stage }}\`"
+              echo "- provider: \`${KOSPI_PROVIDER}\`"
+              echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (GitHub run start; KST is derived in the runner)"
+              echo "- manual button and schedule use the same stage command"
+              echo "- no_data/partial/degraded/blocked results fail the job after the snapshot and summary are written"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Commit snapshot state when changed
+        if: always() && steps.market-day.outputs.should_run == 'true' && steps.static-contract.outcome == 'success' && (steps.stage.outcome == 'success' || steps.stage.outcome == 'failure')
+        shell: bash
+        run: |
+          if git diff --quiet -- data/latest-snapshot.json data/runs; then
+            echo "No snapshot changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/latest-snapshot.json data/runs
+          git commit -m "chore(data): record KOSPI ${{ inputs.stage }} stage"
+          git push
+
+      - name: Fail when the stage is not ready
+        if: always() && steps.market-day.outputs.should_run == 'true'
+        shell: bash
+        run: |
+          if [ "${{ steps.static-contract.outcome }}" != "success" ]; then
+            echo "Static contract validation failed." >&2
+            exit 1
+          fi
+          if [ "${{ steps.stage.outcome }}" = "failure" ]; then
+            echo "Stage '${{ inputs.stage }}' returned no_data, partial, degraded, blocked, or another failure." >&2
+            exit 1
+          fi
