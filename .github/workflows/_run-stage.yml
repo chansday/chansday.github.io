@@ -119,6 +119,17 @@ jobs:
         continue-on-error: true
         run: node scripts/update-results.mjs --mode "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" --run-started-at "${{ steps.capture-run-context.outputs.run_started_at }}" --attempted-at "${{ steps.capture-run-context.outputs.run_started_at }}"
 
+      - name: Evaluate post-close retrospective
+        id: retrospective
+        if: >-
+          steps.market-day.outputs.should_run == 'true' &&
+          steps.stage.outcome == 'success' && steps.stage.outputs.status == 'ready' &&
+          (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'close-settlement'
+        continue-on-error: true
+        env:
+          KOSPI_RUN_DATE: ${{ steps.validate-run-context.outputs.run_date }}
+        run: node scripts/stage-post-close-evaluation.mjs
+
       - name: Write workflow summary
         if: always()
         shell: bash
@@ -156,7 +167,9 @@ jobs:
           (inputs.auto_stage != true || steps.auto_stage.outcome == 'success') &&
           steps.static-contract.outcome == 'success' &&
           steps.stage.outcome == 'success' &&
-          steps.stage.outputs.status == 'ready'
+          steps.stage.outputs.status == 'ready' &&
+          ((inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) != 'close-settlement' ||
+           (steps.retrospective.outcome == 'success' && steps.retrospective.outputs.status == 'ready'))
         shell: bash
         run: |
           set -euo pipefail
@@ -218,8 +231,8 @@ jobs:
             exit 1
           fi
           if [ "${{ steps.market-day.outputs.should_run }}" != "true" ]; then
-            echo "Trading-day guard blocked this date; no stage runner executed." >&2
-            exit 1
+            echo "Market closed; no collection or calculation was performed."
+            exit 0
           fi
           if [ "${{ steps.static-contract.outcome }}" != "success" ]; then
             echo "Static contract validation failed." >&2
@@ -236,6 +249,10 @@ jobs:
           status="${{ steps.stage.outputs.status }}"
           if [ "$status" != "ready" ]; then
             echo "Stage '${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}' did not return the required ready status: '$status'." >&2
+            exit 1
+          fi
+          if [ "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" = "close-settlement" ] && { [ "${{ steps.retrospective.outcome }}" != "success" ] || [ "${{ steps.retrospective.outputs.status }}" != "ready" ]; }; then
+            echo "Post-close retrospective failed or was skipped." >&2
             exit 1
           fi
           if [ "${{ steps.commit.outcome }}" != "success" ]; then

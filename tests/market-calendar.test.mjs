@@ -122,6 +122,10 @@ test("feature workflows expose input-free buttons and route through the shared g
   assert.match(shared, /\?\?\?\?-\?\?-\?\?T\?\?:\?\?:\?\?\.\?\?\?Z/);
   assert.doesNotMatch(shared, /steps\.stage\.outcome == 'failure'/);
   assert.match(shared, /steps\.market-day\.outcome.*success/);
+  assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("Evaluate post-close retrospective"));
+  assert.match(shared, /steps\.market-day\.outputs\.should_run == 'true'/);
+  assert.match(shared, /steps\.retrospective\.outputs\.status == 'ready'/);
+  assert.match(shared, /Market closed; no collection or calculation was performed/);
   assert.match(shared, /git push/);
 });
 

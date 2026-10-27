@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { buildPostCloseRows, runPostCloseEvaluation } from "../scripts/post-close-evaluation.mjs";
 import { runAll } from "../scripts/run-all.mjs";
 import { mergePostCloseEvaluation } from "../providers/post-close-overlay.js";
+import { runStagePostClose } from "../scripts/stage-post-close-evaluation.mjs";
 
 const sessions = [
   { date: "2026-10-26", url: "https://example.test/26", rows: [{ symbol: "000001", open: 105, close: 110, volume: 10 }] },
@@ -117,4 +118,17 @@ test("past-date manual run evaluates the stored settlement without collecting or
     assert.equal(summary.retrospective.historical, true); assert.equal(summary.commitAllowed, true);
     assert.equal(await readFile(file, "utf8"), original);
   } finally { process.chdir(previous); await rm(root, { recursive: true, force: true }); }
+});
+
+test("scheduled close evaluation runs only after close on a confirmed trading day", async () => {
+  let calls = 0;
+  const evaluator = async (input) => { calls += 1; assert.equal(input.stageFile, "data/runs/2026-10-27/1530.json"); return { status: "ready" }; };
+  for (const [runDate, runStartedAt] of [["2026-10-24", "2026-10-24T07:00:00Z"], ["2026-10-05", "2026-10-05T07:00:00Z"], ["2026-05-05", "2026-05-05T07:00:00Z"], ["2026-06-03", "2026-06-03T07:00:00Z"]]) {
+    assert.equal((await runStagePostClose({ runDate, runStartedAt, runId: "1.1", evaluator })).status, "skipped");
+  }
+  await assert.rejects(runStagePostClose({ runDate: "2027-01-04", runStartedAt: "2027-01-04T07:00:00Z", runId: "1.1", evaluator }), /calendar covers/);
+  await assert.rejects(runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:29:59Z", runId: "1.1", evaluator }), /after 15:30/);
+  assert.equal(calls, 0);
+  assert.equal((await runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:30:00Z", runId: "1.1", evaluator })).status, "ready");
+  assert.equal(calls, 1);
 });

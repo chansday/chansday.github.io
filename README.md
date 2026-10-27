@@ -10,6 +10,8 @@
 
 지난 거래일을 수동 실행할 때는 저장된 해당 날짜의 정상 Naver 마감 정산 스냅샷을 확인한 뒤 사후 평가만 수행합니다. 정산 스냅샷은 덮어쓰지 않으며, 저장된 정산값이 없거나 날짜·출처가 맞지 않으면 실패합니다. 이미 저장된 유효한 사후 평가는 보존합니다.
 
+기존 정시 워크플로의 시각과 단계는 유지합니다. 거래일의 `close-settlement` 정시·수동 실행과 장 마감 이후 `run now`도 정산이 정상 완료되면 같은 사후 평가 엔진을 실행하고 기존 예측 시트에 결과를 연결합니다. 주말과 KRX 휴장일에는 공용 실행기가 수집·계산·저장을 건너뜁니다. 휴장 여부를 확인할 수 없는 연도는 안전하게 실패하며, 체크인된 KRX 휴장일 목록은 현재 2026년까지이므로 이후 연도는 목록 갱신이 필요합니다.
+
 + 종목 범위는 운영 provider에서 KOSPI 정규시장 보통주를 기본으로 합니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
 - 가격 기준은 provider가 확인한 KOSPI 정규장 공식 시작가·종가이며 통화는 KRW, 시간대는 `Asia/Seoul`입니다. 조정주가·호가·추정값을 자동으로 섞지 않습니다.
 - `expected_return = (expected_close / expected_open - 1) × 100`은 예상 시가와 예상 종가가 모두 있을 때만 계산합니다. 예상 종가 모델이 없으면 `expected_return`과 `error`는 `null`/`no_data`입니다. `session_return = (actual_close / actual_open - 1) × 100`은 실제 시가→실제 종가 기준입니다. `intraday_reference_return`은 별도 실행시점 참고값이며 `expected_return`과 구분합니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
@@ -269,7 +271,7 @@ Summary에는 각 stage의 `planned`, `pending`, `skipped`, 실제 호출 여부
 
 ### 한국 거래일·공휴일 guard
 
-cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 runner에서 캡처한 실제 시작 시각과 checkout/setup 직후 [`scripts/market-session-guard.mjs`](scripts/market-session-guard.mjs)를 사용합니다. guard는 runner-captured run-start의 한국시간 날짜를 [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 수집을 차단하고 검증·stage 실행·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않으며, 최종 gate는 실행되지 않은 stage를 성공으로 승격하지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
+cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 runner에서 캡처한 실제 시작 시각과 checkout/setup 직후 [`scripts/market-session-guard.mjs`](scripts/market-session-guard.mjs)를 사용합니다. guard는 runner-captured run-start의 한국시간 날짜를 [`data/krx-market-holidays.json`](data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 수집을 차단하고 검증·stage 실행·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않습니다. 공용 stage runner는 이 경우 휴장일 건너뜀으로 정상 종료하며, stage 계산의 성공을 의미하지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
 
 캘린더는 코드에 내장하지 않고 연도별 체크인 JSON으로 관리합니다. 2026년 목록에는 신정·설/추석·근로자의 날·제헌절·연말휴장일과 2026년에 확인된 대체휴일·임시공휴일을 포함합니다. 매년 KRX가 공표한 휴장일을 원문에서 재확인하여 목록, 대체휴일, 임시공휴일 변경을 갱신해야 합니다. 캘린더 커버리지 밖의 평일은 `calendar_coverage_missing` 오류로 fail-closed하며 수집을 시작하지 않습니다. 따라서 네트워크 API가 다운되거나 목록이 갱신되지 않은 상태에서 공휴일을 평일로 오판해 파일을 덮어쓰는 대신 workflow가 실패하고 운영자가 캘린더를 갱신해야 합니다. 이 저장소는 공휴일 API를 실행 시점에 호출하지 않으며, 자동 갱신을 보장하지 않습니다.
 
