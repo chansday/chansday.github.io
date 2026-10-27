@@ -68,4 +68,3 @@ test("historical Naver registration uses exact public EOD values and never recon
   assert.equal(open.source.run_id, "all-test.1");
   assert.equal(close.source.run_id, "all-test.1");
 });
-
