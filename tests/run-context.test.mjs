@@ -17,6 +17,7 @@ test("run context derives KST date and current stage from the caller run start",
   assert.equal(beforeOpen.referenceTime, "2026-10-26T23:59:59.000Z");
   assert.equal(resolveStage("2026-10-27T01:00:00Z").phase, "after-open");
   assert.equal(resolveStage("2026-10-27T01:00:00Z").stage, "open-settlement");
+  assert.equal(resolveStage("2026-10-27T00:00:00Z").stage, "open-settlement");
   assert.equal(resolveStage("2026-10-27T06:30:00Z").phase, "after-close");
   assert.equal(resolveStage("2026-10-27T06:30:00Z").stage, "close-settlement");
 });
@@ -24,7 +25,7 @@ test("run context derives KST date and current stage from the caller run start",
 test("auto-stage dry-run uses the supplied run start for before/open/close paths", async () => {
   const cases = [
     ["2026-10-26T23:59:59Z", "forecast"],
-    ["2026-10-27T01:00:00Z", "open-settlement"],
+    ["2026-10-27T00:00:00Z", "open-settlement"],
     ["2026-10-27T06:30:00Z", "close-settlement"],
   ];
   for (const [startedAt, expectedStage] of cases) {
@@ -49,6 +50,8 @@ test("public-csv no longer rejects a manual forecast solely because a schedule c
   const source = await readFile(new URL("../providers/public-csv-provider.js", import.meta.url), "utf8");
   assert.doesNotMatch(source, /kstCutoffPassed|forecastCutoff|Forecast collection cutoff/);
   assert.match(source, /no live pre-market quote\/order-book data/);
+  const runner = await readFile(new URL("../.github/workflows/_run-stage.yml", import.meta.url), "utf8");
+  assert.doesNotMatch(runner, /cutoff|deadline.*forecast|forecast.*deadline/i);
 });
 
 test("run-now and fixed workflows use the crawl provider and forward the caller run start", async () => {

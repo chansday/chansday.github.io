@@ -81,29 +81,36 @@ function parseArgs(argv) {
   options.runDate ||= runContext.runDate;
   if (!validDate(options.runDate)) throw new Error(`--run-date must be YYYY-MM-DD: ${options.runDate}`);
   options.runStartedAt = runContext.referenceTime;
+  options.runContext = runContext;
   options.attemptedAt = parseAttemptedAt(options.attemptedAt, runContext);
   return options;
 }
 
-function resolveProvider(env = process.env, options = {}) {
+export function resolveProvider(env = process.env, options = {}) {
   const requestedProvider = (options.provider ?? env.KOSPI_PROVIDER ?? "").trim().toLowerCase();
   const providerId = requestedProvider || "naver-crawl";
+  const runContext = options.runContext || calculateRunContext(options.runStartedAt);
+  const runStartedAt = options.runStartedAt || runContext.referenceTime;
+  const attemptedAt = options.attemptedAt || runContext.referenceTime;
   const providerEnv = {
     ...env,
     ...(options.fixtureDate ? { KOSPI_FIXTURE_DATE: options.fixtureDate } : {}),
-    KOSPI_RUN_DATE: options.runDate,
-    KOSPI_RUN_STARTED_AT: options.runStartedAt,
-    KOSPI_RUN_ID: env.KOSPI_RUN_ID || `${options.runDate}-${options.mode}`,
+    KOSPI_RUN_DATE: options.runDate || runContext.runDate,
+    KOSPI_RUN_STARTED_AT: runStartedAt,
+    KOSPI_RUN_ID: env.KOSPI_RUN_ID || `${options.runDate || runContext.runDate}-${options.mode || "run"}`,
     KOSPI_STABLE_SNAPSHOT: "1",
     GITHUB_RUN_ID: undefined,
   };
-  const now = () => new Date(options.attemptedAt);
+  const now = () => new Date(attemptedAt);
   if (providerId === "none") return { provider: null, providerId };
   if (providerId === "demo") return { provider: createDemoProvider(), providerId };
   if (providerId === "fixture") return { provider: createFixtureProvider({ env: providerEnv }), providerId };
   if (providerId === "public-json") return { provider: createPublicJsonProvider({ env: providerEnv, now }), providerId };
   if (providerId === "public-csv") return { provider: createPublicCsvProvider({ env: providerEnv, now }), providerId };
-  if (providerId === "naver-crawl") return { provider: createNaverCrawlProvider({ env: providerEnv, now: () => new Date(), runStartedAt: options.runStartedAt }), providerId };
+  if (providerId === "naver-crawl") return {
+    provider: createNaverCrawlProvider({ env: providerEnv, fetchImpl: options.fetchImpl, runContext, now, runStartedAt }),
+    providerId,
+  };
   return { provider: null, providerId };
 }
 

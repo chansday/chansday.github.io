@@ -24,7 +24,7 @@ import { createFixtureProvider, FIXTURE_DATES } from "../providers/fixture-provi
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
 import { createNaverCrawlProvider, parseLocalTradedAt, resolveCrawlStage } from "../providers/naver-crawl-provider.js";
-import { calculateRunContext, run as runStage } from "../scripts/update-results.mjs";
+import { calculateRunContext, resolveProvider, run as runStage } from "../scripts/update-results.mjs";
 import { mergeRows } from "../scripts/update-results.mjs";
 
 const execFileAsync = promisify(execFile);
@@ -179,6 +179,7 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
+
 test("unavailable settlement preserves previously successful actual fields", async () => {
   const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-unavailable-settlement-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
@@ -211,6 +212,7 @@ test("unavailable settlement preserves previously successful actual fields", asy
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
+
 test("independent settlement stages do not fall back to stale latest rows when the current run predecessor is missing", async () => {
   const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-stale-stage-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
@@ -258,6 +260,7 @@ test("independent settlement stages do not fall back to stale latest rows when t
     await rm(tempRoot, { recursive: true, force: true });
   }
 });
+
 test("close settlement preserves actual_return and recalculates error", () => {
   const existing = {
     rank: 1,
@@ -523,6 +526,65 @@ test("Naver crawl provider stops on 403, 429, and empty responses", async () => 
   const emptyResult = await empty.generateForecast();
   assert.equal(emptyResult.status, "no_data");
   assert.equal(emptyResult.rows.length, 0);
+});
+
+test("resolveProvider registers naver-crawl with the caller run context and preserves its unconfirmed source policy", async () => {
+  const runStartedAt = "2026-10-26T23:59:30.000Z";
+  const attemptedAt = "2026-10-26T23:59:30.000Z";
+  const response = (payload) => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => "application/json" },
+    text: async () => JSON.stringify(payload),
+  });
+  const { provider, providerId } = resolveProvider({}, {
+    provider: "naver-crawl",
+    mode: "forecast",
+    runDate: "2026-10-27",
+    runStartedAt,
+    attemptedAt,
+    fetchImpl: async (url) => url.includes("m.stock.naver.com")
+      ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
+      : response({ datas: [{ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T08:59:25+09:00", marketStatus: "PREOPEN" }] }),
+  });
+  assert.equal(providerId, "naver-crawl");
+  assert.equal(provider.id, "naver-crawl");
+  assert.equal(provider.getSourceMetadata().license_status, "unconfirmed");
+
+  const result = await provider.generateForecast();
+  assert.equal(result.status, "ready");
+  assert.equal(result.rows.length, 1);
+  assert.equal(result.source.license_status, "unconfirmed");
+  assert.equal(result.source.retrieved_at, attemptedAt);
+  assert.equal(result.source.run_id, "2026-10-27-forecast");
+});
+
+test("operating naver-crawl run keeps live rows but degrades the ready gate when licensing is unconfirmed", async () => {
+  const previousFetch = globalThis.fetch;
+  const response = (payload) => ({
+    ok: true,
+    status: 200,
+    headers: { get: () => "application/json" },
+    text: async () => JSON.stringify(payload),
+  });
+  globalThis.fetch = async (url) => url.includes("m.stock.naver.com")
+    ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
+    : response({ datas: [{ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T08:59:25+09:00", marketStatus: "PREOPEN" }] });
+  try {
+    const summary = await runStage([
+      "--mode", "forecast",
+      "--provider", "naver-crawl",
+      "--run-date", "2026-10-27",
+      "--run-started-at", "2026-10-26T23:59:30.000Z",
+      "--attempted-at", "2026-10-26T23:59:30.000Z",
+      "--dry-run",
+    ]);
+    assert.equal(summary.provider, "naver-crawl");
+    assert.equal(summary.status, "degraded");
+    assert.match(summary.message, /licensing is confirmed/i);
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
 });
 
 test("public CSV provider uses bounded bulk collection and never fabricates pre-market values", async () => {

@@ -226,6 +226,18 @@ Actions에는 기능별 workflow와 입력 없는 `KOSPI run now` workflow가 �
 
 ### Which button should I press? / 어떤 버튼을 누르나요?
 
+현재 `main`의 Actions에는 stage별 workflow와 입력이 없는 `KOSPI run now`가 각각 등록되어 있습니다. 장 시작 전인지, 장중인지, 장 마감 후인지와 관계없이 지금 실행하려면 **`KOSPI run now` → `Run workflow`**를 누르십시오. 입력값은 없습니다. 이 workflow는 [`.github/workflows/run-now.yml`](.github/workflows/run-now.yml)에서 `auto_stage: true`와 `provider: naver-crawl`을 설정하고, [공용 runner](.github/workflows/_run-stage.yml)를 호출합니다.
+
+`run now`의 자동 stage는 버튼을 누른 GitHub Actions run의 시작 시각을 KST로 변환해 결정합니다. 기능별 schedule의 08:20/09:00/15:30 시각은 정기 실행 시각일 뿐, 수동 `run now`를 막는 cutoff가 아닙니다.
+
+| 버튼을 누른 KST 시각 | 자동 선택 stage | 결과 의미 |
+| --- | --- | --- |
+| 09:00 전 | `forecast` | 현재 날짜의 신선한 장전 `openPriceRaw` 기반 예상값 |
+| 09:00 이상, 15:30 미만 | `open-settlement` | 실제 시가와 장중 실제 수익률 |
+| 15:30 이상 | `close-settlement` | 실제 시가·종가·거래량과 세션 수익률 |
+
+따라서 장전 결과만 다시 확인하려면 `KOSPI forecast`, 현재 장중 시가를 반영하려면 `KOSPI open-settlement`, 마감 결과를 반영하려면 `KOSPI close-settlement`를 직접 선택할 수도 있습니다. 현재 시각에 맞는 단계를 자동으로 고르려면 항상 `KOSPI run now`를 선택하십시오. 주말·KRX 휴장일에는 시간대와 무관하게 market guard가 수집을 건너뜁니다.
+
 | 목적 | 한국어 안내 | English instruction |
 | --- | --- | --- |
 | 전일 EOD 결과 | `KOSPI update-results` → **Run workflow** | Choose `KOSPI update-results` → **Run workflow** |

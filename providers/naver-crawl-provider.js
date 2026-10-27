@@ -335,7 +335,7 @@ function result(status, message, source = null, rows = [], asOfDate = null) {
   return { status, message, rows, source, asOfDate };
 }
 
-export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, fetchImpl = globalThis.fetch, now = () => new Date(), runStartedAt = null } = {}) {
+export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, fetchImpl = globalThis.fetch, runContext = null, now = () => new Date(), runStartedAt = null } = {}) {
   const config = readConfig(env);
   const provider = {
     id: "naver-crawl",
@@ -369,7 +369,11 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
       metrics: { requested: 0, completed: 0, failed: 0, retries: 0, deadline_hit: false },
     };
     const fetchTime = now();
-    const referenceTime = runStartedAt ? new Date(runStartedAt) : fetchTime;
+    const referenceTime = runContext?.startedAt
+      ? new Date(runContext.startedAt)
+      : runStartedAt
+        ? new Date(runStartedAt)
+        : fetchTime;
     const current = Number.isNaN(referenceTime.getTime()) ? fetchTime : referenceTime;
     context.fetchTime = fetchTime;
     context.referenceTime = current;
