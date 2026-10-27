@@ -23,6 +23,7 @@ jobs:
       KOSPI_RUN_DATE: ${{ inputs.run_date }}
       KOSPI_RUN_ID: ${{ github.run_id }}.${{ github.run_attempt }}
       KOSPI_STABLE_SNAPSHOT: "1"
+      KOSPI_MANUAL_RUN_ALL: "1"
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
       KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
       KOSPI_PUBLIC_SOURCE_NAME: ${{ vars.KOSPI_PUBLIC_SOURCE_NAME || '' }}
@@ -58,10 +59,22 @@ jobs:
         id: static-contract
         run: npm test && npm run check && npm run collection:audit
 
+      - name: Capture collection invocation timestamp
+        id: collection-context
+        shell: bash
+        run: |
+          set -euo pipefail
+          collection_started_at="$(date -u +'%Y-%m-%dT%H:%M:%S.%3NZ')"
+          case "$collection_started_at" in
+            ????-??-??T??:??:??.???Z) ;;
+            *) echo "Generated collection timestamp is not ISO-8601 UTC: $collection_started_at" >&2; exit 1 ;;
+          esac
+          echo "collection_started_at=$collection_started_at" >> "$GITHUB_OUTPUT"
+
       - name: Run all KOSPI stages sequentially
         id: run-all
         continue-on-error: true
-        run: node scripts/run-all.mjs --run-date "${{ inputs.run_date }}" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.run-context.outputs.run_started_at }}" --run-id "$KOSPI_RUN_ID"
+        run: node scripts/run-all.mjs --run-date "${{ inputs.run_date }}" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.collection-context.outputs.collection_started_at }}" --run-id "$KOSPI_RUN_ID"
 
       - name: Commit final run state once
         id: commit

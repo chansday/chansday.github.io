@@ -70,6 +70,7 @@
         "generatedBy": { "type": "string" },
         "lastAttemptAt": { "type": ["string", "null"], "format": "date-time" },
         "lastAttemptMode": { "type": ["string", "null"] },
+        "source_warning": { "type": ["string", "null"] },
         "run_date": { "type": "string", "format": "date" },
         "run_stage": { "type": "string", "enum": ["update-results", "analysis", "forecast", "open-settlement", "close-settlement"] },
         "blockedReason": { "type": ["string", "null"] },

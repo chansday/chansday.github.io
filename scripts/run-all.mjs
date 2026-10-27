@@ -198,6 +198,7 @@ async function appendSummary(summary) {
     `- run date: \`${summary.runDate}\``,
     `- run id: \`${summary.runId}\``,
     `- source timestamp: \`${summary.sourceTimestamp}\``,
+    `- source warnings: ${summary.stages.filter((stage) => stage.sourceWarning).map((stage) => `${stage.stage}: ${stage.sourceWarning}`).join(" | ") || "none"}`,
     `- executed stages ready: \`${summary.executedStagesReady}\``,
     `- pending-only partial: \`${summary.pendingOnlyPartial}\``,
     `- commit allowed: \`${summary.commitAllowed}\``,
@@ -248,6 +249,7 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     KOSPI_RUN_STARTED_AT: process.env.KOSPI_RUN_STARTED_AT,
     KOSPI_RUN_ID: process.env.KOSPI_RUN_ID,
     KOSPI_STABLE_SNAPSHOT: process.env.KOSPI_STABLE_SNAPSHOT,
+    KOSPI_MANUAL_RUN_ALL: process.env.KOSPI_MANUAL_RUN_ALL,
   };
   Object.assign(process.env, {
     KOSPI_PROVIDER: "naver-crawl",
@@ -255,6 +257,7 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     KOSPI_RUN_STARTED_AT: options.runStartedAt,
     KOSPI_RUN_ID: options.runId,
     KOSPI_STABLE_SNAPSHOT: "1",
+    KOSPI_MANUAL_RUN_ALL: "1",
   });
   const stageResults = new Map();
   const executedStages = [];
@@ -269,7 +272,7 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
           "--run-started-at", options.runStartedAt,
           "--attempted-at", options.attemptedAt,
         ]);
-        const stageResult = { stage, status: result.status, executed: true, eligible: true, reason: planned.reason, message: result.message, stageFile: result.stageFile };
+        const stageResult = { stage, status: result.status, executed: true, eligible: true, reason: planned.reason, message: result.message, sourceWarning: result.sourceWarning || null, stageFile: result.stageFile };
         stageResults.set(stage, stageResult);
         executedStages.push(stageResult);
       } catch (error) {

@@ -101,7 +101,7 @@ export function resolveProvider(env = process.env, options = {}) {
     KOSPI_STABLE_SNAPSHOT: "1",
     GITHUB_RUN_ID: undefined,
   };
-  const now = () => new Date(attemptedAt);
+  const now = options.now || (() => new Date());
   if (providerId === "none") return { provider: null, providerId };
   if (providerId === "demo") return { provider: createDemoProvider(), providerId };
   if (providerId === "fixture") return { provider: createFixtureProvider({ env: providerEnv }), providerId };
@@ -137,6 +137,7 @@ async function appendJobSummary(summary) {
     `- provider: \`${summary.provider || "none"}\``,
     `- run date: \`${summary.runDate}\``,
     `- reference time (run start): \`${summary.attemptedAt}\``,
+    `- source warning: ${summary.sourceWarning || "none"}`,
     `- snapshot write: \`${summary.wroteFile ? "yes" : "no (dry-run)"}\``,
     `- message: ${message || "(none)"}`,
     "",
@@ -229,34 +230,30 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
   }
 
   const source = result.source || provider?.getSourceMetadata?.() || null;
-  if (result.status === "ready" && (!source || source.license_status !== "confirmed" || !source.retrieved_at)) {
-    const reason = "Live values were collected, but ready display is blocked until source licensing is confirmed; the snapshot remains degraded and keeps the observed rows with source warnings.";
-    const rows = mergeRows(snapshot.rows, result.rows, mode);
-    const rowValidation = validateRankingRows(rows);
-    if (!rowValidation.valid) {
-      return {
-        ...snapshot,
-        status: "degraded",
-        mode: "provider",
-        provider: providerInfo(provider, providerId, "degraded"),
-        rows: unavailableRows(snapshot, mode, providerId),
-        meta: { ...snapshot.meta, blockedReason: `${reason} Provider rows failed schema validation.`, isDemo: false, source },
-        pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
-      };
-    }
+  if (result.status === "ready" && (!source || !source.retrieved_at)) {
+    const reason = "Provider returned ready without source metadata and a collection timestamp; operational readiness is blocked.";
     return {
       ...snapshot,
       status: "degraded",
       mode: "provider",
       provider: providerInfo(provider, providerId, "degraded"),
-      asOfDate: result.asOfDate || snapshot.asOfDate || null,
-      publishedAt: attemptedAt,
-      rows: rowValidation.rows,
-      meta: { ...snapshot.meta, blockedReason: reason, isDemo: false, source: { ...source, status: "license_unconfirmed" } },
-      pipeline: { ...snapshot.pipeline, [MODES[mode].key]: { status: "degraded", attemptedAt, provider_id: providerId || null, message: `${result.message} ${reason}` } },
+      rows: unavailableRows(snapshot, mode, providerId),
+      meta: { ...snapshot.meta, blockedReason: reason, source_warning: null, isDemo: false, source },
+      pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
   }
-
+  if (result.status === "ready" && !["confirmed", "unconfirmed"].includes(source.license_status)) {
+    const reason = `Provider returned ready with unsupported license status '${source.license_status}'; operational readiness is blocked.`;
+    return {
+      ...snapshot,
+      status: "degraded",
+      mode: "provider",
+      provider: providerInfo(provider, providerId, "degraded"),
+      rows: unavailableRows(snapshot, mode, providerId),
+      meta: { ...snapshot.meta, blockedReason: reason, source_warning: null, isDemo: false, source },
+      pipeline: { ...snapshot.pipeline, [MODES[mode].key]: blockedStep({ attemptedAt, providerId, reason }) },
+    };
+  }
   const preserveExpectedRows = result.status === "no_data"
     && ["forecast", "open-settlement", "close-settlement"].includes(mode)
     && snapshot.rows.length > 0;
@@ -283,6 +280,10 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
   const isFixture = providerId === "fixture";
   const isDemo = result.status === "demo" || isFixture;
   const snapshotMode = isFixture ? "fixture" : isDemo ? "demo" : "provider";
+  const sourceWarning = result.status === "ready" && source?.license_status === "unconfirmed"
+    ? "Source license_status is unconfirmed; operational readiness does not confirm licensing or redistribution rights."
+    : null;
+  const pipelineMessage = sourceWarning ? `${result.message} Warning: ${sourceWarning}` : result.message;
   return {
     ...snapshot,
     status: effectiveStatus,
@@ -296,18 +297,19 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
       lastAttemptAt: attemptedAt,
       lastAttemptMode: mode,
       blockedReason: result.status === "ready" ? null : result.message,
+      source_warning: sourceWarning,
       isDemo,
       ...(providerId === "fixture" ? { fixture_note: "SYNTHETIC fixture only; not historical 08:30 forecast data." } : {}),
       source,
     },
     pipeline: {
       ...snapshot.pipeline,
-      [MODES[mode].key]: { status: result.status, attemptedAt, provider_id: providerId || null, message: result.message },
+      [MODES[mode].key]: { status: result.status, attemptedAt, provider_id: providerId || null, message: pipelineMessage },
     },
   };
 }
 
-export async function run(argv = process.argv.slice(2)) {
+export async function run(argv = process.argv.slice(2), dependencies = {}) {
   const options = parseArgs(argv);
   if (!options) return { help: true };
   const modeConfig = MODES[options.mode];
@@ -345,7 +347,7 @@ export async function run(argv = process.argv.slice(2)) {
     snapshot ||= noDataSnapshot();
   }
   const attemptedAt = options.attemptedAt;
-  const { provider, providerId } = resolveProvider(process.env, options);
+  const { provider, providerId } = resolveProvider(process.env, { ...options, ...dependencies });
   let nextSnapshot = {
     ...snapshot,
     meta: {
@@ -413,6 +415,7 @@ export async function run(argv = process.argv.slice(2)) {
     provider: providerId,
     status: nextSnapshot.status,
     message: nextSnapshot.pipeline?.[modeConfig.key]?.message || nextSnapshot.meta?.blockedReason || null,
+    sourceWarning: nextSnapshot.meta?.source_warning || null,
     dryRun: options.dryRun,
     stageFile: explicitDataFile ? null : runPath,
     wroteRunFile,

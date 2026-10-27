@@ -63,7 +63,7 @@ pending
   └─ ready     : 확인된 출처 + 수집시각 + 스키마 검증 통과
 ```
 
-`ready`는 source의 `license_status`가 `confirmed`이고 `retrieved_at`이 있는 경우에만 허용한다. 상태와 사유는 UI, `meta.blockedReason`, 단계 `message`에 공개한다.
+Operational `ready`는 source의 `retrieved_at`, current-day freshness, transport/parse 성공, schema-valid rows를 요구한다. `license_status=unconfirmed`는 source metadata에 그대로 보존하고 `meta.source_warning` 및 단계 message에 공개하지만 operational status를 낮추지 않는다. license confirmation과 operational readiness는 별도 상태이며, stale·missing·out-of-date timestamp, HTTP/parse failure는 `no_data`/`degraded`/`blocked`로 fail-closed 처리한다.
 
 ## 5. Provider adapter
 
@@ -81,7 +81,7 @@ pending
 
 ### 기본 상태
 
-`KOSPI_PROVIDER` 기본값은 계좌·API key가 필요 없는 `naver-crawl`이다. 이 provider는 Naver 공개 market-list JSON과 polling quote endpoint를 제한된 batch·간격으로 읽고, HTML·로그인·CAPTCHA·차단 우회를 하지 않는다. `none`으로 설정하면 외부 요청을 하지 않고 `no_data`/`blocked` 단계 상태를 기록하며 runner는 non-zero exit으로 종료한다. Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았으므로 source는 `license_status=unconfirmed`로 기록된다. 실제 quote 행을 수집해도 ready 게이트는 `degraded`로 낮추며, 관찰 행·출처·지연 가능성을 보존한다. 장전 openPriceRaw가 없거나 quote가 stale이면 이전 종가를 이용해 expected 값을 합성하지 않는다. `demo`는 모든 금융 필드가 `null`인 UI 전용 행을 제공하며 `meta.isDemo=true`를 설정한다.
+`KOSPI_PROVIDER` 기본값은 계좌·API key가 필요 없는 `naver-crawl`이다. 이 provider는 Naver 공개 market-list JSON과 polling quote endpoint를 제한된 batch·간격으로 읽고, HTML·로그인·CAPTCHA·차단 우회를 하지 않는다. `none`으로 설정하면 외부 요청을 하지 않고 `no_data`/`blocked` 단계 상태를 기록하며 runner는 non-zero exit으로 종료한다. Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았으므로 source는 `license_status=unconfirmed`로 기록된다. fresh·current-day·schema-valid quote는 operational `ready`로 허용하되 source warning을 snapshot/meta/summary에 보존한다. 장전 openPriceRaw가 없거나 quote가 stale이면 이전 종가를 이용해 expected 값을 합성하지 않는다. `demo`는 모든 금융 필드가 `null`인 UI 전용 행을 제공하며 `meta.isDemo=true`를 설정한다.
 
 `naver-crawl`은 source timeout 8초, stage overall deadline 120초, 순차 요청 간 기본 250ms 간격, 최대 1회 bounded retry를 사용한다. 403/429/challenge는 즉시 `blocked`로 중단한다. forecast/open/close 단계는 runner에서 캡처한 run-start를 KST로 변환해 판단하고, quote `localTradedAt`과 실제 fetch time의 max age를 검증한다. stale·partial·deadline 결과는 정상 순위가 아니라 `partial`/`degraded`/`no_data`로 기록하고 이전 snapshot을 재사용하지 않는다. `meta.source`에는 run id, 수집 시각, source 상태와 요청 metrics를 보존한다.
 
@@ -125,7 +125,7 @@ GitHub Actions cron은 UTC 기준이며 KST는 UTC+9다. 한국은 서머타임�
 | `0 0 * * 1-5` | 월–금 09:00 | `openSettlement` | 실제 시작가 정산 |
 | `30 6 * * 1-5` | 월–금 15:30 | `closeSettlement` | 장마감 실제 정산 |
 
-UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. Naver crawl은 장전 신선한 openPriceRaw가 있을 때만 expected_open을 계산하고, 09:00 이후 openPriceRaw를 actual_open으로 저장하며, 장마감 후 closePriceRaw를 actual_close로 저장한다. 휴장일·빈 응답·stale·차단이면 숫자를 대체 생성하지 않고 상태만 기록한다.
+UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. Naver crawl은 장전 신선한 openPriceRaw가 있을 때만 expected_open을 계산하고, 09:00 이후 openPriceRaw를 actual_open으로 저장하며, 장마감 후 closePriceRaw를 actual_close로 저장한다. 단, 수동 run-all의 오늘 장중 forecast 계열은 신선한 closePriceRaw current quote를 expected_open의 intraday baseline으로 기록할 수 있으며, 이는 pre-open forecast가 아니다. actual_open/actual_close는 각각 open-settlement/close-settlement 단계에서만 기록한다. 휴장일·빈 응답·stale·차단이면 숫자를 대체 생성하지 않고 상태만 기록한다.
 
 ## 7. 프론트엔드와 운영
 

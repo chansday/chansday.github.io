@@ -10,6 +10,7 @@ import {
   emptyRow,
   isProviderAdapter,
   isSnapshot,
+  noDataSnapshot,
   validateRankingRows,
 } from "../providers/provider-adapter.js";
 import {
@@ -485,6 +486,54 @@ test("Naver crawl provider refuses synthesized pre-open values and stale quotes"
   assert.equal(stale.source.status, "stale");
 });
 
+test("manual run-all uses a fresh intraday current quote for the forecast baseline", async () => {
+  const now = new Date("2026-10-27T04:11:00.000Z");
+  const response = (payload) => ({ ok: true, status: 200, headers: { get: () => "application/json" }, text: async () => JSON.stringify(payload) });
+  const provider = createNaverCrawlProvider({
+    env: {
+      KOSPI_RUN_DATE: "2026-10-27",
+      KOSPI_MANUAL_RUN_ALL: "1",
+      KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0",
+      KOSPI_CRAWL_MAX_RETRIES: "0",
+    },
+    runStartedAt: "2026-10-27T04:11:00.000Z",
+    fetchImpl: async (url) => url.includes("m.stock.naver.com")
+      ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
+      : response({ datas: [{ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T13:11:00.500+09:00", marketStatus: "OPEN" }] }),
+    now: () => now,
+  });
+  const forecast = await provider.generateForecast();
+  assert.equal(forecast.status, "ready");
+  assert.equal(forecast.rows[0].expected_open, 102);
+  assert.equal(forecast.rows[0].expected_return, 2);
+  assert.equal(forecast.rows[0].actual_open, null);
+  assert.equal(forecast.rows[0].quality, "naver_intraday_quote_baseline");
+  assert.equal(forecast.rows[0].quote_age_seconds, 0);
+  assert.match(forecast.message, /current closePriceRaw quote baseline/i);
+  assert.equal(forecast.source.retrieved_at, now.toISOString());
+});
+
+test("manual intraday forecast keeps missing timestamps degraded and open settlement requires openPriceRaw", async () => {
+  const now = new Date("2026-10-27T04:11:00.000Z");
+  const response = (payload) => ({ ok: true, status: 200, headers: { get: () => "application/json" }, text: async () => JSON.stringify(payload) });
+  const makeProvider = (quote, env = {}) => createNaverCrawlProvider({
+    env: { KOSPI_RUN_DATE: "2026-10-27", KOSPI_MANUAL_RUN_ALL: "1", KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0", ...env },
+    runStartedAt: "2026-10-27T04:11:00.000Z",
+    fetchImpl: async (url) => url.includes("m.stock.naver.com")
+      ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
+      : response({ datas: [quote] }),
+    now: () => now,
+  });
+  const missingTimestamp = await makeProvider({ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: null, marketStatus: "OPEN" }).generateForecast();
+  assert.equal(missingTimestamp.status, "degraded");
+  assert.equal(missingTimestamp.source.status, "stale");
+
+  const noOpen = await makeProvider({ symbolCode: "000001", stockName: "종목", openPriceRaw: null, closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T13:11:00+09:00", marketStatus: "OPEN" }).settleOpen();
+  assert.equal(noOpen.status, "no_data");
+  assert.equal(noOpen.source.status, "no_open_quote");
+  assert.match(noOpen.message, /openPriceRaw|actual_open/i);
+});
+
 test("Naver crawl provider maps open and close stages to actual fields", async () => {
   const response = (payload) => ({ ok: true, status: 200, headers: { get: () => "application/json" }, text: async () => JSON.stringify(payload) });
   const makeProvider = (now, quote) => createNaverCrawlProvider({
@@ -544,6 +593,7 @@ test("resolveProvider registers naver-crawl with the caller run context and pres
     runDate: "2026-10-27",
     runStartedAt,
     attemptedAt,
+    now: () => new Date("2026-10-26T23:59:30.000Z"),
     fetchImpl: async (url) => url.includes("m.stock.naver.com")
       ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
       : response({ datas: [{ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T08:59:25+09:00", marketStatus: "PREOPEN" }] }),
@@ -560,8 +610,12 @@ test("resolveProvider registers naver-crawl with the caller run context and pres
   assert.equal(result.source.run_id, "2026-10-27-forecast");
 });
 
-test("operating naver-crawl run keeps live rows but degrades the ready gate when licensing is unconfirmed", async () => {
+test("operating naver-crawl run is ready with an explicit unconfirmed-license warning", async () => {
   const previousFetch = globalThis.fetch;
+  const previousSummary = process.env.GITHUB_STEP_SUMMARY;
+  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-license-warning-"));
+  const dataFile = join(tempRoot, "snapshot.json");
+  const summaryFile = join(tempRoot, "summary.md");
   const response = (payload) => ({
     ok: true,
     status: 200,
@@ -572,19 +626,31 @@ test("operating naver-crawl run keeps live rows but degrades the ready gate when
     ? response({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "종목", stockEndType: "stock", sosok: "0" }] })
     : response({ datas: [{ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T08:59:25+09:00", marketStatus: "PREOPEN" }] });
   try {
+    process.env.GITHUB_STEP_SUMMARY = summaryFile;
+    await writeFile(dataFile, `${JSON.stringify(noDataSnapshot())}\n`, "utf8");
     const summary = await runStage([
       "--mode", "forecast",
       "--provider", "naver-crawl",
       "--run-date", "2026-10-27",
       "--run-started-at", "2026-10-26T23:59:30.000Z",
       "--attempted-at", "2026-10-26T23:59:30.000Z",
-      "--dry-run",
-    ]);
+      "--data-file", dataFile,
+    ], { now: () => new Date("2026-10-26T23:59:30.000Z") });
     assert.equal(summary.provider, "naver-crawl");
-    assert.equal(summary.status, "degraded");
-    assert.match(summary.message, /licensing is confirmed/i);
+    assert.equal(summary.status, "ready");
+    assert.match(summary.message, /license_status is unconfirmed/i);
+    assert.match(summary.sourceWarning, /unconfirmed/i);
+    const snapshot = JSON.parse(await readFile(dataFile, "utf8"));
+    assert.equal(snapshot.status, "ready");
+    assert.equal(snapshot.provider.source.license_status, "unconfirmed");
+    assert.match(snapshot.meta.source_warning, /unconfirmed/i);
+    assert.match(snapshot.pipeline.forecast.message, /Warning:.*unconfirmed/i);
+    assert.match(await readFile(summaryFile, "utf8"), /source warning:.*unconfirmed/i);
   } finally {
     globalThis.fetch = previousFetch;
+    if (previousSummary === undefined) delete process.env.GITHUB_STEP_SUMMARY;
+    else process.env.GITHUB_STEP_SUMMARY = previousSummary;
+    await rm(tempRoot, { recursive: true, force: true });
   }
 });
 

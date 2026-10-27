@@ -2,7 +2,7 @@
 
 정적 GitHub Pages 프론트엔드로 KOSPI 사전예측 랭킹을 기록하고, 장마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
-평일 운영 provider 기본값과 GitHub Actions provider는 `naver-crawl`입니다. Naver 공개 polling endpoint에서 현재 KOSPI quote를 읽어 장전 예상시가·장중 실제시가·장마감 실제값을 계산하지만, Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았습니다. 따라서 source metadata는 `license_status=unconfirmed`를 유지하며 기존 ready 품질 게이트를 우회하지 않습니다. crawl 결과가 지연·빈 응답·차단이면 `no_data`/`degraded`/`blocked`를 기록하고 fixture, demo 또는 이전 snapshot을 대체값으로 사용하지 않습니다.
+평일 운영 provider 기본값과 GitHub Actions provider는 `naver-crawl`입니다. Naver 공개 polling endpoint에서 현재 KOSPI quote를 읽어 장전 예상시가·장중 실제시가·장마감 실제값을 계산하지만, Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았습니다. 따라서 source metadata는 `license_status=unconfirmed`를 유지하고 snapshot/meta/summary에 source warning을 남깁니다. fresh·current-day·schema-valid quote의 operational status는 `ready`로 허용하지만 license가 확인됐다고 표시하지 않습니다. crawl 결과가 지연·빈 응답·차단이면 `no_data`/`degraded`/`blocked`를 기록하고 fixture, demo 또는 이전 snapshot을 대체값으로 사용하지 않습니다.
 
 ## 범위와 운영 원칙
 
@@ -64,7 +64,9 @@
 - 장전(`KST < 09:00`): 현재 날짜의 신선한 `openPriceRaw`가 있을 때만 `expected_open`을 계산합니다. 없으면 전일 종가로 예상값을 합성하지 않고 `no_data`입니다.
 - 장중(`09:00 ≤ KST < 15:30`): 신선한 `openPriceRaw`를 `actual_open`으로 저장하고 전일 대비 실제 수익률을 계산합니다.
 - 장마감 후(`KST ≥ 15:30`): 당일 `openPriceRaw`와 `closePriceRaw`를 실제 시가·종가로 저장합니다. 장마감 quote의 허용 max age는 별도로 검증합니다.
-- Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 현재 `update-results.mjs`의 ready 게이트가 상태를 `degraded`로 낮춥니다. 실제로 수집된 행은 관찰용 degraded snapshot에 보존하되 정상 `ready`로 표시하지 않습니다. 이는 라이선스를 `confirmed`로 거짓 표시하지 않기 위한 의도된 안전장치입니다.
+- 수동 `run-all`이 오늘 장중에 시작되면 `update-results`/`analysis`/`forecast`도 장중 신선한 `closePriceRaw` current quote를 수집합니다. 이 경로의 `expected_open`은 09:00 전 예측이 아니라 실행 시점 current-quote baseline이며, `openPriceRaw`는 `open-settlement`에서만 `actual_open`으로 기록합니다. `close-settlement`는 15:30 KST 이후에만 실행됩니다. 장전 수동 실행은 기존대로 `openPriceRaw`가 없으면 `no_data`입니다.
+- `run-started-at`은 단계 eligibility와 target 거래일을 정하는 기준시각이고, `meta.source.retrieved_at`은 각 provider 요청이 실제로 수집된 시각입니다. 두 시각을 동일한 값으로 가장하지 않으며, Naver `localTradedAt`은 실제 수집시각보다 최대 5초 앞선 서버 clock skew만 허용합니다. 그 밖의 stale·missing·다른 날짜 timestamp는 계속 `degraded`/`no_data`입니다.
+- Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 이 값은 source metadata에 그대로 보존합니다. fresh·current-day·schema-valid quote는 operational `ready`로 저장하되 `meta.source_warning`과 pipeline/job summary에 라이선스 미확인 경고를 남깁니다. stale·missing·out-of-date timestamp, HTTP/parse failure는 계속 `no_data`/`degraded`/`blocked`로 처리되어 run-all commit을 허용하지 않습니다.
 
 `data/runs/historical-test/YYYY-MM-DD/*.json`은 운영 run과 분리된 검증용 과거 스냅샷입니다. `data/latest-snapshot.json`은 운영 provider의 최신 run 복사본이며, fallback 선택 시에도 파일·운영 상태·메타데이터를 덮어쓰지 않습니다. historical-test 수집기는 latest 운영 복사본을 갱신하지 않습니다.
 
@@ -125,7 +127,7 @@ npm run historical-test:collect
 
 운영 수집은 KOSPI market-list JSON을 페이지 단위로 한 번 읽고, 종목코드를 제한된 batch로 polling endpoint에 전달합니다. 로그인·CAPTCHA·robots 차단·redirect·HTML challenge를 우회하지 않으며, Naver 허용 호스트 외에는 요청하지 않습니다.
 
-- Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-all now`는 reusable runner에서 실제 실행 시각을 UTC ISO-8601로 생성해 사용합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:30 이후에만 `close-settlement`를 추가 호출합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 모든 stage는 같은 crawl runner에서 quote freshness를 검증합니다.
+- Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-all now`는 reusable runner에서 실제 실행 시각을 UTC ISO-8601로 생성해 사용합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:30 이후에만 `close-settlement`를 추가 호출합니다. 수동 run-all은 실행 시작시각과 별도로 collection invocation timestamp를 기록하고, 각 Naver 요청의 실제 수집시각을 source metadata에 기록합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 모든 stage는 같은 crawl runner에서 quote freshness를 검증합니다.
 - source별 timeout(기본 8초), 전체 deadline(기본 120초), 순차 요청 간 최소 간격(기본 250ms), 최대 1회 bounded retry를 적용합니다. 403/429/challenge는 재시도하지 않습니다.
 - deadline 초과·중복·필수 필드 결측·오래된 파일은 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 이전 snapshot을 당일 결과처럼 재사용하지 않습니다.
 - `meta.source`에는 source id, run id, `source_date`, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록하고, snapshot top-level `asOfDate`는 실제 원본 날짜를 가리킵니다. stale/unsupported 결과도 이 날짜를 숨기지 않습니다.
@@ -307,7 +309,7 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
    `gh workflow run forecast.yml --ref main`
 
 2. provider 상태, `meta.source.source_date`/`retrieved_at`, top-level `asOfDate`, `data/latest-snapshot.json`의 단계 상태와 job summary를 확인합니다. summary의 `reference time (run start)`은 해당 수동/스케줄 실행의 기준시각입니다.
-3. `forecast`/`open-settlement`/`close-settlement`은 Naver 공개 crawl의 실제 quote와 `localTradedAt` freshness를 함께 확인합니다. 이용정책이 확인되지 않은 상태에서는 snapshot의 `license_status=unconfirmed`가 ready 게이트에 의해 `degraded`로 남을 수 있으며, 이는 라이선스를 `confirmed`로 표시하지 않기 위한 의도된 제한입니다.
+3. `forecast`/`open-settlement`/`close-settlement`은 Naver 공개 crawl의 실제 quote와 `localTradedAt` freshness를 함께 확인합니다. 이용정책이 확인되지 않은 상태에서도 fresh·current-day·schema-valid quote는 operational `ready`로 저장되며, snapshot/meta/summary에 `license_status=unconfirmed` source warning을 남깁니다. 이는 라이선스를 `confirmed`로 표시하지 않으면서 무설정 Actions 실행을 허용하기 위한 정책입니다.
 4. `fixture`/`demo`는 UI·계약 확인용 로컬 dry-run에서만 사용하고 운영 데이터로 해석하지 않습니다. 기능 workflow는 provider 선택을 노출하지 않습니다.
 5. 문제가 있으면 해당 기능 workflow의 summary와 `data/latest-snapshot.json`의 stage 상태를 확인합니다. provider를 바꾸거나 `none`으로 우회하는 설정은 workflow에 포함하지 않습니다.
 

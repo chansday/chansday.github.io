@@ -23,6 +23,7 @@ test("run-all dry-run gates stages by the actual KST run-start time", async () =
 
 test("12:09 KST run calls forecast and open-settlement but not close-settlement", async () => {
   const calls = [];
+  const manualFlags = [];
   const summary = await runAll([
     "--run-date", "2026-10-27",
     "--run-started-at", "2026-10-27T03:09:00Z",
@@ -31,6 +32,7 @@ test("12:09 KST run calls forecast and open-settlement but not close-settlement"
   ], {
     stageRunner: async (args) => {
       calls.push(args);
+      manualFlags.push(process.env.KOSPI_MANUAL_RUN_ALL);
       return { status: "ready", message: "stubbed stage", stageFile: null };
     },
     consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
@@ -45,6 +47,7 @@ test("12:09 KST run calls forecast and open-settlement but not close-settlement"
   assert.match(summary.reason, /Only pending/);
   assert.equal(summary.stages.find(({ stage }) => stage === "forecast").status, "ready");
   assert.equal(summary.stages.find(({ stage }) => stage === "close-settlement").status, "pending");
+  assert.deepEqual(manualFlags, ["1", "1", "1", "1"]);
 });
 
 test("08:30 KST run calls forecast but not either settlement stage", async () => {

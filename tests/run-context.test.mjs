@@ -56,6 +56,7 @@ test("public-csv no longer rejects a manual forecast solely because a schedule c
 
 test("manual and fixed workflows generate the run start on the runner", async () => {
   const runNow = await readFile(new URL("../.github/workflows/run-now.yml", import.meta.url), "utf8");
+  const runAll = await readFile(new URL("../.github/workflows/run-all-now.yml", import.meta.url), "utf8");
   const runner = await readFile(new URL("../.github/workflows/_run-stage.yml", import.meta.url), "utf8");
   const fixed = await readFile(new URL("../.github/workflows/forecast.yml", import.meta.url), "utf8");
   assert.match(runNow, /provider:\s*naver-crawl/);
@@ -68,4 +69,8 @@ test("manual and fixed workflows generate the run start on the runner", async ()
   assert.match(runner, /echo "KOSPI_RUN_STARTED_AT=\$run_started_at" >> "\$GITHUB_ENV"/);
   assert.match(runner, /--run-started-at "\$\{\{ steps\.capture-run-context\.outputs\.run_started_at \}\}"/);
   assert.match(runner, /--attempted-at "\$\{\{ steps\.capture-run-context\.outputs\.run_started_at \}\}"/);
+  assert.match(runAll, /KOSPI_MANUAL_RUN_ALL: "1"/);
+  assert.match(runAll, /Capture collection invocation timestamp/);
+  assert.match(runAll, /--run-started-at "\$\{\{ steps\.run-context\.outputs\.run_started_at \}\}"/);
+  assert.match(runAll, /--attempted-at "\$\{\{ steps\.collection-context\.outputs\.collection_started_at \}\}"/);
 });

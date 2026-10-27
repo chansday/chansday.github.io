@@ -13,6 +13,7 @@ const DEFAULT_OVERALL_DEADLINE_MS = 120_000;
 const DEFAULT_MAX_RETRIES = 1;
 const DEFAULT_RETRY_BASE_MS = 250;
 const DEFAULT_MAX_AGE_SECONDS = 180;
+const DEFAULT_MAX_CLOCK_SKEW_SECONDS = 5;
 const DEFAULT_CLOSE_MAX_AGE_SECONDS = 86_400;
 const DEFAULT_UNIVERSE_PAGE_SIZE = 100;
 const DEFAULT_QUOTE_BATCH_SIZE = 100;
@@ -22,6 +23,7 @@ function numberEnv(env, key, fallback, minimum = 0, maximum = Number.POSITIVE_IN
   const value = Number(env[key]);
   return Number.isFinite(value) ? Math.min(maximum, Math.max(minimum, value)) : fallback;
 }
+
 function readConfig(env) {
   const timeoutMs = numberEnv(env, "KOSPI_CRAWL_TIMEOUT_MS", DEFAULT_TIMEOUT_MS, 1_000, 30_000);
   const overallDeadlineMs = numberEnv(env, "KOSPI_CRAWL_OVERALL_DEADLINE_MS", DEFAULT_OVERALL_DEADLINE_MS, timeoutMs, 300_000);
@@ -31,6 +33,7 @@ function readConfig(env) {
     maxRetries: numberEnv(env, "KOSPI_CRAWL_MAX_RETRIES", DEFAULT_MAX_RETRIES, 0, 2),
     retryBaseMs: numberEnv(env, "KOSPI_CRAWL_RETRY_BASE_MS", DEFAULT_RETRY_BASE_MS, 0, 3_000),
     maxAgeSeconds: numberEnv(env, "KOSPI_CRAWL_MAX_AGE_SECONDS", DEFAULT_MAX_AGE_SECONDS, 1, 86_400),
+    maxClockSkewSeconds: numberEnv(env, "KOSPI_CRAWL_MAX_CLOCK_SKEW_SECONDS", DEFAULT_MAX_CLOCK_SKEW_SECONDS, 0, 60),
     closeMaxAgeSeconds: numberEnv(env, "KOSPI_CRAWL_CLOSE_MAX_AGE_SECONDS", DEFAULT_CLOSE_MAX_AGE_SECONDS, 1, 172_800),
     universePageSize: numberEnv(env, "KOSPI_CRAWL_UNIVERSE_PAGE_SIZE", DEFAULT_UNIVERSE_PAGE_SIZE, 1, 100),
     quoteBatchSize: numberEnv(env, "KOSPI_CRAWL_QUOTE_BATCH_SIZE", DEFAULT_QUOTE_BATCH_SIZE, 1, 100),
@@ -254,11 +257,20 @@ function percent(value, base) {
 }
 
 function rowForQuote(quote, phase, stage, snapshotRowsBySymbol) {
+  const isForecastStage = ["update-results", "analysis", "forecast"].includes(stage);
+  const manualRunAll = quote.manualRunAll === true;
   const existing = snapshotRowsBySymbol.get(quote.symbol);
-  const expectedOpen = phase === "before-open" ? quote.openPrice : (existing?.expected_open ?? null);
-  const expectedReturn = phase === "before-open" ? percent(expectedOpen, quote.priorClose) : (existing?.expected_return ?? null);
-  const actualOpen = phase === "before-open" ? null : quote.openPrice;
-  const actualClose = stage === "close-settlement" || phase === "after-close" ? quote.closePrice : null;
+  const intradayExpectedStart = manualRunAll && isForecastStage && phase !== "before-open" ? quote.closePrice : null;
+  const expectedOpen = phase === "before-open"
+    ? quote.openPrice
+    : intradayExpectedStart !== null
+      ? intradayExpectedStart
+      : (existing?.expected_open ?? null);
+  const expectedReturn = phase === "before-open" || intradayExpectedStart !== null
+    ? percent(expectedOpen, quote.priorClose)
+    : (existing?.expected_return ?? null);
+  const actualOpen = ["open-settlement", "close-settlement"].includes(stage) ? quote.openPrice : null;
+  const actualClose = stage === "close-settlement" ? quote.closePrice : null;
   const actualReturn = percent(actualOpen, quote.priorClose);
   const sessionReturn = percent(actualClose, actualOpen);
   return {
@@ -276,12 +288,20 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol) {
     prior_close: quote.priorClose,
     error: actualReturn !== null && expectedReturn !== null ? round(actualReturn - expectedReturn) : null,
     confidence: null,
-    quality: phase === "before-open" ? "naver_preopen_quote" : "naver_live_quote",
+    quality: phase === "before-open"
+      ? "naver_preopen_quote"
+      : intradayExpectedStart !== null
+        ? "naver_intraday_quote_baseline"
+        : "naver_live_quote",
     status: "valid",
     quote_at: quote.quoteAt?.toISOString() || null,
-    quote_age_seconds: Number.isFinite(quote.quoteAgeSeconds) ? round(quote.quoteAgeSeconds) : null,
+    quote_age_seconds: Number.isFinite(quote.quoteAgeSeconds) ? round(Math.max(0, quote.quoteAgeSeconds)) : null,
     market_status: quote.marketStatus,
   };
+}
+
+function isForecastStage(stage) {
+  return ["update-results", "analysis", "forecast"].includes(stage);
 }
 
 function rankRows(rows, phase) {
@@ -292,8 +312,8 @@ function rankRows(rows, phase) {
 }
 
 function sourceMetadata(context, { status, sourceDate, rawRows, sourceRows, partial = false, quotes = [] }) {
-  const ages = quotes.map((quote) => quote.quoteAgeSeconds).filter(Number.isFinite);
-  const retrievedAt = (context.fetchTime || context.now()).toISOString();
+  const ages = quotes.map((quote) => Math.max(0, quote.quoteAgeSeconds)).filter(Number.isFinite);
+  const retrievedAt = (context.collectionAt || context.fetchTime || context.now()).toISOString();
   return createSourceMetadata({
     name: SOURCE_NAME,
     url: QUOTE_ENDPOINT,
@@ -388,7 +408,14 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     context.fetchTime = fetchTime;
     context.referenceTime = current;
     const phase = resolveCrawlStage(current);
-    const stagePhase = stage === "open-settlement" ? "during-market" : stage === "close-settlement" ? "after-close" : "before-open";
+    const manualRunAll = String(env.KOSPI_MANUAL_RUN_ALL || "") === "1";
+    const stagePhase = stage === "open-settlement"
+      ? "during-market"
+      : stage === "close-settlement"
+        ? "after-close"
+        : manualRunAll
+          ? phase
+          : "before-open";
     const phaseAllowed = stagePhase === "before-open"
       ? phase === "before-open"
       : stagePhase === "during-market"
@@ -413,11 +440,17 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
       const source = sourceMetadata(context, { status, sourceDate: kstDate(current), rawRows: universe.rawRows, sourceRows: 0, partial: status !== "no_data" });
       return result(status, `Naver quote crawl failed: ${fetched.reason}.`, source, [], kstDate(current));
     }
-    const quotes = fetched.quotes.map((quote) => normalizeQuote(quote, fetchTime)).filter((quote) => quote.symbol);
+    const collectionAt = now();
+    context.collectionAt = Number.isNaN(collectionAt.getTime()) ? fetchTime : collectionAt;
+    const quotes = fetched.quotes.map((quote) => normalizeQuote(quote, context.collectionAt)).filter((quote) => quote.symbol);
     const maxAgeSeconds = phase === "after-close" ? config.closeMaxAgeSeconds : config.maxAgeSeconds;
-    const freshQuotes = quotes.filter((quote) => quote.quoteAt && quote.quoteAgeSeconds >= 0 && quote.quoteAgeSeconds <= maxAgeSeconds && kstDate(quote.quoteAt) === kstDate(current));
+    const freshQuotes = quotes.filter((quote) => quote.quoteAt
+      && quote.quoteAgeSeconds >= -config.maxClockSkewSeconds
+      && quote.quoteAgeSeconds <= maxAgeSeconds
+      && kstDate(quote.quoteAt) === kstDate(current));
     const sourceDate = freshQuotes[0]?.quoteAt ? kstDate(freshQuotes[0].quoteAt) : kstDate(current);
-    const source = sourceMetadata(context, { status: "collected", sourceDate, rawRows: universe.rawRows + fetched.quotes.length, sourceRows: freshQuotes.length, partial: freshQuotes.length !== quotes.length, quotes: freshQuotes });
+    const partialQuotes = freshQuotes.length !== quotes.length;
+    const source = sourceMetadata(context, { status: partialQuotes ? "partial" : "collected", sourceDate, rawRows: universe.rawRows + fetched.quotes.length, sourceRows: freshQuotes.length, partial: partialQuotes, quotes });
     if (freshQuotes.length === 0) {
       return result("degraded", `Naver quote timestamps are missing, stale, or not from ${kstDate(current)}; no previous snapshot is reused.`, { ...source, status: "stale" }, [], sourceDate);
     }
@@ -425,17 +458,25 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     if (phase === "before-open" && currentOpenQuotes.length === 0) {
       return result("no_data", "Before-open Naver response did not contain current open/pre-open quotes; previous close is not used to synthesize expected_open.", { ...source, status: "no_preopen_quote" }, [], sourceDate);
     }
-    if (phase !== "before-open" && currentOpenQuotes.length === 0) {
+    const currentQuoteRows = freshQuotes.filter((quote) => quote.closePrice !== null);
+    if (stage === "open-settlement" && currentOpenQuotes.length === 0) {
       return result("no_data", "Naver response did not contain openPriceRaw for the current market session; actual_open remains no_data.", { ...source, status: "no_open_quote" }, [], sourceDate);
     }
+    if (manualRunAll && isForecastStage(stage) && phase !== "before-open" && currentQuoteRows.length === 0) {
+      return result("no_data", "Manual intraday run-all requires a fresh current quote; expected_open is not synthesized from a missing quote.", { ...source, status: "no_current_quote" }, [], sourceDate);
+    }
     const snapshotRowsBySymbol = new Map((currentProvider._snapshot?.rows || []).filter((row) => row.symbol).map((row) => [row.symbol, row]));
-    const rows = rankRows(freshQuotes.map((quote) => rowForQuote(quote, stagePhase, stage, snapshotRowsBySymbol)), stagePhase);
+    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, stagePhase, stage, snapshotRowsBySymbol)), stagePhase);
     const readyMessage = stagePhase === "before-open"
       ? `Collected ${rows.length} fresh Naver pre-open quotes; expected_open is derived only from openPriceRaw.`
+      : manualRunAll && isForecastStage(stage)
+        ? `Collected ${rows.length} fresh Naver intraday quotes; expected_open is the current closePriceRaw quote baseline, not a pre-open forecast.`
       : phase === "after-close"
         ? `Collected ${rows.length} fresh-enough Naver post-close quotes; actual_open/actual_close are observed fields.`
         : `Collected ${rows.length} fresh Naver intraday quotes; actual_open is openPriceRaw.`;
-    return result("ready", readyMessage, { ...source, status: "ready", sourceRows: rows.length }, rows, sourceDate);
+    const resultStatus = partialQuotes ? "partial" : "ready";
+    const partialMessage = partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps; incomplete source data is not promoted to ready.` : "";
+    return result(resultStatus, `${readyMessage}${partialMessage}`, { ...source, status: resultStatus, sourceRows: rows.length }, rows, sourceDate);
   }
 
   const wrap = (method) => async ({ snapshot } = {}) => {
