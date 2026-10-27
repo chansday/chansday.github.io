@@ -14,8 +14,8 @@ test("checked-in KRX calendar covers 2026 and validates its source contract", as
   const calendar = await loadMarketCalendar();
   assert.equal(calendar.market, "KOSPI");
   assert.equal(calendar.timezone, "Asia/Seoul");
-  assert.equal(calendar.coverage.end, "2026-12-31");
-  assert.equal(calendar.holidays.length, 17);
+  assert.ok(calendar.coverage.end >= "2026-12-31");
+  assert.equal(calendar.holidays.filter((holiday) => holiday.date.startsWith("2026-")).length, 17);
   assert.equal(calendar.source.name.includes("한국거래소"), true);
 });
 
@@ -40,7 +40,7 @@ test("market guard skips ordinary, substitute, and temporary KRX holidays", asyn
 });
 
 test("unknown covered weekdays fail closed instead of collecting", async () => {
-  const result = await checkMarketDate("2027-01-04");
+  const result = await checkMarketDate("2099-01-05");
   assert.equal(result.status, "error");
   assert.equal(result.reason, "calendar_coverage_missing");
 });
@@ -67,11 +67,11 @@ test("CLI guard fails closed when the calendar has no coverage", async () => {
   const script = fileURLToPath(new URL("../scripts/market-session-guard.mjs", import.meta.url));
   try {
     await assert.rejects(
-      execFileAsync(process.execPath, [script, "--date", "2027-01-04"], {
+      execFileAsync(process.execPath, [script, "--date", "2099-01-05"], {
         cwd: PROJECT_ROOT,
         env: { ...process.env, GITHUB_OUTPUT: outputPath },
       }),
-      /No checked-in KRX calendar covers 2027-01-04/,
+      /No checked-in KRX calendar covers 2099-01-05/,
     );
     assert.match(await readFile(outputPath, "utf8"), /should_run=false/);
   } finally {

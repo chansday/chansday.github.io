@@ -126,7 +126,7 @@ test("scheduled close evaluation runs only after close on a confirmed trading da
   for (const [runDate, runStartedAt] of [["2026-10-24", "2026-10-24T07:00:00Z"], ["2026-10-05", "2026-10-05T07:00:00Z"], ["2026-05-05", "2026-05-05T07:00:00Z"], ["2026-06-03", "2026-06-03T07:00:00Z"]]) {
     assert.equal((await runStagePostClose({ runDate, runStartedAt, runId: "1.1", evaluator })).status, "skipped");
   }
-  await assert.rejects(runStagePostClose({ runDate: "2027-01-04", runStartedAt: "2027-01-04T07:00:00Z", runId: "1.1", evaluator }), /calendar covers/);
+  await assert.rejects(runStagePostClose({ runDate: "2099-01-05", runStartedAt: "2099-01-05T07:00:00Z", runId: "1.1", evaluator }), /calendar covers/);
   await assert.rejects(runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:29:59Z", runId: "1.1", evaluator }), /after 15:30/);
   assert.equal(calls, 0);
   assert.equal((await runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:30:00Z", runId: "1.1", evaluator })).status, "ready");

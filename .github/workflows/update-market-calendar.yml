@@ -1,0 +1,49 @@
+name: KOSPI annual market calendar update
+
+on:
+  schedule:
+    # December 31 at 12:00 KST (03:00 UTC), every year.
+    - cron: "0 3 31 12 *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Check KRX without changing the calendar"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+
+jobs:
+  update-calendar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate current contract
+        run: npm test && npm run check && npm run check:experiment
+      - name: Fetch next year from KRX
+        env:
+          KOSPI_CALENDAR_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: node scripts/update-market-calendar.mjs
+      - name: Verify updated calendar
+        run: npm test && npm run check
+      - name: Commit verified calendar
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- data/krx-market-holidays.json; then
+            echo "KRX calendar is already current."
+            exit 0
+          fi
+          git add -- data/krx-market-holidays.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): update KRX market calendar"
+          git push

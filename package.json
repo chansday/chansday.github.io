@@ -16,6 +16,6 @@
     "historical-test:pipeline": "node scripts/historical-test-pipeline.mjs",
     "historical-test:verify": "node scripts/historical-test-sequence-verify.mjs",
     "collection:audit": "node scripts/collection-audit.mjs",
-    "check:experiment": "node --check providers/daily-baseline-experiment.js && node --check providers/daily-experiment-contract.js && node --check providers/daily-experiment-view.js && node --check providers/robots-policy.js && node --check providers/post-close-overlay.js && node --check scripts/daily-baseline-run.mjs && node --check scripts/stage-daily-experiment.mjs && node --check scripts/stage-experiment-status.mjs && node --check scripts/post-close-evaluation.mjs && node --check scripts/stage-post-close-evaluation.mjs"
+    "check:experiment": "node --check providers/daily-baseline-experiment.js && node --check providers/daily-experiment-contract.js && node --check providers/daily-experiment-view.js && node --check providers/robots-policy.js && node --check providers/post-close-overlay.js && node --check scripts/daily-baseline-run.mjs && node --check scripts/stage-daily-experiment.mjs && node --check scripts/stage-experiment-status.mjs && node --check scripts/post-close-evaluation.mjs && node --check scripts/stage-post-close-evaluation.mjs && node --check scripts/update-market-calendar.mjs"
   }
 }
