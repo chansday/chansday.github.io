@@ -111,6 +111,26 @@ test("feature workflows expose input-free buttons and route through the shared g
   assert.match(shared, /git push/);
 });
 
+test("run all now exposes only run_date and commits the final state once", async () => {
+  const workflow = await readFile(new URL("run-all-now.yml", new URL("../.github/workflows/", import.meta.url)), "utf8");
+  assert.match(workflow, /name: KOSPI run all now/);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /run_date:/);
+  assert.doesNotMatch(workflow, /inputs:\s*\n\s+provider:/);
+  assert.doesNotMatch(workflow, /inputs:\s*\n\s+stage:/);
+  assert.match(workflow, /KOSPI_RUN_ID: \$\{\{ github\.run_id \}\}\.\$\{\{ github\.run_attempt \}\}/);
+  assert.match(workflow, /KOSPI_RUN_DATE: \$\{\{ inputs\.run_date \}\}/);
+  assert.match(workflow, /group: kospi-signal-board-pipeline/);
+  assert.match(workflow, /git add data\/latest-snapshot\.json data\/runs/);
+  assert.equal((workflow.match(/git commit -m/g) || []).length, 1);
+  const runner = await readFile(new URL("../scripts/run-all.mjs", import.meta.url), "utf8");
+  assert.match(runner, /const STAGES = Object\.freeze\(\[/);
+  assert.match(runner, /"update-results",\s+"analysis",\s+"forecast",\s+"open-settlement",\s+"close-settlement"/s);
+  assert.match(runner, /--run-date/);
+  assert.match(runner, /KOSPI_PROVIDER: "naver-crawl"/);
+  assert.doesNotMatch(runner, /fixture|demo|replay/i);
+});
+
 test("push validation is isolated from the feature workflows and cannot write snapshots", async () => {
   const validation = await readFile(new URL("../.github/workflows/validation.yml", import.meta.url), "utf8");
   assert.match(validation, /push:/);

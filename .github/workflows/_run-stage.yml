@@ -110,6 +110,7 @@ jobs:
               echo "- no_data/partial/degraded/blocked results fail the job after the snapshot and summary are written"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
+
       - name: Commit snapshot state when changed
         if: always() && steps.market-day.outputs.should_run == 'true' && steps.static-contract.outcome == 'success' && (steps.stage.outcome == 'success' || steps.stage.outcome == 'failure')
         shell: bash

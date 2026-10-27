@@ -1,6 +1,7 @@
 import {
   createSourceMetadata,
 } from "./provider-adapter.js";
+import { createPublicCsvProvider } from "./public-csv-provider.js";
 
 const QUOTE_ENDPOINT = "https://polling.finance.naver.com/api/realtime/domestic/stock/";
 const UNIVERSE_ENDPOINT = "https://m.stock.naver.com/api/stocks/marketValue/KOSPI";
@@ -21,7 +22,6 @@ function numberEnv(env, key, fallback, minimum = 0, maximum = Number.POSITIVE_IN
   const value = Number(env[key]);
   return Number.isFinite(value) ? Math.min(maximum, Math.max(minimum, value)) : fallback;
 }
-
 function readConfig(env) {
   const timeoutMs = numberEnv(env, "KOSPI_CRAWL_TIMEOUT_MS", DEFAULT_TIMEOUT_MS, 1_000, 30_000);
   const overallDeadlineMs = numberEnv(env, "KOSPI_CRAWL_OVERALL_DEADLINE_MS", DEFAULT_OVERALL_DEADLINE_MS, timeoutMs, 300_000);
@@ -337,6 +337,16 @@ function result(status, message, source = null, rows = [], asOfDate = null) {
 
 export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, fetchImpl = globalThis.fetch, runContext = null, now = () => new Date(), runStartedAt = null } = {}) {
   const config = readConfig(env);
+  const historicalRunDate = /^\d{4}-\d{2}-\d{2}$/.test(String(env.KOSPI_RUN_DATE || "")) ? env.KOSPI_RUN_DATE : null;
+  const historicalProvider = historicalRunDate && kstDate(now()) !== historicalRunDate
+    ? createPublicCsvProvider({
+      env: { ...env, KOSPI_STABLE_SNAPSHOT: "1" },
+      fetchImpl,
+      now,
+      targetDate: historicalRunDate,
+      sourceTimestamp: runStartedAt || runContext?.referenceTime || runContext?.startedAt || now().toISOString(),
+    })
+    : null;
   const provider = {
     id: "naver-crawl",
     label: "NAVER PUBLIC CRAWL · UNOFFICIAL / DELAY POSSIBLE",
@@ -349,11 +359,11 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
         licenseUrl: null,
       });
     },
-    async fetchPreviousDay() { return collect(provider, "update-results", "before-open"); },
-    async runAnalysis() { return collect(provider, "analysis", "before-open"); },
-    async generateForecast() { return collect(provider, "forecast", "before-open"); },
-    async settleOpen() { return collect(provider, "open-settlement", "during-market"); },
-    async settleClose() { return collect(provider, "close-settlement", "after-close"); },
+    async fetchPreviousDay() { return historicalProvider ? historicalProvider.fetchPreviousDay() : collect(provider, "update-results", "before-open"); },
+    async runAnalysis() { return historicalProvider ? historicalProvider.runAnalysis() : collect(provider, "analysis", "before-open"); },
+    async generateForecast() { return historicalProvider ? historicalProvider.generateForecast() : collect(provider, "forecast", "before-open"); },
+    async settleOpen() { return historicalProvider ? historicalProvider.settleOpen() : collect(provider, "open-settlement", "during-market"); },
+    async settleClose() { return historicalProvider ? historicalProvider.settleClose() : collect(provider, "close-settlement", "after-close"); },
   };
 
   async function collect(currentProvider, stage, requiredPhase) {
@@ -378,9 +388,18 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     context.fetchTime = fetchTime;
     context.referenceTime = current;
     const phase = resolveCrawlStage(current);
-    if (requiredPhase !== phase && !(stage === "forecast" && phase === "before-open")) {
+    const stagePhase = stage === "open-settlement" ? "during-market" : stage === "close-settlement" ? "after-close" : "before-open";
+    const phaseAllowed = stagePhase === "before-open"
+      ? phase === "before-open"
+      : stagePhase === "during-market"
+        ? phase !== "before-open"
+        : phase === "after-close";
+    if (!phaseAllowed) {
       const source = sourceMetadata(context, { status: "stage_mismatch", sourceDate: kstDate(current), rawRows: 0, sourceRows: 0 });
-      return result("no_data", `${stage} stage requires ${requiredPhase}; current KST market phase is ${phase}.`, source, [], kstDate(current));
+      const availability = stagePhase === "before-open"
+        ? "current pre-open quote is not available at this run time"
+        : `${stagePhase} data is not available at this run time`;
+      return result("no_data", `${stage} stage is pending: ${availability}; no values are synthesized.`, source, [], kstDate(current));
     }
     const universe = await fetchUniverse(context);
     if (!universe.ok) {
@@ -410,8 +429,8 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
       return result("no_data", "Naver response did not contain openPriceRaw for the current market session; actual_open remains no_data.", { ...source, status: "no_open_quote" }, [], sourceDate);
     }
     const snapshotRowsBySymbol = new Map((currentProvider._snapshot?.rows || []).filter((row) => row.symbol).map((row) => [row.symbol, row]));
-    const rows = rankRows(freshQuotes.map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol)), phase);
-    const readyMessage = phase === "before-open"
+    const rows = rankRows(freshQuotes.map((quote) => rowForQuote(quote, stagePhase, stage, snapshotRowsBySymbol)), stagePhase);
+    const readyMessage = stagePhase === "before-open"
       ? `Collected ${rows.length} fresh Naver pre-open quotes; expected_open is derived only from openPriceRaw.`
       : phase === "after-close"
         ? `Collected ${rows.length} fresh-enough Naver post-close quotes; actual_open/actual_close are observed fields.`
@@ -423,10 +442,20 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     provider._snapshot = snapshot;
     try { return await method(); } finally { provider._snapshot = null; }
   };
-  provider.fetchPreviousDay = wrap(() => collect(provider, "update-results", "before-open"));
-  provider.runAnalysis = wrap(() => collect(provider, "analysis", "before-open"));
-  provider.generateForecast = wrap(() => collect(provider, "forecast", "before-open"));
-  provider.settleOpen = wrap(() => collect(provider, "open-settlement", "during-market"));
-  provider.settleClose = wrap(() => collect(provider, "close-settlement", "after-close"));
+  provider.fetchPreviousDay = historicalProvider
+    ? (...args) => historicalProvider.fetchPreviousDay(...args)
+    : wrap(() => collect(provider, "update-results", "before-open"));
+  provider.runAnalysis = historicalProvider
+    ? (...args) => historicalProvider.runAnalysis(...args)
+    : wrap(() => collect(provider, "analysis", "before-open"));
+  provider.generateForecast = historicalProvider
+    ? (...args) => historicalProvider.generateForecast(...args)
+    : wrap(() => collect(provider, "forecast", "before-open"));
+  provider.settleOpen = historicalProvider
+    ? (...args) => historicalProvider.settleOpen(...args)
+    : wrap(() => collect(provider, "open-settlement", "during-market"));
+  provider.settleClose = historicalProvider
+    ? (...args) => historicalProvider.settleClose(...args)
+    : wrap(() => collect(provider, "close-settlement", "after-close"));
   return provider;
 }

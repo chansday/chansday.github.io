@@ -207,6 +207,7 @@ export function emptyRow(overrides = {}) {
     ...overrides,
   };
 }
+
 export function noDataSnapshot({ mode = "provider", provider = null, message = "데이터 공급자가 연결되지 않았습니다." } = {}) {
   return {
     schemaVersion: "1.0.0",

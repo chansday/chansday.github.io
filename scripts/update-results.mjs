@@ -257,11 +257,15 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
     };
   }
 
-  const preserveExpectedRows = result.status === "no_data" && ["open-settlement", "close-settlement"].includes(mode) && snapshot.rows.length > 0;
+  const preserveExpectedRows = result.status === "no_data"
+    && ["forecast", "open-settlement", "close-settlement"].includes(mode)
+    && snapshot.rows.length > 0;
   const rows = result.status === "ready" || result.status === "demo"
     ? mergeRows(snapshot.rows, result.rows, mode)
     : preserveExpectedRows ? carryExpectedRowsForUnavailableSettlement(snapshot.rows, mode) : [];
-  const effectiveStatus = preserveExpectedRows ? "partial" : result.status;
+  const effectiveStatus = preserveExpectedRows && ["open-settlement", "close-settlement"].includes(mode)
+    ? "partial"
+    : result.status;
   const rowValidation = validateRankingRows(rows);
   if (!rowValidation.valid) {
     const reason = rowValidation.reason;
@@ -350,6 +354,7 @@ export async function run(argv = process.argv.slice(2)) {
       lastAttemptMode: options.mode,
       run_date: options.runDate,
       run_stage: options.mode,
+      run_id: process.env.KOSPI_RUN_ID || null,
     },
   };
 

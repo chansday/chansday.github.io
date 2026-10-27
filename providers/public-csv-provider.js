@@ -223,7 +223,7 @@ function freshnessStatus(date, now, maxAgeHours) {
 }
 
 function makeSource({ latest, context, status, partial = false }) {
-  const nowIso = context.now().toISOString();
+  const nowIso = (context.sourceTimestamp || context.now()).toISOString();
   const elapsedMs = context.stableSnapshot ? 0 : Date.now() - context.startedAt;
   const estimatedMs = Math.min(context.config.overallDeadlineMs, Math.ceil(
     (context.metrics.completed > 0 ? elapsedMs / context.metrics.completed : context.config.timeoutMs) * Math.max(1, context.metrics.requested) / context.config.maxConcurrency,
@@ -266,13 +266,13 @@ function deriveError(actualReturn, expectedReturn) {
     : null;
 }
 
-function makeRows(latest, prior) {
+function makeRows(latest, prior, { includeClose = true } = {}) {
   const priorBySymbol = new Map((prior?.rows || []).map((row) => [row.symbol, row]));
   const rows = latest.rows.map((row) => {
     const previous = priorBySymbol.get(row.symbol);
     const expectedReturn = null;
     const actualReturn = previous?.close > 0 ? Math.round(((row.open / previous.close - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
-    const sessionReturn = row.open > 0 ? Math.round(((row.close / row.open - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
+    const sessionReturn = includeClose && row.open > 0 ? Math.round(((row.close / row.open - 1) * 100 + Number.EPSILON) * 100) / 100 : null;
     return {
       rank: null,
       symbol: row.symbol,
@@ -281,7 +281,7 @@ function makeRows(latest, prior) {
       expected_close: null,
       expected_return: expectedReturn,
       actual_open: row.open,
-      actual_close: row.close,
+      actual_close: includeClose ? row.close : null,
       actual_return: actualReturn,
       session_return: sessionReturn,
       actual_volume: row.volume,
@@ -296,8 +296,15 @@ function makeRows(latest, prior) {
   return rows;
 }
 
-export function createPublicCsvProvider({ env = globalThis.process?.env || {}, fetchImpl = globalThis.fetch, now = () => new Date() } = {}) {
+export function createPublicCsvProvider({
+  env = globalThis.process?.env || {},
+  fetchImpl = globalThis.fetch,
+  now = () => new Date(),
+  targetDate = null,
+  sourceTimestamp = null,
+} = {}) {
   const config = parseConfig(env);
+  const historicalDate = targetDate && /^\d{4}-\d{2}-\d{2}$/.test(targetDate) ? targetDate : null;
   const provider = {
     id: "public-csv",
     label: "PUBLIC CSV · EOD OBSERVATION ONLY",
@@ -307,6 +314,18 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
     async runAnalysis() { return collectObserved(provider, "analysis", false); },
     async generateForecast() {
       if (!config.enabled) return noData(config.reason);
+      if (historicalDate) {
+        const context = createContext();
+        const history = await fetchHistory(historicalDate, context, true);
+        const source = makeSource({ latest: history.latest, context, status: history.latest ? "historical_observed" : "no_data", partial: !history.latest });
+        if (!history.latest) return noData(`No public historical KOSPI data was available for ${historicalDate}; forecast remains no_data.`, source, "no_data", historicalDate);
+        return noData(
+          `Unsupported: historical pre-open quote/order-book data for ${historicalDate} is unavailable; no forecast is synthesized or reconstructed.`,
+          source,
+          "no_data",
+          historicalDate,
+        );
+      }
       const context = createContext();
       const history = await fetchHistory(subtractDays(kstDate(now()), 1), context);
       const freshness = history.latest ? freshnessStatus(history.latest.date, now(), config.maxAgeHours) : "stale";
@@ -331,10 +350,12 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
     },
     async settleOpen() {
       if (!config.enabled) return noData(config.reason);
+      if (historicalDate) return historicalSettlement(false);
       return noData("Public daily CSV is not published at the 09:00 open-settlement stage; actual_open remains no_data until a licensed intraday/open source is connected.");
     },
     async settleClose() {
       if (!config.enabled) return noData(config.reason);
+      if (historicalDate) return historicalSettlement(true);
       const context = createContext();
       const history = await fetchHistory(kstDate(now()), context, true);
       if (!history.latest) return noData("Current-day close CSV is not available; stale previous data is not reused for close settlement.", makeSource({ latest: null, context, status: context.metrics.deadlineHit ? "deadline" : "no_data" }));
@@ -360,6 +381,8 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
       config,
       fetchImpl,
       now,
+      sourceTimestamp: sourceTimestamp ? new Date(sourceTimestamp) : null,
+      targetDate: historicalDate,
       runId: runId(env),
       stableSnapshot: env.KOSPI_STABLE_SNAPSHOT === "1",
       startedAt,
@@ -371,10 +394,11 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
   async function collectObserved(currentProvider, stage, exactOnly) {
     if (!config.enabled) return noData(config.reason);
     const context = createContext();
-    const startDate = exactOnly ? kstDate(now()) : subtractDays(kstDate(now()), 1);
+    const basisDate = historicalDate || kstDate(now());
+    const startDate = exactOnly ? basisDate : subtractDays(basisDate, 1);
     const history = await fetchHistory(startDate, context, exactOnly);
     if (!history.latest) return noData(`No public KOSPI CSV was available before the ${stage} deadline; no stale snapshot is reused.`, makeSource({ latest: null, context, status: context.metrics.deadlineHit ? "deadline" : "no_data" }));
-    const freshness = freshnessStatus(history.latest.date, now(), config.maxAgeHours);
+    const freshness = historicalDate ? "fresh" : freshnessStatus(history.latest.date, now(), config.maxAgeHours);
     const partial = context.metrics.deadlineHit || history.latest.invalidRows > 0 || !history.prior;
     const sourceStatus = freshness === "stale" ? "stale" : partial ? "partial" : "ready";
     if (freshness !== "fresh" || partial) return noData(`Public CSV is ${sourceStatus}; partial or stale data is not published as a normal ranking.`, makeSource({ latest: history.latest, context, status: sourceStatus, partial: true }), freshness === "stale" ? "degraded" : "partial", history.latest.date);
@@ -385,6 +409,32 @@ export function createPublicCsvProvider({ env = globalThis.process?.env || {}, f
       rows,
       source: makeSource({ latest: history.latest, context, status: "ready" }),
       asOfDate: history.latest.date,
+    };
+  }
+
+  async function historicalSettlement(includeClose) {
+    const context = createContext();
+    const history = await fetchHistory(historicalDate, context, true);
+    if (!history.latest) {
+      return noData(`No public historical KOSPI data was available for ${historicalDate}; ${includeClose ? "close" : "open"} settlement remains no_data.`, makeSource({ latest: null, context, status: context.metrics.deadlineHit ? "degraded" : "no_data" }), context.metrics.deadlineHit ? "degraded" : "no_data", historicalDate);
+    }
+    const priorContext = createContext();
+    const prior = await fetchHistory(subtractDays(historicalDate, 1), priorContext, true);
+    if (!prior.latest || history.latest.invalidRows > 0 || prior.latest.invalidRows > 0 || context.metrics.deadlineHit || priorContext.metrics.deadlineHit) {
+      return noData(
+        `Historical ${includeClose ? "close" : "open"} settlement for ${historicalDate} is partial or missing its prior-session input; no values are inferred.`,
+        makeSource({ latest: history.latest, context, status: "partial", partial: true }),
+        "partial",
+        historicalDate,
+      );
+    }
+    const rows = makeRows(history.latest, prior.latest, { includeClose });
+    return {
+      status: "ready",
+      message: `Observed ${rows.length} KOSPI rows from the public historical daily CSV for ${historicalDate}; no pre-market estimate is inferred.`,
+      rows,
+      source: makeSource({ latest: history.latest, context, status: "ready" }),
+      asOfDate: historicalDate,
     };
   }
 
