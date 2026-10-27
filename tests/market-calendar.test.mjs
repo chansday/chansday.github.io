@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { execFile } from "node:child_process";
+import { tmpdir } from "node:os";
 import { promisify } from "node:util";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { checkMarketDate, classifyMarketDate, loadMarketCalendar } from "../scripts/market-calendar.mjs";
@@ -46,7 +47,7 @@ test("unknown covered weekdays fail closed instead of collecting", async () => {
 });
 
 test("CLI guard writes a false output for manual weekend/holiday runs", async () => {
-  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-calendar-guard-"));
+  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-calendar-guard-"));
   const outputPath = join(tempRoot, "github-output");
   const script = fileURLToPath(new URL("../scripts/market-session-guard.mjs", import.meta.url));
   try {
@@ -62,7 +63,7 @@ test("CLI guard writes a false output for manual weekend/holiday runs", async ()
 });
 
 test("CLI guard fails closed when the calendar has no coverage", async () => {
-  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-calendar-fail-closed-"));
+  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-calendar-fail-closed-"));
   const outputPath = join(tempRoot, "github-output");
   const script = fileURLToPath(new URL("../scripts/market-session-guard.mjs", import.meta.url));
   try {
@@ -127,7 +128,7 @@ test("feature workflows expose input-free buttons and route through the shared g
 
 test("a non-ready stage exposes its status and cannot satisfy the snapshot commit gate", async () => {
   const workflow = await readFile(new URL("../.github/workflows/_run-stage.yml", import.meta.url), "utf8");
-  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-stage-no-commit-"));
+  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-stage-no-commit-"));
   const outputPath = join(tempRoot, "github-output");
   const script = fileURLToPath(new URL("../scripts/update-results.mjs", import.meta.url));
   try {

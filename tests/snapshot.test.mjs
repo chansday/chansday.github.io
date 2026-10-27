@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
+import { tmpdir } from "node:os";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 import { join, resolve } from "node:path";
@@ -145,7 +146,7 @@ test("operating UI tries the historical fallback before rejecting a no_data snap
 });
 
 test("canonical stage runs preserve fields, settle cumulatively, and are idempotent", async () => {
-  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-run-"));
+  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-run-"));
   const fixtureSource = join(PROJECT_ROOT, "data", "fixtures", "2026-10-23.json");
   const fixtureTarget = join(tempRoot, "data", "fixtures", "2026-10-23.json");
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
@@ -181,7 +182,7 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
 });
 
 test("unavailable settlement preserves previously successful actual fields", async () => {
-  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-unavailable-settlement-"));
+  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-unavailable-settlement-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
   const dataFile = join(tempRoot, "latest.json");
   const row = {
@@ -214,7 +215,7 @@ test("unavailable settlement preserves previously successful actual fields", asy
 });
 
 test("independent settlement stages do not fall back to stale latest rows when the current run predecessor is missing", async () => {
-  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-stale-stage-"));
+  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-stale-stage-"));
   const script = join(PROJECT_ROOT, "scripts", "update-results.mjs");
   const stale = {
     schemaVersion: "1.0.0",
@@ -287,7 +288,7 @@ test("close settlement preserves actual_return and recalculates error", () => {
 });
 
 test("historical-test pipeline writes five isolated stage files without touching operating latest", async () => {
-  const tempRoot = await mkdtemp(join(process.env.TEMP || process.env.TMP || ".", "kospi-historical-stage-"));
+  const tempRoot = await mkdtemp(join(resolve(tmpdir()), "kospi-historical-stage-"));
   const script = join(PROJECT_ROOT, "scripts", "historical-test-pipeline.mjs");
   const latestBefore = await readFile(join(PROJECT_ROOT, "data", "latest-snapshot.json"), "utf8");
   try {
