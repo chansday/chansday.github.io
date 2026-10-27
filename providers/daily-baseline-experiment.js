@@ -14,7 +14,8 @@ const round = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
 
 export async function createDailyBaselineExperiment({ targetDate, env = {}, fetchImpl = globalThis.fetch, now = () => new Date() } = {}) {
   const start = now(), context = contextAt(start);
-  if (!context || context.date !== targetDate || context.phase === "after-close") return { status: "no_data", reason: "Only the actual current trading date before market close is eligible; past forecasts cannot be reconstructed.", rows: [] };
+  const notApplicable = context?.date === targetDate && context.phase === "after-close";
+  if (!context || context.date !== targetDate || notApplicable) return { status: "no_data", reason: "Only the actual current trading date before market close is eligible; past forecasts cannot be reconstructed.", not_applicable: notApplicable, rows: [] };
   const history = await fetchForecastHistory({ env, fetchImpl, now, targetDate, maxMissingSessions: 1 });
   if (!history.ok) return { status: history.blocked ? "blocked" : "no_data", reason: history.reason, rows: [] };
   const end = now(), finished = contextAt(end), retrieved = Date.parse(history.retrieved_at);

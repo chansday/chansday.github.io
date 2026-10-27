@@ -9,6 +9,7 @@ import { readFile } from "node:fs/promises";
 import { createDailyBaselineExperiment } from "../providers/daily-baseline-experiment.js";
 import { runDailyBaseline } from "../scripts/daily-baseline-run.mjs";
 import { runAll } from "../scripts/run-all.mjs";
+import { experimentGateDecision } from "../scripts/validate-experiment-gate.mjs";
 
 const response = (text, status = 200) => ({ ok: status === 200, status, headers: { get: () => "text/plain" }, text: async () => text });
 function setup({ denied = false, missing = ["20261026"], quote = "2026-10-27T08:20:00+09:00" } = {}) {
@@ -42,9 +43,11 @@ test("more than one missing session and robots denial fail closed", async () => 
 });
 test("past and post-close forecasts are not reconstructed; intraday is labelled", async () => {
   const old = setup({ quote: "2026-10-28T08:20:00+09:00" });
-  assert.equal((await createDailyBaselineExperiment(old)).status, "no_data"); assert.equal(old.calls.length, 0);
+  const past = await createDailyBaselineExperiment(old);
+  assert.equal(past.status, "no_data"); assert.notEqual(past.not_applicable, true); assert.equal(old.calls.length, 0);
   const post = setup({ quote: "2026-10-27T15:30:00+09:00" });
-  assert.equal((await createDailyBaselineExperiment(post)).status, "no_data"); assert.equal(post.calls.length, 0);
+  const postClose = await createDailyBaselineExperiment(post);
+  assert.equal(postClose.status, "no_data"); assert.equal(postClose.not_applicable, true); assert.equal(post.calls.length, 0);
   assert.equal((await createDailyBaselineExperiment(setup({ quote: "2026-10-27T10:00:00+09:00" }))).phase, "during-market");
 });
 
@@ -173,6 +176,7 @@ test("failure and unavailable data have separate status and attempts can retry",
     const missing = await runDailyBaseline({ ...setup({ missing: ["20261026", "20261023"] }), root });
     status = JSON.parse(await readFile(missing.statusPath, "utf8"));
     assert.equal(status.status, "no_data"); assert.equal(status.reason, "data_unavailable");
+    assert.equal(status.not_applicable, false); assert.equal(missing.statusSaved, true); assert.equal(missing.notApplicable, false); assert.equal(missing.candidate, false); assert.deepEqual(missing.candidatePhases, []);
     await rm(missing.statusPath);
     const failed = await runDailyBaseline({ ...setup(), root, create: async () => { throw new Error("private token"); } });
     status = JSON.parse(await readFile(failed.statusPath, "utf8"));
@@ -183,6 +187,61 @@ test("failure and unavailable data have separate status and attempts can retry",
     assert.equal(retried.status, "experimental"); assert.equal(retried.saved, true);
     assert.equal(JSON.parse(await readFile(retried.statusPath, "utf8")).status, "experimental");
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("run-all experiment gate allows post-close no_data only with a saved empty candidate state", () => {
+  const noData = { status: "no_data", reason: "data_unavailable", notApplicable: true, postCloseRun: true, statusSaved: true, candidate: false, candidatePhases: [] };
+  assert.equal(experimentGateDecision(noData).allowed, true);
+  const cli = (values) => spawnSync(process.execPath, ["scripts/validate-experiment-gate.mjs"], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      EXPERIMENT_STATUS: values.status,
+      EXPERIMENT_REASON: values.reason || "",
+      EXPERIMENT_NOT_APPLICABLE: String(values.notApplicable),
+      EXPERIMENT_POST_CLOSE: String(values.postCloseRun),
+      STATUS_SAVED: String(values.statusSaved),
+      EXPERIMENT_CANDIDATE: String(values.candidate),
+      EXPERIMENT_CANDIDATES: values.candidatePhases.join(","),
+    },
+  });
+  assert.equal(cli(noData).status, 0);
+  for (const status of ["failed", "blocked"]) {
+    const failure = { status, reason: status === "blocked" ? "source_blocked" : "collection_error", notApplicable: false, postCloseRun: true, statusSaved: true, candidate: false, candidatePhases: [] };
+    assert.equal(experimentGateDecision(failure).allowed, false, status);
+    assert.notEqual(cli(failure).status, 0, status);
+  }
+  assert.equal(experimentGateDecision({ ...noData, postCloseRun: false }).allowed, false);
+  assert.equal(experimentGateDecision({ ...noData, notApplicable: false }).allowed, false);
+  assert.equal(experimentGateDecision({ ...noData, reason: "data_unavailable", notApplicable: true, postCloseRun: false }).allowed, false);
+  assert.equal(experimentGateDecision({ ...noData, candidate: true }).allowed, false);
+  assert.equal(experimentGateDecision({ ...noData, candidate: true, candidatePhases: ["before-open"] }).allowed, false);
+  assert.equal(experimentGateDecision({ ...noData, candidatePhases: ["before-open"] }).allowed, false);
+  assert.equal(experimentGateDecision({ status: "no_data", reason: "data_unavailable", notApplicable: false, postCloseRun: false, statusSaved: true, candidate: false, candidatePhases: [] }).allowed, false);
+  assert.equal(experimentGateDecision({ status: "experimental", statusSaved: true, candidate: true, candidatePhases: ["before-open"] }).allowed, true);
+  for (const status of ["experimental", "preserved"]) {
+    const invalid = { status, statusSaved: true, candidate: false, candidatePhases: [] };
+    assert.equal(experimentGateDecision(invalid).allowed, false, `${status} empty candidate state`);
+    assert.notEqual(cli(invalid).status, 0, `${status} empty candidate state`);
+  }
+});
+
+test("run-all marks only the current post-close run as experiment-not-applicable", async () => {
+  const summary = await runAll([
+    "--run-date", "2026-10-27",
+    "--run-started-at", "2026-10-27T06:30:00Z",
+    "--attempted-at", "2026-10-27T06:30:00Z",
+    "--run-id", "post-close-experiment-gate",
+  ], {
+    stageRunner: async () => ({ status: "ready", message: "stubbed stage", stageFile: null }),
+    consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
+    experimentRunner: async ({ runStartedAt }) => {
+      assert.equal(runStartedAt, "2026-10-27T06:30:00.000Z");
+      return { status: "no_data", reason: "data_unavailable", notApplicable: true, statusSaved: true, candidate: false, candidatePhases: [] };
+    },
+  });
+  assert.equal(summary.experiment.postClose, true);
+  assert.equal(summary.experiment.notApplicable, true);
 });
 
 test("run-all summary reports experiment failure separately from ready operating stages", async () => {
@@ -215,7 +274,10 @@ test("both workflows save status independently and fail on experiment errors", a
   assert.match(stage, /steps\.daily-experiment\.outcome.*!=.*success/);
   assert.match(stage, /isolated daily experiment status/);
   assert.match(all, /steps\.run-all\.outputs\.experiment_status_saved/);
-  assert.match(all, /experimental\|preserved/);
+  assert.match(all, /scripts\/validate-experiment-gate\.mjs/);
+  assert.match(all, /EXPERIMENT_CANDIDATES/);
+  assert.match(all, /EXPERIMENT_NOT_APPLICABLE/);
+  assert.match(all, /EXPERIMENT_POST_CLOSE/);
   assert.match(all, /Experiment status could not be saved/);
   for (const workflow of [stage, all]) assert.match(workflow, /bash scripts\/stage-daily-experiment\.sh/);
 });

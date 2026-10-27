@@ -54,7 +54,7 @@ export async function runDailyBaseline({ targetDate, root = "data/experiments", 
     if (forecast.status !== "experimental") {
       const status = ["blocked", "no_data"].includes(forecast.status) ? forecast.status : "failed";
       const reason = status === "blocked" && /robots/i.test(forecast.reason || "") ? "robots_blocked" : status === "blocked" ? "source_blocked" : status === "no_data" ? "data_unavailable" : "collection_error";
-      result = { status, reason, saved: false };
+      result = { status, reason, notApplicable: forecast.not_applicable === true, saved: false };
     } else {
       if (!isDailyExperiment(forecast, targetDate, forecast.phase)) throw new Error("Invalid experimental forecast; nothing saved.");
       await mkdir(root, { recursive: true });
@@ -77,7 +77,7 @@ export async function runDailyBaseline({ targetDate, root = "data/experiments", 
       } finally { await rm(temporaryForecast, { force: true }); }
     }
   } catch (error) {
-    result = { status: "failed", reason: "collection_error", saved: false };
+    result = { status: "failed", reason: "collection_error", notApplicable: false, saved: false };
   }
   // Recover valid orphan phases even when this attempt cannot collect a new forecast.
   const candidatePhases = [];
@@ -96,7 +96,7 @@ export async function runDailyBaseline({ targetDate, root = "data/experiments", 
   result.candidate = candidatePhases.length > 0;
   const now = options.now ? options.now() : new Date();
   if (!(now instanceof Date) || !Number.isFinite(now.getTime())) throw new Error("Experiment status time unavailable");
-  const statusRecord = { schema_version: 1, target_date: targetDate, status: result.status, reason: result.reason, attempted_at: now.toISOString(), phase: result.phase || null };
+  const statusRecord = { schema_version: 1, target_date: targetDate, status: result.status, reason: result.reason, not_applicable: result.notApplicable === true, attempted_at: now.toISOString(), phase: result.phase || null };
   await mkdir(root, { recursive: true });
   const temporary = join(root, `.${targetDate}-status-${randomUUID()}.tmp`);
   try {
@@ -114,7 +114,7 @@ export async function runDailyBaseline({ targetDate, root = "data/experiments", 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   const targetDate = process.argv[2] || kstDate();
   runDailyBaseline({ targetDate }).then(async (result) => {
-    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `saved=${result.saved === true}\nphase=${result.phase || ""}\ncandidates=${result.candidatePhases.join(",")}\ncandidate=${result.candidate === true}\nstatus=${result.status}\nstatus_saved=${result.statusSaved === true}\nstatus_hash=${result.statusHash}\n`, "utf8");
+    if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `saved=${result.saved === true}\nphase=${result.phase || ""}\ncandidates=${result.candidatePhases.join(",")}\ncandidate=${result.candidate === true}\nstatus=${result.status}\nreason=${result.reason || ""}\nnot_applicable=${result.notApplicable === true}\nstatus_saved=${result.statusSaved === true}\nstatus_hash=${result.statusHash}\n`, "utf8");
     if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, `- isolated daily experiment: \`${result.status}\` (${result.reason}); status record saved: ${result.statusSaved === true}\n`, "utf8");
     console.log(JSON.stringify(result));
     if (!["experimental", "preserved"].includes(result.status)) process.exitCode = 1;

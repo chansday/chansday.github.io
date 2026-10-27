@@ -3,6 +3,7 @@ import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./providers/evaluation-contract.js";
 import { sortRankingRows } from "./providers/ranking-sort.js";
+import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
@@ -72,6 +73,23 @@ let currentDate = null;
 let currentDataMode = "provider";
 let calendarMonthCursor = null;
 let dateRequestToken = 0;
+let postCloseToken = 0;
+
+async function renderPostClose(data) {
+  const token = ++postCloseToken;
+  const date = data?.meta?.run_date, runId = data?.meta?.run_id;
+  if (!isIsoDate(date) || !/^[A-Za-z0-9._-]+$/.test(runId || "") || data?.meta?.run_stage !== "close-settlement" || isTestOnly(data)) return;
+  try {
+    const response = await fetch(`./data/runs/${date}/retrospective-${runId}.json`, { cache: "no-store" });
+    if (response.status === 404) return;
+    if (!response.ok) throw new Error("unavailable");
+    const record = await response.json();
+    if (token !== postCloseToken) return;
+    renderHeader(mergePostCloseEvaluation(data, record));
+  } catch {
+    if (token === postCloseToken) setText(elementIds["table-state"], "사후 평가 기록 읽기 오류");
+  }
+}
 
 function setText(node, value) { if (node) node.textContent = value; }
 function finite(value) { return typeof value === "number" && Number.isFinite(value); }
@@ -109,6 +127,7 @@ function providerDisplayName(data) {
 }
 function sourceDisplayName(source, data) { const sourceName = String(source?.name || "").trim(); return sourceName && !/^[a-z0-9_-]+$/i.test(sourceName) ? sourceName : providerDisplayName(data); }
 function modelDisplayName(data) {
+  if (data?.meta?.retrospective_evaluation) return "직전 3거래일 사후 기준선";
   if (isHistorical(data)) return "공개 일봉 기준선";
   return displayEnumLabel(data?.baseline?.model || data?.meta?.model || data?.model?.name, "예상 기준 정보 없음");
 }
@@ -261,6 +280,7 @@ function evaluationStats(rows) {
 }
 function renderEvaluationSummary(data, rows, status) {
   const { settled, meanError } = evaluationStats(rows);
+  const retrospective = data?.meta?.retrospective_evaluation === true;
   const historical = isHistorical(data);
   const fallback = data?.meta?.historical_fallback === true || data?.meta?.fallback_from_no_data;
   const evaluation = data?.evaluation || {};
@@ -271,27 +291,27 @@ function renderEvaluationSummary(data, rows, status) {
   const evaluatedSampleCount = Number.isInteger(evaluation.evaluated_sample_count) ? evaluation.evaluated_sample_count : settled.length;
   const missingSampleCount = Number.isInteger(evaluation.missing_sample_count) ? evaluation.missing_sample_count : Math.max(sampleCount - evaluatedSampleCount, 0);
   const evaluated = evaluation.status === "evaluated" || evaluatedSampleCount > 0;
-  const label = fallback ? historicalFallbackLabel : historical ? historicalFallbackLabel : isTestOnly(data) ? testLabel(data) : status === "ready" ? "운영 데이터" : "평가 대기";
+  const label = retrospective ? "장 마감 후 사후 계산" : fallback ? historicalFallbackLabel : historical ? historicalFallbackLabel : isTestOnly(data) ? testLabel(data) : status === "ready" ? "운영 데이터" : "평가 대기";
   const range = evaluation.evaluation_range || {};
   const inputRange = range.input_range || {};
   const rangeHeadline = range.forecast_date ? formatPlainDate(range.forecast_date) : "—";
   const rangeDetail = inputRange.start && inputRange.end ? `입력 기준 ${formatPlainDate(inputRange.start)} ~ ${formatPlainDate(inputRange.end)}` : "검증 대상 기간 정보 없음";
-  const expectedText = historical ? "사후 기준값" : rows.some((row) => finite(row.expectedReturn)) ? "예상값 기록" : "예상값 없음";
+  const expectedText = historical || retrospective ? "사후 기준값" : rows.some((row) => finite(row.expectedReturn)) ? "예상값 기록" : "예상값 없음";
   const actualText = settled.length ? "실제 시가→종가 수익률" : "정산 대기";
   const scopeText = historical ? "KOSPI 전체 행" : rows.length ? "현재 표시 행" : "평가 대기";
-  setText(elementIds["evaluation-status"], evaluated ? "검증 완료" : "평가 대기");
+  setText(elementIds["evaluation-status"], evaluated ? retrospective ? "사후 비교 완료" : "검증 완료" : "평가 대기");
   setText(elementIds["evaluation-headline"], evaluated ? `예상과 실제를 ${formatNumber(evaluatedSampleCount)}개 종목으로 비교했습니다.` : "아직 비교할 정산값이 없습니다.");
-  setText(elementIds["evaluation-description"], historical ? "과거 공개 일봉으로 사후 계산한 기준선입니다. 당시 장전 예측이나 실전 성과를 복원한 결과는 아닙니다." : evaluated ? "평균 절대오차와 제곱근 평균오차를 함께 보며 결과의 크기를 가늠하세요." : "정산이 끝나면 예상값·실제값·오차를 같은 기준으로 보여드립니다.");
-  setText(elementIds["summary-status"], evaluation.status === "evaluated" ? "검증 완료" : evaluated ? "비교 가능" : "평가 대기");
-  setText(elementIds["summary-status-detail"], historical ? "검증용 과거 데이터" : "현재 스냅샷 기준");
+  setText(elementIds["evaluation-description"], historical || retrospective ? "공개 일봉으로 사후 계산한 기준선입니다. 당시 장전에 기록된 예측이나 실전 예측 성과가 아닙니다." : evaluated ? "평균 절대오차와 제곱근 평균오차를 함께 보며 결과의 크기를 가늠하세요." : "정산이 끝나면 예상값·실제값·오차를 같은 기준으로 보여드립니다.");
+  setText(elementIds["summary-status"], evaluated && retrospective ? "사후 비교" : evaluation.status === "evaluated" ? "검증 완료" : evaluated ? "비교 가능" : "평가 대기");
+  setText(elementIds["summary-status-detail"], retrospective ? "장 마감 후 사후 계산" : historical ? "검증용 과거 데이터" : "현재 스냅샷 기준");
   setText(elementIds["summary-samples"], formatNumber(evaluatedSampleCount));
   setText(elementIds["summary-samples-detail"], `전체 ${formatNumber(sampleCount)}개 · 제외 ${formatNumber(missingSampleCount)}개`);
   setText(elementIds["summary-range"], rangeHeadline);
   setText(elementIds["summary-range-detail"], rangeDetail);
   setText(elementIds["truth-label"], label);
-  setText(elementIds["data-purpose"], historical ? "과거 공개 데이터" : isTestOnly(data) ? "시험용 데이터" : status === "ready" ? "운영 데이터" : "운영 데이터 대기");
+  setText(elementIds["data-purpose"], retrospective ? "실측값 · 사후 예상" : historical ? "과거 공개 데이터" : isTestOnly(data) ? "시험용 데이터" : status === "ready" ? "운영 데이터" : "운영 데이터 대기");
   setText(elementIds["summary-expected"], expectedText);
-  setText(elementIds["summary-expected-detail"], historical ? `직전 ${data?.baseline?.lookback_sessions || 5}개 거래일 종가 · 장전 호가 없음` : "장전 기준값이 있는 종목");
+  setText(elementIds["summary-expected-detail"], retrospective ? "직전 3거래일 시가·종가 · 사후 계산" : historical ? `직전 ${data?.baseline?.lookback_sessions || 5}개 거래일 종가 · 장전 호가 없음` : "장전 기준값이 있는 종목");
   setText(elementIds["summary-actual"], actualText);
   setText(elementIds["summary-actual-detail"], settled.length ? `${formatNumber(evaluatedSampleCount)}개 종목의 실제 시가→종가` : "15:30 종가 정산 대기");
   setText(elementIds["summary-error"], finite(meanAbsoluteError) ? `${numberFormatter.format(meanAbsoluteError)}%` : "—");
@@ -300,15 +320,16 @@ function renderEvaluationSummary(data, rows, status) {
   setText(elementIds["summary-rmse-detail"], finite(rootMeanSquaredError) ? "큰 오차를 더 민감하게 반영" : "평가 메타데이터 없음");
   setText(elementIds["summary-scope"], scopeText);
   setText(elementIds["summary-scope-detail"], rows.length ? `평가 표본 ${formatNumber(evaluatedSampleCount)} / 전체 ${formatNumber(sampleCount)}개` : "표시할 행이 없습니다.");
-  setText(elementIds["truth-note-text"], historical ? "테스트 전용 과거 검증 데이터입니다. 당시 08:20에 게시된 예측이 아니며, 과거 예측 성과나 수익을 보장하지 않습니다." : isTestOnly(data) ? "검증 전용 데이터입니다. 합성·재생·보충 값은 금융 실측값이나 예측 성과가 아닙니다." : stateMessages[status] || stateMessages.no_data);
+  setText(elementIds["truth-note-text"], retrospective ? "예상값과 오차는 장 마감 후 재현한 기준선으로, 장전에 기록된 예측이나 실전 성과가 아닙니다." : historical ? "테스트 전용 과거 검증 데이터입니다. 당시 08:20에 게시된 예측이 아니며, 과거 예측 성과나 수익을 보장하지 않습니다." : isTestOnly(data) ? "검증 전용 데이터입니다. 합성·재생·보충 값은 금융 실측값이나 예측 성과가 아닙니다." : stateMessages[status] || stateMessages.no_data);
 }
 function renderRibbon(data, status) {
   const historicalFallback = data?.meta?.historical_fallback === true;
-  const show = Boolean(historicalFallback || data?.meta?.fallback_from_no_data || (isTestOnly(data) && status !== "no_data"));
+  const retrospective = data?.meta?.retrospective_evaluation === true;
+  const show = Boolean(retrospective || historicalFallback || data?.meta?.fallback_from_no_data || (isTestOnly(data) && status !== "no_data"));
   elementIds["quality-ribbon"].hidden = !show;
   if (!show) return;
-  setText(elementIds["quality-ribbon-label"], historicalFallback ? historicalFallbackLabel : testLabel(data));
-  setText(elementIds["quality-ribbon-text"], historicalFallback ? "운영 데이터가 없을 때만 선택하는 과거 공개 원본입니다. 숫자를 합성하지 않았습니다." : data?.meta?.fallback_from_no_data ? "운영 데이터가 없어 과거 공개 일봉을 표시합니다. 실전 데이터로 해석하지 마세요." : stateMessages[isHistorical(data) ? "historical" : data?.mode] || "시험용 데이터입니다. 금융 실측값이나 예측 성과로 해석하지 마세요.");
+  setText(elementIds["quality-ribbon-label"], retrospective ? "장 마감 후 사후 계산" : historicalFallback ? historicalFallbackLabel : testLabel(data));
+  setText(elementIds["quality-ribbon-text"], retrospective ? "예상값은 직전 3거래일 이력으로 장 마감 후 계산했습니다. 장전에 실제로 기록된 예측이 아닙니다." : historicalFallback ? "운영 데이터가 없을 때만 선택하는 과거 공개 원본입니다. 숫자를 합성하지 않았습니다." : data?.meta?.fallback_from_no_data ? "운영 데이터가 없어 과거 공개 일봉을 표시합니다. 실전 데이터로 해석하지 마세요." : stateMessages[isHistorical(data) ? "historical" : data?.mode] || "시험용 데이터입니다. 금융 실측값이나 예측 성과로 해석하지 마세요.");
   if (historicalFallback) {
     setStatusPill(elementIds["mode-badge"], "pending", historicalFallbackLabel);
     setText(elementIds["global-status"], "과거 공개 데이터");
@@ -331,9 +352,9 @@ function renderKpis(data, rows, status) {
   setText(elementIds["kpi-universe"], formatNumber(rows.length));
   setText(elementIds["kpi-valid"], formatNumber(validRows.length));
   setText(elementIds["kpi-accuracy"], finite(evaluationMae) ? `${numberFormatter.format(evaluationMae)}%` : "—");
-  setText(elementIds["kpi-accuracy-note"], settled.length ? `정산 표본 ${formatNumber(settled.length)}개` : "정산 표본 대기");
+  setText(elementIds["kpi-accuracy-note"], settled.length ? `${data?.meta?.retrospective_evaluation ? "사후 계산 표본" : "정산 표본"} ${formatNumber(settled.length)}개` : "정산 표본 대기");
   setText(elementIds["kpi-model"], model);
-  setText(elementIds["kpi-model-note"], isHistorical(data) ? "사후 계산 · 장전 호가 없음" : displayEnumLabel(baseline.value_status, "예상 기준 정보 없음"));
+  setText(elementIds["kpi-model-note"], data?.meta?.retrospective_evaluation || isHistorical(data) ? "사후 계산 · 장전 기록 아님" : displayEnumLabel(baseline.value_status, "예상 기준 정보 없음"));
   setText(elementIds["kpi-model-time"], formatShortTime(data?.publishedAt || data?.meta?.lastAttemptAt));
   setText(elementIds["kpi-model-quality"], quality);
 }
@@ -355,8 +376,8 @@ function renderProvenance(data, source, status) {
   setText(elementIds["source-collection"], data?.meta?.source_collection_date || formatDate(source?.retrieved_at));
   setText(elementIds["source-range"], range);
   setText(elementIds["model-name"], model);
-  setText(elementIds["baseline-input"], historical ? `직전 ${baseline.lookback_sessions || 5}개 거래일 종가 기반 · ${baseline.input_through_date || "기준일 미상"}` : "연결된 데이터 기준");
-  setText(elementIds["model-note"], historical ? "당시 08:20 예측이 아닌 사후 재현 가능한 기준선" : `예상 기준 상태: ${model === "미설정" ? "미설정" : status}`);
+  setText(elementIds["baseline-input"], data?.meta?.retrospective_evaluation ? `직전 3거래일 시가·종가: ${data.retrospective_history_dates.join(", ")}` : historical ? `직전 ${baseline.lookback_sessions || 5}개 거래일 종가 기반 · ${baseline.input_through_date || "기준일 미상"}` : "연결된 데이터 기준");
+  setText(elementIds["model-note"], data?.meta?.retrospective_evaluation || historical ? "당시 08:20 예측이 아닌 사후 재현 가능한 기준선" : `예상 기준 상태: ${model === "미설정" ? "미설정" : status}`);
   setText(elementIds["limit-title"], historical ? "장전 정보가 없습니다" : "없는 값은 만들지 않습니다");
   setText(elementIds["quality-summary"], historical ? `${limitation} 예상값은 실제 과거 예측이 아닙니다.` : isNaverCrawl ? limitation : stateMessages[status] || stateMessages.no_data);
   setText(elementIds["quality-source"], `${sourceDisplayName(source, data)} · 갱신 ${formatShortTime(data?.publishedAt || data?.meta?.lastAttemptAt)}`);
@@ -399,6 +420,8 @@ function renderHeader(data) {
   renderRows();
   renderSelected();
   renderDateNavigation();
+  setText(document.getElementById("ranking-lede"), data?.meta?.retrospective_evaluation ? "예상 시가·종가와 수익률은 장 마감 후 직전 3거래일 자료로 계산한 사후 기준값입니다. 실제 시가·종가와 비교하며 장전 예측 성과를 의미하지 않습니다." : "예상 시가·예상 종가가 모두 있을 때만 예상 수익률을 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
+  if (!data?.meta?.retrospective_evaluation) void renderPostClose(data);
 }
 
 function currentRouteDate(data = snapshot) {
@@ -416,6 +439,7 @@ function renderDateState(status, date, detail = "") {
   currentDate = isIsoDate(date) ? date : currentDate;
   const label = statusLabel(status);
   if (status !== "available") {
+    postCloseToken += 1;
     snapshot = null;
     selectedSymbol = null;
     elementIds["selected-empty"].hidden = false;

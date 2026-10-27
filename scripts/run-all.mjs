@@ -4,6 +4,7 @@ import { checkMarketDate, kstDate } from "./market-calendar.mjs";
 import { resolveStage } from "./run-context.mjs";
 import { run as runStage } from "./update-results.mjs";
 import { runDailyBaseline } from "./daily-baseline-run.mjs";
+import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
 
 const STAGES = Object.freeze([
   "update-results",
@@ -89,6 +90,11 @@ function stagePlan(runDate, startedAt) {
 
 function stageLabel(result) {
   return `${result?.stage || "unknown"}=${result?.status || "missing"}`;
+}
+
+function isPostCloseCurrentRun(runDate, runStartedAt) {
+  const context = resolveStage(runStartedAt);
+  return kstDate(new Date(runStartedAt)) === runDate && context.stage === "close-settlement";
 }
 
 function overallDecision(results) {
@@ -204,6 +210,7 @@ async function appendSummary(summary) {
     `- pending-only partial: \`${summary.pendingOnlyPartial}\``,
     `- commit allowed: \`${summary.commitAllowed}\``,
     `- isolated daily experiment: \`${summary.experiment?.status || "not_run"}\` (${summary.experiment?.reason || "not run"}); status record saved: ${summary.experiment?.statusSaved === true}`,
+    `- post-close retrospective: \`${summary.retrospective?.status || "not_run"}\` (${summary.retrospective?.message || "not applicable"})`,
     "",
     "| order | stage | status | execution | reason |",
     "| ---: | --- | --- | --- | --- |",
@@ -213,7 +220,7 @@ async function appendSummary(summary) {
   await appendFile(summaryPath, lines.join("\n"), "utf8");
 }
 
-export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState, experimentRunner = stageRunner === runStage ? runDailyBaseline : null } = {}) {
+export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState, experimentRunner = stageRunner === runStage ? runDailyBaseline : null, retrospectiveRunner = stageRunner === runStage ? runPostCloseEvaluation : null } = {}) {
   const options = parseArgs(argv);
   if (!options) return { help: true };
   const market = await checkMarketDate(options.runDate);
@@ -245,10 +252,13 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     return summary;
   }
 
-  let experiment = { status: "not_run", saved: false };
+  const experimentPostClose = isPostCloseCurrentRun(options.runDate, options.runStartedAt);
+  let experiment = { status: "not_run", saved: false, notApplicable: false, postClose: experimentPostClose };
   if (experimentRunner && !options.dryRun) {
-    try { experiment = await experimentRunner({ targetDate: options.runDate }); }
-    catch (error) { experiment = { status: "failed", saved: false, reason: error.message }; }
+    try {
+      const result = await experimentRunner({ targetDate: options.runDate, runStartedAt: options.runStartedAt });
+      experiment = { ...result, notApplicable: result?.notApplicable === true, postClose: experimentPostClose };
+    } catch (error) { experiment = { status: "failed", saved: false, notApplicable: false, postClose: experimentPostClose, reason: error.message }; }
   }
 
   const previousEnv = {
@@ -310,7 +320,18 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
     consistency = { status: "blocked", message: `Final consistency check failed: ${error.message}` };
   }
   if (consistency.status !== "ready") stages.push({ stage: "consistency", status: consistency.status, executed: true, message: consistency.message });
-  const summary = { ...base, ...overallDecision(stages), stages, experiment };
+  let retrospective = { status: "not_run" };
+  if (experimentPostClose && retrospectiveRunner && overallDecision(stages).status === "ready") {
+    try {
+      retrospective = await retrospectiveRunner({ runDate: options.runDate, runId: options.runId, stageFile: stageResults.get("close-settlement")?.stageFile });
+      if (retrospective.status !== "ready") throw new Error("Retrospective evaluation did not return ready");
+      retrospective.message = `${retrospective.evaluated}/${retrospective.total} rows evaluated; calculated after close`;
+    } catch (error) {
+      retrospective = { status: "blocked", message: `Post-close retrospective failed: ${error.message}` };
+      stages.push({ stage: "retrospective", status: "blocked", executed: true, message: retrospective.message });
+    }
+  }
+  const summary = { ...base, ...overallDecision(stages), stages, experiment, retrospective };
   await appendSummary(summary);
   return summary;
 }
@@ -334,8 +355,12 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
         `experiment_candidates=${summary.experiment?.candidatePhases?.join(",") || ""}`,
         `experiment_candidate=${summary.experiment?.candidate === true}`,
         `experiment_status=${summary.experiment?.status || "not_run"}`,
+        `experiment_reason=${String(summary.experiment?.reason || "").replaceAll("\\r", "").replaceAll("\\n", " ")}`,
+        `experiment_not_applicable=${summary.experiment?.notApplicable === true}`,
+        `experiment_post_close=${summary.experiment?.postClose === true}`,
         `experiment_status_saved=${summary.experiment?.statusSaved === true}`,
         `experiment_status_hash=${summary.experiment?.statusHash || ""}`,
+        `retrospective_status=${summary.retrospective?.status || "not_run"}`,
       ].join("\n") + "\n", "utf8");
     }
     console.log(JSON.stringify(summary));

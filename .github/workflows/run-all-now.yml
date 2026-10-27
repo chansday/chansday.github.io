@@ -94,10 +94,16 @@ jobs:
           STATUS_HASH: ${{ steps.run-all.outputs.experiment_status_hash }}
           EXPERIMENT_DATE: ${{ inputs.run_date }}
           EXPERIMENT_CANDIDATES: ${{ steps.run-all.outputs.experiment_candidates }}
+          RETROSPECTIVE_STATUS: ${{ steps.run-all.outputs.retrospective_status }}
         run: |
           set -euo pipefail
           if [ "$OPERATING_ALLOWED" = true ] && ! git diff --quiet -- data/latest-snapshot.json data/runs; then
             git add data/latest-snapshot.json data/runs
+          fi
+          if [ "$OPERATING_ALLOWED" = true ] && [ "$RETROSPECTIVE_STATUS" = ready ]; then
+            [[ "$EXPERIMENT_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+            [[ "$KOSPI_RUN_ID" =~ ^[A-Za-z0-9._-]+$ ]]
+            git add -- "data/runs/$EXPERIMENT_DATE/retrospective-$KOSPI_RUN_ID.json"
           fi
           bash scripts/stage-daily-experiment.sh
           if git diff --cached --quiet; then echo "No permitted changes to commit."; exit 0; fi
@@ -171,12 +177,17 @@ jobs:
       - name: Fail when the isolated experiment failed
         if: always() && steps.static-contract.outcome == 'success' && steps.run-all.outputs.overall_status != ''
         shell: bash
+        env:
+          EXPERIMENT_STATUS: ${{ steps.run-all.outputs.experiment_status }}
+          STATUS_SAVED: ${{ steps.run-all.outputs.experiment_status_saved }}
+          EXPERIMENT_CANDIDATE: ${{ steps.run-all.outputs.experiment_candidate }}
+          EXPERIMENT_CANDIDATES: ${{ steps.run-all.outputs.experiment_candidates }}
+          EXPERIMENT_REASON: ${{ steps.run-all.outputs.experiment_reason }}
+          EXPERIMENT_NOT_APPLICABLE: ${{ steps.run-all.outputs.experiment_not_applicable }}
+          EXPERIMENT_POST_CLOSE: ${{ steps.run-all.outputs.experiment_post_close }}
         run: |
-          case "${{ steps.run-all.outputs.experiment_status }}" in
-            experimental|preserved) ;;
-            *) echo "Isolated experiment failed or was not run: ${{ steps.run-all.outputs.experiment_status }}" >&2; exit 1 ;;
-          esac
-          if [ "${{ steps.run-all.outputs.experiment_status_saved }}" != "true" ] || [ "${{ steps.commit.outcome }}" != "success" ]; then
+          node scripts/validate-experiment-gate.mjs
+          if [ "${{ steps.commit.outcome }}" != "success" ]; then
             echo "Experiment status could not be saved." >&2
             exit 1
           fi
