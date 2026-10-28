@@ -126,7 +126,7 @@ test("runKeeper on a holiday exits without calling the API", async () => {
 
 test("workflows: keeper has minimal permissions and bounded runtime; stages are dispatch-only; actions are current majors", async () => {
   const root = new URL("../.github/workflows/", import.meta.url);
-  const keeper = await readFile(new URL("scheduler-keeper.yml", root), "utf8");
+  const keeper = (await readFile(new URL("scheduler-keeper.yml", root), "utf8")).replace(/\r\n/g, "\n");
   assert.match(keeper, /permissions:\n  actions: write\n  contents: read\n/);
   assert.match(keeper, /concurrency:\n  group: kospi-scheduler-keeper\n  cancel-in-progress: false/);
   const timeout = Number(keeper.match(/timeout-minutes: (\d+)/)[1]); assert.ok(timeout <= 340);

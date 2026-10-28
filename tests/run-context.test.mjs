@@ -74,3 +74,12 @@ test("manual and fixed workflows generate the run start on the runner", async ()
   assert.match(runAll, /--run-started-at "\$\{\{ steps\.run-context\.outputs\.run_started_at \}\}"/);
   assert.match(runAll, /--attempted-at "\$\{\{ steps\.collection-context\.outputs\.collection_started_at \}\}"/);
 });
+
+test("static contract steps do not inherit the live daily-history mode", async () => {
+  for (const name of ["_run-stage.yml", "run-all-now.yml"]) {
+    const text = await readFile(new URL(`../.github/workflows/${name}`, import.meta.url), "utf8");
+    const step = text.split("- name: ").find(block => block.startsWith("Validate the static contract"));
+    assert.ok(step, `${name} has a static contract step`);
+    assert.match(step, /env:\s*\n\s*KOSPI_DAILY_HISTORY:\s*""/, `${name} clears KOSPI_DAILY_HISTORY for npm test`);
+  }
+});

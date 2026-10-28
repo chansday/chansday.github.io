@@ -91,6 +91,10 @@ jobs:
 
       - name: Validate the static contract
         id: static-contract
+        # Tests must not inherit the stage's live history mode; it makes fixture
+        # runs read the repository's Naver daily cache and report degraded.
+        env:
+          KOSPI_DAILY_HISTORY: ""
         if: steps.market-day.outputs.should_run == 'true'
         run: npm test && npm run check && npm run check:experiment
 
