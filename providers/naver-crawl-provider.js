@@ -7,6 +7,7 @@ import { isKoreanSymbol } from "./korean-symbol.js";
 import { checkRobotsUrl } from "./robots-policy.js";
 import { KOSPI_UNIVERSE_PATH, loadKospiUniverseCache, DEFAULT_UNIVERSE_MAX_AGE_DAYS } from "./kospi-universe-cache.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
+import { preopenQuoteBasis, priorHistoryEstimate } from "./forecast-basis.js";
 
 // Every request host below is checked against its robots.txt before each data
 // request. m.stock.naver.com, finance.naver.com and fchart.stock.naver.com
@@ -383,6 +384,25 @@ export async function fetchNaverQuotes(symbols, { fetchImpl = globalThis.fetch, 
   return { ...fetched, quotes, robotsChecks: context.robotsChecks || {}, metrics: context.metrics };
 }
 
+// The polling quote's change field is signed (e.g. "-15" when falling) and is
+// measured against the regular-market reference price, so the previous close is
+// close - change. The direction code must agree with the sign; otherwise, or
+// when a field is missing, prior_close stays null (never the current price).
+const DIRECTION_SIGN = { 1: 1, 2: 1, 3: 0, 4: -1, 5: -1 };
+export const PRIOR_CLOSE_SOURCE = "naver_polling_close_minus_change";
+export function quotePriorClose(raw, closePrice = parseNumber(raw?.closePriceRaw)) {
+  const text = String(raw?.compareToPreviousClosePriceRaw ?? "").replaceAll(",", "").trim();
+  if (closePrice === null || !/^-?\d+(?:\.\d+)?$/.test(text)) return null;
+  const change = Number(text);
+  const code = raw?.compareToPreviousPrice?.code;
+  if (code !== undefined && code !== null) {
+    const sign = DIRECTION_SIGN[String(code)];
+    if (sign === undefined || Math.sign(change) !== sign) return null;
+  }
+  const prior = closePrice - change;
+  return Number.isFinite(prior) && prior > 0 ? prior : null;
+}
+
 function normalizeQuote(raw, now) {
   const symbol = normalizedSymbol(raw?.symbolCode || raw?.itemCode);
   const name = String(raw?.stockName || "").trim();
@@ -390,10 +410,7 @@ function normalizeQuote(raw, now) {
   const quoteAgeSeconds = quoteAt ? (now.getTime() - quoteAt.getTime()) / 1_000 : Number.POSITIVE_INFINITY;
   const closePrice = parseNumber(raw?.closePriceRaw);
   const openPrice = parseNumber(raw?.openPriceRaw);
-  const previousDelta = parseNumber(raw?.compareToPreviousClosePriceRaw);
-  const priorClose = closePrice !== null && previousDelta !== null && previousDelta <= closePrice
-    ? closePrice - previousDelta
-    : closePrice;
+  const priorClose = quotePriorClose(raw, closePrice);
   return {
     symbol,
     name: name || symbol,
@@ -418,11 +435,7 @@ function percent(value, base) {
 
 // History is newest first; only prior-day observations enter this opening estimate.
 export function historicalOpenEstimate(sessions, symbol) {
-  if (!Array.isArray(sessions) || sessions.length !== 3) return null;
-  const h = sessions.map((s) => s.rows.find((r) => r.symbol === symbol));
-  if (h.some((r) => !r || !(r.open > 0) || !(r.close > 0) || !(r.volume > 0))) return null;
-  const gap = Math.max(-0.05, Math.min(0.05, ((h[0].open / h[1].close - 1) + (h[1].open / h[2].close - 1)) / 2));
-  return round(h[0].close * (1 + gap));
+  return priorHistoryEstimate(sessions, symbol)?.expected_open ?? null;
 }
 
 // Records after run start are usable only from this run, and never from
@@ -444,12 +457,21 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, runStar
   const sourcePhase = sourceDate && Number.isFinite(sourceDate.getTime()) ? resolveCrawlStage(sourceDate) : null;
   const recorded = existing?.expected_open > 0 && validDates && sourceDate && savedOpeningIsTimely(src.recorded_at, runStartedAt, stageStartedAt, sameRun) && kstDate(sourceDate) === kstDate(quote.quoteAt) && (["preopen_quote", "preopen_history"].includes(src.kind) ? sourcePhase === "before-open" : src.kind === "retrospective_history" && sourcePhase !== "before-open") ? existing : null;
   const preopen = phase === "before-open" && quote.marketStatus === "PREOPEN" && quote.quoteAt && resolveCrawlStage(quote.quoteAt) === "before-open" && quote.openPrice > 0;
-  const estimate = history?.ok ? historicalOpenEstimate(history.sessions, quote.symbol) : null;
+  const historyEstimate = history?.ok ? priorHistoryEstimate(history.sessions, quote.symbol) : null;
+  const estimate = historyEstimate?.expected_open ?? null;
   const expectedOpen = recorded?.expected_open ?? (preopen ? quote.openPrice : estimate);
   const openSource = recorded?.expected_open_source ?? (preopen
     ? { kind: "preopen_quote", recorded_at: quote.quoteAt.toISOString(), history_dates: [] }
     : estimate !== null ? { kind: phase === "before-open" ? "preopen_history" : "retrospective_history", recorded_at: history.retrieved_at, history_dates: history.sessions.map((s) => s.date) } : null);
-  const expectedClose = existing?.expected_close ?? null;
+  // The basis travels with the value it explains. A recorded opening keeps its
+  // own basis and closing estimate; a new history opening brings the closing
+  // estimate of the same prior-history model; a pre-open quote has no closing model.
+  const openBasis = recorded ? recorded.expected_open_basis ?? null
+    : preopen ? preopenQuoteBasis({ openPrice: quote.openPrice, quoteAt: quote.quoteAt.toISOString(), marketStatus: "PREOPEN" })
+      : estimate !== null ? historyEstimate.open_basis : null;
+  const fromHistory = !recorded && !preopen && estimate !== null;
+  const expectedClose = recorded ? recorded.expected_close ?? null : preopen ? null : fromHistory ? historyEstimate.expected_close : existing?.expected_close ?? null;
+  const closeBasis = recorded ? recorded.expected_close_basis ?? null : fromHistory ? historyEstimate.close_basis : null;
   const expectedReturn = deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose });
   const actualOpen = ["open-settlement", "close-settlement"].includes(stage) ? quote.openPrice : null;
   const actualClose = stage === "close-settlement" ? quote.closePrice : null;
@@ -461,7 +483,9 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, runStar
     name: quote.name,
     expected_open: expectedOpen,
     ...(openSource ? { expected_open_source: openSource } : {}),
+    ...(openSource && openBasis ? { expected_open_basis: openBasis } : {}),
     expected_close: expectedClose,
+    ...(expectedClose !== null && closeBasis ? { expected_close_basis: closeBasis } : {}),
     expected_return: expectedReturn,
     actual_open: actualOpen,
     actual_close: actualClose,
@@ -470,6 +494,7 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, runStar
     ...(intradayReferenceReturn !== null ? { intraday_reference_return: intradayReferenceReturn } : {}),
     actual_volume: quote.volume,
     prior_close: quote.priorClose,
+    ...(quote.priorClose !== null ? { prior_close_source: PRIOR_CLOSE_SOURCE } : {}),
     error: deriveEvaluationError({ expected_open: expectedOpen, expected_close: expectedClose, actual_open: actualOpen, actual_close: actualClose }),
     confidence: null,
     quality: phase === "before-open"
@@ -682,7 +707,7 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     const completedAt = now();
     if (kstDate(completedAt) !== kstDate(current) || resolveCrawlStage(completedAt) !== phase) return result("no_data", "Market phase changed during collection; no opening estimate recorded.", { ...source, status: "stage_mismatch" }, [], sourceDate);
     const priorRows = new Map((history?.sessions?.[0]?.rows || []).map(row => [row.symbol, row]));
-    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll, ...(env.KOSPI_DAILY_HISTORY === "naver-cache" ? { priorClose: priorRows.get(quote.symbol)?.close ?? null } : {}) })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun)), stagePhase);
+    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun)), stagePhase);
     if (history?.source === "naver-daily") {
       source.metrics.history_status = history.partial ? "partial" : "ready";
       source.metrics.history_reason = `${history.excluded_count} symbols excluded; ${history.comparison_conflicts} daily comparison conflicts; Naver daily venue and adjustment unconfirmed and may differ from regular-market quotes; redistribution rights unconfirmed`;

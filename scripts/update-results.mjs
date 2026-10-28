@@ -26,6 +26,17 @@ export const MODES = {
 const NON_READY_STATUSES = new Set(["no_data", "partial", "degraded", "blocked"]);
 
 const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expected_return"]);
+// A recorded opening, its source, its basis and the closing estimate derived
+// with it are kept or replaced together, never mixed across runs.
+const FORECAST_BUNDLE = Object.freeze(["expected_open", "expected_open_source", "expected_open_basis", "expected_close", "expected_close_basis"]);
+function copyForecastBundle(target, from) {
+  for (const field of FORECAST_BUNDLE) {
+    if (Object.hasOwn(from, field)) target[field] = from[field];
+    else if (field === "expected_close") target[field] = null;
+    else delete target[field];
+  }
+  return target;
+}
 const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open"]);
 const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "session_return", "actual_volume"]);
 
@@ -167,7 +178,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
 
     if (mode === "open-settlement") {
       const merged = { ...existing };
-      if (!(existing.expected_open > 0 && existing.expected_open_source) && incoming.expected_open_source) { merged.expected_open = incoming.expected_open; merged.expected_open_source = incoming.expected_open_source; }
+      if (!(existing.expected_open > 0 && existing.expected_open_source) && incoming.expected_open_source) copyForecastBundle(merged, incoming);
       for (const field of ["rank", "symbol", "name", "quality", "status", ...OPEN_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
@@ -179,7 +190,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
 
     if (mode === "close-settlement") {
       const merged = { ...existing };
-      if (!(existing.expected_open > 0 && existing.expected_open_source) && incoming.expected_open_source) { merged.expected_open = incoming.expected_open; merged.expected_open_source = incoming.expected_open_source; }
+      if (!(existing.expected_open > 0 && existing.expected_open_source) && incoming.expected_open_source) copyForecastBundle(merged, incoming);
       for (const field of ["rank", "symbol", "name", "quality", "status", ...CLOSE_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
@@ -191,8 +202,8 @@ export function mergeRows(existingRows, incomingRows, mode) {
     }
 
     const merged = { ...existing, ...incoming };
-    if (existing.expected_open > 0 && existing.expected_open_source) { merged.expected_open = existing.expected_open; merged.expected_open_source = existing.expected_open_source; }
-    else if (!incoming.expected_open_source) delete merged.expected_open_source;
+    if (existing.expected_open > 0 && existing.expected_open_source) copyForecastBundle(merged, existing);
+    else if (!incoming.expected_open_source) { delete merged.expected_open_source; delete merged.expected_open_basis; if (!incoming.expected_close_basis) delete merged.expected_close_basis; }
     for (const field of EXPECTED_FIELDS) {
       if (incoming[field] === null && existing[field] !== null) merged[field] = existing[field];
     }
@@ -368,13 +379,19 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
         const legacyQuote = !src && row.market_status === "PREOPEN" && row.quality === "naver_preopen_quote";
         if (!before || !timely(src?.recorded_at || row.quote_at, prior) || (!validSource && !legacyQuote)) continue;
         recoveredSymbols.add(row.symbol);
-        recovered.set(row.symbol, { row, expected_open: row.expected_open, expected_open_source: src || { kind: "preopen_quote", recorded_at: row.quote_at, history_dates: [] } });
+        recovered.set(row.symbol, { row, expected_open: row.expected_open, expected_open_source: src || { kind: "preopen_quote", recorded_at: row.quote_at, history_dates: [] },
+          ...(src && row.expected_open_basis ? { expected_open_basis: row.expected_open_basis } : {}),
+          ...(src && row.expected_close_basis ? { expected_close: row.expected_close, expected_close_basis: row.expected_close_basis } : {}) });
       }
     }
     snapshot = { ...snapshot, rows: snapshot.rows.map((row) => {
       const previous = recovered.get(row.symbol);
       if (!previous) return row;
       const merged = { ...row, expected_open: previous.expected_open, expected_open_source: previous.expected_open_source };
+      delete merged.expected_open_basis;
+      if (previous.expected_open_basis) merged.expected_open_basis = previous.expected_open_basis;
+      if (previous.expected_close_basis) { merged.expected_close = previous.expected_close; merged.expected_close_basis = previous.expected_close_basis; }
+      else if (merged.expected_close_basis) { merged.expected_close = null; delete merged.expected_close_basis; }
       merged.expected_return = deriveExpectedReturn(merged); merged.error = derivedError(merged);
       return merged;
     }) };
@@ -383,7 +400,8 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     for (const [symbol, saved] of recovered) if (!present.has(symbol)) {
       const prior = saved.row;
       snapshot.rows.push({ rank: prior.rank, symbol, name: prior.name, expected_open: saved.expected_open, expected_open_source: saved.expected_open_source,
-        expected_close: null, expected_return: null, actual_open: null, actual_close: null, actual_return: null, error: null, status: prior.status });
+        ...(saved.expected_open_basis ? { expected_open_basis: saved.expected_open_basis } : {}),
+        expected_close: saved.expected_close ?? null, ...(saved.expected_close_basis ? { expected_close_basis: saved.expected_close_basis } : {}), expected_return: deriveExpectedReturn({ expected_open: saved.expected_open, expected_close: saved.expected_close ?? null }), actual_open: null, actual_close: null, actual_return: null, error: null, status: prior.status });
     }
   }
   const attemptedAt = options.attemptedAt;
@@ -393,7 +411,9 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
       if (row.expected_open_source && (recoveredSymbols.has(row.symbol) || timely(row.expected_open_source.recorded_at, snapshot))) return row;
       // Old intraday current-price baselines have no reliable pre-open origin.
       const clean = { ...row, expected_open: null, expected_return: null, error: null };
-      delete clean.expected_open_source;
+      delete clean.expected_open_source; delete clean.expected_open_basis;
+      // A closing estimate derived from a removed opening goes with it.
+      if (clean.expected_close_basis) { clean.expected_close = null; delete clean.expected_close_basis; }
       return clean;
     }) };
   }

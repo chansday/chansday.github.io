@@ -39,13 +39,14 @@ test("alphanumeric symbol flows through daily request, cache, universe, quote an
     const record = JSON.parse(await readFile(collected.path, "utf8")); assert.deepEqual(record.warnings, []); assert.ok(record.sessions.every(s => s.rows.every(r => r.comparison === "unverified")));
     process.env.KOSPI_DAILY_HISTORY = "naver-cache";
     const stageTime = new Date("2026-10-26T23:20:00Z");
-    const fetchImpl = async url => { urls.push(url); return url.includes("marketValue") ? response({ totalCount: 1, stocks: [{ itemCode: symbol, stockName: "A", stockEndType: "stock", sosok: "0" }] }) : response({ datas: [{ symbolCode: symbol, stockName: "A", openPriceRaw: 100, closePriceRaw: 110, localTradedAt: "2026-10-27T08:20:00+09:00", marketStatus: "OPEN" }] }); };
+    const fetchImpl = async url => { urls.push(url); return url.includes("marketValue") ? response({ totalCount: 1, stocks: [{ itemCode: symbol, stockName: "A", stockEndType: "stock", sosok: "0" }] }) : response({ datas: [{ symbolCode: symbol, stockName: "A", openPriceRaw: 100, closePriceRaw: 110, compareToPreviousClosePriceRaw: "-3", compareToPreviousPrice: { code: "5" }, localTradedAt: "2026-10-27T08:20:00+09:00", marketStatus: "OPEN" }] }); };
     const result = await createNaverCrawlProvider(withNaverRobots({ env: { KOSPI_DAILY_HISTORY: "naver-cache", KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0" }, now: () => stageTime, runStartedAt: stageTime.toISOString(), fetchImpl })).generateForecast();
-    assert.equal(result.status, "ready"); assert.equal(result.rows[0].symbol, symbol); assert.equal(result.rows[0].prior_close, 110);
+    assert.equal(result.status, "ready"); assert.equal(result.rows[0].symbol, symbol); // prior_close is the quote close minus its signed change; the daily-chart close stays in the basis.
+    assert.equal(result.rows[0].prior_close, 113); assert.equal(result.rows[0].prior_close_source, "naver_polling_close_minus_change"); assert.equal(result.rows[0].expected_open_basis.inputs.prior_close, 110);
     const stage = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", stageTime.toISOString()], { now: () => stageTime, fetchImpl: naverRobotsFetch(fetchImpl) });
     assert.equal(stage.status, "ready"); assert.equal(stage.source.metrics.source_basis, "naver-daily"); assert.match(stage.source.metrics.history_reason, /0 daily comparison conflicts/); assert.match(stage.message, /market and adjustment basis unconfirmed/); assert.ok(urls.some(url => url.endsWith(`/stock/${symbol}`)));
     const snapshot = JSON.parse(await readFile(join(root, "data", "latest-snapshot.json"), "utf8"));
-    assert.equal(snapshot.rows[0].symbol, symbol); assert.equal(snapshot.rows[0].prior_close, 110); assert.equal(isSnapshot(snapshot), true);
+    assert.equal(snapshot.rows[0].symbol, symbol); assert.equal(snapshot.rows[0].prior_close, 113); assert.equal(isSnapshot(snapshot), true);
     snapshot.rows[0].symbol = "0126/0"; assert.equal(isSnapshot(snapshot), false);
     const schema = JSON.parse(await readFile(new URL("../schema/market-snapshot.schema.json", import.meta.url)));
     assert.equal(new RegExp(schema.allOf[0].then.properties.rows.items.properties.symbol.pattern).test(symbol), true);

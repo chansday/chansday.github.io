@@ -1,0 +1,48 @@
+name: KOSPI scheduler keeper
+
+# Dispatches the stage workflows at their KST times (06:10 history, 07:00
+# update-results, 08:00 analysis, 08:20 forecast, 09:00 open-settlement,
+# 15:30 close-settlement) because GitHub schedule events were observed 3-6 h
+# late. workflow_dispatch from GITHUB_TOKEN creates runs; no PAT or secret.
+# Several cron starts ensure one keeper begins before 06:10 even when delayed;
+# later ones resume remaining stages if a keeper died. Only one keeper runs at a
+# time; duplicate stages are prevented by checking today's runs via the API.
+on:
+  schedule:
+    - cron: "7 15 * * 0-4"  # 00:07 KST Mon-Fri
+    - cron: "37 16 * * 0-4" # 01:37 KST
+    - cron: "7 18 * * 0-4"  # 03:07 KST
+    - cron: "37 19 * * 0-4" # 04:37 KST
+    - cron: "27 20 * * 0-4" # 05:27 KST
+    - cron: "37 22 * * 0-4" # 07:37 KST resume
+    - cron: "7 1 * * 1-5"   # 10:07 KST resume
+    - cron: "7 4 * * 1-5"   # 13:07 KST resume
+    - cron: "47 5 * * 1-5"  # 14:47 KST resume
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: kospi-scheduler-keeper
+  cancel-in-progress: false
+
+jobs:
+  keep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: |
+            scripts/
+            data/krx-market-holidays.json
+          sparse-checkout-cone-mode: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Dispatch due stages, sleep, relay before the runner limit
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/scheduler-keeper.mjs

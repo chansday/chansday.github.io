@@ -82,16 +82,19 @@ test("CLI guard fails closed when the calendar has no coverage", async () => {
 test("feature workflows expose input-free buttons and route through the shared guarded runner", async () => {
   const workflowRoot = new URL("../.github/workflows/", import.meta.url);
   const expected = {
-    "update-results.yml": ["0 22 * * 0-4", "update-results"],
-    "analysis.yml": ["0 23 * * 0-4", "analysis"],
-    "forecast.yml": ["20 23 * * 0-4", "forecast"],
-    "open-settlement.yml": ["0 0 * * 1-5", "open-settlement"],
-    "close-settlement.yml": ["30 6 * * 1-5", "close-settlement"],
+    "update-results.yml": ["07:00", "update-results"],
+    "analysis.yml": ["08:00", "analysis"],
+    "forecast.yml": ["08:20", "forecast"],
+    "open-settlement.yml": ["09:00", "open-settlement"],
+    "close-settlement.yml": ["15:30", "close-settlement"],
   };
-  for (const [file, [cron, stage]] of Object.entries(expected)) {
+  // Stage times live in scripts/scheduler-plan.mjs; scheduler-keeper.yml dispatches them.
+  const { STAGES } = await import("../scripts/scheduler-plan.mjs");
+  for (const [file, [time, stage]] of Object.entries(expected)) {
     const workflow = await readFile(new URL(file, workflowRoot), "utf8");
     assert.match(workflow, /workflow_dispatch:\r?\n/);
-    assert.match(workflow, new RegExp(`cron: "${cron.replaceAll("*", "\\*")}"`));
+    assert.doesNotMatch(workflow, /schedule:|cron:/);
+    assert.equal(STAGES.find((s) => s.workflow === file)?.at, time);
     assert.match(workflow, new RegExp(`stage: ${stage}`));
     assert.match(workflow, /provider: naver-crawl/);
     assert.doesNotMatch(workflow, /inputs:/);

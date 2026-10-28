@@ -1,5 +1,6 @@
 import { deriveEvaluationError, deriveExpectedReturn, evaluationRowStatus, isEvaluationSummary } from "./evaluation-contract.js";
 import { isKoreanSymbol } from "./korean-symbol.js";
+import { OPEN_GAP_MODEL, isCloseBasis, isOpenBasis } from "./forecast-basis.js";
 
 /**
  * Provider contract for the static KOSPI signal board.
@@ -29,6 +30,9 @@ export const RANKING_FIELDS = Object.freeze([
 export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "confidence",
   "expected_open_source",
+  "expected_open_basis",
+  "expected_close_basis",
+  "prior_close_source",
   "quality",
   "actual_volume",
   "prior_close",
@@ -88,6 +92,10 @@ export function isRankingRow(row) {
     if (!src || !["preopen_quote", "preopen_history", "retrospective_history"].includes(src.kind) || (typeof src.recorded_at !== "string" || !Number.isFinite(Date.parse(src.recorded_at))) || !Array.isArray(src.history_dates) || !(row.expected_open > 0)) return false;
     if (Object.keys(src).sort().join(",") !== "history_dates,kind,recorded_at" || (src.kind === "preopen_quote" ? src.history_dates.length !== 0 : src.history_dates.length !== 3 || src.history_dates.some((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d)))) return false;
   }
+  // Basis fields must reproduce the stored value from their own inputs.
+  if (Object.hasOwn(row, "expected_open_basis") && !isOpenBasis(row.expected_open_basis, row)) return false;
+  if (Object.hasOwn(row, "expected_close_basis") && (!isCloseBasis(row.expected_close_basis, row) || row.expected_open_basis?.model !== OPEN_GAP_MODEL || row.expected_close_basis.history_dates.join() !== row.expected_open_basis.history_dates.join())) return false;
+  if (Object.hasOwn(row, "prior_close_source") && (row.prior_close_source !== "naver_polling_close_minus_change" || !(row.prior_close > 0))) return false;
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
   if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
   if (Object.hasOwn(row, "session_return") && !isFiniteOrNull(row.session_return)) return false;
@@ -186,6 +194,8 @@ export function isSnapshot(candidate) {
   if (!(["provider", "demo", "fixture", "replay", "backfill_test", "historical_test"].includes(candidate.mode))) return false;
   if (!candidate.market || candidate.market.name !== "KOSPI" || candidate.market.currency !== "KRW") return false;
   if (!validateRankingRows(candidate.rows, { koreanSymbols: candidate.provider?.id === "naver-crawl" }).valid) return false;
+  // Daily bars used by a stored basis must predate the snapshot's own date.
+  if (typeof candidate.asOfDate === "string" && candidate.rows.some((row) => [row.expected_open_basis, row.expected_close_basis].some((basis) => basis?.history_dates?.length && !(basis.history_dates[0] < candidate.asOfDate)))) return false;
   if (candidate.provider !== null && typeof candidate.provider !== "object") return false;
   if (!candidate.meta || typeof candidate.meta !== "object" || !Object.hasOwn(candidate.meta, "source")) return false;
   if (candidate.meta.source !== null && !isSourceMetadata(candidate.meta.source)) return false;

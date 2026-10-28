@@ -1,12 +1,8 @@
 name: KOSPI prior daily history
 
 on:
-  schedule:
-    # 06:10 KST primary run; 07:10 KST second attempt only fills gaps (a complete
-    # file is preserved). Both leave >= 50 min before the 08:00 KST cutoff for
-    # ~8 min of 500 ms-spaced requests plus GitHub scheduling delay.
-    - cron: "10 21 * * 0-4" # 06:10 KST on trading weekdays
-    - cron: "10 22 * * 0-4" # 07:10 KST retry window
+  # Started by scheduler-keeper.yml at 06:10 KST, with one retry at 07:10 KST
+  # after a failure (last start 07:45). A complete file is preserved on rerun.
   workflow_dispatch:
 
 permissions:
@@ -21,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - id: market

@@ -20,6 +20,10 @@
 }
 
 * { box-sizing: border-box; }
+/* Author display rules (.test-ribbon, .notice-panel, ...) otherwise override
+   the hidden attribute, so hidden UI such as the test-data ribbon showed on
+   operational snapshots. Hidden always wins. */
+[hidden], .test-ribbon[hidden], .notice-panel[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 body {
   min-width: 320px;
@@ -254,8 +258,18 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .toolbar-selects select { min-width: 136px; padding: 7px 26px 7px 9px; border: 1px solid var(--line); border-radius: 7px; outline: 0; background: #10243a; color: var(--muted); font-size: 11px; }
 .toolbar-selects select:hover, .toolbar-selects select:focus { border-color: var(--blue); }
 .ranking-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
-.ranking-table-wrap { overflow-x: auto; overflow-y: hidden; border-radius: 14px; }
-.ranking-table-wrap table { width: 100%; min-width: 1060px; border-collapse: collapse; }
+/* The wrap owns both scrollbars: a bounded height keeps the horizontal
+   scrollbar on screen (it used to sit below ~900 rows), and only this region
+   scrolls sideways — never the page. */
+.ranking-table-wrap { --sticky-bg: #0d2135; --sticky-bg-active: #15304b; --rank-col: 56px; position: relative; max-width: 100%; max-height: min(76vh, 820px); overflow-x: auto; overflow-y: auto; overscroll-behavior-x: contain; border-radius: 14px; scrollbar-gutter: stable; }
+.ranking-table-wrap:focus-visible { outline-offset: 2px; }
+.table-scroll-hint { margin: 0 0 8px; color: var(--dim); font-size: 10px; line-height: 1.5; word-break: keep-all; }
+.ranking-table-wrap table { width: 100%; min-width: 1060px; border-collapse: separate; border-spacing: 0; }
+.ranking-table-wrap thead th { position: sticky; z-index: 2; top: 0; background: var(--sticky-bg); }
+.ranking-table-wrap th:first-child, .ranking-table-wrap td:first-child { position: sticky; z-index: 1; left: 0; width: var(--rank-col); min-width: var(--rank-col); max-width: var(--rank-col); background: var(--sticky-bg); }
+.ranking-table-wrap th:nth-child(2), .ranking-table-wrap td:nth-child(2) { position: sticky; z-index: 1; left: var(--rank-col); background: var(--sticky-bg); box-shadow: 8px 0 10px -8px rgba(0, 0, 0, .55); }
+.ranking-table-wrap thead th:first-child, .ranking-table-wrap thead th:nth-child(2) { z-index: 3; }
+.ranking-table-wrap tbody tr:hover td:first-child, .ranking-table-wrap tbody tr:hover td:nth-child(2), .ranking-table-wrap tbody tr[aria-selected="true"] td:first-child, .ranking-table-wrap tbody tr[aria-selected="true"] td:nth-child(2) { background: var(--sticky-bg-active); }
 .ranking-table-wrap th { padding: 13px; border-bottom: 1px solid var(--line-strong); color: var(--dim); font-size: 10px; font-weight: 600; text-align: right; white-space: nowrap; }
 .ranking-table-wrap th:first-child, .ranking-table-wrap th:nth-child(2) { text-align: left; }
 .ranking-table-wrap td { padding: 11px 13px; border-bottom: 1px solid rgba(164, 191, 221, .1); color: var(--muted); font-family: "DM Mono", monospace; font-size: 11px; text-align: right; white-space: nowrap; }
@@ -285,6 +299,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .detail-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 15px; border-bottom: 1px solid var(--line); }
 .detail-panel-head .mono { color: var(--dim); font-size: 9px; }
 .detail-empty { display: grid; min-height: 285px; place-items: center; color: var(--dim); font-size: 11px; text-align: center; }
+.detail-empty[hidden], #selected-content[hidden] { display: none; }
 .detail-cross { display: grid; width: 38px; height: 38px; margin-bottom: 12px; place-items: center; border: 1px dashed var(--line-strong); border-radius: 50%; color: var(--blue-strong); font-size: 19px; }
 .detail-empty p { margin: 0; line-height: 1.8; word-break: keep-all; }
 .selected-title { padding: 23px 0 18px; }
@@ -294,6 +309,24 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .selected-grid strong { font-family: "DM Mono", monospace; font-size: 12px; }
 .selected-policy { margin: 14px 0 0; color: var(--dim); font-size: 10px; line-height: 1.65; word-break: keep-all; }
 .detail-foot { display: grid; gap: 7px; padding-top: 14px; color: var(--dim); font-size: 9px; line-height: 1.55; overflow-wrap: anywhere; }
+.detail-panel { position: sticky; top: 52px; max-height: calc(100vh - 68px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+.detail-panel, .detail-panel * { min-width: 0; }
+.detail-evidence { display: grid; gap: 12px; margin-top: 16px; }
+.detail-section { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .025); }
+.detail-section[data-state="missing"] { border-color: rgba(255, 210, 123, .28); }
+.detail-section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 9px; }
+.detail-section-head h4 { margin: 0; color: var(--text); font-size: 12px; font-weight: 800; }
+.detail-section-state { flex: 0 0 auto; padding: 2px 7px; border: 1px solid var(--line-strong); border-radius: 99px; color: var(--muted); font-size: 9px; font-weight: 700; white-space: nowrap; }
+.detail-section-state.state-available { border-color: rgba(130, 231, 183, .38); color: var(--green); }
+.detail-section-state.state-partial, .detail-section-state.state-missing { border-color: rgba(255, 210, 123, .34); color: var(--yellow); }
+.detail-facts { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin: 0; }
+.detail-facts > div { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.detail-facts dt { color: var(--dim); font-size: 10px; line-height: 1.45; word-break: keep-all; overflow-wrap: anywhere; }
+.detail-facts dd { margin: 0; color: var(--text); font-family: "DM Mono", "Noto Sans KR", monospace; font-size: 11px; line-height: 1.45; text-align: right; overflow-wrap: anywhere; }
+.detail-steps { display: grid; gap: 5px; margin: 10px 0 0; padding: 9px 0 0 16px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 10px; line-height: 1.6; word-break: keep-all; overflow-wrap: anywhere; }
+.detail-missing, .detail-warning { margin: 8px 0 0; padding: 7px 9px; border-left: 2px solid var(--yellow); background: rgba(255, 210, 123, .07); color: #ffe7b0; font-size: 10px; line-height: 1.55; word-break: keep-all; overflow-wrap: anywhere; }
+.detail-warning { border-left-color: var(--red); background: rgba(255, 141, 156, .07); color: #ffd3d9; }
+.detail-disclaimer { margin: 0; color: var(--dim); font-size: 10px; line-height: 1.6; word-break: keep-all; }
 
 .provenance-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
 .provenance-card { min-height: 188px; padding: 20px; border-radius: 13px; }
@@ -311,7 +344,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 @media (max-width: 1120px) {
   .hero { gap: 42px; }
   .ranking-layout { grid-template-columns: 1fr; }
-  .detail-panel { min-height: auto; }
+  .detail-panel { position: static; min-height: auto; max-height: none; overflow: visible; }
   .detail-empty { min-height: 170px; }
   .provenance-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -339,7 +372,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
   .toolbar-selects { justify-content: space-between; }
   .toolbar-selects label { grid-template-columns: 1fr; flex: 1; }
   .toolbar-selects select { width: 100%; min-width: 0; }
-  .ranking-table-wrap table { display: none; }
+  .ranking-table-wrap table, .table-scroll-hint { display: none; }
   .ranking-cards { display: grid; gap: 8px; padding: 9px; }
   .ranking-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(8, 17, 32, .5); cursor: pointer; }
   .ranking-card:hover, .ranking-card[aria-selected="true"] { border-color: var(--blue); box-shadow: 0 0 0 1px rgba(123, 188, 255, .25); }
@@ -392,6 +425,9 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
   .toolbar-selects label { font-size: 9px; }
   .toolbar-selects select { padding-inline: 6px; font-size: 10px; }
   .detail-panel { padding: 15px; }
+  .detail-section { padding: 10px; }
+  .detail-facts > div { grid-template-columns: minmax(0, 1fr); gap: 1px; }
+  .detail-facts dd { text-align: left; }
   .provenance-grid { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) {

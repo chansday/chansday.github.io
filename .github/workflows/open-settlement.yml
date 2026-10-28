@@ -1,8 +1,9 @@
 name: KOSPI open-settlement
 
 on:
-  schedule:
-    - cron: "0 0 * * 1-5"
+  # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the
+  # former schedule cron was removed so a 3-6 h late schedule run cannot repeat
+  # the stage outside its window and overwrite the stage file.
   workflow_dispatch:
 
 permissions:

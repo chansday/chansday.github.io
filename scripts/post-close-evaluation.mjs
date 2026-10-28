@@ -4,28 +4,21 @@ import { fetchForecastHistory } from "../providers/public-csv-provider.js";
 import { loadNaverDailyHistory } from "../providers/naver-daily-cache.js";
 import { buildEvaluationSummary, deriveExpectedReturn, deriveSessionReturn, deriveEvaluationError } from "../providers/evaluation-contract.js";
 import { mergePostCloseEvaluation } from "../providers/post-close-overlay.js";
+import { priorHistoryEstimate } from "../providers/forecast-basis.js";
 
-const round = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
-const clamp = (n) => Math.max(-0.05, Math.min(0.05, n));
 const valid = (n) => typeof n === "number" && Number.isFinite(n) && n > 0;
 
 // Sessions are newest first. No target-day prices enter the forecast calculation.
+// Each row records the model inputs actually used (gap and session ratios,
+// prior close and dates) so the retrospective values can be reproduced.
 export function buildPostCloseRows(sessions, actualRows) {
   if (!Array.isArray(sessions) || sessions.length !== 3) throw new Error("Three prior sessions are required");
-  const maps = sessions.map((session) => new Map(session.rows.map((row) => [row.symbol, row])));
   return actualRows.map((actual) => {
-    const history = maps.map((map) => map.get(actual.symbol));
-    const complete = history.every((row) => row && valid(row.open) && valid(row.close) && valid(row.volume));
-    let expectedOpen = null, expectedClose = null;
-    if (complete) {
-      const gap = clamp(((history[0].open / history[1].close - 1) + (history[1].open / history[2].close - 1)) / 2);
-      const session = clamp(history.reduce((sum, row) => sum + row.close / row.open - 1, 0) / 3);
-      expectedOpen = round(history[0].close * (1 + gap));
-      expectedClose = round(expectedOpen * (1 + session));
-    }
-    const row = { symbol: actual.symbol, name: actual.name, expected_open: expectedOpen, expected_close: expectedClose,
+    const estimate = priorHistoryEstimate(sessions, actual.symbol);
+    const row = { symbol: actual.symbol, name: actual.name, expected_open: estimate?.expected_open ?? null, expected_close: estimate?.expected_close ?? null,
       actual_open: valid(actual.actual_open) ? actual.actual_open : null, actual_close: valid(actual.actual_close) ? actual.actual_close : null };
-    return { ...row, expected_return: deriveExpectedReturn(row), session_return: deriveSessionReturn(row), error: deriveEvaluationError(row), missing_reason: complete ? null : "insufficient_prior_history" };
+    return { ...row, expected_return: deriveExpectedReturn(row), session_return: deriveSessionReturn(row), error: deriveEvaluationError(row), missing_reason: estimate ? null : "insufficient_prior_history",
+      ...(estimate ? { expected_open_basis: estimate.open_basis, expected_close_basis: estimate.close_basis } : {}) };
   });
 }
 

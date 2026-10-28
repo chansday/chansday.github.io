@@ -45,9 +45,12 @@ test("missing Naver history cache leaves settlement ready but keeps forecast deg
 });
 
 // Defect 1(a): collection starts early enough for the 08:00 KST cutoff.
-test("daily history workflow starts at 06:10 KST with a 07:10 retry and refreshes the universe from the latest CSV", async () => {
+test("daily history is dispatched at 06:10 KST with a 07:10 retry and refreshes the universe from the latest CSV", async () => {
   const yml = await readFile(new URL("../.github/workflows/naver-daily-history.yml", import.meta.url), "utf8");
-  assert.match(yml, /cron: "10 21 \* \* 0-4"/); assert.match(yml, /cron: "10 22 \* \* 0-4"/); assert.doesNotMatch(yml, /cron: "40 22/);
+  assert.doesNotMatch(yml, /cron:/); assert.match(yml, /workflow_dispatch:/);
+  const { STAGES } = await import("../scripts/scheduler-plan.mjs");
+  const history = STAGES.find((s) => s.id === "naver-daily-history");
+  assert.equal(history.at, "06:10"); assert.equal(history.retry.at, "07:10"); assert.ok(history.lastStart < "08:00");
   assert.match(yml, /update-kospi-universe\.mjs --candidates-csv latest/);
 });
 
@@ -150,4 +153,35 @@ test("universe and daily-history paths resolve from the repository root regardle
     assert.equal(dailyHistoryPath("2026-10-28"), join(dir, "data", "daily-history", "2026-10-28.json"));
     assert.equal((await loadKospiUniverseCache()).ok, false);
   } finally { process.chdir(old); if (before === undefined) delete process.env.KOSPI_DATA_ROOT; else process.env.KOSPI_DATA_ROOT = before; await rm(dir, { recursive: true, force: true }); }
+});
+
+// QA 6: falling quotes used to store the current price as prior_close because
+// the signed change ("-15") was rejected and the code fell back to the close.
+test("prior_close is close minus the signed polling change and is never the current price", async () => {
+  const { quotePriorClose, PRIOR_CLOSE_SOURCE } = await import("../providers/naver-crawl-provider.js");
+  const q = (close, change, code) => ({ closePriceRaw: close, compareToPreviousClosePriceRaw: change, ...(code ? { compareToPreviousPrice: { code } } : {}) });
+  assert.equal(quotePriorClose(q("5220", "20", "2")), 5200);        // rising (observed 000020, 2026-10-28)
+  assert.equal(quotePriorClose(q("1117", "-15", "5")), 1132);       // falling (observed 000040, 2026-10-28)
+  assert.equal(quotePriorClose(q("244000", "22000", "2")), 222000);
+  assert.equal(quotePriorClose(q("1,000", "0", "3")), 1000);        // unchanged
+  assert.equal(quotePriorClose(q("1300", "300", "1")), 1000);       // upper limit
+  assert.equal(quotePriorClose(q("700", "-300", "4")), 1000);       // lower limit
+  assert.equal(quotePriorClose(q("1117", "15", "5")), null, "direction says falling but change is positive");
+  assert.equal(quotePriorClose(q("1117", "-15", "2")), null);
+  assert.equal(quotePriorClose(q("1117", "", "5")), null);
+  assert.equal(quotePriorClose(q("1117", undefined)), null);
+  assert.equal(quotePriorClose(q("10", "-10x")), null);
+  assert.equal(quotePriorClose(q("10", "10", "2")), null, "non-positive prior close");
+  const time = new Date("2026-10-27T01:00:00Z");
+  const fetchImpl = naverRoutes([{ itemCode: "000040", stockName: "KR" }, { itemCode: "000020", stockName: "DH" }], () => json({ datas: [
+    quote("000040", { closePriceRaw: 1117, openPriceRaw: 1102, compareToPreviousClosePriceRaw: "-15", compareToPreviousPrice: { code: "5" } }),
+    quote("000020", { closePriceRaw: 5220, openPriceRaw: 5200, compareToPreviousClosePriceRaw: "20", compareToPreviousPrice: { code: "2" } }),
+  ] }));
+  const result = await createNaverCrawlProvider({ env: env(), fetchImpl, now: () => time, runStartedAt: time.toISOString() }).settleOpen();
+  const bySymbol = Object.fromEntries(result.rows.map((r) => [r.symbol, r]));
+  assert.equal(bySymbol["000040"].prior_close, 1132); assert.notEqual(bySymbol["000040"].prior_close, 1117);
+  assert.equal(bySymbol["000020"].prior_close, 5200); assert.equal(bySymbol["000020"].actual_open, 5200, "opening at the reference price is legitimate");
+  assert.equal(bySymbol["000040"].prior_close_source, PRIOR_CLOSE_SOURCE);
+  const missing = await createNaverCrawlProvider({ env: env(), fetchImpl: naverRoutes([{ itemCode: "005930", stockName: "A" }], () => json({ datas: [quote("005930")] })), now: () => time, runStartedAt: time.toISOString() }).settleOpen();
+  assert.equal(missing.rows[0].prior_close, null); assert.equal(Object.hasOwn(missing.rows[0], "prior_close_source"), false);
 });

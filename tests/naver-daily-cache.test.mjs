@@ -90,12 +90,12 @@ test("forecast uses dated cached close while settlement rejects pre-boundary quo
   try {
     await mkdir(join(root, "data", "daily-history"), { recursive: true }); await writeFile(join(root, "data", "daily-history", `${target}.json`), JSON.stringify(cache)); process.chdir(root); process.env.KOSPI_DATA_ROOT = root;
     const respond = payload => ({ ok: true, status: 200, headers: { get: key => key === "content-type" ? "application/json" : null }, text: async () => JSON.stringify(payload) });
-    const quote = { symbolCode: "005930", stockName: "A", openPriceRaw: 120, closePriceRaw: 130, localTradedAt: "2026-10-27T08:59:59+09:00", marketStatus: "OPEN" };
+    const quote = { symbolCode: "005930", stockName: "A", openPriceRaw: 120, closePriceRaw: 130, compareToPreviousClosePriceRaw: "10", compareToPreviousPrice: { code: "2" }, localTradedAt: "2026-10-27T08:59:59+09:00", marketStatus: "OPEN" };
     const fetchImpl = async url => url.includes("marketValue") ? respond({ totalCount: 1, stocks: [{ itemCode: "005930", stockName: "A" }] }) : respond({ datas: [quote] });
     const env = { KOSPI_DAILY_HISTORY: "naver-cache", KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0" };
     const forecastTime = new Date("2026-10-26T23:20:00Z"); quote.localTradedAt = "2026-10-27T08:20:00+09:00";
     const forecast = await createNaverCrawlProvider(withNaverRobots({ env, fetchImpl, now: () => forecastTime, runStartedAt: forecastTime.toISOString() })).generateForecast();
-    assert.equal(forecast.status, "ready"); assert.equal(forecast.rows[0].prior_close, 110); assert.equal(forecast.rows[0].expected_open_source.kind, "preopen_history"); assert.equal(forecast.source.metrics.history_status, "ready"); assert.equal(forecast.source.metrics.source_basis, "naver-daily"); assert.equal(forecast.source.metrics.security_type, "unknown");
+    assert.equal(forecast.status, "ready"); assert.equal(forecast.rows[0].prior_close, 120); assert.equal(forecast.rows[0].expected_open_basis.inputs.prior_close, 110); assert.equal(forecast.rows[0].expected_open_source.kind, "preopen_history"); assert.equal(forecast.source.metrics.history_status, "ready"); assert.equal(forecast.source.metrics.source_basis, "naver-daily"); assert.equal(forecast.source.metrics.security_type, "unknown");
     cache.symbols.push("000660"); await writeFile(join(root, "data", "daily-history", `${target}.json`), JSON.stringify(cache));
     const partialFetch = async url => url.includes("marketValue") ? respond({ totalCount: 2, stocks: [{ itemCode: "005930", stockName: "A" }, { itemCode: "000660", stockName: "B" }] }) : respond({ datas: [quote, { ...quote, symbolCode: "000660", stockName: "B" }] });
     const partial = await createNaverCrawlProvider(withNaverRobots({ env, fetchImpl: partialFetch, now: () => forecastTime, runStartedAt: forecastTime.toISOString() })).generateForecast();
