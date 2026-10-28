@@ -1,0 +1,7337 @@
+{
+  "status": "experimental",
+  "target_date": "2026-10-28",
+  "phase": "during-market",
+  "predicted_at": "2026-10-28T02:23:45.310Z",
+  "input_type": "latest_available_prior_close_reference_not_quote",
+  "source_date": "2026-10-26",
+  "stale": true,
+  "unavailable_dates": [
+    "2026-10-27"
+  ],
+  "history_dates": [
+    "2026-10-26",
+    "2026-10-23",
+    "2026-10-22"
+  ],
+  "history_urls": [
+    "https://aikstockdata.com/data/public/daily/quotes_20261026.csv",
+    "https://aikstockdata.com/data/public/daily/quotes_20261023.csv",
+    "https://aikstockdata.com/data/public/daily/quotes_20261022.csv"
+  ],
+  "history_retrieved_at": "2026-10-28T02:23:45.310Z",
+  "robots_url": "https://aikstockdata.com/robots.txt",
+  "robots_checked_at": "2026-10-28T02:23:44.236Z",
+  "first_publication": "unknown",
+  "revision_policy": "unknown",
+  "adjustment": "unknown",
+  "license_status": "unconfirmed",
+  "source_confirmation": "provider_claims_final_unverified",
+  "note": "Experimental prior-close reference, not an expected opening auction quote or current price; observed data collected now, prior availability and revisions unknown. KOSPI rows may include preferred shares. Not an operational snapshot.",
+  "rows": [
+    {
+      "symbol": "010640",
+      "name": "진양폴리",
+      "reference_price": 2330,
+      "estimated_close": 2461.39,
+      "estimated_return": 5.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "028050",
+      "name": "삼성E&A",
+      "reference_price": 59800,
+      "estimated_close": 62893.16,
+      "estimated_return": 5.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "051630",
+      "name": "진양화학",
+      "reference_price": 2230,
+      "estimated_close": 2339.21,
+      "estimated_return": 4.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005870",
+      "name": "휴니드",
+      "reference_price": 4780,
+      "estimated_close": 4970.21,
+      "estimated_return": 3.98,
+      "missing_reason": null
+    },
+    {
+      "symbol": "118000",
+      "name": "메타케어",
+      "reference_price": 1315,
+      "estimated_close": 1367.19,
+      "estimated_return": 3.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003780",
+      "name": "진양산업",
+      "reference_price": 5560,
+      "estimated_close": 5762.76,
+      "estimated_return": 3.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007815",
+      "name": "코리아써우",
+      "reference_price": 18600,
+      "estimated_close": 19243.57,
+      "estimated_return": 3.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "018260",
+      "name": "삼성에스디에스",
+      "reference_price": 213000,
+      "estimated_close": 219827.44,
+      "estimated_return": 3.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "229640",
+      "name": "LS에코에너지",
+      "reference_price": 54200,
+      "estimated_close": 55832.96,
+      "estimated_return": 3.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006570",
+      "name": "대림통상",
+      "reference_price": 1890,
+      "estimated_close": 1937.08,
+      "estimated_return": 2.49,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000650",
+      "name": "천일고속",
+      "reference_price": 216000,
+      "estimated_close": 221260.99,
+      "estimated_return": 2.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016740",
+      "name": "두올",
+      "reference_price": 4225,
+      "estimated_close": 4322.79,
+      "estimated_return": 2.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "077500",
+      "name": "유니퀘스트",
+      "reference_price": 10690,
+      "estimated_close": 10925.41,
+      "estimated_return": 2.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "033250",
+      "name": "체시스",
+      "reference_price": 3770,
+      "estimated_close": 3846.51,
+      "estimated_return": 2.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004870",
+      "name": "티웨이홀딩스",
+      "reference_price": 1066,
+      "estimated_close": 1087.16,
+      "estimated_return": 1.98,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011690",
+      "name": "와이투솔루션",
+      "reference_price": 3940,
+      "estimated_close": 4012.78,
+      "estimated_return": 1.85,
+      "missing_reason": null
+    },
+    {
+      "symbol": "064400",
+      "name": "LG씨엔에스",
+      "reference_price": 73500,
+      "estimated_close": 74832.26,
+      "estimated_return": 1.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "028260",
+      "name": "삼성물산",
+      "reference_price": 292000,
+      "estimated_close": 297151.82,
+      "estimated_return": 1.76,
+      "missing_reason": null
+    },
+    {
+      "symbol": "402340",
+      "name": "SK스퀘어",
+      "reference_price": 769000,
+      "estimated_close": 781899.06,
+      "estimated_return": 1.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006980",
+      "name": "우성",
+      "reference_price": 18840,
+      "estimated_close": 19149.84,
+      "estimated_return": 1.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "294870",
+      "name": "IPARK현대산업개발",
+      "reference_price": 22300,
+      "estimated_close": 22662.51,
+      "estimated_return": 1.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012030",
+      "name": "DB",
+      "reference_price": 2270,
+      "estimated_close": 2305.41,
+      "estimated_return": 1.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "084680",
+      "name": "이월드",
+      "reference_price": 2180,
+      "estimated_close": 2213.79,
+      "estimated_return": 1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "084670",
+      "name": "동양고속",
+      "reference_price": 34000,
+      "estimated_close": 34523.87,
+      "estimated_return": 1.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000590",
+      "name": "CS홀딩스",
+      "reference_price": 72200,
+      "estimated_close": 73288.61,
+      "estimated_return": 1.51,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011090",
+      "name": "에넥스",
+      "reference_price": 1774,
+      "estimated_close": 1800.37,
+      "estimated_return": 1.49,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004960",
+      "name": "한신공영",
+      "reference_price": 11110,
+      "estimated_close": 11274.17,
+      "estimated_return": 1.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "395400",
+      "name": "SK리츠",
+      "reference_price": 5350,
+      "estimated_close": 5429.3,
+      "estimated_return": 1.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006880",
+      "name": "신송홀딩스",
+      "reference_price": 4160,
+      "estimated_close": 4218.64,
+      "estimated_return": 1.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "326030",
+      "name": "SK바이오팜",
+      "reference_price": 75800,
+      "estimated_close": 76854.77,
+      "estimated_return": 1.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034220",
+      "name": "LG디스플레이",
+      "reference_price": 7320,
+      "estimated_close": 7420.8,
+      "estimated_return": 1.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "089590",
+      "name": "제주항공",
+      "reference_price": 5250,
+      "estimated_close": 5321.82,
+      "estimated_return": 1.37,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014825",
+      "name": "동원시스템즈우",
+      "reference_price": 13480,
+      "estimated_close": 13663.87,
+      "estimated_return": 1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "244920",
+      "name": "에이플러스에셋",
+      "reference_price": 12500,
+      "estimated_close": 12659.38,
+      "estimated_return": 1.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000720",
+      "name": "현대건설",
+      "reference_price": 90700,
+      "estimated_close": 91836.66,
+      "estimated_return": 1.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023150",
+      "name": "MH에탄올",
+      "reference_price": 2500,
+      "estimated_close": 2531.03,
+      "estimated_return": 1.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "207940",
+      "name": "삼성바이오로직스",
+      "reference_price": 1452000,
+      "estimated_close": 1469841.99,
+      "estimated_return": 1.23,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011210",
+      "name": "현대위아",
+      "reference_price": 49400,
+      "estimated_close": 49974.49,
+      "estimated_return": 1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001290",
+      "name": "상상인증권",
+      "reference_price": 3800,
+      "estimated_close": 3843.83,
+      "estimated_return": 1.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001515",
+      "name": "SK증권우",
+      "reference_price": 3710,
+      "estimated_close": 3752.3,
+      "estimated_return": 1.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003160",
+      "name": "디아이",
+      "reference_price": 36100,
+      "estimated_close": 36501.5,
+      "estimated_return": 1.11,
+      "missing_reason": null
+    },
+    {
+      "symbol": "089860",
+      "name": "롯데렌탈",
+      "reference_price": 49750,
+      "estimated_close": 50287.57,
+      "estimated_return": 1.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013580",
+      "name": "계룡건설",
+      "reference_price": 25400,
+      "estimated_close": 25655.59,
+      "estimated_return": 1.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "090355",
+      "name": "노루페인트우",
+      "reference_price": 12200,
+      "estimated_close": 12323.53,
+      "estimated_return": 1.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "293940",
+      "name": "신한알파리츠",
+      "reference_price": 5720,
+      "estimated_close": 5777.9,
+      "estimated_return": 1.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000760",
+      "name": "이화산업",
+      "reference_price": 12520,
+      "estimated_close": 12645.82,
+      "estimated_return": 1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002870",
+      "name": "신풍",
+      "reference_price": 1000,
+      "estimated_close": 1009.98,
+      "estimated_return": 1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "330590",
+      "name": "롯데리츠",
+      "reference_price": 4220,
+      "estimated_close": 4262.29,
+      "estimated_return": 1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "085620",
+      "name": "미래에셋생명",
+      "reference_price": 17080,
+      "estimated_close": 17249.39,
+      "estimated_return": 0.99,
+      "missing_reason": null
+    },
+    {
+      "symbol": "032830",
+      "name": "삼성생명",
+      "reference_price": 246500,
+      "estimated_close": 248874.29,
+      "estimated_return": 0.96,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007120",
+      "name": "미래아이앤지",
+      "reference_price": 1049,
+      "estimated_close": 1058.91,
+      "estimated_return": 0.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "024890",
+      "name": "대원화성",
+      "reference_price": 1639,
+      "estimated_close": 1654.17,
+      "estimated_return": 0.93,
+      "missing_reason": null
+    },
+    {
+      "symbol": "097520",
+      "name": "엠씨넥스",
+      "reference_price": 17550,
+      "estimated_close": 17709.65,
+      "estimated_return": 0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005725",
+      "name": "넥센우",
+      "reference_price": 4405,
+      "estimated_close": 4444.42,
+      "estimated_return": 0.89,
+      "missing_reason": null
+    },
+    {
+      "symbol": "031210",
+      "name": "서울보증보험",
+      "reference_price": 42700,
+      "estimated_close": 43077.13,
+      "estimated_return": 0.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "446070",
+      "name": "유니드비티플러스",
+      "reference_price": 3740,
+      "estimated_close": 3772.92,
+      "estimated_return": 0.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007110",
+      "name": "일신석재",
+      "reference_price": 2470,
+      "estimated_close": 2491.5,
+      "estimated_return": 0.87,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000145",
+      "name": "하이트진로홀딩스우",
+      "reference_price": 9020,
+      "estimated_close": 9096.3,
+      "estimated_return": 0.85,
+      "missing_reason": null
+    },
+    {
+      "symbol": "028100",
+      "name": "동아지질",
+      "reference_price": 18530,
+      "estimated_close": 18680.06,
+      "estimated_return": 0.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012330",
+      "name": "현대모비스",
+      "reference_price": 326000,
+      "estimated_close": 328467.84,
+      "estimated_return": 0.76,
+      "missing_reason": null
+    },
+    {
+      "symbol": "015760",
+      "name": "한국전력",
+      "reference_price": 28000,
+      "estimated_close": 28213.88,
+      "estimated_return": 0.76,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000500",
+      "name": "가온전선",
+      "reference_price": 227000,
+      "estimated_close": 228711.29,
+      "estimated_return": 0.75,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001510",
+      "name": "SK증권",
+      "reference_price": 1985,
+      "estimated_close": 1999.67,
+      "estimated_return": 0.74,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000660",
+      "name": "SK하이닉스",
+      "reference_price": 1275000,
+      "estimated_close": 1284248.82,
+      "estimated_return": 0.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "451800",
+      "name": "한화리츠",
+      "reference_price": 5200,
+      "estimated_close": 5238.03,
+      "estimated_return": 0.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008060",
+      "name": "대덕",
+      "reference_price": 13720,
+      "estimated_close": 13813.14,
+      "estimated_return": 0.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "404990",
+      "name": "신한서부티엔디리츠",
+      "reference_price": 3925,
+      "estimated_close": 3950.72,
+      "estimated_return": 0.66,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005257",
+      "name": "녹십자홀딩스2우",
+      "reference_price": 16600,
+      "estimated_close": 16707.43,
+      "estimated_return": 0.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "071840",
+      "name": "롯데하이마트",
+      "reference_price": 5740,
+      "estimated_close": 5776.83,
+      "estimated_return": 0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003120",
+      "name": "일성아이에스",
+      "reference_price": 21400,
+      "estimated_close": 21533.03,
+      "estimated_return": 0.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011785",
+      "name": "금호석유화학우",
+      "reference_price": 45600,
+      "estimated_close": 45883.4,
+      "estimated_return": 0.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002880",
+      "name": "디와이에이",
+      "reference_price": 3045,
+      "estimated_close": 3063.27,
+      "estimated_return": 0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008930",
+      "name": "한미사이언스",
+      "reference_price": 42250,
+      "estimated_close": 42504.22,
+      "estimated_return": 0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "053690",
+      "name": "한미글로벌",
+      "reference_price": 17340,
+      "estimated_close": 17443.73,
+      "estimated_return": 0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "375500",
+      "name": "DL이앤씨",
+      "reference_price": 56500,
+      "estimated_close": 56836.55,
+      "estimated_return": 0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005820",
+      "name": "원림",
+      "reference_price": 14100,
+      "estimated_close": 14182.98,
+      "estimated_return": 0.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "035150",
+      "name": "백산",
+      "reference_price": 9950,
+      "estimated_close": 10009.05,
+      "estimated_return": 0.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "035420",
+      "name": "NAVER",
+      "reference_price": 174200,
+      "estimated_close": 175234.3,
+      "estimated_return": 0.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "036460",
+      "name": "한국가스공사",
+      "reference_price": 36050,
+      "estimated_close": 36253.83,
+      "estimated_return": 0.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017550",
+      "name": "수산세보틱스",
+      "reference_price": 1700,
+      "estimated_close": 1709.54,
+      "estimated_return": 0.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002960",
+      "name": "한국쉘석유",
+      "reference_price": 532000,
+      "estimated_close": 534919.86,
+      "estimated_return": 0.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003080",
+      "name": "SB성보",
+      "reference_price": 2230,
+      "estimated_close": 2241.87,
+      "estimated_return": 0.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002390",
+      "name": "한독",
+      "reference_price": 8240,
+      "estimated_close": 8279.89,
+      "estimated_return": 0.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "024070",
+      "name": "WISCOM",
+      "reference_price": 1829,
+      "estimated_close": 1837.67,
+      "estimated_return": 0.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009470",
+      "name": "삼화전기",
+      "reference_price": 28550,
+      "estimated_close": 28682.33,
+      "estimated_return": 0.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "134380",
+      "name": "미원화학",
+      "reference_price": 11330,
+      "estimated_close": 11380.48,
+      "estimated_return": 0.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000540",
+      "name": "흥국화재",
+      "reference_price": 3140,
+      "estimated_close": 3153.57,
+      "estimated_return": 0.43,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009150",
+      "name": "삼성전기",
+      "reference_price": 1118000,
+      "estimated_close": 1122657.5,
+      "estimated_return": 0.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016800",
+      "name": "퍼시스",
+      "reference_price": 24350,
+      "estimated_close": 24452.12,
+      "estimated_return": 0.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005930",
+      "name": "삼성전자",
+      "reference_price": 213000,
+      "estimated_close": 213864.2,
+      "estimated_return": 0.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "049800",
+      "name": "우진플라임",
+      "reference_price": 1812,
+      "estimated_close": 1819.37,
+      "estimated_return": 0.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "481850",
+      "name": "신한글로벌액티브리츠",
+      "reference_price": 824,
+      "estimated_close": 827.41,
+      "estimated_return": 0.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007980",
+      "name": "TP",
+      "reference_price": 1609,
+      "estimated_close": 1615.41,
+      "estimated_return": 0.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "078000",
+      "name": "텔코웨어",
+      "reference_price": 12960,
+      "estimated_close": 13010.05,
+      "estimated_return": 0.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "095720",
+      "name": "웅진씽크빅",
+      "reference_price": 1158,
+      "estimated_close": 1162.43,
+      "estimated_return": 0.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017670",
+      "name": "SK텔레콤",
+      "reference_price": 72100,
+      "estimated_close": 72358.98,
+      "estimated_return": 0.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "069640",
+      "name": "한세엠케이",
+      "reference_price": 1360,
+      "estimated_close": 1364.96,
+      "estimated_return": 0.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001500",
+      "name": "현대차증권",
+      "reference_price": 6750,
+      "estimated_close": 6773.31,
+      "estimated_return": 0.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "019680",
+      "name": "대교",
+      "reference_price": 1497,
+      "estimated_close": 1502.04,
+      "estimated_return": 0.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "377740",
+      "name": "바이오노트",
+      "reference_price": 4595,
+      "estimated_close": 4610.57,
+      "estimated_return": 0.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000105",
+      "name": "유한양행우",
+      "reference_price": 68100,
+      "estimated_close": 68319.34,
+      "estimated_return": 0.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "015590",
+      "name": "DKME",
+      "reference_price": 1981,
+      "estimated_close": 1987.31,
+      "estimated_return": 0.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "460860",
+      "name": "동국제강",
+      "reference_price": 9150,
+      "estimated_close": 9179.43,
+      "estimated_return": 0.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "047040",
+      "name": "대우건설",
+      "reference_price": 14220,
+      "estimated_close": 14263.86,
+      "estimated_return": 0.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000080",
+      "name": "하이트진로",
+      "reference_price": 15850,
+      "estimated_close": 15897.76,
+      "estimated_return": 0.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "272550",
+      "name": "삼양패키징",
+      "reference_price": 9750,
+      "estimated_close": 9776.89,
+      "estimated_return": 0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "044820",
+      "name": "코스맥스비티아이",
+      "reference_price": 22200,
+      "estimated_close": 22260.63,
+      "estimated_return": 0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006280",
+      "name": "녹십자",
+      "reference_price": 129600,
+      "estimated_close": 129930.89,
+      "estimated_return": 0.26,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000810",
+      "name": "삼성화재",
+      "reference_price": 595000,
+      "estimated_close": 596464.95,
+      "estimated_return": 0.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014440",
+      "name": "영보화학",
+      "reference_price": 4750,
+      "estimated_close": 4762.06,
+      "estimated_return": 0.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "271560",
+      "name": "오리온",
+      "reference_price": 113000,
+      "estimated_close": 113272.99,
+      "estimated_return": 0.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "180640",
+      "name": "한진칼",
+      "reference_price": 119500,
+      "estimated_close": 119769,
+      "estimated_return": 0.23,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011300",
+      "name": "우성머티리얼스",
+      "reference_price": 2450,
+      "estimated_close": 2455.22,
+      "estimated_return": 0.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "037710",
+      "name": "광주신세계",
+      "reference_price": 32600,
+      "estimated_close": 32665.91,
+      "estimated_return": 0.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001740",
+      "name": "SK네트웍스",
+      "reference_price": 5570,
+      "estimated_close": 5580.32,
+      "estimated_return": 0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001790",
+      "name": "대한제당",
+      "reference_price": 2740,
+      "estimated_close": 2745.21,
+      "estimated_return": 0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004720",
+      "name": "팜젠사이언스",
+      "reference_price": 2750,
+      "estimated_close": 2755.33,
+      "estimated_return": 0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "300720",
+      "name": "한일시멘트",
+      "reference_price": 16700,
+      "estimated_close": 16731.41,
+      "estimated_return": 0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000700",
+      "name": "유수홀딩스",
+      "reference_price": 5930,
+      "estimated_close": 5940.56,
+      "estimated_return": 0.18,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004440",
+      "name": "삼일씨엔에스",
+      "reference_price": 4725,
+      "estimated_close": 4733.16,
+      "estimated_return": 0.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "035720",
+      "name": "카카오",
+      "reference_price": 29550,
+      "estimated_close": 29600.24,
+      "estimated_return": 0.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "298040",
+      "name": "효성중공업",
+      "reference_price": 1853000,
+      "estimated_close": 1856083.24,
+      "estimated_return": 0.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001800",
+      "name": "오리온홀딩스",
+      "reference_price": 22350,
+      "estimated_close": 22382.82,
+      "estimated_return": 0.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007460",
+      "name": "에이프로젠",
+      "reference_price": 1928,
+      "estimated_close": 1930.85,
+      "estimated_return": 0.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "453340",
+      "name": "현대그린푸드",
+      "reference_price": 19390,
+      "estimated_close": 19419.49,
+      "estimated_return": 0.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "417310",
+      "name": "코람코더원리츠",
+      "reference_price": 2400,
+      "estimated_close": 2403.36,
+      "estimated_return": 0.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003220",
+      "name": "대원제약",
+      "reference_price": 7640,
+      "estimated_close": 7650.27,
+      "estimated_return": 0.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "036420",
+      "name": "콘텐트리중앙",
+      "reference_price": 1643,
+      "estimated_close": 1645.07,
+      "estimated_return": 0.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "192820",
+      "name": "코스맥스",
+      "reference_price": 268000,
+      "estimated_close": 268349.22,
+      "estimated_return": 0.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003075",
+      "name": "코오롱글로벌우",
+      "reference_price": 11860,
+      "estimated_close": 11874.07,
+      "estimated_return": 0.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006360",
+      "name": "GS건설",
+      "reference_price": 28150,
+      "estimated_close": 28182.8,
+      "estimated_return": 0.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002460",
+      "name": "HS화성",
+      "reference_price": 10470,
+      "estimated_close": 10480.79,
+      "estimated_return": 0.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013360",
+      "name": "일성건설",
+      "reference_price": 1298,
+      "estimated_close": 1299.36,
+      "estimated_return": 0.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016360",
+      "name": "삼성증권",
+      "reference_price": 76300,
+      "estimated_close": 76376.53,
+      "estimated_return": 0.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "066570",
+      "name": "LG전자",
+      "reference_price": 156000,
+      "estimated_close": 156152.57,
+      "estimated_return": 0.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "352820",
+      "name": "하이브",
+      "reference_price": 174100,
+      "estimated_close": 174249.49,
+      "estimated_return": 0.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003850",
+      "name": "보령",
+      "reference_price": 8300,
+      "estimated_close": 8306.37,
+      "estimated_return": 0.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005380",
+      "name": "현대차",
+      "reference_price": 288000,
+      "estimated_close": 288243.37,
+      "estimated_return": 0.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005500",
+      "name": "삼진제약",
+      "reference_price": 19160,
+      "estimated_close": 19175.88,
+      "estimated_return": 0.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008700",
+      "name": "아남전자",
+      "reference_price": 1193,
+      "estimated_close": 1193.66,
+      "estimated_return": 0.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010960",
+      "name": "삼호개발",
+      "reference_price": 3005,
+      "estimated_close": 3006.72,
+      "estimated_return": 0.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "032560",
+      "name": "황금에스티",
+      "reference_price": 5300,
+      "estimated_close": 5303.29,
+      "estimated_return": 0.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007310",
+      "name": "오뚜기",
+      "reference_price": 310500,
+      "estimated_close": 310655.15,
+      "estimated_return": 0.05,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007570",
+      "name": "일양약품",
+      "reference_price": 7090,
+      "estimated_close": 7093.75,
+      "estimated_return": 0.05,
+      "missing_reason": null
+    },
+    {
+      "symbol": "053210",
+      "name": "스카이라이프",
+      "reference_price": 3950,
+      "estimated_close": 3951.67,
+      "estimated_return": 0.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003350",
+      "name": "한국화장품제조",
+      "reference_price": 14510,
+      "estimated_close": 14513.67,
+      "estimated_return": 0.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004560",
+      "name": "현대비앤지스틸",
+      "reference_price": 10500,
+      "estimated_close": 10503.53,
+      "estimated_return": 0.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "026890",
+      "name": "스틱인베스트먼트",
+      "reference_price": 7150,
+      "estimated_close": 7151.49,
+      "estimated_return": 0.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003570",
+      "name": "SNT다이내믹스",
+      "reference_price": 26350,
+      "estimated_close": 26352.68,
+      "estimated_return": 0.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005935",
+      "name": "삼성전자우",
+      "reference_price": 164200,
+      "estimated_close": 164204.18,
+      "estimated_return": 0,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005965",
+      "name": "동부건설우",
+      "reference_price": 15840,
+      "estimated_close": 15840.01,
+      "estimated_return": 0,
+      "missing_reason": null
+    },
+    {
+      "symbol": "037560",
+      "name": "LG헬로비전",
+      "reference_price": 1444,
+      "estimated_close": 1444.06,
+      "estimated_return": 0,
+      "missing_reason": null
+    },
+    {
+      "symbol": "415640",
+      "name": "KB발해인프라",
+      "reference_price": 9990,
+      "estimated_close": 9990.01,
+      "estimated_return": 0,
+      "missing_reason": null
+    },
+    {
+      "symbol": "268280",
+      "name": "미원에스씨",
+      "reference_price": 128600,
+      "estimated_close": 128592.46,
+      "estimated_return": -0.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009580",
+      "name": "무림P&P",
+      "reference_price": 1561,
+      "estimated_close": 1560.72,
+      "estimated_return": -0.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010400",
+      "name": "우진아이엔에스",
+      "reference_price": 3705,
+      "estimated_close": 3704.06,
+      "estimated_return": -0.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034730",
+      "name": "SK",
+      "reference_price": 465500,
+      "estimated_close": 465379.05,
+      "estimated_return": -0.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004410",
+      "name": "서울식품",
+      "reference_price": 1283,
+      "estimated_close": 1282.39,
+      "estimated_return": -0.05,
+      "missing_reason": null
+    },
+    {
+      "symbol": "039130",
+      "name": "하나투어",
+      "reference_price": 27050,
+      "estimated_close": 27032.49,
+      "estimated_return": -0.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "066575",
+      "name": "LG전자우",
+      "reference_price": 58000,
+      "estimated_close": 57963.97,
+      "estimated_return": -0.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "448730",
+      "name": "삼성FN리츠",
+      "reference_price": 5170,
+      "estimated_close": 5166.68,
+      "estimated_return": -0.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001755",
+      "name": "한양증권우",
+      "reference_price": 18510,
+      "estimated_close": 18496.71,
+      "estimated_return": -0.07,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001795",
+      "name": "대한제당우",
+      "reference_price": 2050,
+      "estimated_close": 2048.38,
+      "estimated_return": -0.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017800",
+      "name": "현대엘리베이터",
+      "reference_price": 66600,
+      "estimated_close": 66544.79,
+      "estimated_return": -0.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "029780",
+      "name": "삼성카드",
+      "reference_price": 41550,
+      "estimated_close": 41516.71,
+      "estimated_return": -0.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001720",
+      "name": "신영증권",
+      "reference_price": 118400,
+      "estimated_close": 118298.4,
+      "estimated_return": -0.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "021820",
+      "name": "세원정공",
+      "reference_price": 10410,
+      "estimated_close": 10400.66,
+      "estimated_return": -0.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002620",
+      "name": "제일파마홀딩스",
+      "reference_price": 7040,
+      "estimated_close": 7033.31,
+      "estimated_return": -0.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000725",
+      "name": "현대건설우",
+      "reference_price": 45400,
+      "estimated_close": 45349.73,
+      "estimated_return": -0.11,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000430",
+      "name": "대원강업",
+      "reference_price": 3970,
+      "estimated_close": 3965.38,
+      "estimated_return": -0.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004080",
+      "name": "신흥",
+      "reference_price": 14350,
+      "estimated_close": 14333.41,
+      "estimated_return": -0.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "079160",
+      "name": "CJ CGV",
+      "reference_price": 4995,
+      "estimated_close": 4988.99,
+      "estimated_return": -0.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000950",
+      "name": "전방",
+      "reference_price": 30300,
+      "estimated_close": 30261.48,
+      "estimated_return": -0.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003030",
+      "name": "세아제강지주",
+      "reference_price": 96200,
+      "estimated_close": 96070.45,
+      "estimated_return": -0.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "383800",
+      "name": "LX홀딩스",
+      "reference_price": 7630,
+      "estimated_close": 7620.11,
+      "estimated_return": -0.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004800",
+      "name": "효성",
+      "reference_price": 115100,
+      "estimated_close": 114940.95,
+      "estimated_return": -0.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016710",
+      "name": "대성홀딩스",
+      "reference_price": 6720,
+      "estimated_close": 6710.4,
+      "estimated_return": -0.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006800",
+      "name": "미래에셋증권",
+      "reference_price": 24000,
+      "estimated_close": 23964.9,
+      "estimated_return": -0.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "102260",
+      "name": "동성케미컬",
+      "reference_price": 3375,
+      "estimated_close": 3370.04,
+      "estimated_return": -0.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "286940",
+      "name": "롯데이노베이트",
+      "reference_price": 17530,
+      "estimated_close": 17502.92,
+      "estimated_return": -0.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014285",
+      "name": "금강공업우",
+      "reference_price": 5370,
+      "estimated_close": 5361.56,
+      "estimated_return": -0.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025000",
+      "name": "KPX케미칼",
+      "reference_price": 61300,
+      "estimated_close": 61202.02,
+      "estimated_return": -0.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "026960",
+      "name": "동서",
+      "reference_price": 27300,
+      "estimated_close": 27255.56,
+      "estimated_return": -0.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "267290",
+      "name": "경동도시가스",
+      "reference_price": 20700,
+      "estimated_close": 20666.87,
+      "estimated_return": -0.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005850",
+      "name": "에스엘",
+      "reference_price": 48750,
+      "estimated_close": 48669.14,
+      "estimated_return": -0.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006120",
+      "name": "SK디스커버리",
+      "reference_price": 57100,
+      "estimated_close": 57002.67,
+      "estimated_return": -0.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014915",
+      "name": "성문전자우",
+      "reference_price": 4705,
+      "estimated_close": 4696.88,
+      "estimated_return": -0.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005800",
+      "name": "신영와코루",
+      "reference_price": 13060,
+      "estimated_close": 13036.91,
+      "estimated_return": -0.18,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002450",
+      "name": "삼익악기",
+      "reference_price": 1032,
+      "estimated_close": 1030.07,
+      "estimated_return": -0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010120",
+      "name": "LS ELECTRIC",
+      "reference_price": 152900,
+      "estimated_close": 152605.17,
+      "estimated_return": -0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012170",
+      "name": "아센디오",
+      "reference_price": 2915,
+      "estimated_close": 2909.59,
+      "estimated_return": -0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025890",
+      "name": "한국주강",
+      "reference_price": 2475,
+      "estimated_close": 2470.25,
+      "estimated_return": -0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "079430",
+      "name": "현대리바트",
+      "reference_price": 5170,
+      "estimated_close": 5160.06,
+      "estimated_return": -0.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005810",
+      "name": "풍산홀딩스",
+      "reference_price": 32850,
+      "estimated_close": 32785.19,
+      "estimated_return": -0.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "071050",
+      "name": "한국금융지주",
+      "reference_price": 145100,
+      "estimated_close": 144808.61,
+      "estimated_return": -0.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "122900",
+      "name": "아이마켓코리아",
+      "reference_price": 8080,
+      "estimated_close": 8063.72,
+      "estimated_return": -0.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003540",
+      "name": "대신증권",
+      "reference_price": 22250,
+      "estimated_close": 22202.82,
+      "estimated_return": -0.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "033240",
+      "name": "자화전자",
+      "reference_price": 21000,
+      "estimated_close": 20955.09,
+      "estimated_return": -0.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "280360",
+      "name": "롯데웰푸드",
+      "reference_price": 118600,
+      "estimated_close": 118326.23,
+      "estimated_return": -0.23,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000325",
+      "name": "노루홀딩스우",
+      "reference_price": 27500,
+      "estimated_close": 27433.93,
+      "estimated_return": -0.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000640",
+      "name": "동아제약",
+      "reference_price": 87900,
+      "estimated_close": 87687.02,
+      "estimated_return": -0.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "079900",
+      "name": "전진건설로봇",
+      "reference_price": 36400,
+      "estimated_close": 36310.85,
+      "estimated_return": -0.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004970",
+      "name": "신라교역",
+      "reference_price": 8880,
+      "estimated_close": 8856.89,
+      "estimated_return": -0.26,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005960",
+      "name": "동부건설",
+      "reference_price": 8000,
+      "estimated_close": 7979.32,
+      "estimated_return": -0.26,
+      "missing_reason": null
+    },
+    {
+      "symbol": "030190",
+      "name": "NICE평가정보",
+      "reference_price": 17070,
+      "estimated_close": 17024.88,
+      "estimated_return": -0.26,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000490",
+      "name": "대동",
+      "reference_price": 6940,
+      "estimated_close": 6921.1,
+      "estimated_return": -0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001130",
+      "name": "대한제분",
+      "reference_price": 10880,
+      "estimated_close": 10850.17,
+      "estimated_return": -0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002700",
+      "name": "신일전자",
+      "reference_price": 977,
+      "estimated_close": 974.36,
+      "estimated_return": -0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007575",
+      "name": "일양약품우",
+      "reference_price": 7100,
+      "estimated_close": 7080.82,
+      "estimated_return": -0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "108675",
+      "name": "LX하우시스우",
+      "reference_price": 17240,
+      "estimated_close": 17193.77,
+      "estimated_return": -0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "145995",
+      "name": "삼양사우",
+      "reference_price": 31250,
+      "estimated_close": 31166.9,
+      "estimated_return": -0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "214390",
+      "name": "경보제약",
+      "reference_price": 5170,
+      "estimated_close": 5155.92,
+      "estimated_return": -0.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006660",
+      "name": "삼성공조",
+      "reference_price": 10280,
+      "estimated_close": 10251.38,
+      "estimated_return": -0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014990",
+      "name": "인디에프",
+      "reference_price": 3160,
+      "estimated_close": 3151.19,
+      "estimated_return": -0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "033920",
+      "name": "무학",
+      "reference_price": 7140,
+      "estimated_close": 7120.13,
+      "estimated_return": -0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "117580",
+      "name": "대성에너지",
+      "reference_price": 6970,
+      "estimated_close": 6950.39,
+      "estimated_return": -0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "210540",
+      "name": "디와이파워",
+      "reference_price": 10370,
+      "estimated_close": 10340.46,
+      "estimated_return": -0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "293480",
+      "name": "하나제약",
+      "reference_price": 8210,
+      "estimated_close": 8187.25,
+      "estimated_return": -0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "489790",
+      "name": "한화비전",
+      "reference_price": 37200,
+      "estimated_close": 37097.14,
+      "estimated_return": -0.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000850",
+      "name": "화천기공",
+      "reference_price": 33850,
+      "estimated_close": 33751.16,
+      "estimated_return": -0.29,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001550",
+      "name": "조비",
+      "reference_price": 9650,
+      "estimated_close": 9621.61,
+      "estimated_return": -0.29,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006340",
+      "name": "대원전선",
+      "reference_price": 9850,
+      "estimated_close": 9820.18,
+      "estimated_return": -0.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009680",
+      "name": "모토닉",
+      "reference_price": 10020,
+      "estimated_close": 9990.36,
+      "estimated_return": -0.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "024900",
+      "name": "디와이덕양",
+      "reference_price": 2015,
+      "estimated_close": 2008.98,
+      "estimated_return": -0.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "094800",
+      "name": "맵스리얼티",
+      "reference_price": 6710,
+      "estimated_close": 6690.04,
+      "estimated_return": -0.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004835",
+      "name": "덕성우",
+      "reference_price": 4885,
+      "estimated_close": 4869.72,
+      "estimated_return": -0.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001750",
+      "name": "한양증권",
+      "reference_price": 18310,
+      "estimated_close": 18251.34,
+      "estimated_return": -0.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009540",
+      "name": "HD한국조선해양",
+      "reference_price": 243000,
+      "estimated_close": 242224.83,
+      "estimated_return": -0.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034230",
+      "name": "파라다이스",
+      "reference_price": 9410,
+      "estimated_close": 9380.26,
+      "estimated_return": -0.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010100",
+      "name": "한국무브넥스",
+      "reference_price": 3010,
+      "estimated_close": 3000.13,
+      "estimated_return": -0.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010660",
+      "name": "화천기계",
+      "reference_price": 2980,
+      "estimated_close": 2970.19,
+      "estimated_return": -0.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014280",
+      "name": "금강공업",
+      "reference_price": 3985,
+      "estimated_close": 3971.89,
+      "estimated_return": -0.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "015230",
+      "name": "대창단조",
+      "reference_price": 5950,
+      "estimated_close": 5930.15,
+      "estimated_return": -0.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "213500",
+      "name": "한솔제지",
+      "reference_price": 6830,
+      "estimated_close": 6807.18,
+      "estimated_return": -0.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010770",
+      "name": "평화홀딩스",
+      "reference_price": 3385,
+      "estimated_close": 3373.6,
+      "estimated_return": -0.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "204320",
+      "name": "HL만도",
+      "reference_price": 36700,
+      "estimated_close": 36576.37,
+      "estimated_return": -0.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009140",
+      "name": "케이아이이",
+      "reference_price": 10150,
+      "estimated_close": 10114.43,
+      "estimated_return": -0.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014530",
+      "name": "극동유화",
+      "reference_price": 3295,
+      "estimated_close": 3283.49,
+      "estimated_return": -0.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005750",
+      "name": "대림바스",
+      "reference_price": 4105,
+      "estimated_close": 4090.21,
+      "estimated_return": -0.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "298690",
+      "name": "에어부산",
+      "reference_price": 1467,
+      "estimated_close": 1461.71,
+      "estimated_return": -0.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "051600",
+      "name": "한전KPS",
+      "reference_price": 40100,
+      "estimated_close": 39951.66,
+      "estimated_return": -0.37,
+      "missing_reason": null
+    },
+    {
+      "symbol": "102460",
+      "name": "이연제약",
+      "reference_price": 9730,
+      "estimated_close": 9693.62,
+      "estimated_return": -0.37,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000815",
+      "name": "삼성화재우",
+      "reference_price": 377000,
+      "estimated_close": 375567.66,
+      "estimated_return": -0.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "069730",
+      "name": "DSR제강",
+      "reference_price": 5200,
+      "estimated_close": 5180.41,
+      "estimated_return": -0.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "088980",
+      "name": "맥쿼리인프라",
+      "reference_price": 9620,
+      "estimated_close": 9583.74,
+      "estimated_return": -0.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "130660",
+      "name": "한전산업",
+      "reference_price": 9980,
+      "estimated_close": 9941.64,
+      "estimated_return": -0.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008040",
+      "name": "사조동아원",
+      "reference_price": 7080,
+      "estimated_close": 7052.14,
+      "estimated_return": -0.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "030720",
+      "name": "동원수산",
+      "reference_price": 5090,
+      "estimated_close": 5070.32,
+      "estimated_return": -0.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "137310",
+      "name": "에스디바이오센서",
+      "reference_price": 6470,
+      "estimated_close": 6444.92,
+      "estimated_return": -0.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000220",
+      "name": "유유제약",
+      "reference_price": 3640,
+      "estimated_close": 3625.45,
+      "estimated_return": -0.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001270",
+      "name": "부국증권",
+      "reference_price": 42150,
+      "estimated_close": 41981.91,
+      "estimated_return": -0.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "032350",
+      "name": "롯데관광개발",
+      "reference_price": 10100,
+      "estimated_close": 10059.46,
+      "estimated_return": -0.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "072130",
+      "name": "유엔젤",
+      "reference_price": 4230,
+      "estimated_close": 4213.13,
+      "estimated_return": -0.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "030000",
+      "name": "제일기획",
+      "reference_price": 19170,
+      "estimated_close": 19091.17,
+      "estimated_return": -0.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "100220",
+      "name": "비상교육",
+      "reference_price": 4760,
+      "estimated_close": 4740.26,
+      "estimated_return": -0.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "105840",
+      "name": "우진",
+      "reference_price": 9910,
+      "estimated_close": 9868.89,
+      "estimated_return": -0.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "323410",
+      "name": "카카오뱅크",
+      "reference_price": 19620,
+      "estimated_close": 19537.72,
+      "estimated_return": -0.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000270",
+      "name": "기아",
+      "reference_price": 105100,
+      "estimated_close": 104643.46,
+      "estimated_return": -0.43,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000370",
+      "name": "한화손해보험",
+      "reference_price": 6040,
+      "estimated_close": 6013.77,
+      "estimated_return": -0.43,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005940",
+      "name": "NH투자증권",
+      "reference_price": 22550,
+      "estimated_close": 22453.15,
+      "estimated_return": -0.43,
+      "missing_reason": null
+    },
+    {
+      "symbol": "183190",
+      "name": "아세아시멘트",
+      "reference_price": 9020,
+      "estimated_close": 8980.84,
+      "estimated_return": -0.43,
+      "missing_reason": null
+    },
+    {
+      "symbol": "307950",
+      "name": "현대오토에버",
+      "reference_price": 312500,
+      "estimated_close": 311113.92,
+      "estimated_return": -0.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "317450",
+      "name": "명인제약",
+      "reference_price": 39900,
+      "estimated_close": 39725.55,
+      "estimated_return": -0.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006090",
+      "name": "사조오양",
+      "reference_price": 8220,
+      "estimated_close": 8182.88,
+      "estimated_return": -0.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004105",
+      "name": "태양금속우",
+      "reference_price": 4000,
+      "estimated_close": 3981.78,
+      "estimated_return": -0.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004370",
+      "name": "농심",
+      "reference_price": 393000,
+      "estimated_close": 391210.04,
+      "estimated_return": -0.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "015890",
+      "name": "태경산업",
+      "reference_price": 4555,
+      "estimated_close": 4533.91,
+      "estimated_return": -0.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "363280",
+      "name": "티와이홀딩스",
+      "reference_price": 1817,
+      "estimated_close": 1808.71,
+      "estimated_return": -0.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001230",
+      "name": "동국홀딩스",
+      "reference_price": 1913,
+      "estimated_close": 1904.09,
+      "estimated_return": -0.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001630",
+      "name": "종근당홀딩스",
+      "reference_price": 35400,
+      "estimated_close": 35234.62,
+      "estimated_return": -0.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002355",
+      "name": "넥센타이어1우B",
+      "reference_price": 3810,
+      "estimated_close": 3791.91,
+      "estimated_return": -0.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003460",
+      "name": "유화증권",
+      "reference_price": 2825,
+      "estimated_close": 2811.82,
+      "estimated_return": -0.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "035250",
+      "name": "강원랜드",
+      "reference_price": 13870,
+      "estimated_close": 13804.62,
+      "estimated_return": -0.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "058860",
+      "name": "KTis",
+      "reference_price": 2460,
+      "estimated_close": 2448.48,
+      "estimated_return": -0.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007810",
+      "name": "코리아써키트",
+      "reference_price": 66400,
+      "estimated_close": 66084.26,
+      "estimated_return": -0.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012630",
+      "name": "HDC",
+      "reference_price": 20350,
+      "estimated_close": 20251.33,
+      "estimated_return": -0.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "068270",
+      "name": "셀트리온",
+      "reference_price": 190000,
+      "estimated_close": 189087.27,
+      "estimated_return": -0.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "097230",
+      "name": "HJ중공업",
+      "reference_price": 11980,
+      "estimated_close": 11922.04,
+      "estimated_return": -0.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003610",
+      "name": "방림",
+      "reference_price": 5430,
+      "estimated_close": 5403.54,
+      "estimated_return": -0.49,
+      "missing_reason": null
+    },
+    {
+      "symbol": "100250",
+      "name": "진양홀딩스",
+      "reference_price": 2905,
+      "estimated_close": 2890.76,
+      "estimated_return": -0.49,
+      "missing_reason": null
+    },
+    {
+      "symbol": "251270",
+      "name": "넷마블",
+      "reference_price": 33550,
+      "estimated_close": 33386.94,
+      "estimated_return": -0.49,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003830",
+      "name": "대한화섬",
+      "reference_price": 106100,
+      "estimated_close": 105567.47,
+      "estimated_return": -0.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004690",
+      "name": "삼천리",
+      "reference_price": 119000,
+      "estimated_close": 118409.48,
+      "estimated_return": -0.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006125",
+      "name": "SK디스커버리우",
+      "reference_price": 39750,
+      "estimated_close": 39552.81,
+      "estimated_return": -0.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "381970",
+      "name": "KG모빌리티플랫폼",
+      "reference_price": 6210,
+      "estimated_close": 6179.19,
+      "estimated_return": -0.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000970",
+      "name": "한국주철관",
+      "reference_price": 6370,
+      "estimated_close": 6337.18,
+      "estimated_return": -0.52,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002100",
+      "name": "경농",
+      "reference_price": 8830,
+      "estimated_close": 8783.96,
+      "estimated_return": -0.52,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034590",
+      "name": "인천도시가스",
+      "reference_price": 25500,
+      "estimated_close": 25368.21,
+      "estimated_return": -0.52,
+      "missing_reason": null
+    },
+    {
+      "symbol": "103140",
+      "name": "풍산",
+      "reference_price": 57200,
+      "estimated_close": 56905.02,
+      "estimated_return": -0.52,
+      "missing_reason": null
+    },
+    {
+      "symbol": "170900",
+      "name": "동아에스티",
+      "reference_price": 33900,
+      "estimated_close": 33722.78,
+      "estimated_return": -0.52,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001390",
+      "name": "KG케미칼",
+      "reference_price": 3720,
+      "estimated_close": 3700.44,
+      "estimated_return": -0.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "027410",
+      "name": "BGF",
+      "reference_price": 3395,
+      "estimated_close": 3377.09,
+      "estimated_return": -0.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "064350",
+      "name": "현대로템",
+      "reference_price": 79100,
+      "estimated_close": 78681.09,
+      "estimated_return": -0.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "090460",
+      "name": "비에이치",
+      "reference_price": 16510,
+      "estimated_close": 16422,
+      "estimated_return": -0.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000545",
+      "name": "흥국화재우",
+      "reference_price": 5300,
+      "estimated_close": 5271.56,
+      "estimated_return": -0.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010140",
+      "name": "삼성중공업",
+      "reference_price": 16300,
+      "estimated_close": 16212.24,
+      "estimated_return": -0.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "030610",
+      "name": "교보증권",
+      "reference_price": 7960,
+      "estimated_close": 7917.06,
+      "estimated_return": -0.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034120",
+      "name": "SBS",
+      "reference_price": 10890,
+      "estimated_close": 10830.78,
+      "estimated_return": -0.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "097955",
+      "name": "CJ제일제당 우",
+      "reference_price": 102900,
+      "estimated_close": 102343.53,
+      "estimated_return": -0.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "227840",
+      "name": "현대코퍼레이션홀딩스",
+      "reference_price": 12200,
+      "estimated_close": 12134.09,
+      "estimated_return": -0.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001450",
+      "name": "현대해상",
+      "reference_price": 41750,
+      "estimated_close": 41521.39,
+      "estimated_return": -0.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025620",
+      "name": "차AI헬스케어",
+      "reference_price": 5340,
+      "estimated_close": 5310.68,
+      "estimated_return": -0.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "475150",
+      "name": "SK이터닉스",
+      "reference_price": 38300,
+      "estimated_close": 38087.95,
+      "estimated_return": -0.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002025",
+      "name": "코오롱우",
+      "reference_price": 11640,
+      "estimated_close": 11574.53,
+      "estimated_return": -0.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002600",
+      "name": "조흥",
+      "reference_price": 138600,
+      "estimated_close": 137827.46,
+      "estimated_return": -0.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002795",
+      "name": "아모레퍼시픽홀딩스우",
+      "reference_price": 10570,
+      "estimated_close": 10511.15,
+      "estimated_return": -0.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009155",
+      "name": "삼성전기우",
+      "reference_price": 385500,
+      "estimated_close": 383295.8,
+      "estimated_return": -0.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008420",
+      "name": "문배철강",
+      "reference_price": 1942,
+      "estimated_close": 1930.77,
+      "estimated_return": -0.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009415",
+      "name": "태영건설우",
+      "reference_price": 5650,
+      "estimated_close": 5617.11,
+      "estimated_return": -0.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011200",
+      "name": "HMM",
+      "reference_price": 22550,
+      "estimated_close": 22420.2,
+      "estimated_return": -0.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "079550",
+      "name": "LIG디펜스앤에어로스페이스",
+      "reference_price": 429000,
+      "estimated_close": 426525.9,
+      "estimated_return": -0.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025750",
+      "name": "한솔홈데코",
+      "reference_price": 1774,
+      "estimated_close": 1763.48,
+      "estimated_return": -0.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "084010",
+      "name": "대한제강",
+      "reference_price": 8840,
+      "estimated_close": 8787.41,
+      "estimated_return": -0.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "139990",
+      "name": "아주스틸",
+      "reference_price": 2130,
+      "estimated_close": 2117.4,
+      "estimated_return": -0.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "192650",
+      "name": "드림텍",
+      "reference_price": 6550,
+      "estimated_close": 6511.25,
+      "estimated_return": -0.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004770",
+      "name": "써니전자",
+      "reference_price": 1542,
+      "estimated_close": 1532.82,
+      "estimated_return": -0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011420",
+      "name": "갤럭시아에스엠",
+      "reference_price": 1201,
+      "estimated_close": 1193.79,
+      "estimated_return": -0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "021240",
+      "name": "코웨이",
+      "reference_price": 103800,
+      "estimated_close": 103180.55,
+      "estimated_return": -0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "030210",
+      "name": "다올투자증권",
+      "reference_price": 3300,
+      "estimated_close": 3280.21,
+      "estimated_return": -0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "084870",
+      "name": "TBH글로벌",
+      "reference_price": 2170,
+      "estimated_close": 2156.92,
+      "estimated_return": -0.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008250",
+      "name": "이건산업",
+      "reference_price": 3175,
+      "estimated_close": 3155.52,
+      "estimated_return": -0.61,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011330",
+      "name": "유니켐",
+      "reference_price": 6250,
+      "estimated_close": 6211.58,
+      "estimated_return": -0.61,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003495",
+      "name": "대한항공우",
+      "reference_price": 20950,
+      "estimated_close": 20819.67,
+      "estimated_return": -0.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "044450",
+      "name": "KSS해운",
+      "reference_price": 11720,
+      "estimated_close": 11647.78,
+      "estimated_return": -0.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "064960",
+      "name": "SNT모티브",
+      "reference_price": 23650,
+      "estimated_close": 23502.93,
+      "estimated_return": -0.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "200880",
+      "name": "서연이화",
+      "reference_price": 9940,
+      "estimated_close": 9878.21,
+      "estimated_return": -0.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011700",
+      "name": "한신기계",
+      "reference_price": 2065,
+      "estimated_close": 2051.97,
+      "estimated_return": -0.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "279570",
+      "name": "케이뱅크",
+      "reference_price": 5100,
+      "estimated_close": 5067.72,
+      "estimated_return": -0.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001780",
+      "name": "알루코",
+      "reference_price": 1815,
+      "estimated_close": 1803.38,
+      "estimated_return": -0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002220",
+      "name": "한일철강",
+      "reference_price": 2820,
+      "estimated_close": 2802.09,
+      "estimated_return": -0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002360",
+      "name": "SH에너지화학",
+      "reference_price": 3825,
+      "estimated_close": 3800.5,
+      "estimated_return": -0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006260",
+      "name": "LS",
+      "reference_price": 209500,
+      "estimated_close": 208153.44,
+      "estimated_return": -0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006890",
+      "name": "태경케미컬",
+      "reference_price": 4425,
+      "estimated_close": 4396.76,
+      "estimated_return": -0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011390",
+      "name": "부산산업",
+      "reference_price": 40800,
+      "estimated_close": 40539.21,
+      "estimated_return": -0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "036580",
+      "name": "팜스코",
+      "reference_price": 2285,
+      "estimated_close": 2270.31,
+      "estimated_return": -0.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000225",
+      "name": "유유제약1우",
+      "reference_price": 3525,
+      "estimated_close": 3502.13,
+      "estimated_return": -0.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002810",
+      "name": "삼영무역",
+      "reference_price": 20100,
+      "estimated_close": 19968.46,
+      "estimated_return": -0.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "267850",
+      "name": "아시아나IDT",
+      "reference_price": 9020,
+      "estimated_close": 8960.95,
+      "estimated_return": -0.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "298000",
+      "name": "효성화학",
+      "reference_price": 44800,
+      "estimated_close": 44510.55,
+      "estimated_return": -0.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001685",
+      "name": "대상우",
+      "reference_price": 14030,
+      "estimated_close": 13938.04,
+      "estimated_return": -0.66,
+      "missing_reason": null
+    },
+    {
+      "symbol": "123700",
+      "name": "SJM",
+      "reference_price": 3070,
+      "estimated_close": 3049.55,
+      "estimated_return": -0.67,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001520",
+      "name": "동양",
+      "reference_price": 993,
+      "estimated_close": 986.27,
+      "estimated_return": -0.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003300",
+      "name": "한일홀딩스",
+      "reference_price": 16710,
+      "estimated_close": 16595.61,
+      "estimated_return": -0.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003920",
+      "name": "남양유업",
+      "reference_price": 38600,
+      "estimated_close": 38338.37,
+      "estimated_return": -0.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005305",
+      "name": "롯데칠성우",
+      "reference_price": 62700,
+      "estimated_close": 62276.07,
+      "estimated_return": -0.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002170",
+      "name": "SYTS",
+      "reference_price": 51500,
+      "estimated_close": 51139.75,
+      "estimated_return": -0.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003530",
+      "name": "한화투자증권",
+      "reference_price": 3835,
+      "estimated_close": 3808.16,
+      "estimated_return": -0.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "055490",
+      "name": "테이팩스",
+      "reference_price": 18670,
+      "estimated_close": 18539.69,
+      "estimated_return": -0.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "086280",
+      "name": "현대글로비스",
+      "reference_price": 176200,
+      "estimated_close": 174967.36,
+      "estimated_return": -0.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "104700",
+      "name": "한국철강",
+      "reference_price": 9300,
+      "estimated_close": 9234.58,
+      "estimated_return": -0.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "145720",
+      "name": "덴티움",
+      "reference_price": 38900,
+      "estimated_close": 38626.26,
+      "estimated_return": -0.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000100",
+      "name": "유한양행",
+      "reference_price": 81700,
+      "estimated_close": 81122.96,
+      "estimated_return": -0.71,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016580",
+      "name": "환인제약",
+      "reference_price": 10080,
+      "estimated_close": 10008.26,
+      "estimated_return": -0.71,
+      "missing_reason": null
+    },
+    {
+      "symbol": "248170",
+      "name": "샘표식품",
+      "reference_price": 20600,
+      "estimated_close": 20453.8,
+      "estimated_return": -0.71,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001525",
+      "name": "동양우",
+      "reference_price": 6470,
+      "estimated_close": 6423.23,
+      "estimated_return": -0.72,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012450",
+      "name": "한화에어로스페이스",
+      "reference_price": 760000,
+      "estimated_close": 754536.35,
+      "estimated_return": -0.72,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003475",
+      "name": "유안타증권우",
+      "reference_price": 3815,
+      "estimated_close": 3787.12,
+      "estimated_return": -0.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005430",
+      "name": "한국공항",
+      "reference_price": 82400,
+      "estimated_close": 81799.25,
+      "estimated_return": -0.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008490",
+      "name": "서흥",
+      "reference_price": 17950,
+      "estimated_close": 17818.2,
+      "estimated_return": -0.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009270",
+      "name": "신원",
+      "reference_price": 967,
+      "estimated_close": 959.92,
+      "estimated_return": -0.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "052690",
+      "name": "한전기술",
+      "reference_price": 91200,
+      "estimated_close": 90533.3,
+      "estimated_return": -0.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006220",
+      "name": "제주은행",
+      "reference_price": 8160,
+      "estimated_close": 8099.95,
+      "estimated_return": -0.74,
+      "missing_reason": null
+    },
+    {
+      "symbol": "018880",
+      "name": "한온시스템",
+      "reference_price": 3605,
+      "estimated_close": 3578.26,
+      "estimated_return": -0.74,
+      "missing_reason": null
+    },
+    {
+      "symbol": "107590",
+      "name": "미원홀딩스",
+      "reference_price": 57500,
+      "estimated_close": 57075,
+      "estimated_return": -0.74,
+      "missing_reason": null
+    },
+    {
+      "symbol": "241560",
+      "name": "두산밥캣",
+      "reference_price": 48550,
+      "estimated_close": 48190.88,
+      "estimated_return": -0.74,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002780",
+      "name": "진흥기업",
+      "reference_price": 5930,
+      "estimated_close": 5885.45,
+      "estimated_return": -0.75,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005740",
+      "name": "크라운해태홀딩스",
+      "reference_price": 4835,
+      "estimated_close": 4798.93,
+      "estimated_return": -0.75,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010780",
+      "name": "아이에스동서",
+      "reference_price": 14000,
+      "estimated_close": 13895.46,
+      "estimated_return": -0.75,
+      "missing_reason": null
+    },
+    {
+      "symbol": "365550",
+      "name": "ESR켄달스퀘어리츠",
+      "reference_price": 3010,
+      "estimated_close": 2987.38,
+      "estimated_return": -0.75,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017390",
+      "name": "서울가스",
+      "reference_price": 50900,
+      "estimated_close": 50510.96,
+      "estimated_return": -0.76,
+      "missing_reason": null
+    },
+    {
+      "symbol": "271980",
+      "name": "제일약품",
+      "reference_price": 8890,
+      "estimated_close": 8822.25,
+      "estimated_return": -0.76,
+      "missing_reason": null
+    },
+    {
+      "symbol": "100090",
+      "name": "SK오션플랜트",
+      "reference_price": 9600,
+      "estimated_close": 9526.15,
+      "estimated_return": -0.77,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005745",
+      "name": "크라운해태홀딩스우",
+      "reference_price": 4895,
+      "estimated_close": 4856.89,
+      "estimated_return": -0.78,
+      "missing_reason": null
+    },
+    {
+      "symbol": "024090",
+      "name": "디씨엠",
+      "reference_price": 11760,
+      "estimated_close": 11668.28,
+      "estimated_return": -0.78,
+      "missing_reason": null
+    },
+    {
+      "symbol": "024110",
+      "name": "기업은행",
+      "reference_price": 19140,
+      "estimated_close": 18990.01,
+      "estimated_return": -0.78,
+      "missing_reason": null
+    },
+    {
+      "symbol": "015360",
+      "name": "INVENI",
+      "reference_price": 13690,
+      "estimated_close": 13581.79,
+      "estimated_return": -0.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "155660",
+      "name": "DSR",
+      "reference_price": 4125,
+      "estimated_close": 4092.43,
+      "estimated_return": -0.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "226320",
+      "name": "잇츠한불",
+      "reference_price": 10580,
+      "estimated_close": 10495.89,
+      "estimated_return": -0.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002020",
+      "name": "코오롱",
+      "reference_price": 20000,
+      "estimated_close": 19839.71,
+      "estimated_return": -0.8,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004060",
+      "name": "SG세계물산",
+      "reference_price": 2025,
+      "estimated_close": 2008.75,
+      "estimated_return": -0.8,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009190",
+      "name": "대양금속",
+      "reference_price": 826,
+      "estimated_close": 819.38,
+      "estimated_return": -0.8,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000087",
+      "name": "하이트진로2우B",
+      "reference_price": 12110,
+      "estimated_close": 12012.49,
+      "estimated_return": -0.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025540",
+      "name": "한국단자",
+      "reference_price": 51600,
+      "estimated_close": 51183.13,
+      "estimated_return": -0.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "058850",
+      "name": "KTcs",
+      "reference_price": 2025,
+      "estimated_close": 2008.65,
+      "estimated_return": -0.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "120030",
+      "name": "조선선재",
+      "reference_price": 72000,
+      "estimated_close": 71415.73,
+      "estimated_return": -0.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004255",
+      "name": "NPC우",
+      "reference_price": 1854,
+      "estimated_close": 1838.6,
+      "estimated_return": -0.83,
+      "missing_reason": null
+    },
+    {
+      "symbol": "039490",
+      "name": "키움증권",
+      "reference_price": 210500,
+      "estimated_close": 208758.53,
+      "estimated_return": -0.83,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000860",
+      "name": "강남제비스코",
+      "reference_price": 12090,
+      "estimated_close": 11988.39,
+      "estimated_return": -0.84,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003925",
+      "name": "남양유업우",
+      "reference_price": 27100,
+      "estimated_close": 26873.42,
+      "estimated_return": -0.84,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004890",
+      "name": "동일산업",
+      "reference_price": 34800,
+      "estimated_close": 34506.65,
+      "estimated_return": -0.84,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014710",
+      "name": "사조씨푸드",
+      "reference_price": 9390,
+      "estimated_close": 9311.15,
+      "estimated_return": -0.84,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004365",
+      "name": "세방우",
+      "reference_price": 8400,
+      "estimated_close": 8328.3,
+      "estimated_return": -0.85,
+      "missing_reason": null
+    },
+    {
+      "symbol": "092220",
+      "name": "KEC",
+      "reference_price": 2540,
+      "estimated_close": 2518.33,
+      "estimated_return": -0.85,
+      "missing_reason": null
+    },
+    {
+      "symbol": "487570",
+      "name": "HS효성",
+      "reference_price": 45900,
+      "estimated_close": 45508.22,
+      "estimated_return": -0.85,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002690",
+      "name": "동일제강",
+      "reference_price": 1224,
+      "estimated_close": 1213.51,
+      "estimated_return": -0.86,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007340",
+      "name": "DN오토모티브",
+      "reference_price": 39450,
+      "estimated_close": 39109.14,
+      "estimated_return": -0.86,
+      "missing_reason": null
+    },
+    {
+      "symbol": "019685",
+      "name": "대교우B",
+      "reference_price": 1010,
+      "estimated_close": 1001.32,
+      "estimated_return": -0.86,
+      "missing_reason": null
+    },
+    {
+      "symbol": "060980",
+      "name": "HL홀딩스",
+      "reference_price": 33850,
+      "estimated_close": 33558.4,
+      "estimated_return": -0.86,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016450",
+      "name": "한세예스24홀딩스",
+      "reference_price": 4130,
+      "estimated_close": 4094.01,
+      "estimated_return": -0.87,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003000",
+      "name": "부광약품",
+      "reference_price": 3660,
+      "estimated_close": 3627.84,
+      "estimated_return": -0.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "033780",
+      "name": "KT&G",
+      "reference_price": 188900,
+      "estimated_close": 187230.09,
+      "estimated_return": -0.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "051900",
+      "name": "LG생활건강",
+      "reference_price": 257500,
+      "estimated_close": 255231.94,
+      "estimated_return": -0.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "454910",
+      "name": "두산로보틱스",
+      "reference_price": 56300,
+      "estimated_close": 55805.46,
+      "estimated_return": -0.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "077970",
+      "name": "STX엔진",
+      "reference_price": 15830,
+      "estimated_close": 15689.72,
+      "estimated_return": -0.89,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000180",
+      "name": "성창기업지주",
+      "reference_price": 4790,
+      "estimated_close": 4747.06,
+      "estimated_return": -0.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002900",
+      "name": "TYM",
+      "reference_price": 5640,
+      "estimated_close": 5589.49,
+      "estimated_return": -0.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005680",
+      "name": "삼영전자",
+      "reference_price": 11760,
+      "estimated_close": 11654.56,
+      "estimated_return": -0.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001045",
+      "name": "CJ우",
+      "reference_price": 56400,
+      "estimated_close": 55883.95,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001460",
+      "name": "BYC",
+      "reference_price": 35650,
+      "estimated_close": 35326.71,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003480",
+      "name": "한진중공업홀딩스",
+      "reference_price": 4245,
+      "estimated_close": 4206.37,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006040",
+      "name": "동원산업",
+      "reference_price": 33850,
+      "estimated_close": 33541.37,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009180",
+      "name": "한솔로지스틱스",
+      "reference_price": 2680,
+      "estimated_close": 2655.54,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011760",
+      "name": "현대코퍼레이션",
+      "reference_price": 23100,
+      "estimated_close": 22889.06,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023800",
+      "name": "인지컨트롤스",
+      "reference_price": 4525,
+      "estimated_close": 4483.77,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "081660",
+      "name": "미스토홀딩스",
+      "reference_price": 36150,
+      "estimated_close": 35822.51,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "094280",
+      "name": "효성ITX",
+      "reference_price": 11580,
+      "estimated_close": 11474.81,
+      "estimated_return": -0.91,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001260",
+      "name": "남광토건",
+      "reference_price": 7760,
+      "estimated_close": 7688.94,
+      "estimated_return": -0.92,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003550",
+      "name": "LG",
+      "reference_price": 98800,
+      "estimated_close": 97887.25,
+      "estimated_return": -0.92,
+      "missing_reason": null
+    },
+    {
+      "symbol": "439260",
+      "name": "대한조선",
+      "reference_price": 36300,
+      "estimated_close": 35967.08,
+      "estimated_return": -0.92,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004100",
+      "name": "태양금속",
+      "reference_price": 2910,
+      "estimated_close": 2882.96,
+      "estimated_return": -0.93,
+      "missing_reason": null
+    },
+    {
+      "symbol": "058430",
+      "name": "포스코스틸리온",
+      "reference_price": 3960,
+      "estimated_close": 3923.03,
+      "estimated_return": -0.93,
+      "missing_reason": null
+    },
+    {
+      "symbol": "069620",
+      "name": "대웅제약",
+      "reference_price": 100600,
+      "estimated_close": 99661.5,
+      "estimated_return": -0.93,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009410",
+      "name": "태영건설",
+      "reference_price": 1495,
+      "estimated_close": 1481.02,
+      "estimated_return": -0.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "214320",
+      "name": "이노션",
+      "reference_price": 17270,
+      "estimated_close": 17107.08,
+      "estimated_return": -0.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "234080",
+      "name": "JW생명과학",
+      "reference_price": 10420,
+      "estimated_close": 10321.55,
+      "estimated_return": -0.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008870",
+      "name": "금비",
+      "reference_price": 37800,
+      "estimated_close": 37439.85,
+      "estimated_return": -0.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "058650",
+      "name": "세아홀딩스",
+      "reference_price": 120000,
+      "estimated_close": 118857.68,
+      "estimated_return": -0.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "069260",
+      "name": "TKG휴켐스",
+      "reference_price": 14660,
+      "estimated_close": 14520.15,
+      "estimated_return": -0.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "336260",
+      "name": "두산퓨얼셀",
+      "reference_price": 29950,
+      "estimated_close": 29666.59,
+      "estimated_return": -0.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011280",
+      "name": "태림포장",
+      "reference_price": 1134,
+      "estimated_close": 1123.1,
+      "estimated_return": -0.96,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004360",
+      "name": "세방",
+      "reference_price": 12650,
+      "estimated_close": 12526.9,
+      "estimated_return": -0.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004450",
+      "name": "삼화왕관",
+      "reference_price": 27350,
+      "estimated_close": 27085.75,
+      "estimated_return": -0.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009240",
+      "name": "한샘",
+      "reference_price": 37550,
+      "estimated_close": 37186.81,
+      "estimated_return": -0.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "027970",
+      "name": "한국제지",
+      "reference_price": 1965,
+      "estimated_close": 1945.87,
+      "estimated_return": -0.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "377300",
+      "name": "카카오페이",
+      "reference_price": 32850,
+      "estimated_close": 32530.31,
+      "estimated_return": -0.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "042700",
+      "name": "한미반도체",
+      "reference_price": 184000,
+      "estimated_close": 182202.05,
+      "estimated_return": -0.98,
+      "missing_reason": null
+    },
+    {
+      "symbol": "097950",
+      "name": "CJ제일제당",
+      "reference_price": 169900,
+      "estimated_close": 168227.06,
+      "estimated_return": -0.98,
+      "missing_reason": null
+    },
+    {
+      "symbol": "192080",
+      "name": "더블유게임즈",
+      "reference_price": 52400,
+      "estimated_close": 51885.35,
+      "estimated_return": -0.98,
+      "missing_reason": null
+    },
+    {
+      "symbol": "338100",
+      "name": "NH프라임리츠",
+      "reference_price": 3690,
+      "estimated_close": 3653.91,
+      "estimated_return": -0.98,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012205",
+      "name": "계양전기우",
+      "reference_price": 4105,
+      "estimated_close": 4064.33,
+      "estimated_return": -0.99,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012690",
+      "name": "모나리자",
+      "reference_price": 1314,
+      "estimated_close": 1300.99,
+      "estimated_return": -0.99,
+      "missing_reason": null
+    },
+    {
+      "symbol": "126720",
+      "name": "수산인더스트리",
+      "reference_price": 19200,
+      "estimated_close": 19010.71,
+      "estimated_return": -0.99,
+      "missing_reason": null
+    },
+    {
+      "symbol": "129260",
+      "name": "인터지스",
+      "reference_price": 1764,
+      "estimated_close": 1746.53,
+      "estimated_return": -0.99,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005360",
+      "name": "모나미",
+      "reference_price": 960,
+      "estimated_close": 950.43,
+      "estimated_return": -1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "024720",
+      "name": "콜마홀딩스",
+      "reference_price": 8060,
+      "estimated_close": 7979.14,
+      "estimated_return": -1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "090350",
+      "name": "노루페인트",
+      "reference_price": 7800,
+      "estimated_close": 7721.7,
+      "estimated_return": -1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000070",
+      "name": "삼양홀딩스",
+      "reference_price": 51600,
+      "estimated_close": 51078.64,
+      "estimated_return": -1.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004980",
+      "name": "성신양회",
+      "reference_price": 7340,
+      "estimated_close": 7266.23,
+      "estimated_return": -1.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002310",
+      "name": "아세아제지",
+      "reference_price": 7000,
+      "estimated_close": 6928.6,
+      "estimated_return": -1.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004150",
+      "name": "한솔홀딩스",
+      "reference_price": 3200,
+      "estimated_close": 3167.39,
+      "estimated_return": -1.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "101140",
+      "name": "인바이오젠",
+      "reference_price": 4820,
+      "estimated_close": 4770.98,
+      "estimated_return": -1.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "282330",
+      "name": "BGF리테일",
+      "reference_price": 127700,
+      "estimated_close": 126397.42,
+      "estimated_return": -1.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001040",
+      "name": "CJ",
+      "reference_price": 115400,
+      "estimated_close": 114206.05,
+      "estimated_return": -1.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001340",
+      "name": "PKC",
+      "reference_price": 4680,
+      "estimated_close": 4631.56,
+      "estimated_return": -1.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007690",
+      "name": "국도화학",
+      "reference_price": 29850,
+      "estimated_close": 29539.65,
+      "estimated_return": -1.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "029530",
+      "name": "신도리코",
+      "reference_price": 36800,
+      "estimated_close": 36416.01,
+      "estimated_return": -1.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034020",
+      "name": "두산에너빌리티",
+      "reference_price": 57600,
+      "estimated_close": 56998.33,
+      "estimated_return": -1.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "248070",
+      "name": "솔루엠",
+      "reference_price": 14060,
+      "estimated_close": 13913.23,
+      "estimated_return": -1.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001275",
+      "name": "부국증권우",
+      "reference_price": 29500,
+      "estimated_close": 29190.88,
+      "estimated_return": -1.05,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004090",
+      "name": "한국석유",
+      "reference_price": 11000,
+      "estimated_close": 10883.27,
+      "estimated_return": -1.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005830",
+      "name": "DB손해보험",
+      "reference_price": 179700,
+      "estimated_close": 177802.64,
+      "estimated_return": -1.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025820",
+      "name": "이구산업",
+      "reference_price": 3655,
+      "estimated_close": 3616.14,
+      "estimated_return": -1.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "082740",
+      "name": "한화엔진",
+      "reference_price": 31050,
+      "estimated_close": 30720.47,
+      "estimated_return": -1.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "092780",
+      "name": "DYP",
+      "reference_price": 3070,
+      "estimated_close": 3037.43,
+      "estimated_return": -1.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002200",
+      "name": "한국수출포장",
+      "reference_price": 2595,
+      "estimated_close": 2567.35,
+      "estimated_return": -1.07,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000050",
+      "name": "경방",
+      "reference_price": 7510,
+      "estimated_close": 7428.9,
+      "estimated_return": -1.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005720",
+      "name": "넥센",
+      "reference_price": 5990,
+      "estimated_close": 5925.01,
+      "estimated_return": -1.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "128820",
+      "name": "대성산업",
+      "reference_price": 4095,
+      "estimated_close": 4050.75,
+      "estimated_return": -1.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "357430",
+      "name": "마스턴프리미어리츠",
+      "reference_price": 735,
+      "estimated_close": 727.06,
+      "estimated_return": -1.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000480",
+      "name": "CR홀딩스",
+      "reference_price": 4190,
+      "estimated_close": 4144.48,
+      "estimated_return": -1.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003090",
+      "name": "대웅",
+      "reference_price": 14510,
+      "estimated_close": 14351.92,
+      "estimated_return": -1.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "033270",
+      "name": "유나이티드제약",
+      "reference_price": 16800,
+      "estimated_close": 16617.67,
+      "estimated_return": -1.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034310",
+      "name": "NICE",
+      "reference_price": 11520,
+      "estimated_close": 11393.98,
+      "estimated_return": -1.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "035510",
+      "name": "신세계 I&C",
+      "reference_price": 13280,
+      "estimated_close": 13134.69,
+      "estimated_return": -1.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "096775",
+      "name": "SK이노베이션우",
+      "reference_price": 67900,
+      "estimated_close": 67156.51,
+      "estimated_return": -1.09,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007070",
+      "name": "GS리테일",
+      "reference_price": 20700,
+      "estimated_close": 20472.42,
+      "estimated_return": -1.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014130",
+      "name": "한익스프레스",
+      "reference_price": 2265,
+      "estimated_close": 2240.03,
+      "estimated_return": -1.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "021050",
+      "name": "서원",
+      "reference_price": 977,
+      "estimated_close": 966.29,
+      "estimated_return": -1.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "062040",
+      "name": "산일전기",
+      "reference_price": 159600,
+      "estimated_close": 157846.34,
+      "estimated_return": -1.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016380",
+      "name": "KG스틸",
+      "reference_price": 4930,
+      "estimated_close": 4875.14,
+      "estimated_return": -1.11,
+      "missing_reason": null
+    },
+    {
+      "symbol": "030200",
+      "name": "KT",
+      "reference_price": 45700,
+      "estimated_close": 45191.4,
+      "estimated_return": -1.11,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001360",
+      "name": "삼성제약",
+      "reference_price": 1254,
+      "estimated_close": 1240,
+      "estimated_return": -1.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005945",
+      "name": "NH투자증권우",
+      "reference_price": 20200,
+      "estimated_close": 19974.25,
+      "estimated_return": -1.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017810",
+      "name": "풀무원",
+      "reference_price": 8100,
+      "estimated_close": 8009.16,
+      "estimated_return": -1.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "090370",
+      "name": "메타랩스",
+      "reference_price": 1038,
+      "estimated_close": 1026.37,
+      "estimated_return": -1.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "108320",
+      "name": "LX세미콘",
+      "reference_price": 29550,
+      "estimated_close": 29218.17,
+      "estimated_return": -1.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "128940",
+      "name": "한미약품",
+      "reference_price": 352500,
+      "estimated_close": 348557.55,
+      "estimated_return": -1.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003680",
+      "name": "한성기업",
+      "reference_price": 4005,
+      "estimated_close": 3959.78,
+      "estimated_return": -1.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "047050",
+      "name": "포스코인터내셔널",
+      "reference_price": 49550,
+      "estimated_close": 48987.89,
+      "estimated_return": -1.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "108670",
+      "name": "LX하우시스",
+      "reference_price": 29950,
+      "estimated_close": 29611.27,
+      "estimated_return": -1.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "136490",
+      "name": "선진",
+      "reference_price": 9750,
+      "estimated_close": 9639.34,
+      "estimated_return": -1.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004840",
+      "name": "DRB동일",
+      "reference_price": 3725,
+      "estimated_close": 3682.36,
+      "estimated_return": -1.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "259960",
+      "name": "크래프톤",
+      "reference_price": 183500,
+      "estimated_close": 181399.74,
+      "estimated_return": -1.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "264900",
+      "name": "크라운제과",
+      "reference_price": 7140,
+      "estimated_close": 7058.76,
+      "estimated_return": -1.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013870",
+      "name": "지엠비코리아",
+      "reference_price": 3520,
+      "estimated_close": 3479.62,
+      "estimated_return": -1.15,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001465",
+      "name": "BYC우",
+      "reference_price": 25100,
+      "estimated_close": 24808.36,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003535",
+      "name": "한화투자증권우",
+      "reference_price": 5500,
+      "estimated_close": 5436.1,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003555",
+      "name": "LG우",
+      "reference_price": 61700,
+      "estimated_close": 60985.34,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004830",
+      "name": "덕성",
+      "reference_price": 3135,
+      "estimated_close": 3098.51,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005610",
+      "name": "삼립",
+      "reference_price": 39100,
+      "estimated_close": 38647.83,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009290",
+      "name": "광동제약",
+      "reference_price": 6450,
+      "estimated_close": 6375.24,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009420",
+      "name": "한올바이오파마",
+      "reference_price": 38550,
+      "estimated_close": 38101.23,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "034830",
+      "name": "한국토지신탁",
+      "reference_price": 1009,
+      "estimated_close": 997.29,
+      "estimated_return": -1.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008775",
+      "name": "호텔신라우",
+      "reference_price": 26750,
+      "estimated_close": 26438.36,
+      "estimated_return": -1.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013700",
+      "name": "까뮤이앤씨",
+      "reference_price": 1503,
+      "estimated_close": 1485.39,
+      "estimated_return": -1.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014820",
+      "name": "동원시스템즈",
+      "reference_price": 20650,
+      "estimated_close": 20407.76,
+      "estimated_return": -1.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005300",
+      "name": "롯데칠성",
+      "reference_price": 93700,
+      "estimated_close": 92591.42,
+      "estimated_return": -1.18,
+      "missing_reason": null
+    },
+    {
+      "symbol": "036530",
+      "name": "SNT홀딩스",
+      "reference_price": 42500,
+      "estimated_close": 41996.9,
+      "estimated_return": -1.18,
+      "missing_reason": null
+    },
+    {
+      "symbol": "105630",
+      "name": "한세실업",
+      "reference_price": 8280,
+      "estimated_close": 8182.56,
+      "estimated_return": -1.18,
+      "missing_reason": null
+    },
+    {
+      "symbol": "103590",
+      "name": "일진전기",
+      "reference_price": 54800,
+      "estimated_close": 54149.42,
+      "estimated_return": -1.19,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005387",
+      "name": "현대차2우B",
+      "reference_price": 153500,
+      "estimated_close": 151652.17,
+      "estimated_return": -1.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009200",
+      "name": "무림페이퍼",
+      "reference_price": 1408,
+      "estimated_close": 1391.15,
+      "estimated_return": -1.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012610",
+      "name": "경인양행",
+      "reference_price": 2960,
+      "estimated_close": 2924.6,
+      "estimated_return": -1.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "018250",
+      "name": "애경산업",
+      "reference_price": 10650,
+      "estimated_close": 10521.68,
+      "estimated_return": -1.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "051905",
+      "name": "LG생활건강우",
+      "reference_price": 91800,
+      "estimated_close": 90699.91,
+      "estimated_return": -1.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "073240",
+      "name": "금호타이어",
+      "reference_price": 5100,
+      "estimated_close": 5038.98,
+      "estimated_return": -1.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "095570",
+      "name": "AJ네트웍스",
+      "reference_price": 3980,
+      "estimated_close": 3932.41,
+      "estimated_return": -1.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000320",
+      "name": "노루홀딩스",
+      "reference_price": 13810,
+      "estimated_close": 13642.31,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001120",
+      "name": "LX인터내셔널",
+      "reference_price": 41200,
+      "estimated_close": 40701.37,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001200",
+      "name": "유진투자증권",
+      "reference_price": 3440,
+      "estimated_close": 3398.38,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002150",
+      "name": "도화엔지니어링",
+      "reference_price": 5330,
+      "estimated_close": 5265.37,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002320",
+      "name": "한진",
+      "reference_price": 16080,
+      "estimated_close": 15885.56,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "035000",
+      "name": "HS애드",
+      "reference_price": 6170,
+      "estimated_close": 6095.11,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "138040",
+      "name": "메리츠금융지주",
+      "reference_price": 125200,
+      "estimated_close": 123686.47,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "145990",
+      "name": "삼양사",
+      "reference_price": 42850,
+      "estimated_close": 42331.38,
+      "estimated_return": -1.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007590",
+      "name": "동방아그로",
+      "reference_price": 5380,
+      "estimated_close": 5314.53,
+      "estimated_return": -1.22,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023590",
+      "name": "다우기술",
+      "reference_price": 31850,
+      "estimated_close": 31462.08,
+      "estimated_return": -1.22,
+      "missing_reason": null
+    },
+    {
+      "symbol": "114090",
+      "name": "GKL",
+      "reference_price": 8210,
+      "estimated_close": 8109.57,
+      "estimated_return": -1.22,
+      "missing_reason": null
+    },
+    {
+      "symbol": "241590",
+      "name": "화승엔터프라이즈",
+      "reference_price": 2620,
+      "estimated_close": 2587.93,
+      "estimated_return": -1.22,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002760",
+      "name": "보락",
+      "reference_price": 919,
+      "estimated_close": 907.71,
+      "estimated_return": -1.23,
+      "missing_reason": null
+    },
+    {
+      "symbol": "063160",
+      "name": "종근당바이오",
+      "reference_price": 12300,
+      "estimated_close": 12148.57,
+      "estimated_return": -1.23,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003545",
+      "name": "대신증권우",
+      "reference_price": 18630,
+      "estimated_close": 18399.29,
+      "estimated_return": -1.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "298020",
+      "name": "효성티앤씨",
+      "reference_price": 247500,
+      "estimated_close": 244440.1,
+      "estimated_return": -1.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "357120",
+      "name": "코람코라이프인프라리츠",
+      "reference_price": 3640,
+      "estimated_close": 3594.99,
+      "estimated_return": -1.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005389",
+      "name": "현대차3우B",
+      "reference_price": 153300,
+      "estimated_close": 151390.91,
+      "estimated_return": -1.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017370",
+      "name": "우신시스템",
+      "reference_price": 3495,
+      "estimated_close": 3451.16,
+      "estimated_return": -1.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "075180",
+      "name": "새론오토모티브",
+      "reference_price": 2855,
+      "estimated_close": 2819.33,
+      "estimated_return": -1.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "126560",
+      "name": "현대퓨처넷",
+      "reference_price": 3200,
+      "estimated_close": 3159.53,
+      "estimated_return": -1.26,
+      "missing_reason": null
+    },
+    {
+      "symbol": "192400",
+      "name": "쿠쿠홀딩스",
+      "reference_price": 25800,
+      "estimated_close": 25474.8,
+      "estimated_return": -1.26,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002030",
+      "name": "아세아",
+      "reference_price": 188600,
+      "estimated_close": 186200.45,
+      "estimated_return": -1.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002420",
+      "name": "우양피앤엘",
+      "reference_price": 5130,
+      "estimated_close": 5065.02,
+      "estimated_return": -1.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004020",
+      "name": "현대제철",
+      "reference_price": 26300,
+      "estimated_close": 25966.34,
+      "estimated_return": -1.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016590",
+      "name": "신대양제지",
+      "reference_price": 8200,
+      "estimated_close": 8095.52,
+      "estimated_return": -1.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "039570",
+      "name": "HDC랩스",
+      "reference_price": 7180,
+      "estimated_close": 7088.68,
+      "estimated_return": -1.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "329180",
+      "name": "HD현대중공업",
+      "reference_price": 289500,
+      "estimated_close": 285811.78,
+      "estimated_return": -1.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001940",
+      "name": "KISCO홀딩스",
+      "reference_price": 22750,
+      "estimated_close": 22459.11,
+      "estimated_return": -1.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004000",
+      "name": "롯데정밀화학",
+      "reference_price": 34900,
+      "estimated_close": 34454.06,
+      "estimated_return": -1.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008260",
+      "name": "NI스틸",
+      "reference_price": 2990,
+      "estimated_close": 2951.42,
+      "estimated_return": -1.29,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003650",
+      "name": "미창석유",
+      "reference_price": 115700,
+      "estimated_close": 114198.93,
+      "estimated_return": -1.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010690",
+      "name": "화신",
+      "reference_price": 6530,
+      "estimated_close": 6444.98,
+      "estimated_return": -1.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "070960",
+      "name": "모나용평",
+      "reference_price": 1858,
+      "estimated_close": 1833.83,
+      "estimated_return": -1.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "353200",
+      "name": "대덕전자",
+      "reference_price": 119700,
+      "estimated_close": 118148.76,
+      "estimated_return": -1.3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000210",
+      "name": "DL",
+      "reference_price": 40400,
+      "estimated_close": 39870.16,
+      "estimated_return": -1.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007160",
+      "name": "사조산업",
+      "reference_price": 42600,
+      "estimated_close": 42039.84,
+      "estimated_return": -1.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010820",
+      "name": "퍼스텍",
+      "reference_price": 4950,
+      "estimated_close": 4885.35,
+      "estimated_return": -1.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "031430",
+      "name": "신세계인터내셔날",
+      "reference_price": 10100,
+      "estimated_close": 9967.24,
+      "estimated_return": -1.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "083420",
+      "name": "그린케미칼",
+      "reference_price": 4385,
+      "estimated_close": 4327.57,
+      "estimated_return": -1.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "163560",
+      "name": "동일고무벨트",
+      "reference_price": 5200,
+      "estimated_close": 5132.1,
+      "estimated_return": -1.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "462870",
+      "name": "시프트업",
+      "reference_price": 29450,
+      "estimated_close": 29063.62,
+      "estimated_return": -1.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012750",
+      "name": "에스원",
+      "reference_price": 93300,
+      "estimated_close": 92072.27,
+      "estimated_return": -1.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "069960",
+      "name": "현대백화점",
+      "reference_price": 73100,
+      "estimated_close": 72136.3,
+      "estimated_return": -1.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "372910",
+      "name": "한컴라이프케어",
+      "reference_price": 1866,
+      "estimated_close": 1841.4,
+      "estimated_return": -1.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000240",
+      "name": "한국앤컴퍼니",
+      "reference_price": 22900,
+      "estimated_close": 22594.82,
+      "estimated_return": -1.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "079980",
+      "name": "휴비스",
+      "reference_price": 1792,
+      "estimated_close": 1768.12,
+      "estimated_return": -1.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000140",
+      "name": "하이트진로홀딩스",
+      "reference_price": 7490,
+      "estimated_close": 7389.73,
+      "estimated_return": -1.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002380",
+      "name": "KCC",
+      "reference_price": 368000,
+      "estimated_close": 363057.13,
+      "estimated_return": -1.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008770",
+      "name": "호텔신라",
+      "reference_price": 34800,
+      "estimated_close": 34334.01,
+      "estimated_return": -1.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "460850",
+      "name": "동국씨엠",
+      "reference_price": 4850,
+      "estimated_close": 4785.25,
+      "estimated_return": -1.34,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012280",
+      "name": "영화금속",
+      "reference_price": 3945,
+      "estimated_close": 3891.74,
+      "estimated_return": -1.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023450",
+      "name": "동남합성",
+      "reference_price": 29800,
+      "estimated_close": 29397.27,
+      "estimated_return": -1.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "041650",
+      "name": "상신브레이크",
+      "reference_price": 1953,
+      "estimated_close": 1926.54,
+      "estimated_return": -1.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "071055",
+      "name": "한국금융지주우",
+      "reference_price": 121900,
+      "estimated_close": 120250.47,
+      "estimated_return": -1.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000120",
+      "name": "CJ대한통운",
+      "reference_price": 64100,
+      "estimated_close": 63226.38,
+      "estimated_return": -1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000890",
+      "name": "보해양조",
+      "reference_price": 1235,
+      "estimated_close": 1218.26,
+      "estimated_return": -1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002995",
+      "name": "금호건설우",
+      "reference_price": 13210,
+      "estimated_close": 13030.59,
+      "estimated_return": -1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003960",
+      "name": "사조대림",
+      "reference_price": 24500,
+      "estimated_close": 24166.18,
+      "estimated_return": -1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "042660",
+      "name": "한화오션",
+      "reference_price": 53000,
+      "estimated_close": 52278.33,
+      "estimated_return": -1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "089470",
+      "name": "HDC현대EP",
+      "reference_price": 3650,
+      "estimated_close": 3600.33,
+      "estimated_return": -1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "462520",
+      "name": "조선내화",
+      "reference_price": 11040,
+      "estimated_close": 10890.08,
+      "estimated_return": -1.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001060",
+      "name": "JW중외제약",
+      "reference_price": 23100,
+      "estimated_close": 22780.1,
+      "estimated_return": -1.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007280",
+      "name": "한국특강",
+      "reference_price": 2060,
+      "estimated_close": 2031.48,
+      "estimated_return": -1.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016610",
+      "name": "DB증권",
+      "reference_price": 9120,
+      "estimated_close": 8994.44,
+      "estimated_return": -1.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "022100",
+      "name": "포스코DX",
+      "reference_price": 18610,
+      "estimated_close": 18353.86,
+      "estimated_return": -1.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "378850",
+      "name": "화승알앤에이",
+      "reference_price": 2600,
+      "estimated_close": 2564.22,
+      "estimated_return": -1.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000880",
+      "name": "한화",
+      "reference_price": 91200,
+      "estimated_close": 89928.55,
+      "estimated_return": -1.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011150",
+      "name": "CJ씨푸드",
+      "reference_price": 1665,
+      "estimated_close": 1641.93,
+      "estimated_return": -1.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "084690",
+      "name": "대상홀딩스",
+      "reference_price": 6930,
+      "estimated_close": 6833.97,
+      "estimated_return": -1.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002790",
+      "name": "아모레퍼시픽홀딩스",
+      "reference_price": 23950,
+      "estimated_close": 23613.82,
+      "estimated_return": -1.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "032640",
+      "name": "LG유플러스",
+      "reference_price": 14030,
+      "estimated_close": 13833.51,
+      "estimated_return": -1.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012200",
+      "name": "계양전기",
+      "reference_price": 2565,
+      "estimated_close": 2528.92,
+      "estimated_return": -1.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016090",
+      "name": "대현",
+      "reference_price": 1410,
+      "estimated_close": 1390.16,
+      "estimated_return": -1.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023530",
+      "name": "롯데쇼핑",
+      "reference_price": 81400,
+      "estimated_close": 80254.93,
+      "estimated_return": -1.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004170",
+      "name": "신세계",
+      "reference_price": 245000,
+      "estimated_close": 241518.47,
+      "estimated_return": -1.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005385",
+      "name": "현대차우",
+      "reference_price": 153700,
+      "estimated_close": 151514.12,
+      "estimated_return": -1.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007540",
+      "name": "샘표",
+      "reference_price": 42700,
+      "estimated_close": 42091.32,
+      "estimated_return": -1.43,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023960",
+      "name": "에쓰씨엔지니어링",
+      "reference_price": 972,
+      "estimated_close": 958.07,
+      "estimated_return": -1.43,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007860",
+      "name": "서연",
+      "reference_price": 6820,
+      "estimated_close": 6721.86,
+      "estimated_return": -1.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009070",
+      "name": "KCTC",
+      "reference_price": 3755,
+      "estimated_close": 3700.98,
+      "estimated_return": -1.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "033530",
+      "name": "SJG세종",
+      "reference_price": 5750,
+      "estimated_close": 5667.22,
+      "estimated_return": -1.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "123890",
+      "name": "한국자산신탁",
+      "reference_price": 2225,
+      "estimated_close": 2192.87,
+      "estimated_return": -1.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000227",
+      "name": "유유제약2우B",
+      "reference_price": 7470,
+      "estimated_close": 7361.89,
+      "estimated_return": -1.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003547",
+      "name": "대신증권2우B",
+      "reference_price": 17900,
+      "estimated_close": 17641.33,
+      "estimated_return": -1.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004990",
+      "name": "롯데지주",
+      "reference_price": 21100,
+      "estimated_close": 20794,
+      "estimated_return": -1.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006740",
+      "name": "블루산업개발",
+      "reference_price": 3375,
+      "estimated_close": 3326.07,
+      "estimated_return": -1.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009970",
+      "name": "영원무역홀딩스",
+      "reference_price": 160900,
+      "estimated_close": 158571.64,
+      "estimated_return": -1.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025560",
+      "name": "미래산업",
+      "reference_price": 6890,
+      "estimated_close": 6790.1,
+      "estimated_return": -1.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "058730",
+      "name": "다스코",
+      "reference_price": 2735,
+      "estimated_close": 2695.39,
+      "estimated_return": -1.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002140",
+      "name": "고려산업",
+      "reference_price": 1773,
+      "estimated_close": 1747.18,
+      "estimated_return": -1.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "019180",
+      "name": "티에이치엔",
+      "reference_price": 4430,
+      "estimated_close": 4365.13,
+      "estimated_return": -1.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "075580",
+      "name": "세진중공업",
+      "reference_price": 7200,
+      "estimated_close": 7094.54,
+      "estimated_return": -1.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002990",
+      "name": "금호건설",
+      "reference_price": 9140,
+      "estimated_close": 9006.02,
+      "estimated_return": -1.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "161390",
+      "name": "한국타이어앤테크놀로지",
+      "reference_price": 58200,
+      "estimated_close": 57338.34,
+      "estimated_return": -1.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005010",
+      "name": "휴스틸",
+      "reference_price": 3385,
+      "estimated_close": 3334.49,
+      "estimated_return": -1.49,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007610",
+      "name": "선도전기",
+      "reference_price": 3280,
+      "estimated_close": 3230.74,
+      "estimated_return": -1.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "055550",
+      "name": "신한지주",
+      "reference_price": 85500,
+      "estimated_close": 84218.86,
+      "estimated_return": -1.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "081000",
+      "name": "일진다이아",
+      "reference_price": 8560,
+      "estimated_close": 8430.95,
+      "estimated_return": -1.51,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005250",
+      "name": "녹십자홀딩스",
+      "reference_price": 9090,
+      "estimated_close": 8951.49,
+      "estimated_return": -1.52,
+      "missing_reason": null
+    },
+    {
+      "symbol": "123690",
+      "name": "한국화장품",
+      "reference_price": 5460,
+      "estimated_close": 5376.91,
+      "estimated_return": -1.52,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003280",
+      "name": "흥아해운",
+      "reference_price": 1682,
+      "estimated_close": 1656.32,
+      "estimated_return": -1.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004490",
+      "name": "세방전지",
+      "reference_price": 56800,
+      "estimated_close": 55929.12,
+      "estimated_return": -1.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011070",
+      "name": "LG이노텍",
+      "reference_price": 367000,
+      "estimated_close": 361402.06,
+      "estimated_return": -1.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "267260",
+      "name": "HD현대일렉트릭",
+      "reference_price": 447000,
+      "estimated_close": 440174.25,
+      "estimated_return": -1.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000150",
+      "name": "두산",
+      "reference_price": 901000,
+      "estimated_close": 887013.55,
+      "estimated_return": -1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001430",
+      "name": "세아베스틸지주",
+      "reference_price": 31700,
+      "estimated_close": 31209.69,
+      "estimated_return": -1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002070",
+      "name": "비비안",
+      "reference_price": 3460,
+      "estimated_close": 3406.34,
+      "estimated_return": -1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003470",
+      "name": "유안타증권",
+      "reference_price": 3745,
+      "estimated_close": 3687.06,
+      "estimated_return": -1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003690",
+      "name": "코리안리",
+      "reference_price": 13660,
+      "estimated_close": 13448.42,
+      "estimated_return": -1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005880",
+      "name": "대한해운",
+      "reference_price": 1847,
+      "estimated_close": 1818.42,
+      "estimated_return": -1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "161890",
+      "name": "한국콜마",
+      "reference_price": 117400,
+      "estimated_close": 115578.73,
+      "estimated_return": -1.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002840",
+      "name": "미원상사",
+      "reference_price": 128300,
+      "estimated_close": 126295.8,
+      "estimated_return": -1.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009450",
+      "name": "경동나비엔",
+      "reference_price": 57500,
+      "estimated_close": 56600.61,
+      "estimated_return": -1.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "037270",
+      "name": "YG PLUS",
+      "reference_price": 2855,
+      "estimated_close": 2810.53,
+      "estimated_return": -1.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "400760",
+      "name": "NH올원리츠",
+      "reference_price": 2585,
+      "estimated_close": 2544.67,
+      "estimated_return": -1.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000230",
+      "name": "일동홀딩스",
+      "reference_price": 5780,
+      "estimated_close": 5689.37,
+      "estimated_return": -1.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006490",
+      "name": "프리티",
+      "reference_price": 963,
+      "estimated_close": 947.88,
+      "estimated_return": -1.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006650",
+      "name": "대한유화",
+      "reference_price": 78400,
+      "estimated_close": 77167.81,
+      "estimated_return": -1.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010130",
+      "name": "고려아연",
+      "reference_price": 845000,
+      "estimated_close": 831698.82,
+      "estimated_return": -1.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "018500",
+      "name": "동원모빌리티",
+      "reference_price": 1260,
+      "estimated_close": 1240.26,
+      "estimated_return": -1.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "092440",
+      "name": "기신정기",
+      "reference_price": 1781,
+      "estimated_close": 1752.99,
+      "estimated_return": -1.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "284740",
+      "name": "쿠쿠홈시스",
+      "reference_price": 22200,
+      "estimated_close": 21851.11,
+      "estimated_return": -1.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003200",
+      "name": "일신방직",
+      "reference_price": 10280,
+      "estimated_close": 10117.75,
+      "estimated_return": -1.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "031820",
+      "name": "아이티센씨티에스",
+      "reference_price": 5080,
+      "estimated_close": 4999.54,
+      "estimated_return": -1.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000390",
+      "name": "SP삼화",
+      "reference_price": 6240,
+      "estimated_close": 6140.7,
+      "estimated_return": -1.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001080",
+      "name": "MH머트리얼즈",
+      "reference_price": 3725,
+      "estimated_close": 3665.83,
+      "estimated_return": -1.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004430",
+      "name": "송원산업",
+      "reference_price": 10180,
+      "estimated_close": 10018.11,
+      "estimated_return": -1.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "068290",
+      "name": "삼성출판사",
+      "reference_price": 5840,
+      "estimated_close": 5746.88,
+      "estimated_return": -1.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "090080",
+      "name": "평화산업",
+      "reference_price": 903,
+      "estimated_close": 888.57,
+      "estimated_return": -1.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "071090",
+      "name": "하이스틸",
+      "reference_price": 3025,
+      "estimated_close": 2976.24,
+      "estimated_return": -1.61,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003620",
+      "name": "KG모빌리티",
+      "reference_price": 2495,
+      "estimated_close": 2454.7,
+      "estimated_return": -1.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025530",
+      "name": "SJM홀딩스",
+      "reference_price": 3435,
+      "estimated_close": 3379.4,
+      "estimated_return": -1.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013570",
+      "name": "디와이",
+      "reference_price": 3730,
+      "estimated_close": 3669.36,
+      "estimated_return": -1.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017180",
+      "name": "명문제약",
+      "reference_price": 1200,
+      "estimated_close": 1180.49,
+      "estimated_return": -1.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023810",
+      "name": "인팩",
+      "reference_price": 5050,
+      "estimated_close": 4967.88,
+      "estimated_return": -1.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003490",
+      "name": "대한항공",
+      "reference_price": 25100,
+      "estimated_close": 24687.37,
+      "estimated_return": -1.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "071970",
+      "name": "HD현대마린엔진",
+      "reference_price": 34950,
+      "estimated_close": 34374.04,
+      "estimated_return": -1.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004910",
+      "name": "조광페인트",
+      "reference_price": 3000,
+      "estimated_close": 2950.23,
+      "estimated_return": -1.66,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005490",
+      "name": "POSCO홀딩스",
+      "reference_price": 269500,
+      "estimated_close": 265038.8,
+      "estimated_return": -1.66,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014910",
+      "name": "성문전자",
+      "reference_price": 1594,
+      "estimated_close": 1567.54,
+      "estimated_return": -1.66,
+      "missing_reason": null
+    },
+    {
+      "symbol": "016880",
+      "name": "웅진",
+      "reference_price": 1595,
+      "estimated_close": 1568.45,
+      "estimated_return": -1.66,
+      "missing_reason": null
+    },
+    {
+      "symbol": "100840",
+      "name": "SNT에너지",
+      "reference_price": 24050,
+      "estimated_close": 23650.4,
+      "estimated_return": -1.66,
+      "missing_reason": null
+    },
+    {
+      "symbol": "036570",
+      "name": "NC",
+      "reference_price": 201500,
+      "estimated_close": 198130.62,
+      "estimated_return": -1.67,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005690",
+      "name": "파미셀",
+      "reference_price": 9600,
+      "estimated_close": 9438.64,
+      "estimated_return": -1.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "071950",
+      "name": "코아스",
+      "reference_price": 1321,
+      "estimated_close": 1298.83,
+      "estimated_return": -1.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "111110",
+      "name": "호전실업",
+      "reference_price": 6100,
+      "estimated_close": 5997.53,
+      "estimated_return": -1.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000020",
+      "name": "동화약품",
+      "reference_price": 5120,
+      "estimated_close": 5033.3,
+      "estimated_return": -1.69,
+      "missing_reason": null
+    },
+    {
+      "symbol": "027740",
+      "name": "마니커",
+      "reference_price": 1137,
+      "estimated_close": 1117.77,
+      "estimated_return": -1.69,
+      "missing_reason": null
+    },
+    {
+      "symbol": "047400",
+      "name": "유니온머티리얼",
+      "reference_price": 746,
+      "estimated_close": 733.4,
+      "estimated_return": -1.69,
+      "missing_reason": null
+    },
+    {
+      "symbol": "111380",
+      "name": "동인기연",
+      "reference_price": 12010,
+      "estimated_close": 11806.48,
+      "estimated_return": -1.69,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001560",
+      "name": "제일연마",
+      "reference_price": 8550,
+      "estimated_close": 8404.38,
+      "estimated_return": -1.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001620",
+      "name": "케이비아이동국실업",
+      "reference_price": 1929,
+      "estimated_close": 1896.15,
+      "estimated_return": -1.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002920",
+      "name": "유성기업",
+      "reference_price": 1574,
+      "estimated_close": 1547.2,
+      "estimated_return": -1.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004700",
+      "name": "조광피혁",
+      "reference_price": 64700,
+      "estimated_close": 63602.11,
+      "estimated_return": -1.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014160",
+      "name": "대영포장",
+      "reference_price": 2555,
+      "estimated_close": 2511.58,
+      "estimated_return": -1.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000680",
+      "name": "LS네트웍스",
+      "reference_price": 2750,
+      "estimated_close": 2702.94,
+      "estimated_return": -1.71,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009160",
+      "name": "SIMPAC",
+      "reference_price": 4465,
+      "estimated_close": 4388.66,
+      "estimated_return": -1.71,
+      "missing_reason": null
+    },
+    {
+      "symbol": "271940",
+      "name": "일진하이솔루스",
+      "reference_price": 10520,
+      "estimated_close": 10340.12,
+      "estimated_return": -1.71,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000990",
+      "name": "DB하이텍",
+      "reference_price": 93100,
+      "estimated_close": 91501.3,
+      "estimated_return": -1.72,
+      "missing_reason": null
+    },
+    {
+      "symbol": "018470",
+      "name": "조일알미늄",
+      "reference_price": 4860,
+      "estimated_close": 4776.6,
+      "estimated_return": -1.72,
+      "missing_reason": null
+    },
+    {
+      "symbol": "096760",
+      "name": "JW홀딩스",
+      "reference_price": 3825,
+      "estimated_close": 3759.09,
+      "estimated_return": -1.72,
+      "missing_reason": null
+    },
+    {
+      "symbol": "072710",
+      "name": "농심홀딩스",
+      "reference_price": 83500,
+      "estimated_close": 82052.07,
+      "estimated_return": -1.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004380",
+      "name": "삼익THK",
+      "reference_price": 7060,
+      "estimated_close": 6937.37,
+      "estimated_return": -1.74,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006060",
+      "name": "화승인더",
+      "reference_price": 2125,
+      "estimated_close": 2088.08,
+      "estimated_return": -1.74,
+      "missing_reason": null
+    },
+    {
+      "symbol": "339770",
+      "name": "교촌에프앤비",
+      "reference_price": 3735,
+      "estimated_close": 3669.81,
+      "estimated_return": -1.75,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007700",
+      "name": "F&F홀딩스",
+      "reference_price": 13040,
+      "estimated_close": 12809.97,
+      "estimated_return": -1.76,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011780",
+      "name": "금호석유화학",
+      "reference_price": 102500,
+      "estimated_close": 100690.1,
+      "estimated_return": -1.77,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017960",
+      "name": "한국카본",
+      "reference_price": 15530,
+      "estimated_close": 15254.67,
+      "estimated_return": -1.77,
+      "missing_reason": null
+    },
+    {
+      "symbol": "109070",
+      "name": "주성코퍼레이션",
+      "reference_price": 5770,
+      "estimated_close": 5668.01,
+      "estimated_return": -1.77,
+      "missing_reason": null
+    },
+    {
+      "symbol": "344820",
+      "name": "KCC글라스",
+      "reference_price": 21750,
+      "estimated_close": 21362.73,
+      "estimated_return": -1.78,
+      "missing_reason": null
+    },
+    {
+      "symbol": "432320",
+      "name": "KB스타리츠",
+      "reference_price": 1457,
+      "estimated_close": 1431.11,
+      "estimated_return": -1.78,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000400",
+      "name": "롯데손해보험",
+      "reference_price": 2395,
+      "estimated_close": 2352.17,
+      "estimated_return": -1.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013890",
+      "name": "지누스",
+      "reference_price": 6060,
+      "estimated_close": 5951.59,
+      "estimated_return": -1.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "214330",
+      "name": "금호에이치티",
+      "reference_price": 7540,
+      "estimated_close": 7405.02,
+      "estimated_return": -1.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009460",
+      "name": "한창제지",
+      "reference_price": 2575,
+      "estimated_close": 2528.73,
+      "estimated_return": -1.8,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014580",
+      "name": "태경비케이",
+      "reference_price": 3575,
+      "estimated_close": 3510.72,
+      "estimated_return": -1.8,
+      "missing_reason": null
+    },
+    {
+      "symbol": "047810",
+      "name": "한국항공우주",
+      "reference_price": 97800,
+      "estimated_close": 96040.99,
+      "estimated_return": -1.8,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013000",
+      "name": "세우글로벌",
+      "reference_price": 1163,
+      "estimated_close": 1141.94,
+      "estimated_return": -1.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017860",
+      "name": "DS단석",
+      "reference_price": 9590,
+      "estimated_close": 9416.31,
+      "estimated_return": -1.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "088350",
+      "name": "한화생명",
+      "reference_price": 4000,
+      "estimated_close": 3927.65,
+      "estimated_return": -1.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "475560",
+      "name": "더본코리아",
+      "reference_price": 13400,
+      "estimated_close": 13157,
+      "estimated_return": -1.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "092230",
+      "name": "KPX홀딩스",
+      "reference_price": 91100,
+      "estimated_close": 89443.62,
+      "estimated_return": -1.82,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004140",
+      "name": "동방",
+      "reference_price": 1528,
+      "estimated_close": 1499.99,
+      "estimated_return": -1.83,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001440",
+      "name": "대한전선",
+      "reference_price": 20450,
+      "estimated_close": 20073.75,
+      "estimated_return": -1.84,
+      "missing_reason": null
+    },
+    {
+      "symbol": "214420",
+      "name": "토니모리",
+      "reference_price": 4415,
+      "estimated_close": 4333.65,
+      "estimated_return": -1.84,
+      "missing_reason": null
+    },
+    {
+      "symbol": "316140",
+      "name": "우리금융지주",
+      "reference_price": 29250,
+      "estimated_close": 28707.75,
+      "estimated_return": -1.85,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023000",
+      "name": "삼원강재",
+      "reference_price": 2040,
+      "estimated_close": 2001.78,
+      "estimated_return": -1.87,
+      "missing_reason": null
+    },
+    {
+      "symbol": "086790",
+      "name": "하나금융지주",
+      "reference_price": 112400,
+      "estimated_close": 110273.13,
+      "estimated_return": -1.89,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008350",
+      "name": "남선알미늄",
+      "reference_price": 1085,
+      "estimated_close": 1064.41,
+      "estimated_return": -1.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "018670",
+      "name": "SK가스",
+      "reference_price": 251000,
+      "estimated_close": 246221.95,
+      "estimated_return": -1.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "026940",
+      "name": "부국철강",
+      "reference_price": 1922,
+      "estimated_close": 1885.48,
+      "estimated_return": -1.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "112610",
+      "name": "씨에스윈드",
+      "reference_price": 40550,
+      "estimated_close": 39780.23,
+      "estimated_return": -1.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001820",
+      "name": "삼화콘덴서",
+      "reference_price": 106700,
+      "estimated_close": 104648.3,
+      "estimated_return": -1.92,
+      "missing_reason": null
+    },
+    {
+      "symbol": "025860",
+      "name": "남해화학",
+      "reference_price": 5500,
+      "estimated_close": 5394.23,
+      "estimated_return": -1.92,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002240",
+      "name": "고려제강",
+      "reference_price": 14560,
+      "estimated_close": 14279.29,
+      "estimated_return": -1.93,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003720",
+      "name": "삼영",
+      "reference_price": 5110,
+      "estimated_close": 5011.16,
+      "estimated_return": -1.93,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007210",
+      "name": "벽산",
+      "reference_price": 1318,
+      "estimated_close": 1292.39,
+      "estimated_return": -1.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011930",
+      "name": "신성이엔지",
+      "reference_price": 14300,
+      "estimated_close": 14022.25,
+      "estimated_return": -1.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006840",
+      "name": "AK홀딩스",
+      "reference_price": 6600,
+      "estimated_close": 6471.59,
+      "estimated_return": -1.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "139130",
+      "name": "iM금융지주",
+      "reference_price": 15090,
+      "estimated_close": 14796.39,
+      "estimated_return": -1.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006805",
+      "name": "미래에셋증권우",
+      "reference_price": 9220,
+      "estimated_close": 9038.21,
+      "estimated_return": -1.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "090430",
+      "name": "아모레퍼시픽",
+      "reference_price": 125700,
+      "estimated_close": 123222.39,
+      "estimated_return": -1.97,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001065",
+      "name": "JW중외제약우",
+      "reference_price": 20950,
+      "estimated_close": 20533.85,
+      "estimated_return": -1.99,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003070",
+      "name": "코오롱글로벌",
+      "reference_price": 8220,
+      "estimated_close": 8055.48,
+      "estimated_return": -2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009320",
+      "name": "아진전자부품",
+      "reference_price": 922,
+      "estimated_close": 903.6,
+      "estimated_return": -2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "134790",
+      "name": "시디즈",
+      "reference_price": 17570,
+      "estimated_close": 17217.37,
+      "estimated_return": -2.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "278470",
+      "name": "에이피알",
+      "reference_price": 282000,
+      "estimated_close": 276343.02,
+      "estimated_return": -2.01,
+      "missing_reason": null
+    },
+    {
+      "symbol": "272210",
+      "name": "한화시스템",
+      "reference_price": 63700,
+      "estimated_close": 62411.67,
+      "estimated_return": -2.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000215",
+      "name": "DL우",
+      "reference_price": 20250,
+      "estimated_close": 19838.08,
+      "estimated_return": -2.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002210",
+      "name": "동성제약",
+      "reference_price": 1221,
+      "estimated_close": 1196.05,
+      "estimated_return": -2.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "088260",
+      "name": "이리츠코크렙",
+      "reference_price": 2945,
+      "estimated_close": 2884.89,
+      "estimated_return": -2.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001070",
+      "name": "대한방직",
+      "reference_price": 5210,
+      "estimated_close": 5103.45,
+      "estimated_return": -2.05,
+      "missing_reason": null
+    },
+    {
+      "symbol": "334890",
+      "name": "이지스밸류플러스리츠",
+      "reference_price": 3140,
+      "estimated_close": 3075.69,
+      "estimated_return": -2.05,
+      "missing_reason": null
+    },
+    {
+      "symbol": "071320",
+      "name": "지역난방공사",
+      "reference_price": 70500,
+      "estimated_close": 69037.95,
+      "estimated_return": -2.07,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014680",
+      "name": "한솔케미칼",
+      "reference_price": 204000,
+      "estimated_close": 199749.67,
+      "estimated_return": -2.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "051910",
+      "name": "LG화학",
+      "reference_price": 225000,
+      "estimated_close": 220321.33,
+      "estimated_return": -2.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "078935",
+      "name": "GS우",
+      "reference_price": 53100,
+      "estimated_close": 51981.1,
+      "estimated_return": -2.11,
+      "missing_reason": null
+    },
+    {
+      "symbol": "105560",
+      "name": "KB금융",
+      "reference_price": 147200,
+      "estimated_close": 144091.4,
+      "estimated_return": -2.11,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000670",
+      "name": "영풍",
+      "reference_price": 30000,
+      "estimated_close": 29361.24,
+      "estimated_return": -2.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "373220",
+      "name": "LG에너지솔루션",
+      "reference_price": 375000,
+      "estimated_close": 367017.73,
+      "estimated_return": -2.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "456040",
+      "name": "OCI",
+      "reference_price": 57300,
+      "estimated_close": 56078.9,
+      "estimated_return": -2.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009770",
+      "name": "삼정펄프",
+      "reference_price": 26050,
+      "estimated_close": 25493.5,
+      "estimated_return": -2.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "308170",
+      "name": "씨티알모빌리티",
+      "reference_price": 3270,
+      "estimated_close": 3200.04,
+      "estimated_return": -2.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "145270",
+      "name": "케이탑리츠",
+      "reference_price": 797,
+      "estimated_close": 779.76,
+      "estimated_return": -2.16,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012800",
+      "name": "대창",
+      "reference_price": 997,
+      "estimated_close": 975.37,
+      "estimated_return": -2.17,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004710",
+      "name": "한솔테크닉스",
+      "reference_price": 7340,
+      "estimated_close": 7178.2,
+      "estimated_return": -2.2,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004540",
+      "name": "깨끗한나라",
+      "reference_price": 1145,
+      "estimated_close": 1119.64,
+      "estimated_return": -2.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "029460",
+      "name": "케이씨",
+      "reference_price": 33250,
+      "estimated_close": 32511.6,
+      "estimated_return": -2.22,
+      "missing_reason": null
+    },
+    {
+      "symbol": "090435",
+      "name": "아모레퍼시픽우",
+      "reference_price": 36850,
+      "estimated_close": 36033.27,
+      "estimated_return": -2.22,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006345",
+      "name": "대원전선우",
+      "reference_price": 7870,
+      "estimated_close": 7694.34,
+      "estimated_return": -2.23,
+      "missing_reason": null
+    },
+    {
+      "symbol": "499790",
+      "name": "GS피앤엘",
+      "reference_price": 32450,
+      "estimated_close": 31723.29,
+      "estimated_return": -2.24,
+      "missing_reason": null
+    },
+    {
+      "symbol": "452260",
+      "name": "한화갤러리아",
+      "reference_price": 2360,
+      "estimated_close": 2306.8,
+      "estimated_return": -2.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005950",
+      "name": "이수화학",
+      "reference_price": 8810,
+      "estimated_close": 8610.54,
+      "estimated_return": -2.26,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012320",
+      "name": "경동인베스트",
+      "reference_price": 42750,
+      "estimated_close": 41780.3,
+      "estimated_return": -2.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010040",
+      "name": "한국내화",
+      "reference_price": 1540,
+      "estimated_close": 1504.92,
+      "estimated_return": -2.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "249420",
+      "name": "일동제약",
+      "reference_price": 12400,
+      "estimated_close": 12117.47,
+      "estimated_return": -2.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005420",
+      "name": "코스모화학",
+      "reference_price": 9330,
+      "estimated_close": 9114.31,
+      "estimated_return": -2.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014790",
+      "name": "HL D&I",
+      "reference_price": 2255,
+      "estimated_close": 2202.6,
+      "estimated_return": -2.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "028670",
+      "name": "팬오션",
+      "reference_price": 6000,
+      "estimated_close": 5860.5,
+      "estimated_return": -2.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "088790",
+      "name": "진도",
+      "reference_price": 2325,
+      "estimated_close": 2271.03,
+      "estimated_return": -2.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "377190",
+      "name": "디앤디플랫폼리츠",
+      "reference_price": 1846,
+      "estimated_close": 1802.68,
+      "estimated_return": -2.35,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002350",
+      "name": "넥센타이어",
+      "reference_price": 5420,
+      "estimated_close": 5292.07,
+      "estimated_return": -2.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "007660",
+      "name": "이수페타시스",
+      "reference_price": 83500,
+      "estimated_close": 81531.34,
+      "estimated_return": -2.36,
+      "missing_reason": null
+    },
+    {
+      "symbol": "015860",
+      "name": "일진홀딩스",
+      "reference_price": 6030,
+      "estimated_close": 5887.04,
+      "estimated_return": -2.37,
+      "missing_reason": null
+    },
+    {
+      "symbol": "139480",
+      "name": "이마트",
+      "reference_price": 66600,
+      "estimated_close": 65024.45,
+      "estimated_return": -2.37,
+      "missing_reason": null
+    },
+    {
+      "symbol": "483650",
+      "name": "달바글로벌",
+      "reference_price": 149300,
+      "estimated_close": 145762.87,
+      "estimated_return": -2.37,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003240",
+      "name": "태광산업",
+      "reference_price": 816000,
+      "estimated_close": 796582.77,
+      "estimated_return": -2.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "185750",
+      "name": "종근당",
+      "reference_price": 61900,
+      "estimated_close": 60418.19,
+      "estimated_return": -2.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "281820",
+      "name": "케이씨텍",
+      "reference_price": 86400,
+      "estimated_close": 84334.45,
+      "estimated_return": -2.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010060",
+      "name": "OCI홀딩스",
+      "reference_price": 182700,
+      "estimated_close": 178323.18,
+      "estimated_return": -2.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "900140",
+      "name": "엘브이엠씨홀딩스",
+      "reference_price": 1008,
+      "estimated_close": 983.76,
+      "estimated_return": -2.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000155",
+      "name": "두산우",
+      "reference_price": 309000,
+      "estimated_close": 301546.54,
+      "estimated_return": -2.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017900",
+      "name": "광전자",
+      "reference_price": 7110,
+      "estimated_close": 6938,
+      "estimated_return": -2.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "272450",
+      "name": "진에어",
+      "reference_price": 5350,
+      "estimated_close": 5220.6,
+      "estimated_return": -2.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "023350",
+      "name": "한국종합기술",
+      "reference_price": 3440,
+      "estimated_close": 3355.93,
+      "estimated_return": -2.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "317400",
+      "name": "자이에스앤디",
+      "reference_price": 7450,
+      "estimated_close": 7266.01,
+      "estimated_return": -2.47,
+      "missing_reason": null
+    },
+    {
+      "symbol": "091810",
+      "name": "트리니티항공",
+      "reference_price": 2215,
+      "estimated_close": 2159.97,
+      "estimated_return": -2.48,
+      "missing_reason": null
+    },
+    {
+      "symbol": "067830",
+      "name": "세이브존I&C",
+      "reference_price": 2100,
+      "estimated_close": 2047.39,
+      "estimated_return": -2.51,
+      "missing_reason": null
+    },
+    {
+      "symbol": "383220",
+      "name": "F&F",
+      "reference_price": 60200,
+      "estimated_close": 58689.69,
+      "estimated_return": -2.51,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011170",
+      "name": "롯데케미칼",
+      "reference_price": 46600,
+      "estimated_close": 45419.89,
+      "estimated_return": -2.53,
+      "missing_reason": null
+    },
+    {
+      "symbol": "085310",
+      "name": "엔케이",
+      "reference_price": 8670,
+      "estimated_close": 8449.97,
+      "estimated_return": -2.54,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001680",
+      "name": "대상",
+      "reference_price": 15950,
+      "estimated_close": 15539.39,
+      "estimated_return": -2.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "020000",
+      "name": "한섬",
+      "reference_price": 17700,
+      "estimated_close": 17244.94,
+      "estimated_return": -2.57,
+      "missing_reason": null
+    },
+    {
+      "symbol": "350520",
+      "name": "이지스레지던스리츠",
+      "reference_price": 2990,
+      "estimated_close": 2912.71,
+      "estimated_return": -2.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "950210",
+      "name": "프레스티지바이오파마",
+      "reference_price": 5060,
+      "estimated_close": 4929.4,
+      "estimated_return": -2.58,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001420",
+      "name": "태원물산",
+      "reference_price": 2600,
+      "estimated_close": 2532.55,
+      "estimated_return": -2.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "178920",
+      "name": "PI첨단소재",
+      "reference_price": 15800,
+      "estimated_close": 15390.86,
+      "estimated_return": -2.59,
+      "missing_reason": null
+    },
+    {
+      "symbol": "014830",
+      "name": "유니드",
+      "reference_price": 51300,
+      "estimated_close": 49967.6,
+      "estimated_return": -2.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "096770",
+      "name": "SK이노베이션",
+      "reference_price": 137000,
+      "estimated_close": 133432.97,
+      "estimated_return": -2.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "175330",
+      "name": "JB금융지주",
+      "reference_price": 24150,
+      "estimated_close": 23522.2,
+      "estimated_return": -2.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "480370",
+      "name": "씨케이솔루션",
+      "reference_price": 1680,
+      "estimated_close": 1636.17,
+      "estimated_return": -2.61,
+      "missing_reason": null
+    },
+    {
+      "symbol": "092200",
+      "name": "디아이씨",
+      "reference_price": 4555,
+      "estimated_close": 4435.46,
+      "estimated_return": -2.62,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003520",
+      "name": "영진약품",
+      "reference_price": 945,
+      "estimated_close": 920.15,
+      "estimated_return": -2.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "020560",
+      "name": "아시아나항공",
+      "reference_price": 6760,
+      "estimated_close": 6582.37,
+      "estimated_return": -2.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "111770",
+      "name": "영원무역",
+      "reference_price": 67400,
+      "estimated_close": 65628.02,
+      "estimated_return": -2.63,
+      "missing_reason": null
+    },
+    {
+      "symbol": "298050",
+      "name": "HS효성첨단소재",
+      "reference_price": 139200,
+      "estimated_close": 135510.15,
+      "estimated_return": -2.65,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000520",
+      "name": "삼일제약",
+      "reference_price": 7640,
+      "estimated_close": 7433.41,
+      "estimated_return": -2.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004985",
+      "name": "성신양회우",
+      "reference_price": 8510,
+      "estimated_close": 8280.56,
+      "estimated_return": -2.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "484870",
+      "name": "엠앤씨솔루션",
+      "reference_price": 13660,
+      "estimated_close": 13289.95,
+      "estimated_return": -2.71,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011790",
+      "name": "SKC",
+      "reference_price": 79100,
+      "estimated_close": 76952.27,
+      "estimated_return": -2.72,
+      "missing_reason": null
+    },
+    {
+      "symbol": "051915",
+      "name": "LG화학우",
+      "reference_price": 103600,
+      "estimated_close": 100767.74,
+      "estimated_return": -2.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "302440",
+      "name": "SK바이오사이언스",
+      "reference_price": 32000,
+      "estimated_close": 31125.93,
+      "estimated_return": -2.73,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006400",
+      "name": "삼성SDI",
+      "reference_price": 483500,
+      "estimated_close": 469993.35,
+      "estimated_return": -2.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005440",
+      "name": "현대지에프홀딩스",
+      "reference_price": 10820,
+      "estimated_close": 10515.69,
+      "estimated_return": -2.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "181710",
+      "name": "NHN",
+      "reference_price": 49100,
+      "estimated_close": 47700.07,
+      "estimated_return": -2.85,
+      "missing_reason": null
+    },
+    {
+      "symbol": "093370",
+      "name": "후성",
+      "reference_price": 9940,
+      "estimated_close": 9654.79,
+      "estimated_return": -2.87,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004920",
+      "name": "씨아이테크",
+      "reference_price": 6790,
+      "estimated_close": 6594.57,
+      "estimated_return": -2.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008730",
+      "name": "율촌화학",
+      "reference_price": 12550,
+      "estimated_close": 12188.25,
+      "estimated_return": -2.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "019175",
+      "name": "신풍제약우",
+      "reference_price": 12780,
+      "estimated_close": 12412.42,
+      "estimated_return": -2.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "306200",
+      "name": "세아제강",
+      "reference_price": 121100,
+      "estimated_close": 117613.94,
+      "estimated_return": -2.88,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006405",
+      "name": "삼성SDI우",
+      "reference_price": 196600,
+      "estimated_close": 190906.35,
+      "estimated_return": -2.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "195870",
+      "name": "해성디에스",
+      "reference_price": 41550,
+      "estimated_close": 40346.09,
+      "estimated_return": -2.9,
+      "missing_reason": null
+    },
+    {
+      "symbol": "120115",
+      "name": "코오롱인더우",
+      "reference_price": 21900,
+      "estimated_close": 21259.92,
+      "estimated_return": -2.92,
+      "missing_reason": null
+    },
+    {
+      "symbol": "285130",
+      "name": "SK케미칼",
+      "reference_price": 38450,
+      "estimated_close": 37325.48,
+      "estimated_return": -2.92,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005070",
+      "name": "코스모신소재",
+      "reference_price": 37150,
+      "estimated_close": 36059.27,
+      "estimated_return": -2.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005180",
+      "name": "빙그레",
+      "reference_price": 73500,
+      "estimated_close": 71341.91,
+      "estimated_return": -2.94,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009810",
+      "name": "MDS스피어",
+      "reference_price": 1654,
+      "estimated_close": 1605.2,
+      "estimated_return": -2.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011230",
+      "name": "삼화전자",
+      "reference_price": 2190,
+      "estimated_close": 2124.29,
+      "estimated_return": -3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "013520",
+      "name": "화승코퍼레이션",
+      "reference_price": 2355,
+      "estimated_close": 2284.43,
+      "estimated_return": -3,
+      "missing_reason": null
+    },
+    {
+      "symbol": "093050",
+      "name": "LF",
+      "reference_price": 21100,
+      "estimated_close": 20462.03,
+      "estimated_return": -3.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "210980",
+      "name": "SK디앤디",
+      "reference_price": 2345,
+      "estimated_close": 2274.21,
+      "estimated_return": -3.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "066970",
+      "name": "엘앤에프",
+      "reference_price": 83200,
+      "estimated_close": 80682.16,
+      "estimated_return": -3.03,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008355",
+      "name": "남선알미우",
+      "reference_price": 6810,
+      "estimated_close": 6602.98,
+      "estimated_return": -3.04,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003580",
+      "name": "HLB글로벌",
+      "reference_price": 1817,
+      "estimated_close": 1761.18,
+      "estimated_return": -3.07,
+      "missing_reason": null
+    },
+    {
+      "symbol": "020150",
+      "name": "롯데에너지머티리얼즈",
+      "reference_price": 46350,
+      "estimated_close": 44924.91,
+      "estimated_return": -3.07,
+      "missing_reason": null
+    },
+    {
+      "symbol": "092790",
+      "name": "넥스틸",
+      "reference_price": 10750,
+      "estimated_close": 10420.19,
+      "estimated_return": -3.07,
+      "missing_reason": null
+    },
+    {
+      "symbol": "336370",
+      "name": "솔루스첨단소재",
+      "reference_price": 7900,
+      "estimated_close": 7657.6,
+      "estimated_return": -3.07,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009900",
+      "name": "명신산업",
+      "reference_price": 8620,
+      "estimated_close": 8353.18,
+      "estimated_return": -3.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "322000",
+      "name": "HD현대에너지솔루션",
+      "reference_price": 96300,
+      "estimated_close": 93302.85,
+      "estimated_return": -3.11,
+      "missing_reason": null
+    },
+    {
+      "symbol": "011500",
+      "name": "한농화성",
+      "reference_price": 12360,
+      "estimated_close": 11973.73,
+      "estimated_return": -3.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "161000",
+      "name": "애경케미칼",
+      "reference_price": 10010,
+      "estimated_close": 9697.02,
+      "estimated_return": -3.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "361610",
+      "name": "SK아이이테크놀로지",
+      "reference_price": 15710,
+      "estimated_close": 15218.04,
+      "estimated_return": -3.13,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002630",
+      "name": "오리엔트바이오",
+      "reference_price": 1323,
+      "estimated_close": 1281.51,
+      "estimated_return": -3.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "357250",
+      "name": "미래에셋맵스리츠",
+      "reference_price": 1690,
+      "estimated_close": 1636.94,
+      "estimated_return": -3.14,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002720",
+      "name": "국제약품",
+      "reference_price": 3440,
+      "estimated_close": 3330.51,
+      "estimated_return": -3.18,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004310",
+      "name": "현대약품",
+      "reference_price": 6700,
+      "estimated_close": 6486.64,
+      "estimated_return": -3.18,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003060",
+      "name": "에이프로젠바이오로직스",
+      "reference_price": 1379,
+      "estimated_close": 1334.18,
+      "estimated_return": -3.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003670",
+      "name": "포스코퓨처엠",
+      "reference_price": 156500,
+      "estimated_close": 151368.75,
+      "estimated_return": -3.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "267270",
+      "name": "HD건설기계",
+      "reference_price": 81000,
+      "estimated_close": 78344.91,
+      "estimated_return": -3.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000910",
+      "name": "유니온",
+      "reference_price": 2680,
+      "estimated_close": 2591.34,
+      "estimated_return": -3.31,
+      "missing_reason": null
+    },
+    {
+      "symbol": "267250",
+      "name": "HD현대",
+      "reference_price": 132200,
+      "estimated_close": 127810.44,
+      "estimated_return": -3.32,
+      "missing_reason": null
+    },
+    {
+      "symbol": "084695",
+      "name": "대상홀딩스우",
+      "reference_price": 11830,
+      "estimated_close": 11428.76,
+      "estimated_return": -3.39,
+      "missing_reason": null
+    },
+    {
+      "symbol": "133820",
+      "name": "화인베스틸",
+      "reference_price": 870,
+      "estimated_close": 840.41,
+      "estimated_return": -3.4,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009830",
+      "name": "한화솔루션",
+      "reference_price": 26500,
+      "estimated_close": 25589.62,
+      "estimated_return": -3.44,
+      "missing_reason": null
+    },
+    {
+      "symbol": "120110",
+      "name": "코오롱인더",
+      "reference_price": 39800,
+      "estimated_close": 38426.56,
+      "estimated_return": -3.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001020",
+      "name": "페이퍼코리아",
+      "reference_price": 1800,
+      "estimated_close": 1737.09,
+      "estimated_return": -3.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "194370",
+      "name": "제이에스코퍼레이션",
+      "reference_price": 10820,
+      "estimated_close": 10441.37,
+      "estimated_return": -3.5,
+      "missing_reason": null
+    },
+    {
+      "symbol": "457190",
+      "name": "이수스페셜티케미컬",
+      "reference_price": 70400,
+      "estimated_close": 67902.76,
+      "estimated_return": -3.55,
+      "missing_reason": null
+    },
+    {
+      "symbol": "012160",
+      "name": "영흥",
+      "reference_price": 1935,
+      "estimated_close": 1864.66,
+      "estimated_return": -3.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "017940",
+      "name": "E1",
+      "reference_price": 81900,
+      "estimated_close": 78915.55,
+      "estimated_return": -3.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "078930",
+      "name": "GS",
+      "reference_price": 78700,
+      "estimated_close": 75804.43,
+      "estimated_return": -3.68,
+      "missing_reason": null
+    },
+    {
+      "symbol": "217590",
+      "name": "티엠씨",
+      "reference_price": 10790,
+      "estimated_close": 10391.87,
+      "estimated_return": -3.69,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010950",
+      "name": "S-Oil",
+      "reference_price": 127700,
+      "estimated_close": 122971,
+      "estimated_return": -3.7,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002820",
+      "name": "SUN&L",
+      "reference_price": 1035,
+      "estimated_close": 995.38,
+      "estimated_return": -3.83,
+      "missing_reason": null
+    },
+    {
+      "symbol": "002710",
+      "name": "TCC스틸",
+      "reference_price": 10550,
+      "estimated_close": 10145.27,
+      "estimated_return": -3.84,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006200",
+      "name": "한국전자홀딩스",
+      "reference_price": 1387,
+      "estimated_close": 1333.51,
+      "estimated_return": -3.86,
+      "missing_reason": null
+    },
+    {
+      "symbol": "450080",
+      "name": "에코프로머티",
+      "reference_price": 28450,
+      "estimated_close": 27295.3,
+      "estimated_return": -4.06,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003230",
+      "name": "삼양식품",
+      "reference_price": 1116000,
+      "estimated_close": 1070505.31,
+      "estimated_return": -4.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "009835",
+      "name": "한화솔루션우",
+      "reference_price": 15290,
+      "estimated_close": 14666.63,
+      "estimated_return": -4.08,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001380",
+      "name": "SG글로벌",
+      "reference_price": 783,
+      "estimated_close": 750.71,
+      "estimated_return": -4.12,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010955",
+      "name": "S-Oil우",
+      "reference_price": 70700,
+      "estimated_close": 67724.4,
+      "estimated_return": -4.21,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006370",
+      "name": "대구백화점",
+      "reference_price": 2695,
+      "estimated_close": 2581.26,
+      "estimated_return": -4.22,
+      "missing_reason": null
+    },
+    {
+      "symbol": "403550",
+      "name": "쏘카",
+      "reference_price": 10070,
+      "estimated_close": 9642.07,
+      "estimated_return": -4.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001210",
+      "name": "금호전기",
+      "reference_price": 7520,
+      "estimated_close": 7194.48,
+      "estimated_return": -4.33,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004270",
+      "name": "남성",
+      "reference_price": 4490,
+      "estimated_close": 4293.41,
+      "estimated_return": -4.38,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001530",
+      "name": "DI동일",
+      "reference_price": 23400,
+      "estimated_close": 22367.27,
+      "estimated_return": -4.41,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000157",
+      "name": "두산2우B",
+      "reference_price": 259000,
+      "estimated_close": 247199.48,
+      "estimated_return": -4.56,
+      "missing_reason": null
+    },
+    {
+      "symbol": "020120",
+      "name": "키다리스튜디오",
+      "reference_price": 4025,
+      "estimated_close": 3839.92,
+      "estimated_return": -4.6,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004250",
+      "name": "NPC",
+      "reference_price": 2570,
+      "estimated_close": 2450.73,
+      "estimated_return": -4.64,
+      "missing_reason": null
+    },
+    {
+      "symbol": "465770",
+      "name": "STX그린로지스",
+      "reference_price": 1926,
+      "estimated_close": 1834.28,
+      "estimated_return": -4.76,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005320",
+      "name": "온타이드",
+      "reference_price": 1325,
+      "estimated_close": 1259.38,
+      "estimated_return": -4.95,
+      "missing_reason": null
+    },
+    {
+      "symbol": "019170",
+      "name": "신풍제약",
+      "reference_price": 8250,
+      "estimated_close": 7840.43,
+      "estimated_return": -4.96,
+      "missing_reason": null
+    },
+    {
+      "symbol": "396690",
+      "name": "미래에셋글로벌리츠",
+      "reference_price": 979,
+      "estimated_close": 929.1,
+      "estimated_return": -5.1,
+      "missing_reason": null
+    },
+    {
+      "symbol": "008970",
+      "name": "KBI동양철관",
+      "reference_price": 1244,
+      "estimated_close": 1179,
+      "estimated_return": -5.23,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000040",
+      "name": "KR모터스",
+      "reference_price": 1117,
+      "estimated_close": 1057.99,
+      "estimated_return": -5.28,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001250",
+      "name": "GS글로벌",
+      "reference_price": 2575,
+      "estimated_close": 2435.51,
+      "estimated_return": -5.42,
+      "missing_reason": null
+    },
+    {
+      "symbol": "138930",
+      "name": "BNK금융지주",
+      "reference_price": 11780,
+      "estimated_close": 11138.36,
+      "estimated_return": -5.45,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003465",
+      "name": "유화증권우",
+      "reference_price": 2830,
+      "estimated_close": 2675.36,
+      "estimated_return": -5.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "093240",
+      "name": "형지엘리트",
+      "reference_price": 1784,
+      "estimated_close": 1686.54,
+      "estimated_return": -5.46,
+      "missing_reason": null
+    },
+    {
+      "symbol": "001527",
+      "name": "동양2우B",
+      "reference_price": 3370,
+      "estimated_close": 3174.78,
+      "estimated_return": -5.79,
+      "missing_reason": null
+    },
+    {
+      "symbol": "078520",
+      "name": "에이블씨엔씨",
+      "reference_price": 9760,
+      "estimated_close": 9187.29,
+      "estimated_return": -5.87,
+      "missing_reason": null
+    },
+    {
+      "symbol": "443060",
+      "name": "HD현대마린솔루션",
+      "reference_price": 169600,
+      "estimated_close": 159647.48,
+      "estimated_return": -5.87,
+      "missing_reason": null
+    },
+    {
+      "symbol": "003010",
+      "name": "혜인",
+      "reference_price": 7770,
+      "estimated_close": 7302.14,
+      "estimated_return": -6.02,
+      "missing_reason": null
+    },
+    {
+      "symbol": "010580",
+      "name": "에스엠벡셀",
+      "reference_price": 3145,
+      "estimated_close": 2947.71,
+      "estimated_return": -6.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "005090",
+      "name": "SGC에너지",
+      "reference_price": 31000,
+      "estimated_close": 28744.91,
+      "estimated_return": -7.27,
+      "missing_reason": null
+    },
+    {
+      "symbol": "006110",
+      "name": "삼아알미늄",
+      "reference_price": 57100,
+      "estimated_close": 52544.14,
+      "estimated_return": -7.98,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004545",
+      "name": "깨끗한나라우",
+      "reference_price": 2290,
+      "estimated_close": 2019.65,
+      "estimated_return": -11.81,
+      "missing_reason": null
+    },
+    {
+      "symbol": "004415",
+      "name": "서울식품우",
+      "reference_price": 1233,
+      "estimated_close": 1032.66,
+      "estimated_return": -16.25,
+      "missing_reason": null
+    },
+    {
+      "symbol": "000300",
+      "name": "DH오토넥스",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "001067",
+      "name": "JW중외제약2우B",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "001470",
+      "name": "삼부토건",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "001570",
+      "name": "금양",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "001770",
+      "name": "SHD",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "002410",
+      "name": "범양건영",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "002785",
+      "name": "진흥기업우B",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "002787",
+      "name": "진흥기업2우B",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "008600",
+      "name": "윌비스",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "009310",
+      "name": "참엔지니어링",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "009440",
+      "name": "KC그린홀딩스",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "011000",
+      "name": "진원생명과학",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "011155",
+      "name": "CJ씨푸드1우",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "011810",
+      "name": "STX",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "015020",
+      "name": "이스타코",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "015260",
+      "name": "에이엔피",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "017040",
+      "name": "광명전기",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "019490",
+      "name": "엑시큐어하이트론",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "020760",
+      "name": "일진디스플",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "044380",
+      "name": "주연테크",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "069460",
+      "name": "대호에이엘",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "074610",
+      "name": "이엔플러스",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "101530",
+      "name": "해태제과식품",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "119650",
+      "name": "KC코트렐",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "143210",
+      "name": "핸즈코퍼레이션",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "145210",
+      "name": "다이나믹디자인",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    },
+    {
+      "symbol": "348950",
+      "name": "제이알글로벌리츠",
+      "reference_price": null,
+      "estimated_close": null,
+      "estimated_return": null,
+      "missing_reason": "missing_or_inactive_history"
+    }
+  ]
+}
