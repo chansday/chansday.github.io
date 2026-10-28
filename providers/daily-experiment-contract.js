@@ -1,4 +1,5 @@
 import { deriveExpectedReturn } from "./evaluation-contract.js";
+import { isKoreanSymbol } from "./korean-symbol.js";
 
 export function isDailyExperiment(x, targetDate, phase) {
   if (!x || x.status !== "experimental" || x.target_date !== targetDate || x.phase !== phase || !["before-open", "during-market"].includes(phase) || x.input_type !== "latest_available_prior_close_reference_not_quote") return false;
@@ -12,7 +13,7 @@ export function isDailyExperiment(x, targetDate, phase) {
   if (x.first_publication !== "unknown" || x.revision_policy !== "unknown" || x.adjustment !== "unknown" || x.license_status !== "unconfirmed" || x.source_confirmation !== "provider_claims_final_unverified" || !Array.isArray(x.rows) || !x.rows.length) return false;
   const seen = new Set();
   return x.rows.every((row) => {
-    if (!row || !/^[0-9]{6}$/.test(row.symbol) || seen.has(row.symbol) || typeof row.name !== "string" || ["expected_open", "actual_open", "actual_close", "error"].some((key) => Object.hasOwn(row, key))) return false;
+    if (!row || !isKoreanSymbol(row.symbol) || seen.has(row.symbol) || typeof row.name !== "string" || ["expected_open", "actual_open", "actual_close", "error"].some((key) => Object.hasOwn(row, key))) return false;
     seen.add(row.symbol);
     if (row.reference_price === null) return row.estimated_close === null && row.estimated_return === null && typeof row.missing_reason === "string";
     return Number.isFinite(row.reference_price) && row.reference_price > 0 && Number.isFinite(row.estimated_close) && row.estimated_close > 0 && row.missing_reason === null && row.estimated_return === deriveExpectedReturn({ expected_open: row.reference_price, expected_close: row.estimated_close });

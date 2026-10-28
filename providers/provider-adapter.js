@@ -1,4 +1,5 @@
 import { deriveEvaluationError, deriveExpectedReturn, evaluationRowStatus, isEvaluationSummary } from "./evaluation-contract.js";
+import { isKoreanSymbol } from "./korean-symbol.js";
 
 /**
  * Provider contract for the static KOSPI signal board.
@@ -107,9 +108,10 @@ export function isRankingRow(row) {
   return RANKING_FIELDS.every((field) => isFiniteOrNull(row[field]));
 }
 
-export function validateRankingRows(rows) {
+export function validateRankingRows(rows, { koreanSymbols = false } = {}) {
   if (!Array.isArray(rows)) return { valid: false, rows: [], reason: "Provider rows must be an array." };
   if (!rows.every(isRankingRow)) return { valid: false, rows: [], reason: "Provider rows do not satisfy the ranking row schema." };
+  if (koreanSymbols && !rows.every(row => isKoreanSymbol(row.symbol))) return { valid: false, rows: [], reason: "Naver rows contain invalid Korean stock symbols." };
   return { valid: true, rows };
 }
 
@@ -183,7 +185,7 @@ export function isSnapshot(candidate) {
   if (candidate.schemaVersion !== "1.0.0" || !SNAPSHOT_STATUSES.includes(candidate.status)) return false;
   if (!(["provider", "demo", "fixture", "replay", "backfill_test", "historical_test"].includes(candidate.mode))) return false;
   if (!candidate.market || candidate.market.name !== "KOSPI" || candidate.market.currency !== "KRW") return false;
-  if (!validateRankingRows(candidate.rows).valid) return false;
+  if (!validateRankingRows(candidate.rows, { koreanSymbols: candidate.provider?.id === "naver-crawl" }).valid) return false;
   if (candidate.provider !== null && typeof candidate.provider !== "object") return false;
   if (!candidate.meta || typeof candidate.meta !== "object" || !Object.hasOwn(candidate.meta, "source")) return false;
   if (candidate.meta.source !== null && !isSourceMetadata(candidate.meta.source)) return false;

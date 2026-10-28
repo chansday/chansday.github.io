@@ -44,7 +44,9 @@
 ## 현재 연결된 공개 원천
 
 - quote URL: `https://polling.finance.naver.com/api/realtime/domestic/stock/{codes}`
-- universe URL: `https://m.stock.naver.com/api/stocks/marketValue/KOSPI`
+- universe URL: `https://api.stock.naver.com/stock/exchange/KOSPI/marketValue?page={page}&pageSize={pageSize}`; 빈 목록이거나 robots가 금지하면 커밋된 `data/kospi-universe.json`(출처·수집일·stale 메타 포함)을 사용합니다.
+- daily URL: `https://api.stock.naver.com/chart/domestic/item/{code}/day?startDateTime=...&endDateTime=...`
+- 모든 요청 host는 요청 전에 robots.txt를 확인합니다. `m.stock.naver.com`, `finance.naver.com`, `fchart.stock.naver.com`은 전체 금지이므로 요청하지 않습니다.
 - license status: `unconfirmed`; license URL은 거짓으로 만들지 않고 `null`로 저장합니다.
 - Naver 공개 웹 크롤링의 지연·차단·필드 변경·이용정책·재배포 조건은 원천 약관을 따라야 하며, 이 저장소가 권리를 대신 보장하지 않습니다.
 

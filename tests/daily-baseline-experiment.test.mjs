@@ -296,7 +296,7 @@ test("status failure retry stages validated unpublished forecast through the wor
     await mkdir(join(checkout, "scripts"), { recursive: true });
     await mkdir(join(checkout, "providers"), { recursive: true });
     await writeFile(join(checkout, "package.json"), '{"type":"module"}\n');
-    for (const path of ["scripts/stage-daily-experiment.sh", "scripts/stage-daily-experiment.mjs", "scripts/stage-experiment-status.mjs", "providers/daily-experiment-contract.js", "providers/evaluation-contract.js"]) await copyFile(new URL(`../${path}`, import.meta.url), join(checkout, path));
+    for (const path of ["scripts/stage-daily-experiment.sh", "scripts/stage-daily-experiment.mjs", "scripts/stage-experiment-status.mjs", "providers/daily-experiment-contract.js", "providers/evaluation-contract.js", "providers/korean-symbol.js"]) await copyFile(new URL(`../${path}`, import.meta.url), join(checkout, path));
     exec("git", ["init", "-q"], checkout);
     exec("git", ["config", "user.email", "test@example.invalid"], checkout);
     exec("git", ["config", "user.name", "Test"], checkout);

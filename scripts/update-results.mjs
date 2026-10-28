@@ -266,7 +266,7 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
   const effectiveStatus = preserveExpectedRows && ["open-settlement", "close-settlement"].includes(mode)
     ? "partial"
     : result.status;
-  const rowValidation = validateRankingRows(rows);
+  const rowValidation = validateRankingRows(rows, { koreanSymbols: providerId === "naver-crawl" });
   if (!rowValidation.valid) {
     const reason = rowValidation.reason;
     return {
@@ -283,8 +283,8 @@ function applyProviderResult(snapshot, result, mode, provider, providerId, attem
   const isFixture = providerId === "fixture";
   const isDemo = result.status === "demo" || isFixture;
   const snapshotMode = isFixture ? "fixture" : isDemo ? "demo" : "provider";
-  const sourceWarning = result.status === "ready" && source?.license_status === "unconfirmed"
-    ? "Source license_status is unconfirmed; operational readiness does not confirm licensing or redistribution rights."
+  const sourceWarning = source?.license_status === "unconfirmed" && (result.status === "ready" || providerId === "naver-crawl")
+    ? "Source license_status is unconfirmed; daily market and adjustment basis and common-share classification are unconfirmed. Preferred shares may be included."
     : null;
   const pipelineMessage = sourceWarning ? `${result.message} Warning: ${sourceWarning}` : result.message;
   return {
@@ -443,7 +443,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
   let wroteRunFile = false;
   let wroteLatestFile = false;
   if (!options.dryRun) {
-    const preserveExisting = ["blocked", "degraded"].includes(nextSnapshot.status);
+    const preserveExisting = ["blocked", "degraded", "partial"].includes(nextSnapshot.status);
     async function writeSnapshot(path) {
       await mkdir(dirname(path), { recursive: true });
       try { await writeFile(path, output, preserveExisting ? { encoding: "utf8", flag: "wx" } : "utf8"); return true; }

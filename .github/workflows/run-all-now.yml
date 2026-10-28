@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KOSPI_PROVIDER: naver-crawl
+      KOSPI_DAILY_HISTORY: naver-cache
       KOSPI_RUN_DATE: ${{ inputs.run_date }}
       KOSPI_RUN_ID: ${{ github.run_id }}.${{ github.run_attempt }}
       KOSPI_STABLE_SNAPSHOT: "1"

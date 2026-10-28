@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
 import { deriveSessionReturn } from "../providers/evaluation-contract.js";
+import { isKoreanSymbol } from "../providers/korean-symbol.js";
 
 const TEST_DATES = Object.freeze(["2026-10-22", "2026-10-23"]);
 const INPUT_DATES = Object.freeze(["2026-10-15", "2026-10-16", "2026-10-19", "2026-10-20", "2026-10-21", "2026-10-22", "2026-10-23"]);
@@ -94,7 +95,7 @@ async function fetchRows(date, retrievedAt) {
   if (kospi.length === 0) throw new Error(`${url} returned no KOSPI rows.`);
   for (const row of kospi) {
     if (row.basDt !== date.replaceAll("-", "")) throw new Error(`${url} contains a mismatched basDt.`);
-    if (!row["종목코드"] || !row["종목명"]) throw new Error(`${url} contains a KOSPI row without symbol/name.`);
+    if (!isKoreanSymbol(row["종목코드"]) || !row["종목명"]) throw new Error(`${url} contains a KOSPI row with invalid symbol/name.`);
     numeric(row, "mkp", date);
     numeric(row, "clpr", date);
     numeric(row, "trqu", date);

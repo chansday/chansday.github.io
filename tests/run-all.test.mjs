@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createNaverCrawlProvider } from "../providers/naver-crawl-provider.js";
 import { runAll } from "../scripts/run-all.mjs";
+import { naverRobotsFetch, withNaverRobots } from "./naver-robots-helper.mjs";
 
 const RUN_START = "2026-10-27T00:30:00.000Z";
 
@@ -191,12 +192,12 @@ test("historical Naver registration uses exact public EOD values and never recon
     if (date === "20261022") return response(csv(date, 100));
     return response("not found", 404);
   };
-  const provider = createNaverCrawlProvider({
+  const provider = createNaverCrawlProvider(withNaverRobots({
     env: { KOSPI_RUN_DATE: "2026-10-23", KOSPI_RUN_ID: "all-test.1", KOSPI_PUBLIC_MAX_RETRIES: "0", KOSPI_STABLE_SNAPSHOT: "1" },
     fetchImpl,
     now: () => new Date("2026-10-27T00:30:00.000Z"),
     runStartedAt: RUN_START,
-  });
+  }));
   const forecast = await provider.generateForecast();
   assert.equal(forecast.status, "no_data");
   assert.match(forecast.message, /unsupported|synthesized|reconstructed/i);

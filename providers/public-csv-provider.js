@@ -5,6 +5,7 @@ import {
 import { checkRobotsUrl } from "./robots-policy.js";
 import { classifyMarketDate, loadMarketCalendar } from "../scripts/market-calendar.mjs";
 import { deriveSessionReturn } from "./evaluation-contract.js";
+import { isKoreanSymbol } from "./korean-symbol.js";
 
 const SOURCE_HOST = "aikstockdata.com";
 const DEFAULT_BASE_URL = "https://aikstockdata.com/data/public/daily";
@@ -76,7 +77,7 @@ function sourceUrl(baseUrl, date) {
   return `${baseUrl}/quotes_${date.replaceAll("-", "")}.csv`;
 }
 
-function parseCsv(text) {
+export function parseCsv(text) {
   const rows = [];
   let row = [];
   let field = "";
@@ -198,7 +199,7 @@ async function fetchDate(date, context) {
     const open = parseNumeric(row.mkp);
     const close = parseNumeric(row.clpr);
     const volume = parseNumeric(row.trqu);
-    if (!symbol || !name || row.basDt !== date.replaceAll("-", "") || open === null || close === null || volume === null || symbols.has(symbol)) {
+    if (!isKoreanSymbol(symbol) || !name || row.basDt !== date.replaceAll("-", "") || open === null || close === null || volume === null || symbols.has(symbol)) {
       invalidRows += 1;
       continue;
     }

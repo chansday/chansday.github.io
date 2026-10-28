@@ -1,6 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fetchForecastHistory } from "../providers/public-csv-provider.js";
+import { loadNaverDailyHistory } from "../providers/naver-daily-cache.js";
 import { buildEvaluationSummary, deriveExpectedReturn, deriveSessionReturn, deriveEvaluationError } from "../providers/evaluation-contract.js";
 import { mergePostCloseEvaluation } from "../providers/post-close-overlay.js";
 
@@ -28,7 +29,7 @@ export function buildPostCloseRows(sessions, actualRows) {
   });
 }
 
-export async function runPostCloseEvaluation({ runDate, runId, stageFile, historyFetcher = fetchForecastHistory }) {
+export async function runPostCloseEvaluation({ runDate, runId, stageFile, historyFetcher = process.env.KOSPI_DAILY_HISTORY === "naver-cache" ? loadNaverDailyHistory : fetchForecastHistory }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(runDate) || !/^[A-Za-z0-9._-]+$/.test(runId)) throw new Error("Invalid post-close identity");
   const snapshot = JSON.parse(await readFile(stageFile, "utf8"));
   if (snapshot.status !== "ready" || snapshot.meta?.run_date !== runDate || snapshot.meta?.run_id !== runId || snapshot.meta?.run_stage !== "close-settlement" || !Array.isArray(snapshot.rows) || !snapshot.rows.length) throw new Error("Post-close settlement is missing or does not belong to this run");
@@ -48,7 +49,7 @@ export async function runPostCloseEvaluation({ runDate, runId, stageFile, histor
   const rows = buildPostCloseRows(history.sessions, snapshot.rows);
   const evaluation = buildEvaluationSummary(rows, { testOnly: true, dataset: "historical_test", asOfDate: runDate, forecastStage: "0820", actualStage: "1530", inputDates: history.sessions.map((s) => s.date).reverse(), note: "Retrospective calculation using prior daily history, evaluated against observed same-day prices; not a forecast recorded before the open." });
   if (evaluation.evaluated_sample_count === 0) throw new Error("No rows have complete prior history and observed prices");
-  const record = { schema_version: 1, kind: "post_close_retrospective", run_date: runDate, run_id: runId, created_at: new Date().toISOString(), history_dates: history.sessions.map((s) => s.date), history_urls: history.sessions.map((s) => s.url), history_retrieved_at: history.retrieved_at, robots_url: history.robots_url, robots_checked_at: history.robots_checked_at, model: "prior_3_sessions_gap_and_session_mean_capped_5pct", notice: "Calculated after close; prior source publication and revisions are unverified. Not a forecast made before the open or a measure of live forecast performance.", evaluation, rows };
+  const record = { schema_version: 1, kind: "post_close_retrospective", run_date: runDate, run_id: runId, created_at: new Date().toISOString(), history_dates: history.sessions.map((s) => s.date), history_urls: history.sessions.map((s) => s.url), history_retrieved_at: history.retrieved_at, robots_url: history.robots_url, robots_checked_at: history.robots_checked_at, model: "prior_3_sessions_gap_and_session_mean_capped_5pct", notice: `Calculated after close; prior source publication and revisions are unverified. Not a forecast made before the open or a measure of live forecast performance.${history.source === "naver-daily" ? ` Naver daily venue and adjustment unconfirmed and may differ from regular-market quotes; ${history.comparison_conflicts} comparison conflicts recorded.` : ""}`, evaluation, rows };
   await writeFile(path, `${JSON.stringify(record, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
   return { status: "ready", path, evaluated: evaluation.evaluated_sample_count, total: rows.length };
 }

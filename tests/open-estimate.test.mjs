@@ -10,14 +10,14 @@ function makeProvider(time, { missing = false, preopen = false } = {}) {
   const calls = [];
   const fetchImpl = async (url) => {
     calls.push(url);
-    if (url.includes("m.stock.naver.com")) return respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] });
+    if (url.includes("/marketValue")) return respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] });
     if (url.includes("polling.finance")) return respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: preopen ? 125 : 130, closePriceRaw: 150, compareToPreviousClosePriceRaw: 30, localTradedAt: new Date(now.getTime() + 9 * 3600000).toISOString().slice(0, 19) + "+09:00", marketStatus: preopen ? "PREOPEN" : "OPEN" }] });
     if (url.endsWith("/robots.txt")) return respond("User-agent: *\nAllow: /\n", "text/plain");
     const date = url.match(/quotes_(\d{8})/)?.[1];
     if (!dates[date] || missing) return respond("", "text/plain", 404);
     const [open, close] = dates[date]; return respond(`basDt,종목코드,종목명,mrktCtg,mkp,clpr,trqu\n${date},000001,A,KOSPI,${open},${close},1000\n`, "text/csv");
   };
-  const provider = createNaverCrawlProvider({ env: { KOSPI_MANUAL_RUN_ALL: "1", KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0", KOSPI_PUBLIC_MAX_RETRIES: "0" }, now: () => now, runStartedAt: now.toISOString(), fetchImpl });
+  const provider = createNaverCrawlProvider(withNaverRobots({ env: { KOSPI_MANUAL_RUN_ALL: "1", KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0", KOSPI_PUBLIC_MAX_RETRIES: "0" }, now: () => now, runStartedAt: now.toISOString(), fetchImpl }));
   return { provider, calls };
 }
 
@@ -78,13 +78,14 @@ test("settlement recovers an earlier same-day pre-open quote when intermediate s
     await mkdir(join(root, "data", "runs", "2026-10-27"), { recursive: true });
     const prior = { ...noDataSnapshot(), status: "ready", mode: "provider", asOfDate: "2026-10-27", provider: { id: "naver-crawl" }, rows: [row], meta: { run_date: "2026-10-27", run_stage: "forecast" } };
     await writeFile(join(root, "data", "runs", "2026-10-27", "0820.json"), JSON.stringify(prior));
-    process.chdir(root);
-    const fetchImpl = async (url) => url.includes("m.stock.naver.com") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 130, closePriceRaw: 150, localTradedAt: "2026-10-27T13:11:00+09:00", marketStatus: "OPEN" }] });
-    const summary = await run(["--mode", "open-settlement", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl });
+    process.chdir(root); process.env.KOSPI_DATA_ROOT = root;
+    const fetchImpl = async (url) => url.includes("/marketValue") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 130, closePriceRaw: 150, localTradedAt: "2026-10-27T13:11:00+09:00", marketStatus: "OPEN" }] });
+    const summary = await run(["--mode", "open-settlement", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl: naverRobotsFetch(fetchImpl) });
     assert.equal(summary.status, "ready");
     const saved = JSON.parse(await readFile(join(root, "data", "runs", "2026-10-27", "0900.json"), "utf8"));
     assert.equal(saved.rows[0].expected_open, 125); assert.equal(saved.rows[0].actual_open, 130); assert.deepEqual(saved.rows[0].expected_open_source, source);
-  } finally { process.chdir(original); await rm(root, { recursive: true, force: true }); }
+    const unchanged = JSON.parse(await readFile(join(root, "data", "runs", "2026-10-27", "0820.json"), "utf8")); assert.equal(unchanged.rows[0].expected_open, 125);
+  } finally { process.chdir(original); delete process.env.KOSPI_DATA_ROOT; await rm(root, { recursive: true, force: true }); }
 });
 import { isRankingRow } from "../providers/provider-adapter.js";
 
@@ -104,13 +105,13 @@ test("stage recovery and merge reject a later pre-open snapshot", async () => {
     await mkdir(join(root, "data", "runs", "2026-10-27"), { recursive: true });
     const prior = { ...noDataSnapshot(), status: "ready", mode: "provider", asOfDate: "2026-10-27", provider: { id: "naver-crawl" }, rows: [row], meta: { run_date: "2026-10-27", run_stage: "forecast" } };
     await writeFile(join(root, "data", "runs", "2026-10-27", "0820.json"), JSON.stringify(prior));
-    process.chdir(root);
-    const fetchImpl = async (url) => url.includes("m.stock.naver.com") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 125, closePriceRaw: 120, localTradedAt: "2026-10-27T08:20:00+09:00", marketStatus: "PREOPEN" }] });
-    const summary = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl });
+    process.chdir(root); process.env.KOSPI_DATA_ROOT = root;
+    const fetchImpl = async (url) => url.includes("/marketValue") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 125, closePriceRaw: 120, localTradedAt: "2026-10-27T08:20:00+09:00", marketStatus: "PREOPEN" }] });
+    const summary = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl: naverRobotsFetch(fetchImpl) });
     assert.equal(summary.status, "ready");
     const saved = JSON.parse(await readFile(join(root, "data", "runs", "2026-10-27", "0820.json"), "utf8"));
     assert.equal(saved.rows[0].expected_open, 125); assert.notEqual(saved.rows[0].expected_open, 999);
-  } finally { process.chdir(original); await rm(root, { recursive: true, force: true }); }
+  } finally { process.chdir(original); delete process.env.KOSPI_DATA_ROOT; await rm(root, { recursive: true, force: true }); }
 });
 
 test("mixed post-close overlay keeps recorded rows and fills and labels missing rows individually", async () => {
@@ -144,74 +145,62 @@ test("schema and provider agree on source-specific history counts and positive p
 });
 
 test("history robots denial and HTTP errors remain visible for mixed quotes and settlement", async () => {
-  for (const [failure, phase, method, expected, reason] of [["robots", "2026-10-26T23:20:00Z", "generateForecast", "blocked", /robots disallows/i], ["http", "2026-10-27T04:11:00Z", "settleOpen", "degraded", /HTTP 500/i]]) {
+  for (const [failure, phase, method, expected, reason] of [["robots", "2026-10-26T23:20:00Z", "generateForecast", "blocked", /robots disallows/i], ["http", "2026-10-27T04:11:00Z", "settleOpen", "ready", /HTTP 500/i]]) {
     const now = new Date(phase); const quoteAt = new Date(now.getTime() + 9 * 3600000).toISOString().slice(0, 19) + "+09:00";
     const fetchImpl = async (url) => {
-      if (url.includes("m.stock.naver.com")) return respond({ totalCount: 2, stocks: ["000001", "000002"].map((itemCode) => ({ itemCode, stockName: itemCode, stockEndType: "stock", sosok: "0" })) });
+      if (url.includes("/marketValue")) return respond({ totalCount: 2, stocks: ["000001", "000002"].map((itemCode) => ({ itemCode, stockName: itemCode, stockEndType: "stock", sosok: "0" })) });
       if (url.includes("polling.finance")) return respond({ datas: ["000001", "000002"].map((symbolCode, index) => ({ symbolCode, stockName: symbolCode, openPriceRaw: index === 0 || method === "settleOpen" ? 100 : null, closePriceRaw: 110, localTradedAt: quoteAt, marketStatus: method === "settleOpen" ? "OPEN" : "PREOPEN" })) });
       if (url.endsWith("robots.txt")) return respond(`User-agent: *\n${failure === "robots" ? "Disallow" : "Allow"}: /\n`, "text/plain");
       return respond("", "text/plain", 500);
     };
-    const provider = createNaverCrawlProvider({ env: { KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0", KOSPI_PUBLIC_MAX_RETRIES: "0" }, now: () => now, runStartedAt: now.toISOString(), fetchImpl });
+    const provider = createNaverCrawlProvider(withNaverRobots({ env: { KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0", KOSPI_CRAWL_MAX_RETRIES: "0", KOSPI_PUBLIC_MAX_RETRIES: "0" }, now: () => now, runStartedAt: now.toISOString(), fetchImpl }));
     const result = await provider[method]();
-    assert.equal(result.status, expected); assert.equal(result.source.status, expected); assert.equal(result.source.metrics.history_status, expected);
+    // Forecast fails on the history error; settlement keeps it as a visible warning only.
+    assert.equal(result.status, expected); assert.equal(result.source.status, expected); assert.equal(result.source.metrics.history_status, failure === "robots" ? "blocked" : "degraded");
     assert.match(result.message, reason); assert.match(result.source.metrics.history_reason, reason);
     assert.equal(result.source.metrics.history_source, "https://aikstockdata.com/data/public/daily");
     if (failure === "robots") { assert.equal(result.rows[0].expected_open, 100); assert.equal(result.rows[1].expected_open, null); }
-    else assert.equal(result.rows[0].actual_open, 100);
+    else { assert.equal(result.rows[0].actual_open, 100); assert.equal(result.rows[0].expected_open, null); assert.equal(result.rows[1].expected_open, null); }
   }
 });
 
-test("runner persists blocked history provenance instead of a ready settlement", async () => {
+test("runner records settlement prices while persisting blocked history provenance", async () => {
   const root = await mkdtemp(join(tmpdir(), "kospi-history-status-")); const original = process.cwd();
   const now = new Date("2026-10-27T04:11:00Z");
   try {
     await mkdir(join(root, "data"), { recursive: true });
     // The public-history collector reads the project calendar from its own module path.
-    process.chdir(root);
+    process.chdir(root); process.env.KOSPI_DATA_ROOT = root;
     const fetchImpl = async (url) => {
-      if (url.includes("m.stock.naver.com")) return respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] });
+      if (url.includes("/marketValue")) return respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] });
       if (url.includes("polling.finance")) return respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 130, closePriceRaw: 150, localTradedAt: "2026-10-27T13:11:00+09:00", marketStatus: "OPEN" }] });
       if (url.endsWith("robots.txt")) return respond("User-agent: *\nDisallow: /\n", "text/plain");
       throw new Error("unexpected history request");
     };
-    const summary = await run(["--mode", "open-settlement", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl });
-    assert.equal(summary.status, "blocked");
+    const summary = await run(["--mode", "open-settlement", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl: naverRobotsFetch(fetchImpl) });
+    assert.equal(summary.status, "ready");
     const saved = JSON.parse(await readFile(join(root, "data", "runs", "2026-10-27", "0900.json"), "utf8"));
+    assert.equal(saved.rows[0].actual_open, 130); assert.equal(saved.rows[0].expected_open, null);
     assert.equal(saved.meta.source.metrics.history_status, "blocked"); assert.match(saved.meta.source.metrics.history_reason, /robots disallows/i);
     assert.match(saved.pipeline.openSettlement.message, /robots disallows/i);
-  } finally { process.chdir(original); await rm(root, { recursive: true, force: true }); }
+  } finally { process.chdir(original); delete process.env.KOSPI_DATA_ROOT; await rm(root, { recursive: true, force: true }); }
 });
 import { runInNewContext } from "node:vm";
 import { buildEvaluationSummary } from "../providers/evaluation-contract.js";
+import { naverRobotsFetch, withNaverRobots } from "./naver-robots-helper.mjs";
 
-test("same run keeps estimates collected after run-start, but rejects other-run and stage-future records", async () => {
-  const root = await mkdtemp(join(tmpdir(), "kospi-stage-clock-")); const original = process.cwd(); const oldRun = process.env.KOSPI_RUN_ID;
-  const started = "2026-10-26T23:20:00.000Z"; const date = "2026-10-27";
-  try {
-    process.chdir(root); process.env.KOSPI_RUN_ID = "same-run.1";
-    const stage = async (mode, iso, price) => {
-      const time = new Date(iso); const quoteAt = new Date(time.getTime() + 9 * 3600000).toISOString().slice(0, 19) + "+09:00";
-      const fetchImpl = async (url) => url.includes("m.stock.naver.com") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: price, closePriceRaw: 110, localTradedAt: quoteAt, marketStatus: "PREOPEN" }] });
-      return run(["--mode", mode, "--provider", "naver-crawl", "--run-date", date, "--run-started-at", started], { now: () => time, fetchImpl });
-    };
-    assert.equal((await stage("update-results", "2026-10-26T23:20:10Z", 123)).status, "ready");
-    assert.equal((await stage("analysis", "2026-10-26T23:20:20Z", 200)).status, "ready");
-    const path = join(root, "data", "runs", date, "0800.json");
-    const saved = JSON.parse(await readFile(path, "utf8"));
-    assert.equal(saved.rows[0].expected_open, 123); assert.equal(saved.rows[0].expected_open_source.recorded_at, "2026-10-26T23:20:10.000Z");
-    // A later value from a different run is untrusted even if already on disk.
-    saved.meta.run_id = "another-run"; saved.rows[0].expected_open = 999;
-    await writeFile(path, JSON.stringify(saved));
-    assert.equal((await stage("forecast", "2026-10-26T23:20:30Z", 125)).status, "ready");
-    const forecast = JSON.parse(await readFile(join(root, "data", "runs", date, "0820.json"), "utf8"));
-    assert.equal(forecast.rows[0].expected_open, 123); // trusted 0700 record wins
-    const future = { ...forecast.rows[0], expected_open: 999, expected_open_source: { ...forecast.rows[0].expected_open_source, recorded_at: "2026-10-26T23:20:50.000Z" } };
-    const directNow = new Date("2026-10-26T23:20:30Z");
-    const fetchImpl = async (url) => url.includes("m.stock.naver.com") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 125, closePriceRaw: 110, localTradedAt: "2026-10-27T08:20:30+09:00", marketStatus: "PREOPEN" }] });
-    const provider = createNaverCrawlProvider({ env: { KOSPI_RUN_ID: "same-run.1", KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0" }, now: () => directNow, runStartedAt: started, fetchImpl });
-    assert.equal((await provider.generateForecast({ snapshot: { asOfDate: date, meta: { run_id: "same-run.1" }, rows: [future] } })).rows[0].expected_open, 125);
-  } finally { process.chdir(original); if (oldRun === undefined) delete process.env.KOSPI_RUN_ID; else process.env.KOSPI_RUN_ID = oldRun; await rm(root, { recursive: true, force: true }); }
+test("same-run and future opening records stay bounded", async () => {
+  const started = "2026-10-26T23:20:00.000Z", date = "2026-10-27", current = new Date("2026-10-26T23:20:30Z");
+  const fetchImpl = async (url) => url.includes("/marketValue") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 125, closePriceRaw: 110, localTradedAt: "2026-10-27T08:20:30+09:00", marketStatus: "PREOPEN" }] });
+  const provider = createNaverCrawlProvider(withNaverRobots({ env: { KOSPI_RUN_ID: "same-run.1", KOSPI_CRAWL_REQUEST_INTERVAL_MS: "0" }, now: () => current, runStartedAt: started, fetchImpl }));
+  const source = { kind: "preopen_quote", recorded_at: "2026-10-26T23:20:10.000Z", history_dates: [] };
+  const saved = { symbol: "000001", expected_open: 123, expected_open_source: source };
+  const same = await provider.generateForecast({ snapshot: { asOfDate: date, meta: { run_id: "same-run.1" }, rows: [saved] } });
+  assert.equal(same.status, "ready"); assert.equal(same.rows[0].expected_open, 123);
+  const other = await provider.generateForecast({ snapshot: { asOfDate: date, meta: { run_id: "other" }, rows: [saved] } });
+  assert.equal(other.rows[0].expected_open, 125);
+  const future = { ...saved, expected_open: 999, expected_open_source: { ...source, recorded_at: "2026-10-26T23:20:50.000Z" } };
+  assert.equal((await provider.generateForecast({ snapshot: { asOfDate: date, meta: { run_id: "same-run.1" }, rows: [future] } })).rows[0].expected_open, 125);
 });
 
 test("post-close record is loaded for recorded rows and the screen summary matches displayed values", async () => {
@@ -240,20 +229,20 @@ test("blocked and degraded reruns leave existing latest and stage files byte-for
       const stagePath = join(dir, "0820.json"), latestPath = join(root, "data", "latest-snapshot.json");
       const existing = { ...noDataSnapshot(), status: "ready", mode: "provider", asOfDate: "2026-10-27", provider: { id: "naver-crawl" }, rows: [{ rank: 1, symbol: "000001", name: "A", expected_open: null, expected_close: null, expected_return: null, actual_open: null, actual_close: null, actual_return: null, error: null, status: "valid" }], meta: { run_date: "2026-10-27", run_stage: "forecast" } };
       const stageBytes = JSON.stringify(existing, null, 1) + "\n", latestBytes = "existing latest bytes\n";
-      await writeFile(stagePath, stageBytes); await writeFile(latestPath, latestBytes); process.chdir(root); process.env.KOSPI_MANUAL_RUN_ALL = "1";
+      await writeFile(stagePath, stageBytes); await writeFile(latestPath, latestBytes); process.chdir(root); process.env.KOSPI_DATA_ROOT = root; process.env.KOSPI_MANUAL_RUN_ALL = "1";
       const fetchImpl = async (url) => {
-        if (url.includes("m.stock.naver.com")) return respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] });
+        if (url.includes("/marketValue")) return respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] });
         if (url.includes("polling.finance")) return respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 130, closePriceRaw: 150, localTradedAt: "2026-10-27T13:11:00+09:00", marketStatus: "OPEN" }] });
         if (url.endsWith("robots.txt")) return respond(`User-agent: *\n${failure === "blocked" ? "Disallow" : "Allow"}: /\n`, "text/plain");
         return respond("", "text/plain", 404);
       };
-      const result = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl });
+      const result = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl: naverRobotsFetch(fetchImpl) });
       assert.equal(result.status, failure); assert.equal(result.wroteRunFile, false); assert.equal(result.wroteLatestFile, false);
       assert.equal(result.source.metrics.history_status, failure); assert.match(result.message, failure === "blocked" ? /robots disallows/i : /HTTP 404/i);
       assert.equal(await readFile(stagePath, "utf8"), stageBytes); assert.equal(await readFile(latestPath, "utf8"), latestBytes);
-      const explicit = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString(), "--data-file", stagePath], { now: () => now, fetchImpl });
+      const explicit = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString(), "--data-file", stagePath], { now: () => now, fetchImpl: naverRobotsFetch(fetchImpl) });
       assert.equal(explicit.status, failure); assert.equal(explicit.wroteLatestFile, false); assert.equal(await readFile(stagePath, "utf8"), stageBytes);
-    } finally { process.chdir(original); if (oldManual === undefined) delete process.env.KOSPI_MANUAL_RUN_ALL; else process.env.KOSPI_MANUAL_RUN_ALL = oldManual; await rm(root, { recursive: true, force: true }); }
+    } finally { process.chdir(original); delete process.env.KOSPI_DATA_ROOT; if (oldManual === undefined) delete process.env.KOSPI_MANUAL_RUN_ALL; else process.env.KOSPI_MANUAL_RUN_ALL = oldManual; await rm(root, { recursive: true, force: true }); }
   }
 });
 

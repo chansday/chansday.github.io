@@ -2,7 +2,13 @@
 
 정적 GitHub Pages 프론트엔드로 KOSPI 사전예측 랭킹을 기록하고, 장마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
-평일 운영 provider 기본값과 GitHub Actions provider는 `naver-crawl`입니다. Naver 공개 polling endpoint에서 현재 KOSPI quote를 읽어 장전 예상시가·장중 실제시가·장마감 실제값을 계산하지만, Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았습니다. 따라서 source metadata는 `license_status=unconfirmed`를 유지하고 snapshot/meta/summary에 source warning을 남깁니다. fresh·current-day·schema-valid quote의 operational status는 `ready`로 허용하지만 license가 확인됐다고 표시하지 않습니다. crawl 결과가 지연·빈 응답·차단이면 `no_data`/`degraded`/`blocked`를 기록하고 fixture, demo 또는 이전 snapshot을 대체값으로 사용하지 않습니다.
+평일 운영 provider 기본값과 GitHub Actions provider는 `naver-crawl`입니다. Naver 공개 polling endpoint에서 현재 KOSPI quote를 읽어 장전 예상시가·장중 실제시가·장마감 실제값을 계산하지만, Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았습니다. 따라서 source metadata는 `license_status=unconfirmed`를 유지하고 snapshot/meta/summary에 source warning을 남깁니다. 일봉의 시장·조정 기준과 보통주 분류가 확인되지 않아 Naver 운영 단계는 `partial`로 표시하고 신규 운영 snapshot 게시를 차단합니다. crawl 결과가 지연·빈 응답·차단이면 `no_data`/`degraded`/`blocked`를 기록하고 fixture, demo 또는 이전 snapshot을 대체값으로 사용하지 않습니다.
+
+운영 forecast 및 정산은 별도의 `KOSPI prior daily history`가 06:10 KST(두 번째 시도 07:10 KST)에 시작하는 종목별 Naver 일봉 선행 수집(`api.stock.naver.com/chart/domestic/item/{code}/day`)을 사용합니다. 수집은 08:00 전에 완료되어야 하며, 기존 08:20·09:00·15:30 스케줄은 변경하지 않습니다. KRX 캘린더에서 직전 세 거래일을 확인하고 세 날짜의 유효한 OHLC와 거래량이 모두 있는 종목만 계산합니다. chart 일봉에는 전일 대비값이 없으므로 모든 행의 `comparison`은 `unverified`로 기록하고 원본 OHLC는 변경하지 않습니다. OHLC·거래량이 유효하지 않거나 필요한 날짜가 빠진 종목은 제외합니다. 서버의 403·429·challenge 또는 Retry-After는 수집을 중단하며 재시도나 헤더 교체로 우회하지 않습니다. 500ms 이상의 순차 요청 간격을 사용합니다. 900종목이면 간격만 약 7분 30초이고 Actions 지연·네트워크 시간은 별도입니다. 06:10 시작은 08:00 cutoff까지 약 110분 여유가 있고, 07:10 두 번째 실행은 완전한 파일이 있으면 보존하며 부분 파일만 개선합니다. 그래도 완료를 보장하지는 않습니다. open/close-settlement는 관측 가격만 기록하므로 일봉 이력이 없거나 차단돼도 정산 상태를 degraded/blocked로 바꾸지 않고, `history_status`·`history_reason`과 메시지에만 남깁니다(예상 시가는 저장된 장전 기록이 없으면 null). forecast·analysis 단계는 기존대로 이력 실패를 상태에 반영합니다. 지연 또는 차단으로 선행 파일이 없으면 이력 예측은 degraded/no_data이며 과거 파일을 대체하지 않습니다. 네이버 일봉의 KRX 정규장 구분, 수정 여부, 최초 게시시각과 이용·재배포 권한은 확인되지 않았습니다. 선행 파일에는 수집 원본의 일부가 포함되어 공개 저장소에 기록됩니다. 수동 실행이 08:00 전 또는 선행 수집 실패 후라면 필요한 이력을 사용할 수 없습니다. 이전 CSV 이력 설명은 별도 실험과 명시적 public-csv 경로에 적용됩니다.
+
+국내 종목코드는 숫자와 ASCII 대문자로 이뤄진 정확히 6자리만 허용합니다. 예를 들어 `0126Z0`을 수용하며 소문자, 공백, 경로 문자 및 다른 길이는 거부합니다. 이는 코드 형식 검증이며 해당 종목이 보통주 또는 KRX 정규장 데이터라는 확인을 대신하지 않습니다.
+
+부분 이력은 전체 forecast/정산도 `partial`로 표시하며 정상 스냅샷 commit gate를 통과하지 못합니다. 08:00 전 재실행은 같은 종목 범위에서 기존 유효 행을 보존하고 세 거래일 완전 종목이 증가한 경우에만 검증된 임시 파일을 원자적으로 교체합니다. 실패·차단·커버리지 미개선은 기존 파일을 보존합니다. 날짜별 독점 잠금으로 동일 checkout의 동시 수집을 차단합니다. 손상 파일은 자동 교체하지 않고 실패합니다. 운영자가 원본을 별도 보존해 조사한 뒤 명시적으로 복구해야 합니다. 비정상 종료로 `.lock`이 남았다면 실제 해당 수집 프로세스가 종료됐는지 먼저 확인하고 잠금 파일을 보존·조사한 뒤 수동으로 해제합니다. 공유 잠금이 아닌 별도 checkout 간의 동시성은 Actions의 공통 concurrency 그룹이 제어합니다.
 
 ## 범위와 운영 원칙
 
@@ -12,8 +18,8 @@
 
 기존 정시 워크플로의 시각과 단계는 유지합니다. 거래일의 `close-settlement` 정시·수동 실행과 장 마감 이후 `run now`도 정산이 정상 완료되면 같은 사후 평가 엔진을 실행하고 기존 예측 시트에 결과를 연결합니다. 주말과 KRX 휴장일에는 공용 실행기가 수집·계산·저장을 건너뜁니다. 휴장 여부를 확인할 수 없는 연도는 안전하게 실패합니다.
 
-+ 종목 범위는 운영 provider에서 KOSPI 정규시장 보통주를 기본으로 합니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
-- 가격 기준은 provider가 확인한 KOSPI 정규장 공식 시작가·종가이며 통화는 KRW, 시간대는 `Asia/Seoul`입니다. 조정주가·호가·추정값을 자동으로 섞지 않습니다.
++ 운영 provider의 보통주·우선주 분류는 미확인이고 우선주가 포함될 수 있습니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
+- 운영 quote의 시장 표기와 일봉의 시장·조정 기준은 독립적으로 확인되지 않았습니다. 관측·계산값은 원본과 출처 경고를 표시하며, 일봉과 정규시장 quote의 시장 범위가 다를 수 있습니다. 통화는 KRW, 시간대는 `Asia/Seoul`입니다.
 - `expected_return = (expected_close / expected_open - 1) × 100`은 예상 시가와 예상 종가가 모두 있을 때만 계산합니다. 예상 종가 모델이 없으면 `expected_return`과 `error`는 `null`/`no_data`입니다. `session_return = (actual_close / actual_open - 1) × 100`은 실제 시가→실제 종가 기준입니다. `intraday_reference_return`은 별도 실행시점 참고값이며 `expected_return`과 구분합니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
@@ -64,15 +70,17 @@
 ### Naver 공개 crawl provider
 
 - quote endpoint: `https://polling.finance.naver.com/api/realtime/domestic/stock/{codes}`
-- KOSPI universe endpoint: `https://m.stock.naver.com/api/stocks/marketValue/KOSPI?sortType=marketValue&category=KOSPI&page={page}&pageSize={pageSize}`
+- KOSPI universe endpoint: `https://api.stock.naver.com/stock/exchange/KOSPI/marketValue?page={page}&pageSize={pageSize}` (live list). 빈 목록이거나 해당 host의 robots가 경로를 금지하면 커밋된 [`data/kospi-universe.json`](data/kospi-universe.json)을 사용합니다. 403·429·challenge·형식 오류는 fallback 없이 중단합니다.
+- 일봉 endpoint: `https://api.stock.naver.com/chart/domestic/item/{code}/day?startDateTime={YYYYMMDD}0000&endDateTime={전일 YYYYMMDD}2359` (대상일 당일 봉은 요청·사용하지 않음)
+- quote의 `stockExchangeType.code`가 `KS`가 아니면 해당 행은 제외하고 `excluded_non_kospi_quotes`로 기록합니다. 커밋된 목록을 사용할 때 quote host가 반환하지 않은 종목(상장폐지 등)은 제외하고 `excluded_missing_quotes`로 기록하며, 두 경우 모두 결과는 `partial`입니다. live list 사용 시에는 기존대로 요청 종목이 정확히 한 번씩 있어야 합니다.
 - 사용 필드: `openPriceRaw`, `closePriceRaw`, `localTradedAt`, `marketStatus`, `stockName`, `symbolCode` (가능한 경우 전일 대비 원시값과 누적 거래량도 계산 보조용으로 기록)
-- 각 행에 `quote_at`과 `quote_age_seconds`, `market_status`를 보존하고, source metadata에 `retrieved_at`, 요청 수, freshness max age, universe/quote endpoint와 지연 가능성을 기록합니다.
+- 각 행에 `quote_at`과 `quote_age_seconds`, `market_status`를 보존하고, source metadata에 `retrieved_at`, 요청 수, freshness max age, universe/quote endpoint와 지연 가능성, `universe_source`(`live`/`cache`), `universe_as_of`, `universe_stale`, cache 사용 시 `universe_fallback_reason`, host별 robots 확인 결과(`robots`)를 기록합니다.
 - 장전(`KST < 09:00`): 신선하고 PREOPEN으로 확인된 `openPriceRaw`를 기록하며, 없으면 검증된 직전 3거래일 이력으로 예상 시가를 계산합니다. 이력 수집이 실패하면 차단은 `blocked`, 그 밖의 오류는 `degraded`로 기록합니다.
 - 장중(`09:00 ≤ KST < 15:30`): 신선한 `openPriceRaw`를 `actual_open`으로 저장합니다.
 - 장마감 후(`KST ≥ 15:30`): 당일 `openPriceRaw`와 `closePriceRaw`를 실제 시가·종가로 저장합니다. 장마감 quote의 허용 max age는 별도로 검증합니다.
 - 수동 `run-all`의 장중 현재가는 `intraday_reference_return` 참고값에만 사용합니다. 예상 시가는 저장된 장전 값 또는 직전 이력의 사후 계산값이며, `openPriceRaw`는 정산 단계에서 `actual_open`으로 기록합니다. `close-settlement`는 15:30 KST 이후에만 실행됩니다.
 - `run-started-at`은 단계 eligibility와 target 거래일을 정하는 기준시각이고, `meta.source.retrieved_at`은 각 provider 요청이 실제로 수집된 시각입니다. 두 시각을 동일한 값으로 가장하지 않으며, Naver `localTradedAt`은 실제 수집시각보다 최대 5초 앞선 서버 clock skew만 허용합니다. 그 밖의 stale·missing·다른 날짜 timestamp는 계속 `degraded`/`no_data`입니다.
-- Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 이 값은 source metadata에 그대로 보존합니다. fresh·current-day·schema-valid quote는 operational `ready`로 저장하되 `meta.source_warning`과 pipeline/job summary에 라이선스 미확인 경고를 남깁니다. stale·missing·out-of-date timestamp, HTTP/parse failure는 계속 `no_data`/`degraded`/`blocked`로 처리되어 run-all commit을 허용하지 않습니다.
+- Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 이 값은 source metadata에 그대로 보존합니다. fresh·current-day·schema-valid quote여도 시장 기준과 보통주 분류가 확인되기 전에는 `partial`로 처리하고 신규 운영 snapshot commit을 차단합니다. stale·missing·out-of-date timestamp, HTTP/parse failure는 계속 `no_data`/`degraded`/`blocked`로 처리되어 run-all commit을 허용하지 않습니다.
 
 `data/runs/historical-test/YYYY-MM-DD/*.json`은 운영 run과 분리된 검증용 과거 스냅샷입니다. `data/latest-snapshot.json`은 운영 provider의 최신 run 복사본이며, fallback 선택 시에도 파일·운영 상태·메타데이터를 덮어쓰지 않습니다. historical-test 수집기는 latest 운영 복사본을 갱신하지 않습니다.
 
@@ -131,7 +139,25 @@ npm run historical-test:collect
 
 ### 공개 crawl 수집 전략과 08:20 cutoff
 
-운영 수집은 KOSPI market-list JSON을 페이지 단위로 한 번 읽고, 종목코드를 제한된 batch로 polling endpoint에 전달합니다. 로그인·CAPTCHA·robots 차단·redirect·HTML challenge를 우회하지 않으며, Naver 허용 호스트 외에는 요청하지 않습니다.
+운영 수집은 KOSPI market-list JSON을 페이지 단위로 한 번 읽고(비어 있으면 커밋된 목록 사용), 종목코드를 제한된 batch로 polling endpoint에 전달합니다. 로그인·CAPTCHA·redirect·HTML challenge 또는 기술적 차단을 우회하지 않으며 robots 확인을 통과한 host 외에는 요청하지 않습니다.
+
+#### robots.txt 정책
+
+- [`providers/robots-policy.js`](providers/robots-policy.js)가 모든 Naver 요청(universe·quote·일봉) 직전에 요청 URL의 경로+query를 해당 origin의 robots.txt와 대조합니다. robots.txt는 수집 1회당 origin별 한 번 읽고 결과를 source metadata(`robots`)와 일봉 파일(`robots_url`, `robots_status`, `robots_checked_at`)에 남깁니다.
+- 금지 경로이거나 robots.txt를 확인할 수 없으면(5xx, 401/403/406/429, 네트워크 오류, timeout, redirect, HTML 200) `blocked`로 중단하고 데이터 요청을 보내지 않습니다.
+- robots.txt 자체가 HTTP 404/410이면 RFC 9309 §2.3.1.3에 따라 "robots.txt 없음(제한 없음)"으로 처리합니다. 이 예외는 Naver crawl 경로에서만 `allowMissing` 옵션으로 켜며, public-csv 등 다른 경로는 기존대로 fail-closed입니다.
+- 429 또는 Retry-After 응답은 기다리거나 재시도하지 않고 즉시 `blocked`로 중단하며 `retry not before` 시각만 기록합니다. 정상적으로 파싱되는 JSON 응답은 본문 단어(예: 종목명 "Doosan Robotics")로 challenge 판정하지 않고, HTML 또는 비JSON 본문에만 challenge 문구 검사를 적용합니다.
+- `data/kospi-universe.json`과 `data/daily-history/`는 작업 디렉터리가 아니라 저장소 루트(`providers/repo-paths.js`, `import.meta.url` 기준)에서 해석합니다. `KOSPI_DATA_ROOT`로 다른 루트를 지정할 수 있습니다(테스트 격리용).
+- User-Agent는 `chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)`로 고정이며 교체·위장하지 않습니다. robots 요청의 `Accept`는 `text/plain, */*;q=0.1`입니다(일부 host가 `text/plain` 단독에는 실제 404 대신 406을 반환함).
+- 2026-10-28 확인 결과: `m.stock.naver.com`, `finance.naver.com`, `fchart.stock.naver.com`은 `User-agent: * / Disallow: /`이므로 요청하지 않습니다. `api.stock.naver.com`, `polling.finance.naver.com`은 robots.txt 404입니다. `data.krx.co.kr`은 robots.txt 404이지만 종목 목록 JSON endpoint가 키 없는 요청에 HTTP 403을 반환해 사용하지 않습니다(우회 시도 없음).
+
+#### KOSPI universe 목록 파일
+
+- `api.stock.naver.com`의 KOSPI 목록은 2026-10-28 장전·장마감 후(after-market 진행 중) 모두 `totalCount: 0`, `marketStatus: PREOPEN`을 반환했습니다(같은 경로의 NASDAQ은 정상). 정규장(09:00–15:30) 중 반환 여부는 아직 확인하지 않았으므로 코드는 live list를 먼저 시도합니다.
+- [`data/kospi-universe.json`](data/kospi-universe.json)은 종목코드·종목명 목록일 뿐 가격 원천이 아닙니다. `candidates_as_of`(후보 기준일), `collected_at`(후보 수집시각), `verified_at`(마지막 quote host 재확인), `source.method`(`live_list` 또는 `candidate_verification`), `candidate_source`, `discovers_new_listings`, host별 robots 확인 결과, `license_status=unconfirmed`를 포함합니다. `candidates_as_of`가 7일(`KOSPI_UNIVERSE_MAX_AGE_DAYS`)보다 오래되면 `universe_stale=true`이며 결과는 `partial`입니다.
+- 초기 파일은 금융위원회 공공데이터포털·한국거래소 원천의 공개 일별 CSV `https://aikstockdata.com/data/public/daily/quotes_20261026.csv`(basDt 2026-10-26, robots.txt `Allow: /data/public/` 확인 후 요청)의 `mrktCtg=KOSPI` 913행 종목코드를 후보로, `polling.finance.naver.com`에서 `stockExchangeType.code === "KS"`를 재확인해 만들었습니다(913/913 확인). 출처 URL·basDt·수집시각·robots 확인 시각은 파일의 `candidate_source`에 기록됩니다. robots 금지 host(`m.stock.naver.com`)에서 목록이 수집된 `data/latest-snapshot.json`과 `data/runs/YYYY-MM-DD/` 운영 파일은 후보로 거부합니다. 후보 검증 방식은 CSV 기준일 이후 신규 상장 종목을 추가할 수 없습니다.
+- 갱신: `npm run universe:update` (dry-run: `npm run universe:dry-run`, 공개 CSV 후보: `node scripts/update-kospi-universe.mjs --candidates-csv YYYY-MM-DD`, 다른 후보 파일: `--candidates <file>`; 옵션이 없으면 기존 목록을 재확인). live list가 행을 반환하면 `live_list`로 교체하고, 아니면 후보를 quote host에서 재확인합니다. 확인 비율이 90% 미만이거나 403/429/challenge이면 파일을 바꾸지 않습니다. `KOSPI prior daily history` workflow가 일봉 수집 전에 `--candidates-csv latest`(최근 3거래일 CSV 중 기존 `candidates_as_of`보다 새로운 것, 없으면 기존 목록 재확인)를 `continue-on-error`로 실행하고 변경 시 함께 커밋합니다. stale 판정은 재확인 시각(`verified_at`)이 아니라 후보 기준일(`candidates_as_of`)로 하며, 재확인은 `candidate_source`·`collected_at`·`candidates_as_of`를 바꾸지 않습니다.
+- 네트워크 dry-run(파일 쓰기 없음): `npm run naver:dry-run` — universe와 앞 3종목의 quote·일봉을 실제로 요청해 행 수와 상태만 출력합니다.
 
 - Actions forecast schedule은 08:20 KST에 시작하지만, 수동 `run-all now`는 reusable runner에서 실제 실행 시각을 UTC ISO-8601로 생성해 사용합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:30 이후에만 `close-settlement`를 추가 호출합니다. 수동 run-all은 실행 시작시각과 별도로 collection invocation timestamp를 기록하고, 각 Naver 요청의 실제 수집시각을 source metadata에 기록합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 모든 stage는 같은 crawl runner에서 quote freshness를 검증합니다.
 - source별 timeout(기본 8초), 전체 deadline(기본 120초), 순차 요청 간 최소 간격(기본 250ms), 최대 1회 bounded retry를 적용합니다. 403/429/challenge는 재시도하지 않습니다.
@@ -315,7 +341,7 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
    `gh workflow run forecast.yml --ref main`
 
 2. provider 상태, `meta.source.source_date`/`retrieved_at`, top-level `asOfDate`, `data/latest-snapshot.json`의 단계 상태와 job summary를 확인합니다. summary의 `reference time (run start)`은 해당 수동/스케줄 실행의 기준시각입니다.
-3. `forecast`/`open-settlement`/`close-settlement`은 Naver 공개 crawl의 실제 quote와 `localTradedAt` freshness를 함께 확인합니다. 이용정책이 확인되지 않은 상태에서도 fresh·current-day·schema-valid quote는 operational `ready`로 저장되며, snapshot/meta/summary에 `license_status=unconfirmed` source warning을 남깁니다. 이는 라이선스를 `confirmed`로 표시하지 않으면서 무설정 Actions 실행을 허용하기 위한 정책입니다.
+3. `forecast`/`open-settlement`/`close-settlement`은 Naver 공개 crawl의 실제 quote와 `localTradedAt` freshness를 함께 확인합니다. 시장 기준과 종목 분류가 확인되기 전에는 신선한 quote도 operational `partial`이며 신규 운영 snapshot commit을 차단합니다. 이는 라이선스를 `confirmed`로 표시하지 않으면서 무설정 Actions 실행을 허용하기 위한 정책입니다.
 4. `fixture`/`demo`는 UI·계약 확인용 로컬 dry-run에서만 사용하고 운영 데이터로 해석하지 않습니다. 기능 workflow는 provider 선택을 노출하지 않습니다.
 5. 문제가 있으면 해당 기능 workflow의 summary와 `data/latest-snapshot.json`의 stage 상태를 확인합니다. provider를 바꾸거나 `none`으로 우회하는 설정은 workflow에 포함하지 않습니다.
 

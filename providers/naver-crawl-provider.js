@@ -2,13 +2,22 @@ import {
   createSourceMetadata,
 } from "./provider-adapter.js";
 import { createPublicCsvProvider, fetchForecastHistory } from "./public-csv-provider.js";
+import { loadNaverDailyHistory } from "./naver-daily-cache.js";
+import { isKoreanSymbol } from "./korean-symbol.js";
+import { checkRobotsUrl } from "./robots-policy.js";
+import { KOSPI_UNIVERSE_PATH, loadKospiUniverseCache, DEFAULT_UNIVERSE_MAX_AGE_DAYS } from "./kospi-universe-cache.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 
-const QUOTE_ENDPOINT = "https://polling.finance.naver.com/api/realtime/domestic/stock/";
-const UNIVERSE_ENDPOINT = "https://m.stock.naver.com/api/stocks/marketValue/KOSPI";
+// Every request host below is checked against its robots.txt before each data
+// request. m.stock.naver.com, finance.naver.com and fchart.stock.naver.com
+// disallow all paths for this agent and are not requested.
+export const QUOTE_ENDPOINT = "https://polling.finance.naver.com/api/realtime/domestic/stock/";
+export const UNIVERSE_ENDPOINT = "https://api.stock.naver.com/stock/exchange/KOSPI/marketValue";
+export const DAILY_HISTORY_SOURCE = "https://api.stock.naver.com/chart/domestic/item/";
+const KOSPI_EXCHANGE_CODE = "KS";
 const SOURCE_NAME = "네이버 금융 공개 polling 웹 크롤링 (비공식·지연 가능)";
 const SOURCE_ID = "naver-public-polling-crawl";
-const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
+export const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_OVERALL_DEADLINE_MS = 120_000;
 const DEFAULT_MAX_RETRIES = 1;
@@ -39,6 +48,8 @@ function readConfig(env) {
     universePageSize: numberEnv(env, "KOSPI_CRAWL_UNIVERSE_PAGE_SIZE", DEFAULT_UNIVERSE_PAGE_SIZE, 1, 100),
     quoteBatchSize: numberEnv(env, "KOSPI_CRAWL_QUOTE_BATCH_SIZE", DEFAULT_QUOTE_BATCH_SIZE, 1, 100),
     requestIntervalMs: numberEnv(env, "KOSPI_CRAWL_REQUEST_INTERVAL_MS", DEFAULT_REQUEST_INTERVAL_MS, 0, 10_000),
+    universeCachePath: typeof env.KOSPI_UNIVERSE_CACHE === "string" && env.KOSPI_UNIVERSE_CACHE.trim() ? env.KOSPI_UNIVERSE_CACHE.trim() : KOSPI_UNIVERSE_PATH,
+    universeMaxAgeDays: numberEnv(env, "KOSPI_UNIVERSE_MAX_AGE_DAYS", DEFAULT_UNIVERSE_MAX_AGE_DAYS, 1, 365),
   };
 }
 
@@ -94,8 +105,9 @@ export function parseLocalTradedAt(value) {
 }
 
 function normalizedSymbol(value) {
-  const raw = String(value ?? "").trim().replace(/^KOSPI:/i, "");
-  return /^\d{6}$/.test(raw) ? raw : null;
+  if (typeof value !== "string") return null;
+  const raw = value.replace(/^KOSPI:/i, "");
+  return isKoreanSymbol(raw) ? raw : null;
 }
 
 function sleep(ms) {
@@ -106,9 +118,21 @@ function responseHeader(response, name) {
   return response.headers?.get?.(name) || response.headers?.[name] || "";
 }
 
-function isChallenge(text, contentType = "") {
+// HTML is always a challenge. A body that parses as JSON is data, so its
+// contents (e.g. a stock named "Doosan Robotics") are never keyword-matched;
+// only non-JSON bodies are checked for challenge wording.
+export function isChallenge(text, contentType = "") {
   if (contentType.includes("text/html")) return true;
-  return /captcha|challenge|access denied|forbidden|too many requests|robot/i.test(String(text || ""));
+  const body = String(text || "");
+  try { JSON.parse(body); return false; } catch { /* not JSON: inspect wording */ }
+  return /captcha|challenge|access denied|forbidden|too many requests|robot/i.test(body);
+}
+
+function retryNotBefore(retryAfter) {
+  const value = String(retryAfter || "").trim();
+  if (!value) return null;
+  const at = /^\d+$/.test(value) ? Date.now() + Number(value) * 1000 : Date.parse(value);
+  return Number.isFinite(at) ? new Date(at).toISOString() : null;
 }
 
 async function readResponseBody(response) {
@@ -117,7 +141,21 @@ async function readResponseBody(response) {
   return "";
 }
 
-async function fetchJson(url, context, { retryRateLimit = false } = {}) {
+async function robotsGate(url, context) {
+  const policy = await checkRobotsUrl(context, url, USER_AGENT, { allowMissing: true });
+  context.robotsChecks ||= {};
+  const origin = new URL(url).origin;
+  if (!context.robotsChecks[origin]) context.robotsChecks[origin] = { robots_url: policy.robotsUrl, robots_status: policy.ok ? (policy.missing ? policy.robotsStatus : 200) : null, checked_at: policy.checkedAt || null, allowed: policy.ok };
+  if (!policy.ok) { context.robotsChecks[origin].allowed = false; context.robotsChecks[origin].reason = policy.reason; }
+  return policy;
+}
+
+async function fetchJson(url, context) {
+  const policy = await robotsGate(url, context);
+  if (!policy.ok) {
+    context.metrics.failed += 1;
+    return { ok: false, status: null, blocked: true, robots: true, reason: policy.reason };
+  }
   for (let attempt = 0; attempt <= context.config.maxRetries; attempt += 1) {
     const remaining = context.deadlineAt - Date.now();
     if (remaining <= 0) {
@@ -125,9 +163,10 @@ async function fetchJson(url, context, { retryRateLimit = false } = {}) {
       return { ok: false, status: null, reason: "overall deadline exceeded" };
     }
     await sleep(context.lastRequestAt === null ? 0 : Math.max(0, context.config.requestIntervalMs - (Date.now() - context.lastRequestAt)));
+    if (Date.now() >= context.deadlineAt) return { ok: false, status: null, reason: "overall deadline exceeded" };
     context.lastRequestAt = Date.now();
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), Math.min(context.config.timeoutMs, remaining));
+    const timer = setTimeout(() => controller.abort(), Math.min(context.config.timeoutMs, context.deadlineAt - Date.now()));
     context.metrics.requested += 1;
     try {
       const response = await context.fetchImpl(url, {
@@ -137,9 +176,16 @@ async function fetchJson(url, context, { retryRateLimit = false } = {}) {
       });
       const contentType = responseHeader(response, "content-type").toLowerCase();
       const body = await readResponseBody(response);
-      if (response.status === 403 || response.status === 429 || isChallenge(body, contentType)) {
+      const retryAfter = responseHeader(response, "retry-after");
+      // 429 or any parseable Retry-After stops immediately: no wait, no retry.
+      const notBefore = retryNotBefore(retryAfter);
+      if (response.status === 429 || notBefore) {
         context.metrics.failed += 1;
-        return { ok: false, status: response.status, blocked: true, reason: response.status === 429 ? "HTTP 429 rate limit" : response.status === 403 ? "HTTP 403 forbidden" : "Naver challenge/HTML response" };
+        return { ok: false, status: response.status, blocked: true, retryNotBefore: notBefore, reason: `rate limit or Retry-After; collection stopped${notBefore ? ` (retry not before ${notBefore})` : ""}` };
+      }
+      if (response.status === 403 || isChallenge(body, contentType)) {
+        context.metrics.failed += 1;
+        return { ok: false, status: response.status, blocked: true, reason: response.status === 403 ? "HTTP 403 forbidden" : "Naver challenge/HTML response" };
       }
       if (response.ok) {
         context.metrics.completed += 1;
@@ -150,7 +196,7 @@ async function fetchJson(url, context, { retryRateLimit = false } = {}) {
           return { ok: false, status: response.status, blocked: true, reason: "Naver response was not valid JSON" };
         }
       }
-      const retryable = response.status >= 500 || (retryRateLimit && response.status === 429);
+      const retryable = response.status >= 500;
       if (!retryable || attempt >= context.config.maxRetries) {
         context.metrics.failed += 1;
         return { ok: false, status: response.status, reason: `HTTP ${response.status}` };
@@ -176,32 +222,120 @@ async function fetchJson(url, context, { retryRateLimit = false } = {}) {
   return { ok: false, status: null, reason: "retry budget exhausted" };
 }
 
-async function fetchUniverse(context) {
-  const firstUrl = `${UNIVERSE_ENDPOINT}?sortType=marketValue&category=KOSPI&page=1&pageSize=${context.config.universePageSize}`;
-  const first = await fetchJson(firstUrl, context);
+const universePageUrl = (page, pageSize) => `${UNIVERSE_ENDPOINT}?page=${page}&pageSize=${pageSize}`;
+const stockSymbol = (stock) => normalizedSymbol(stock.itemCode || stock.symbolCode || stock.reutersCode);
+
+async function fetchLiveUniverse(context) {
+  const first = await fetchJson(universePageUrl(1, context.config.universePageSize), context);
   if (!first.ok) return first;
-  if (!first.payload || !Array.isArray(first.payload.stocks)) return { ok: false, empty: true, reason: "KOSPI universe response was empty or malformed" };
-  const totalCount = Number(first.payload.totalCount);
-  const pageCount = Number.isFinite(totalCount) && totalCount > 0 ? Math.ceil(totalCount / context.config.universePageSize) : 1;
-  const stocks = [...first.payload.stocks];
-  for (let page = 2; page <= pageCount; page += 1) {
-    const url = `${UNIVERSE_ENDPOINT}?sortType=marketValue&category=KOSPI&page=${page}&pageSize=${context.config.universePageSize}`;
-    const response = await fetchJson(url, context);
+  const parseCount = value => typeof value === "number" ? value : typeof value === "string" && /^\d+$/.test(value) ? Number(value) : NaN;
+  const totalCount = parseCount(first.payload?.totalCount);
+  if (!Number.isSafeInteger(totalCount) || totalCount < 0 || !Array.isArray(first.payload?.stocks)) return { ok: false, reason: "KOSPI universe totalCount or stocks is malformed" };
+  if (totalCount === 0 && first.payload.stocks.length === 0) return { ok: false, empty: true, reason: `KOSPI universe is empty (marketStatus=${String(first.payload?.marketStatus || "unknown").slice(0, 32)})` };
+  const pageCount = Math.ceil(totalCount / context.config.universePageSize);
+  const stocks = [], rawSymbols = new Set();
+  for (let page = 1; page <= Math.max(1, pageCount); page += 1) {
+    const response = page === 1 ? first : await fetchJson(universePageUrl(page, context.config.universePageSize), context);
     if (!response.ok) return response;
-    if (!Array.isArray(response.payload?.stocks) || response.payload.stocks.length === 0) break;
-    stocks.push(...response.payload.stocks);
+    const payload = response.payload, rows = payload?.stocks;
+    if (page > 1 && payload?.totalCount !== undefined && parseCount(payload.totalCount) !== totalCount) return { ok: false, reason: `KOSPI universe totalCount changed or malformed on page ${page}` };
+    const expectedRows = Math.max(0, Math.min(context.config.universePageSize, totalCount - (page - 1) * context.config.universePageSize));
+    if (!Array.isArray(rows) || rows.length !== expectedRows) return { ok: false, reason: `KOSPI universe page ${page} incomplete: expected ${expectedRows} raw rows, received ${Array.isArray(rows) ? rows.length : "invalid"}` };
+    for (const stock of rows) {
+      if (!stock || typeof stock !== "object" || Array.isArray(stock)) return { ok: false, reason: `KOSPI universe page ${page} contains malformed row` };
+      if ((stock.stockName != null && typeof stock.stockName !== "string") || (stock.stockEndType != null && typeof stock.stockEndType !== "string") || (stock.sosok != null && !["string", "number"].includes(typeof stock.sosok))) return { ok: false, reason: `KOSPI universe page ${page} contains malformed fields` };
+      const symbol = stockSymbol(stock);
+      if (!symbol) return { ok: false, reason: `KOSPI universe page ${page} contains invalid symbol` };
+      if (rawSymbols.has(symbol)) return { ok: false, reason: `KOSPI universe duplicate symbol on page ${page}` };
+      rawSymbols.add(symbol); stocks.push(stock);
+    }
   }
+  if (stocks.length !== totalCount) return { ok: false, reason: "KOSPI universe totalCount mismatch" };
   const symbols = [];
   const seen = new Set();
   for (const stock of stocks) {
-    const symbol = normalizedSymbol(stock.itemCode || stock.reutersCode);
-    const isKospiStock = String(stock.sosok ?? "0") === "0" && String(stock.stockEndType || "stock").toLowerCase() === "stock";
+    const symbol = stockSymbol(stock);
+    const exchange = stock.stockExchangeType?.code;
+    const isKospiStock = String(stock.sosok ?? "0") === "0" && (exchange == null || exchange === KOSPI_EXCHANGE_CODE) && String(stock.stockEndType || "stock").toLowerCase() === "stock";
     if (symbol && isKospiStock && !seen.has(symbol)) {
       seen.add(symbol);
       symbols.push({ symbol, name: String(stock.stockName || "").trim() || symbol });
     }
   }
-  return symbols.length > 0 ? { ok: true, symbols, rawRows: stocks.length, totalCount } : { ok: false, empty: true, reason: "KOSPI universe contained no common stocks" };
+  return symbols.length > 0
+    ? { ok: true, symbols, rawRows: stocks.length, totalCount, universeSource: "live", universeEndpoint: UNIVERSE_ENDPOINT, universeAsOf: (context.now ? context.now() : new Date()).toISOString(), universeStale: false }
+    : { ok: false, empty: true, reason: "KOSPI universe contained no stocks in the provider category" };
+}
+
+// Live list first. Only an empty live list or a robots denial of the list host
+// falls back to the committed list; 403/429/challenge and malformed pages stop.
+async function fetchUniverse(context) {
+  const live = await fetchLiveUniverse(context);
+  if (live.ok) return live;
+  if (!(live.empty || live.robots)) return live;
+  const cache = await loadKospiUniverseCache({ path: context.config.universeCachePath, now: context.now, maxAgeDays: context.config.universeMaxAgeDays });
+  if (!cache.ok) return { ...live, reason: `${live.reason}; ${cache.reason}` };
+  return {
+    ok: true,
+    symbols: cache.symbols,
+    rawRows: 0,
+    totalCount: cache.symbols.length,
+    universeSource: "cache",
+    universeEndpoint: cache.path,
+    universeAsOf: cache.candidatesAsOf,
+    universeVerifiedAt: cache.verifiedAt,
+    universeAgeDays: cache.ageDays,
+    universeStale: cache.stale,
+    universeCacheMethod: cache.sourceMethod,
+    universeFallbackReason: live.reason,
+  };
+}
+
+function newCrawlContext({ config, fetchImpl, now, deadline = Infinity, maxDurationMs = 60000 }) {
+  const startedAt = Date.now();
+  return { config, fetchImpl, now, startedAt, deadlineAt: Math.min(deadline, startedAt + maxDurationMs), lastRequestAt: null, metrics: { requested: 0, completed: 0, failed: 0, retries: 0, deadline_hit: false } };
+}
+
+export async function collectNaverUniverse({ fetchImpl = globalThis.fetch, now = () => new Date(), deadline = Infinity, env = {} } = {}) {
+  const config = { ...readConfig(env), requestIntervalMs: 500, maxRetries: 0 };
+  const context = newCrawlContext({ config, fetchImpl, now, deadline });
+  const universe = await fetchUniverse(context);
+  return { ...universe, robotsChecks: context.robotsChecks || {}, metrics: context.metrics };
+}
+
+// Live list only (no cache fallback); used by the universe refresh script.
+export async function fetchLiveKospiUniverse({ fetchImpl = globalThis.fetch, now = () => new Date(), env = {} } = {}) {
+  const config = { ...readConfig(env), requestIntervalMs: 500, maxRetries: 0 };
+  const context = newCrawlContext({ config, fetchImpl, now });
+  const universe = await fetchLiveUniverse(context);
+  return { ...universe, robotsChecks: context.robotsChecks || {}, metrics: context.metrics };
+}
+
+// Confirms candidate symbols on the robots-permitted quote host. Only rows whose
+// stockExchangeType.code is KS are kept; missing or other-exchange codes are
+// reported, never guessed.
+export async function verifyKospiSymbols(symbols, { fetchImpl = globalThis.fetch, now = () => new Date(), env = {}, maxDurationMs = 120000 } = {}) {
+  if (!Array.isArray(symbols) || !symbols.length || symbols.some(s => !isKoreanSymbol(s)) || new Set(symbols).size !== symbols.length) throw new Error("Invalid candidate symbols");
+  const config = { ...readConfig(env), requestIntervalMs: 500, maxRetries: 0 };
+  const context = newCrawlContext({ config, fetchImpl, now, maxDurationMs });
+  const verified = [], other = [], missing = [];
+  for (let offset = 0; offset < symbols.length; offset += config.quoteBatchSize) {
+    const batch = symbols.slice(offset, offset + config.quoteBatchSize);
+    const response = await fetchJson(`${QUOTE_ENDPOINT}${batch.join(",")}`, context);
+    if (!response.ok) return { ok: false, blocked: Boolean(response.blocked), robots: Boolean(response.robots), reason: response.reason, verified, other, missing, robotsChecks: context.robotsChecks || {}, metrics: context.metrics };
+    const rows = new Map();
+    for (const row of quotePayloadRows(response.payload)) {
+      const symbol = normalizedSymbol(row?.symbolCode || row?.itemCode);
+      if (symbol && batch.includes(symbol) && !rows.has(symbol)) rows.set(symbol, row);
+    }
+    for (const symbol of batch) {
+      const row = rows.get(symbol);
+      if (!row) missing.push(symbol);
+      else if (row.stockExchangeType?.code === KOSPI_EXCHANGE_CODE) verified.push({ symbol, name: String(row.stockName || "").trim() || symbol });
+      else other.push({ symbol, exchange: String(row.stockExchangeType?.code ?? "unknown").slice(0, 16) });
+    }
+  }
+  return { ok: true, verified, other, missing, robotsChecks: context.robotsChecks || {}, metrics: context.metrics };
 }
 
 function quotePayloadRows(payload) {
@@ -211,8 +345,11 @@ function quotePayloadRows(payload) {
   return [];
 }
 
-async function fetchQuotes(symbols, context) {
-  const quotes = [];
+// With a live universe every requested symbol must appear exactly once. With
+// the committed list, a symbol the quote host no longer returns (for example a
+// delisting since the list was collected) is excluded and counted, not filled.
+async function fetchQuotes(symbols, context, { tolerateMissing = false } = {}) {
+  const quotes = [], missingSymbols = [];
   for (let offset = 0; offset < symbols.length; offset += context.config.quoteBatchSize) {
     const batch = symbols.slice(offset, offset + context.config.quoteBatchSize);
     const url = `${QUOTE_ENDPOINT}${batch.map((item) => item.symbol).join(",")}`;
@@ -220,9 +357,30 @@ async function fetchQuotes(symbols, context) {
     if (!response.ok) return response;
     const rows = quotePayloadRows(response.payload);
     if (rows.length === 0) return { ok: false, empty: true, reason: "Naver quote response was empty" };
+    const expected = new Set(batch.map(item => item.symbol));
+    const counts = new Map(); let unknown = 0;
+    for (const row of rows) {
+      const symbol = normalizedSymbol(row?.symbolCode || row?.itemCode);
+      if (!symbol || !expected.has(symbol)) { unknown += 1; continue; }
+      counts.set(symbol, (counts.get(symbol) || 0) + 1);
+    }
+    const missingInBatch = [...expected].filter(symbol => !counts.has(symbol));
+    const missing = missingInBatch.length;
+    const duplicate = [...counts.values()].reduce((sum, count) => sum + Math.max(0, count - 1), 0);
+    if ((missing && !tolerateMissing) || duplicate || unknown || missing === expected.size) return { ok: false, reason: `quote identity mismatch: missing=${missing}, duplicate=${duplicate}, unknown=${unknown}` };
+    missingSymbols.push(...missingInBatch);
     quotes.push(...rows);
   }
-  return { ok: true, quotes };
+  return { ok: true, quotes, missingSymbols };
+}
+
+// Read-only helper for dry runs: same robots gate, throttle and identity checks.
+export async function fetchNaverQuotes(symbols, { fetchImpl = globalThis.fetch, now = () => new Date(), env = {} } = {}) {
+  const config = { ...readConfig(env), requestIntervalMs: Math.max(500, readConfig(env).requestIntervalMs), maxRetries: 0 };
+  const context = newCrawlContext({ config, fetchImpl, now });
+  const fetched = await fetchQuotes(symbols.map(symbol => ({ symbol })), context);
+  const quotes = fetched.ok ? fetched.quotes.map(quote => normalizeQuote(quote, now())) : [];
+  return { ...fetched, quotes, robotsChecks: context.robotsChecks || {}, metrics: context.metrics };
 }
 
 function normalizeQuote(raw, now) {
@@ -246,6 +404,7 @@ function normalizeQuote(raw, now) {
     quoteAt,
     quoteAgeSeconds,
     marketStatus: String(raw?.marketStatus || raw?.marketStatusDetailType || "UNKNOWN").toUpperCase(),
+    exchange: typeof raw?.stockExchangeType?.code === "string" ? raw.stockExchangeType.code : null,
   };
 }
 
@@ -368,9 +527,17 @@ function sourceMetadata(context, { status, sourceDate, rawRows, sourceRows, part
       quote_count: quotes.length,
       min_quote_age_seconds: ages.length ? round(Math.min(...ages)) : null,
       max_quote_age_seconds: ages.length ? round(Math.max(...ages)) : null,
-      universe_endpoint: UNIVERSE_ENDPOINT,
+      universe_endpoint: context.universe?.universeEndpoint || UNIVERSE_ENDPOINT,
+      universe_source: context.universe?.universeSource || null,
+      universe_as_of: context.universe?.universeAsOf || null,
+      universe_stale: context.universe ? Boolean(context.universe.universeStale) : null,
+      ...(context.universe?.universeSource === "cache" ? { universe_age_days: context.universe.universeAgeDays, universe_verified_at: context.universe.universeVerifiedAt, universe_fallback_reason: context.universe.universeFallbackReason, universe_cache_method: context.universe.universeCacheMethod } : {}),
+      ...(context.excluded ? { excluded_missing_quotes: context.excluded.missing, excluded_non_kospi_quotes: context.excluded.nonKospi } : {}),
+      robots: context.robotsChecks || {},
       quote_endpoint_template: `${QUOTE_ENDPOINT}{codes}`,
       delayed_data_possible: true,
+      source_basis: context.historyBasis,
+      security_type: "unknown",
       license_note: "Naver public polling endpoint is unofficial; usage and redistribution terms are unconfirmed.",
     },
   });
@@ -418,6 +585,7 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
       fetchImpl,
       now,
       runId: runId(env),
+      historyBasis: env.KOSPI_DAILY_HISTORY === "naver-cache" ? "naver-daily" : "unknown",
       startedAt,
       deadlineAt: startedAt + config.overallDeadlineMs,
       lastRequestAt: null,
@@ -459,7 +627,8 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
       const source = sourceMetadata(context, { status, sourceDate: kstDate(current), rawRows: 0, sourceRows: 0, partial: status !== "no_data" });
       return result(status, `Naver KOSPI universe crawl failed: ${universe.reason}.`, source, [], kstDate(current));
     }
-    const fetched = await fetchQuotes(universe.symbols, context);
+    context.universe = universe;
+    const fetched = await fetchQuotes(universe.symbols, context, { tolerateMissing: universe.universeSource === "cache" });
     if (!fetched.ok) {
       const status = fetched.blocked ? "blocked" : fetched.empty ? "no_data" : "degraded";
       const source = sourceMetadata(context, { status, sourceDate: kstDate(current), rawRows: universe.rawRows, sourceRows: 0, partial: status !== "no_data" });
@@ -467,20 +636,32 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     }
     const collectionAt = now();
     context.collectionAt = Number.isNaN(collectionAt.getTime()) ? fetchTime : collectionAt;
-    const quotes = fetched.quotes.map((quote) => normalizeQuote(quote, context.collectionAt)).filter((quote) => quote.symbol);
+    const normalizedQuotes = fetched.quotes.map((quote) => normalizeQuote(quote, context.collectionAt)).filter((quote) => quote.symbol);
+    // A quote that names another exchange (e.g. KQ) is excluded, not relabelled.
+    const quotes = normalizedQuotes.filter((quote) => quote.exchange === null || quote.exchange === KOSPI_EXCHANGE_CODE);
+    const excludedNonKospi = normalizedQuotes.length - quotes.length;
+    const excludedMissing = fetched.missingSymbols?.length || 0;
+    if (excludedNonKospi || excludedMissing) context.excluded = { missing: excludedMissing, nonKospi: excludedNonKospi };
+    const universeWarning = universe.universeSource === "cache"
+      ? ` Universe from committed list ${universe.universeEndpoint} (candidates as of ${universe.universeAsOf})${universe.universeStale ? " (stale)" : ""} because the live list was unavailable: ${universe.universeFallbackReason}.${excludedMissing ? ` ${excludedMissing} listed symbol(s) returned no quote and were excluded.` : ""}`
+      : "";
+    const excludedWarning = excludedNonKospi ? ` ${excludedNonKospi} quote(s) were not on the KOSPI exchange and were excluded.` : "";
     const maxAgeSeconds = phase === "after-close" ? config.closeMaxAgeSeconds : config.maxAgeSeconds;
     const freshQuotes = quotes.filter((quote) => quote.quoteAt
       && quote.quoteAgeSeconds >= -config.maxClockSkewSeconds
       && quote.quoteAgeSeconds <= maxAgeSeconds
-      && kstDate(quote.quoteAt) === kstDate(current));
+      && kstDate(quote.quoteAt) === kstDate(current)
+      && (stage !== "open-settlement" || resolveCrawlStage(quote.quoteAt) !== "before-open")
+      && (stage !== "close-settlement" || resolveCrawlStage(quote.quoteAt) === "after-close"));
     const sourceDate = freshQuotes[0]?.quoteAt ? kstDate(freshQuotes[0].quoteAt) : kstDate(current);
     const partialQuotes = freshQuotes.length !== quotes.length;
+    const universePartial = Boolean(universe.universeStale || excludedNonKospi || excludedMissing);
     const source = sourceMetadata(context, { status: partialQuotes ? "partial" : "collected", sourceDate, rawRows: universe.rawRows + fetched.quotes.length, sourceRows: freshQuotes.length, partial: partialQuotes, quotes });
     if (freshQuotes.length === 0) {
       return result("degraded", `Naver quote timestamps are missing, stale, or not from ${kstDate(current)}; no previous snapshot is reused.`, { ...source, status: "stale" }, [], sourceDate);
     }
-    const currentOpenQuotes = freshQuotes.filter((quote) => quote.openPrice !== null);
-    const currentQuoteRows = freshQuotes.filter((quote) => quote.closePrice !== null);
+    const currentOpenQuotes = freshQuotes.filter((quote) => quote.openPrice > 0);
+    const currentQuoteRows = freshQuotes.filter((quote) => quote.closePrice > 0);
     if (stage === "open-settlement" && currentOpenQuotes.length === 0) {
       return result("no_data", "Naver response did not contain openPriceRaw for the current market session; actual_open remains no_data.", { ...source, status: "no_open_quote" }, [], sourceDate);
     }
@@ -492,25 +673,46 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     const needsHistory = freshQuotes.some((quote) => !(rowForQuote(quote, phase, stage, snapshotRowsBySymbol, null, current, fetchTime, sameRun).expected_open > 0) && !(phase === "before-open" && quote.marketStatus === "PREOPEN" && quote.openPrice > 0 && quote.quoteAt && resolveCrawlStage(quote.quoteAt) === "before-open"));
     let history = null;
     let historyFailure = null;
-    if (needsHistory) {
-      history = await fetchForecastHistory({ env, fetchImpl, now, targetDate: kstDate(current) });
-      if (!history.ok) { historyFailure = history; history = null; }
+    if (needsHistory || env.KOSPI_DAILY_HISTORY === "naver-cache") {
+      history = env.KOSPI_DAILY_HISTORY === "naver-cache"
+        ? await loadNaverDailyHistory({ targetDate: kstDate(current), now })
+        : await fetchForecastHistory({ env, fetchImpl, now, targetDate: kstDate(current) });
+      if (!history.ok) { if (needsHistory || env.KOSPI_DAILY_HISTORY === "naver-cache") historyFailure = history; history = null; }
     }
     const completedAt = now();
     if (kstDate(completedAt) !== kstDate(current) || resolveCrawlStage(completedAt) !== phase) return result("no_data", "Market phase changed during collection; no opening estimate recorded.", { ...source, status: "stage_mismatch" }, [], sourceDate);
-    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun)), stagePhase);
-    if (historyFailure) {
+    const priorRows = new Map((history?.sessions?.[0]?.rows || []).map(row => [row.symbol, row]));
+    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll, ...(env.KOSPI_DAILY_HISTORY === "naver-cache" ? { priorClose: priorRows.get(quote.symbol)?.close ?? null } : {}) })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun)), stagePhase);
+    if (history?.source === "naver-daily") {
+      source.metrics.history_status = history.partial ? "partial" : "ready";
+      source.metrics.history_reason = `${history.excluded_count} symbols excluded; ${history.comparison_conflicts} daily comparison conflicts; Naver daily venue and adjustment unconfirmed and may differ from regular-market quotes; redistribution rights unconfirmed`;
+      source.metrics.history_source = DAILY_HISTORY_SOURCE;
+    }
+    // Settlement records observed prices, which do not depend on prior history.
+    // A history failure there is kept visible in metrics and the message but
+    // does not change the settlement status; forecast stages still fail on it.
+    const settlementStage = stage === "open-settlement" || stage === "close-settlement";
+    let historyWarning = "";
+    if (historyFailure && settlementStage) {
+      const historyStatus = historyFailure.blocked ? "blocked" : "degraded";
+      const historyReason = String(historyFailure.reason || "unknown history error");
+      Object.assign(source.metrics, { history_status: historyStatus, history_reason: historyReason, history_source: env.KOSPI_DAILY_HISTORY === "naver-cache" ? DAILY_HISTORY_SOURCE : "https://aikstockdata.com/data/public/daily" });
+      historyWarning = ` Prior daily history ${historyStatus}: ${historyReason}; expected openings without a saved pre-open record remain unavailable (settlement prices unaffected).`;
+    } else if (historyFailure) {
       const historyStatus = historyFailure.blocked ? "blocked" : "degraded";
       const historyReason = String(historyFailure.reason || "unknown history error");
       const failedSource = { ...source, status: historyStatus, partial: true, source_rows: rows.length,
-        metrics: { ...source.metrics, history_status: historyStatus, history_reason: historyReason, history_source: "https://aikstockdata.com/data/public/daily" } };
+        metrics: { ...source.metrics, history_status: historyStatus, history_reason: historyReason, history_source: env.KOSPI_DAILY_HISTORY === "naver-cache" ? DAILY_HISTORY_SOURCE : "https://aikstockdata.com/data/public/daily" } };
       return result(historyStatus, `Prior daily history ${historyStatus}: ${historyReason}; missing opening estimates remain unavailable.`, failedSource, rows, sourceDate);
     }
     if (isForecastStage(stage) && rows.every((row) => row.expected_open === null)) return result("no_data", "No verified pre-open quote or complete prior history; expected_open remains unavailable.", { ...source, status: "no_preopen_quote" }, [], sourceDate);
-    const readyMessage = `Opening estimates: pre-open quote or prior three-session history; history calculated after the open is retrospective. Missing history remains no_data.`;
-    const resultStatus = partialQuotes ? "partial" : "ready";
-    const partialMessage = partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps; incomplete source data is not promoted to ready.` : "";
-    return result(resultStatus, `${readyMessage}${partialMessage}`, { ...source, status: resultStatus, sourceRows: rows.length }, rows, sourceDate);
+    const readyMessage = `Opening estimates: pre-open quote or prior three-session history; history calculated after the open is retrospective. Missing history remains no_data.${history?.source === "naver-daily" ? ` Naver daily market and adjustment basis unconfirmed and may differ from regular-market quotes; ${history.comparison_conflicts} comparison conflicts recorded.` : ""}`;
+    const missingOpenings = env.KOSPI_DAILY_HISTORY === "naver-cache" && !settlementStage ? rows.filter(row => !(row.expected_open > 0)).length : 0;
+    const missingHistory = env.KOSPI_DAILY_HISTORY === "naver-cache" && !settlementStage ? freshQuotes.filter(quote => !priorRows.has(quote.symbol)).length : 0;
+    const missingObserved = stage === "open-settlement" ? freshQuotes.length - currentOpenQuotes.length : stage === "close-settlement" ? freshQuotes.filter(q => !(q.openPrice > 0 && q.closePrice > 0)).length : 0;
+    const resultStatus = universePartial || partialQuotes || (history?.partial && !settlementStage) || missingOpenings || missingHistory || missingObserved ? "partial" : "ready";
+    const partialMessage = `${partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps.` : ""}${history?.partial ? ` ${history.excluded_count} symbols lack complete prior history.` : ""}${missingHistory ? ` ${missingHistory} current symbols have no complete history.` : ""}${missingOpenings ? ` ${missingOpenings} symbols have no expected opening.` : ""}${missingObserved ? ` ${missingObserved} symbols lack required observed prices.` : ""}${historyWarning}`;
+    return result(resultStatus, `${readyMessage}${partialMessage}${universeWarning}${excludedWarning} Naver daily market and adjustment basis are unconfirmed; preferred shares may be included.`, { ...source, status: resultStatus, partial: resultStatus === "partial", source_rows: rows.length }, rows, sourceDate);
   }
 
   const wrap = (method) => async ({ snapshot } = {}) => {

@@ -4,6 +4,10 @@
   "title": "KOSPI signal board snapshot",
   "description": "Static snapshot contract for expected and actual KOSPI observation values.",
   "type": "object",
+  "allOf": [{
+    "if": { "properties": { "provider": { "type": "object", "required": ["id"], "properties": { "id": { "const": "naver-crawl" } } } }, "required": ["provider"] },
+    "then": { "properties": { "rows": { "items": { "properties": { "symbol": { "type": "string", "minLength": 6, "maxLength": 6, "pattern": "^[0-9A-Z]{6}$" } }, "required": ["symbol"] } } } }
+  }],
   "required": ["schemaVersion", "status", "mode", "market", "provider", "pipeline", "rows", "meta"],
   "properties": {
     "schemaVersion": { "const": "1.0.0" },
@@ -147,8 +151,10 @@
             "universe_endpoint": { "type": "string", "format": "uri" },
             "quote_endpoint_template": { "type": "string", "format": "uri-reference" },
             "delayed_data_possible": { "type": "boolean" },
+            "source_basis": { "enum": ["naver-daily", "unknown"] },
+            "security_type": { "const": "unknown" },
             "license_note": { "type": "string" },
-            "history_status": { "enum": ["blocked", "degraded"] },
+            "history_status": { "enum": ["blocked", "degraded", "partial", "ready"] },
             "history_reason": { "type": "string" },
             "history_source": { "type": "string", "format": "uri" }
           },

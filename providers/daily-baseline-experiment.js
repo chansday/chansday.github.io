@@ -1,5 +1,6 @@
 import { fetchForecastHistory } from "./public-csv-provider.js";
 import { deriveExpectedReturn } from "./evaluation-contract.js";
+import { isKoreanSymbol } from "./korean-symbol.js";
 
 // Isolated research output: never an operational snapshot or a quote source.
 function kstParts(date) {
@@ -23,7 +24,7 @@ export async function createDailyBaselineExperiment({ targetDate, env = {}, fetc
   const previous = history.sessions[0], maps = history.sessions.map((session) => new Map(session.rows.map((row) => [row.symbol, row])));
   const rows = previous.rows.map((item) => {
     const observations = maps.map((map) => map.get(item.symbol));
-    const valid = /^[0-9]{6}$/.test(item.symbol) && observations.every((row) => row && row.open > 0 && row.close > 0 && row.volume > 0);
+    const valid = isKoreanSymbol(item.symbol) && observations.every((row) => row && row.open > 0 && row.close > 0 && row.volume > 0);
     const baseline = valid ? item.close : null;
     const average = valid ? observations.reduce((sum, row) => sum + (row.close / row.open - 1), 0) / 3 : null;
     const close = valid ? round(baseline * (1 + average)) : null;

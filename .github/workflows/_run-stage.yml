@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       KOSPI_PROVIDER: ${{ inputs.provider }}
+      KOSPI_DAILY_HISTORY: ${{ (inputs.auto_stage || inputs.stage == 'analysis' || inputs.stage == 'forecast' || inputs.stage == 'open-settlement' || inputs.stage == 'close-settlement') && 'naver-cache' || '' }}
       KOSPI_RUN_ID: ${{ inputs.run_id }}.${{ inputs.run_attempt }}
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
       KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
@@ -93,16 +94,6 @@ jobs:
         if: steps.market-day.outputs.should_run == 'true'
         run: npm test && npm run check && npm run check:experiment
 
-      - name: Collect isolated daily baseline
-        id: daily-experiment
-        if: >-
-          steps.static-contract.outcome == 'success' &&
-          (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'forecast'
-        continue-on-error: true
-        env:
-          EXPERIMENT_DATE: ${{ steps.validate-run-context.outputs.run_date }}
-        run: node scripts/daily-baseline-run.mjs "$EXPERIMENT_DATE"
-
       - name: Run resolved KOSPI stage
         id: stage
         if: >-
@@ -118,6 +109,16 @@ jobs:
           steps.static-contract.outcome == 'success'
         continue-on-error: true
         run: node scripts/update-results.mjs --mode "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" --run-started-at "${{ steps.capture-run-context.outputs.run_started_at }}" --attempted-at "${{ steps.capture-run-context.outputs.run_started_at }}"
+
+      - name: Collect isolated daily baseline
+        id: daily-experiment
+        if: >-
+          steps.static-contract.outcome == 'success' &&
+          (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'forecast'
+        continue-on-error: true
+        env:
+          EXPERIMENT_DATE: ${{ steps.validate-run-context.outputs.run_date }}
+        run: node scripts/daily-baseline-run.mjs "$EXPERIMENT_DATE"
 
       - name: Evaluate post-close retrospective
         id: retrospective

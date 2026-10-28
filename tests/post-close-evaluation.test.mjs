@@ -35,7 +35,7 @@ test("post-close evaluation saves isolated record, refuses wrong run and preserv
   const root = await mkdtemp(join(tmpdir(), "post-close-"));
   const previous = process.cwd();
   try {
-    process.chdir(root);
+    process.chdir(root); process.env.KOSPI_DATA_ROOT = root;
     const dir = join(root, "data", "runs", "2026-10-27");
     await mkdir(dir, { recursive: true });
     const stageFile = join(dir, "1530.json");
@@ -101,7 +101,7 @@ test("past-date manual run evaluates the stored settlement without collecting or
   const root = await mkdtemp(join(tmpdir(), "past-settlement-"));
   const previous = process.cwd();
   try {
-    process.chdir(root);
+    process.chdir(root); process.env.KOSPI_DATA_ROOT = root;
     const dir = join(root, "data", "runs", "2026-10-27");
     await mkdir(dir, { recursive: true });
     const file = join(dir, "1530.json");
