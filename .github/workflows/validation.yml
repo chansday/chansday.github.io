@@ -31,6 +31,16 @@ jobs:
       - name: Run static validation only
         run: npm test && npm run check && npm run collection:audit
 
+      # Stage jobs run npm test before collecting; repeat it with their
+      # environment and on later dates so a date- or data-dependent test fails
+      # here at push time instead of blocking a trading-day stage.
+      - name: Run tests as a stage job and on future clocks
+        env:
+          KOSPI_PROVIDER: naver-crawl
+          KOSPI_STABLE_SNAPSHOT: "1"
+          KOSPI_DAILY_HISTORY: ""
+        run: npm test && npm run test:future-clock
+
       - name: Confirm that validation did not collect snapshots
         shell: bash
         run: git diff --exit-code -- data/latest-snapshot.json data/runs
