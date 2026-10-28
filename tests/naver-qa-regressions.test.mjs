@@ -147,7 +147,9 @@ test("universe and daily-history paths resolve from the repository root regardle
     assert.equal(repoPath(KOSPI_UNIVERSE_PATH), join(REPO_ROOT, "data", "kospi-universe.json"));
     assert.equal(dailyHistoryPath("2026-10-28"), join(REPO_ROOT, "data", "daily-history", "2026-10-28.json"));
     assert.equal(displayPath(KOSPI_UNIVERSE_PATH), "data/kospi-universe.json");
-    const cache = await loadKospiUniverseCache({ now: () => new Date("2026-10-28T08:00:00Z") });
+    // The committed universe is refreshed daily; judge it at its own verification time, not a fixed date.
+    const committed = JSON.parse(await readFile(join(REPO_ROOT, "data", "kospi-universe.json"), "utf8"));
+    const cache = await loadKospiUniverseCache({ now: () => new Date(Date.parse(committed.verified_at) + 60_000) });
     assert.equal(cache.ok, true, cache.reason); assert.equal(cache.path, "data/kospi-universe.json");
     process.env.KOSPI_DATA_ROOT = dir;
     assert.equal(dailyHistoryPath("2026-10-28"), join(dir, "data", "daily-history", "2026-10-28.json"));
