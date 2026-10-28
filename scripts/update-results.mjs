@@ -56,7 +56,7 @@ function parseArgs(argv) {
     dryRun: false,
     provider: null,
     fixtureDate: null,
-    runDate: process.env.KOSPI_RUN_DATE || null,
+    runDate: null,
     runStartedAt: process.env.KOSPI_RUN_STARTED_AT || null,
     attemptedAt: null,
   };
@@ -78,8 +78,9 @@ function parseArgs(argv) {
   if (!options.mode || !MODES[options.mode]) {
     throw new Error("--mode must be one of: update-results, analysis, forecast, open-settlement, close-settlement");
   }
+  const explicitRunDate = options.runDate;
   const runContext = calculateRunContext(options.runStartedAt);
-  options.runDate ||= runContext.runDate;
+  options.runDate = explicitRunDate || runContext?.runDate || process.env.KOSPI_RUN_DATE || null;
   if (!validDate(options.runDate)) throw new Error(`--run-date must be YYYY-MM-DD: ${options.runDate}`);
   options.runStartedAt = runContext.referenceTime;
   options.runContext = runContext;
