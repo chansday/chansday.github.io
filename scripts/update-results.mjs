@@ -11,7 +11,7 @@ import { createDemoProvider } from "../providers/demo-provider.js";
 import { createFixtureProvider } from "../providers/fixture-provider.js";
 import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
-import { createNaverCrawlProvider } from "../providers/naver-crawl-provider.js";
+import { createNaverCrawlProvider, savedOpeningIsTimely } from "../providers/naver-crawl-provider.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
 import { calculateRunContext } from "./run-context.mjs";
 
@@ -140,7 +140,7 @@ async function appendJobSummary(summary) {
     `- run date: \`${summary.runDate}\``,
     `- reference time (run start): \`${summary.attemptedAt}\``,
     `- source warning: ${summary.sourceWarning || "none"}`,
-    `- snapshot write: \`${summary.wroteFile ? "yes" : "no (dry-run)"}\``,
+    `- snapshot write: \`${summary.wroteFile ? "yes" : "no (dry-run or existing file preserved)"}\``,
     `- message: ${message || "(none)"}`,
     "",
   ].join("\n"), "utf8");
@@ -167,6 +167,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
 
     if (mode === "open-settlement") {
       const merged = { ...existing };
+      if (!(existing.expected_open > 0 && existing.expected_open_source) && incoming.expected_open_source) { merged.expected_open = incoming.expected_open; merged.expected_open_source = incoming.expected_open_source; }
       for (const field of ["rank", "symbol", "name", "quality", "status", ...OPEN_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
@@ -178,6 +179,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
 
     if (mode === "close-settlement") {
       const merged = { ...existing };
+      if (!(existing.expected_open > 0 && existing.expected_open_source) && incoming.expected_open_source) { merged.expected_open = incoming.expected_open; merged.expected_open_source = incoming.expected_open_source; }
       for (const field of ["rank", "symbol", "name", "quality", "status", ...CLOSE_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
@@ -189,6 +191,8 @@ export function mergeRows(existingRows, incomingRows, mode) {
     }
 
     const merged = { ...existing, ...incoming };
+    if (existing.expected_open > 0 && existing.expected_open_source) { merged.expected_open = existing.expected_open; merged.expected_open_source = existing.expected_open_source; }
+    else if (!incoming.expected_open_source) delete merged.expected_open_source;
     for (const field of EXPECTED_FIELDS) {
       if (incoming[field] === null && existing[field] !== null) merged[field] = existing[field];
     }
@@ -312,6 +316,10 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
   const options = parseArgs(argv);
   if (!options) return { help: true };
   const modeConfig = MODES[options.mode];
+  const stageStartedAt = (dependencies.now || (() => new Date()))();
+  if (!(stageStartedAt instanceof Date) || !Number.isFinite(stageStartedAt.getTime())) throw new Error("Invalid stage collection time");
+  const currentRunId = process.env.KOSPI_RUN_ID || null;
+  const timely = (recordedAt, sourceSnapshot) => savedOpeningIsTimely(recordedAt, options.runContext.referenceTime, stageStartedAt.toISOString(), Boolean(currentRunId && sourceSnapshot?.meta?.run_id === currentRunId));
   const latestPath = resolve(options.dataFile || "data/latest-snapshot.json");
   const runPath = resolve("data", "runs", options.runDate, `${options.mode === "update-results" ? "0700" : options.mode === "analysis" ? "0800" : options.mode === "forecast" ? "0820" : options.mode === "open-settlement" ? "0900" : "1530"}.json`);
   const previousMode = {
@@ -337,6 +345,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     }
   }
   let snapshot;
+  const recoveredSymbols = new Set();
   if (explicitDataFile) {
     snapshot = JSON.parse(await readFile(latestPath, "utf8"));
   } else {
@@ -344,9 +353,50 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
       || await readIfPresent(previousPath, previousMode);
     if (snapshot?.meta?.historical_test || snapshot?.meta?.test_only || snapshot?.mode === "historical_test") snapshot = null;
     snapshot ||= noDataSnapshot();
+    // Recover the latest genuine pre-open record even if an intermediate run is missing.
+    const recovered = new Map();
+    for (const [label, stage] of [["0820", "forecast"], ["0800", "analysis"], ["0700", "update-results"]]) {
+      const prior = await readIfPresent(resolve("data", "runs", options.runDate, `${label}.json`), stage);
+      if (prior?.asOfDate !== options.runDate || prior?.mode !== "provider" || prior?.provider?.id !== "naver-crawl" || !Array.isArray(prior.rows)) continue;
+      for (const row of prior.rows) {
+        if (!row.symbol || recovered.has(row.symbol) || !(row.expected_open > 0)) continue;
+        const src = row.expected_open_source;
+        const t = Date.parse(src?.recorded_at || row.quote_at);
+        const kst = new Date(t + 9 * 3600000);
+        const before = Number.isFinite(t) && kst.toISOString().slice(0, 10) === options.runDate && kst.getUTCHours() < 9;
+        const validSource = src && ["preopen_quote", "preopen_history"].includes(src.kind);
+        const legacyQuote = !src && row.market_status === "PREOPEN" && row.quality === "naver_preopen_quote";
+        if (!before || !timely(src?.recorded_at || row.quote_at, prior) || (!validSource && !legacyQuote)) continue;
+        recoveredSymbols.add(row.symbol);
+        recovered.set(row.symbol, { row, expected_open: row.expected_open, expected_open_source: src || { kind: "preopen_quote", recorded_at: row.quote_at, history_dates: [] } });
+      }
+    }
+    snapshot = { ...snapshot, rows: snapshot.rows.map((row) => {
+      const previous = recovered.get(row.symbol);
+      if (!previous) return row;
+      const merged = { ...row, expected_open: previous.expected_open, expected_open_source: previous.expected_open_source };
+      merged.expected_return = deriveExpectedReturn(merged); merged.error = derivedError(merged);
+      return merged;
+    }) };
+    if (recovered.size && !snapshot.asOfDate) snapshot.asOfDate = options.runDate;
+    const present = new Set(snapshot.rows.map((row) => row.symbol));
+    for (const [symbol, saved] of recovered) if (!present.has(symbol)) {
+      const prior = saved.row;
+      snapshot.rows.push({ rank: prior.rank, symbol, name: prior.name, expected_open: saved.expected_open, expected_open_source: saved.expected_open_source,
+        expected_close: null, expected_return: null, actual_open: null, actual_close: null, actual_return: null, error: null, status: prior.status });
+    }
   }
   const attemptedAt = options.attemptedAt;
   const { provider, providerId } = resolveProvider(process.env, { ...options, ...dependencies });
+  if (providerId === "naver-crawl") {
+    snapshot = { ...snapshot, rows: snapshot.rows.map((row) => {
+      if (row.expected_open_source && (recoveredSymbols.has(row.symbol) || timely(row.expected_open_source.recorded_at, snapshot))) return row;
+      // Old intraday current-price baselines have no reliable pre-open origin.
+      const clean = { ...row, expected_open: null, expected_return: null, error: null };
+      delete clean.expected_open_source;
+      return clean;
+    }) };
+  }
   let nextSnapshot = {
     ...snapshot,
     meta: {
@@ -393,18 +443,14 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
   let wroteRunFile = false;
   let wroteLatestFile = false;
   if (!options.dryRun) {
-    if (explicitDataFile) {
-      await mkdir(dirname(latestPath), { recursive: true });
-      await writeFile(latestPath, output, "utf8");
-      wroteLatestFile = true;
-    } else {
-      await mkdir(dirname(runPath), { recursive: true });
-      await mkdir(dirname(latestPath), { recursive: true });
-      await writeFile(runPath, output, "utf8");
-      await writeFile(latestPath, output, "utf8");
-      wroteRunFile = true;
-      wroteLatestFile = true;
+    const preserveExisting = ["blocked", "degraded"].includes(nextSnapshot.status);
+    async function writeSnapshot(path) {
+      await mkdir(dirname(path), { recursive: true });
+      try { await writeFile(path, output, preserveExisting ? { encoding: "utf8", flag: "wx" } : "utf8"); return true; }
+      catch (error) { if (preserveExisting && error.code === "EEXIST") return false; throw error; }
     }
+    if (!explicitDataFile) wroteRunFile = await writeSnapshot(runPath);
+    wroteLatestFile = await writeSnapshot(latestPath);
   }
   const summary = {
     mode: options.mode,
@@ -415,6 +461,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     status: nextSnapshot.status,
     message: nextSnapshot.pipeline?.[modeConfig.key]?.message || nextSnapshot.meta?.blockedReason || null,
     sourceWarning: nextSnapshot.meta?.source_warning || null,
+    source: nextSnapshot.meta?.source || null,
     dryRun: options.dryRun,
     stageFile: explicitDataFile ? null : runPath,
     wroteRunFile,

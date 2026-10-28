@@ -35,9 +35,10 @@ export async function runPostCloseEvaluation({ runDate, runId, stageFile, histor
   const path = join("data", "runs", runDate, `retrospective-${runId}.json`);
   try {
     const previous = JSON.parse(await readFile(path, "utf8"));
-    const merged = mergePostCloseEvaluation(snapshot, previous);
-    if (!merged.evaluation.evaluated_sample_count) throw new Error("Existing retrospective has no evaluated rows");
-    return { status: "ready", path, evaluated: merged.evaluation.evaluated_sample_count, total: merged.rows.length, preserved: true };
+    mergePostCloseEvaluation(snapshot, previous); // validate identity and observation matches
+    const evaluated = previous.rows.filter((row) => deriveEvaluationError(row) !== null).length;
+    if (!evaluated) throw new Error("Existing retrospective has no evaluated rows");
+    return { status: "ready", path, evaluated, total: previous.rows.length, preserved: true };
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }

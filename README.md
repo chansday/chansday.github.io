@@ -67,10 +67,10 @@
 - KOSPI universe endpoint: `https://m.stock.naver.com/api/stocks/marketValue/KOSPI?sortType=marketValue&category=KOSPI&page={page}&pageSize={pageSize}`
 - 사용 필드: `openPriceRaw`, `closePriceRaw`, `localTradedAt`, `marketStatus`, `stockName`, `symbolCode` (가능한 경우 전일 대비 원시값과 누적 거래량도 계산 보조용으로 기록)
 - 각 행에 `quote_at`과 `quote_age_seconds`, `market_status`를 보존하고, source metadata에 `retrieved_at`, 요청 수, freshness max age, universe/quote endpoint와 지연 가능성을 기록합니다.
-- 장전(`KST < 09:00`): 현재 날짜의 신선한 `openPriceRaw`가 있을 때만 `expected_open`을 계산합니다. 없으면 전일 종가로 예상값을 합성하지 않고 `no_data`입니다.
+- 장전(`KST < 09:00`): 신선하고 PREOPEN으로 확인된 `openPriceRaw`를 기록하며, 없으면 검증된 직전 3거래일 이력으로 예상 시가를 계산합니다. 이력 수집이 실패하면 차단은 `blocked`, 그 밖의 오류는 `degraded`로 기록합니다.
 - 장중(`09:00 ≤ KST < 15:30`): 신선한 `openPriceRaw`를 `actual_open`으로 저장합니다.
 - 장마감 후(`KST ≥ 15:30`): 당일 `openPriceRaw`와 `closePriceRaw`를 실제 시가·종가로 저장합니다. 장마감 quote의 허용 max age는 별도로 검증합니다.
-- 수동 `run-all`이 오늘 장중에 시작되면 `update-results`/`analysis`/`forecast`도 장중 신선한 `closePriceRaw` current quote를 수집합니다. 이 경로의 `expected_open`은 09:00 전 예측이 아니라 실행 시점 current-quote baseline이며, `intraday_reference_return`은 별도 실행시점 참고값으로만 기록하고 `expected_return`으로 사용하지 않습니다. `openPriceRaw`는 `open-settlement`에서만 `actual_open`으로 기록합니다. `close-settlement`는 15:30 KST 이후에만 실행됩니다. 장전 수동 실행은 기존대로 `openPriceRaw`가 없으면 `no_data`입니다.
+- 수동 `run-all`의 장중 현재가는 `intraday_reference_return` 참고값에만 사용합니다. 예상 시가는 저장된 장전 값 또는 직전 이력의 사후 계산값이며, `openPriceRaw`는 정산 단계에서 `actual_open`으로 기록합니다. `close-settlement`는 15:30 KST 이후에만 실행됩니다.
 - `run-started-at`은 단계 eligibility와 target 거래일을 정하는 기준시각이고, `meta.source.retrieved_at`은 각 provider 요청이 실제로 수집된 시각입니다. 두 시각을 동일한 값으로 가장하지 않으며, Naver `localTradedAt`은 실제 수집시각보다 최대 5초 앞선 서버 clock skew만 허용합니다. 그 밖의 stale·missing·다른 날짜 timestamp는 계속 `degraded`/`no_data`입니다.
 - Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 이 값은 source metadata에 그대로 보존합니다. fresh·current-day·schema-valid quote는 operational `ready`로 저장하되 `meta.source_warning`과 pipeline/job summary에 라이선스 미확인 경고를 남깁니다. stale·missing·out-of-date timestamp, HTTP/parse failure는 계속 `no_data`/`degraded`/`blocked`로 처리되어 run-all commit을 허용하지 않습니다.
 
@@ -331,3 +331,9 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
 최근 실험 시도 상태는 별도 `data/experiments/YYYY-MM-DD-status.json`에 저장하며 재시도 때 갱신합니다. 상태 기록이 없으면 미실행 또는 기록 누락으로 표시하고, robots 차단·데이터 부족·수집 실패는 구분합니다. 기존 예측은 덮어쓰지 않으며 운영 snapshot과 실험의 성공 여부는 별도로 보고합니다. 상태 저장 실패도 workflow 실패로 표시합니다.
 
 예측 파일 저장 후 상태 저장이 실패하면 같은 checkout의 재시도에서 기존 예측을 검증하고 미추적 상태일 때만 게시 후보로 선택합니다. 추적 중인 예측은 변경하지 않습니다. 파일 생성은 같은 디렉터리의 임시 파일과 원자적 링크 생성으로 충돌 시 기존 파일을 보존하며, 링크를 지원하지 않는 파일시스템은 실패합니다. 상태 파일의 게시 자체가 실패하거나 checkout이 사라지면 웹 화면에 실패를 알릴 수 없으므로 Actions 로그 확인과 재실행이 필요합니다.
+
+## 예상 시가 출처
+
+운영 행의 `expected_open_source`는 장전 호가 기록(`preopen_quote`), 장전 계산(`preopen_history`), 또는 장중·장후 사후 계산(`retrospective_history`)을 구분합니다. 장전 기록을 우선 보존하며 장중 현재가와 실제 시가는 예상 시가로 사용하지 않습니다. 장전 기록이 없으면 직전 3거래일 공개 일봉의 시가와 종가로 기존 사후 모델의 평균 시가 갭(±5% 제한)을 전일 종가에 적용합니다. 이력의 날짜와 수집 시각을 저장하고 화면에 표시합니다. 사후 계산은 장전에 실제 기록된 예측이 아닙니다. 필요한 이력이 없거나 출처 접근이 거부되면 해당 예상 시가는 데이터 없음이며, 원인과 상태는 source metadata와 메시지에 기록됩니다. 공개 일봉의 발행 시각·수정 여부·권리는 확인되지 않았습니다. 예상 수익률 계산식은 기존 그대로 유지합니다.
+
+동일 run-all 실행에서 앞 단계가 수집한 장전 기록은 현재 단계의 실제 수집 시작 시각까지 인정하며, run-start 이후 기록은 동일 run ID일 때만 이어받습니다. 차단·오류 재실행은 이미 존재하는 최신 snapshot과 단계 파일을 덮어쓰지 않고 실패 상태와 원인을 실행 결과에 남깁니다.

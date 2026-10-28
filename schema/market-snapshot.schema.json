@@ -147,7 +147,10 @@
             "universe_endpoint": { "type": "string", "format": "uri" },
             "quote_endpoint_template": { "type": "string", "format": "uri-reference" },
             "delayed_data_possible": { "type": "boolean" },
-            "license_note": { "type": "string" }
+            "license_note": { "type": "string" },
+            "history_status": { "enum": ["blocked", "degraded"] },
+            "history_reason": { "type": "string" },
+            "history_source": { "type": "string", "format": "uri" }
           },
           "additionalProperties": false
         }
@@ -254,6 +257,7 @@
         "symbol": { "type": ["string", "null"] },
         "name": { "type": ["string", "null"] },
         "expected_open": { "type": ["number", "null"] },
+        "expected_open_source": { "type": "object", "required": ["kind", "recorded_at", "history_dates"], "properties": { "kind": { "enum": ["preopen_quote", "preopen_history", "retrospective_history"] }, "recorded_at": { "type": "string", "format": "date-time" }, "history_dates": { "type": "array", "items": { "type": "string", "format": "date" } } }, "additionalProperties": false },
         "expected_close": { "type": ["number", "null"] },
         "expected_return": { "type": ["number", "null"], "description": "Only expected_close / expected_open - 1 × 100; null when expected_close is unavailable. prior_close is never used for this field." },
         "actual_open": { "type": ["number", "null"] },
@@ -282,6 +286,12 @@
         "status": { "type": "string" }
       },
       "allOf": [
+        {
+          "if": { "required": ["expected_open_source"] },
+          "then": { "properties": { "expected_open": { "type": "number", "exclusiveMinimum": 0 }, "expected_open_source": { "allOf": [
+            { "if": { "properties": { "kind": { "const": "preopen_quote" } }, "required": ["kind"] }, "then": { "properties": { "history_dates": { "maxItems": 0 } } }, "else": { "properties": { "history_dates": { "minItems": 3, "maxItems": 3, "items": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "format": "date" } } } } }
+          ] } } }
+        },
         {
           "if": { "properties": { "expected_close": { "type": "null" } } },
           "then": { "properties": { "expected_return": { "type": "null" } } }

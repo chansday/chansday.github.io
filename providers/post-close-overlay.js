@@ -1,4 +1,4 @@
-import { buildEvaluationSummary, deriveExpectedReturn, deriveSessionReturn, deriveEvaluationError } from "./evaluation-contract.js";
+import { buildEvaluationSummary, deriveExpectedReturn, deriveSessionReturn, deriveEvaluationError, isEvaluationSummary } from "./evaluation-contract.js";
 
 // Keep observed fields from the operating snapshot; overlay only a matched run's
 // retrospective estimates. Never mix forecasts from different runs or dates.
@@ -16,9 +16,15 @@ export function mergePostCloseEvaluation(snapshot, record) {
     if (!row || seen.has(source.symbol) || row.actual_open !== (source.actual_open > 0 ? source.actual_open : null) || row.actual_close !== (source.actual_close > 0 ? source.actual_close : null)) throw new Error("Retrospective observation mismatch");
     seen.add(source.symbol);
     if (![row.expected_open, row.expected_close].every((value) => value === null || (typeof value === "number" && Number.isFinite(value) && value > 0)) || (row.expected_open === null) !== (row.expected_close === null)) throw new Error("Invalid retrospective estimate");
-    const merged = { ...source, expected_open: row.expected_open, expected_close: row.expected_close };
+    // Recorded opening estimates are authoritative; the separate retrospective
+    // overlay must never replace them or their existing closing estimate.
+    const merged = source.expected_open_source ? { ...source } : { ...source, expected_open: row.expected_open, expected_close: row.expected_close, ...(row.expected_open !== null ? { retrospective_overlay: record.history_dates } : {}) };
     return { ...merged, expected_return: deriveExpectedReturn(merged), session_return: deriveSessionReturn(merged), error: deriveEvaluationError(merged) };
   });
+  if (record.evaluation && !isEvaluationSummary(record.evaluation)) throw new Error("Invalid retrospective evaluation");
+  // The file's retrospective summary describes its own rows. The screen may
+  // retain earlier forecasts, so calculate its summary from the displayed rows.
   const evaluation = buildEvaluationSummary(rows, { testOnly: true, dataset: "historical_test", asOfDate: date, forecastStage: "0820", actualStage: "1530", inputDates: [...record.history_dates].reverse(), note: record.notice });
-  return { ...snapshot, rows, evaluation, meta: { ...snapshot.meta, retrospective_evaluation: true }, retrospective_history_dates: record.history_dates };
+  const mixed = rows.some((row) => row.expected_open_source) && rows.some((row) => row.retrospective_overlay);
+  return { ...snapshot, rows, evaluation, meta: { ...snapshot.meta, retrospective_evaluation: true, retrospective_mixed: mixed }, retrospective_history_dates: record.history_dates };
 }

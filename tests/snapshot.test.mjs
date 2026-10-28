@@ -511,9 +511,9 @@ test("Naver crawl provider refuses synthesized pre-open values and stale quotes"
     now: () => now,
   });
   const noOpen = await makeProvider({ symbolCode: "000001", stockName: "종목", openPriceRaw: null, closePriceRaw: "100", localTradedAt: "2026-10-27T08:59:25+09:00", marketStatus: "PREOPEN" }).generateForecast();
-  assert.equal(noOpen.status, "no_data");
-  assert.equal(noOpen.rows.length, 0);
-  assert.match(noOpen.message, /previous close|synthesi/i);
+  assert.equal(noOpen.status, "blocked");
+  assert.equal(noOpen.rows[0].expected_open, null);
+  assert.match(noOpen.message, /history blocked/i);
 
   const stale = await makeProvider({ symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "100", localTradedAt: "2026-10-26T15:30:00+09:00", marketStatus: "CLOSE" }).generateForecast();
   assert.equal(stale.status, "degraded");
@@ -521,7 +521,7 @@ test("Naver crawl provider refuses synthesized pre-open values and stale quotes"
   assert.equal(stale.source.status, "stale");
 });
 
-test("manual run-all uses a fresh intraday current quote for the forecast baseline", async () => {
+test("manual run-all never presents an intraday quote as an opening estimate", async () => {
   const now = new Date("2026-10-27T04:11:00.000Z");
   const response = (payload) => ({ ok: true, status: 200, headers: { get: () => "application/json" }, text: async () => JSON.stringify(payload) });
   const provider = createNaverCrawlProvider({
@@ -538,14 +538,9 @@ test("manual run-all uses a fresh intraday current quote for the forecast baseli
     now: () => now,
   });
   const forecast = await provider.generateForecast();
-  assert.equal(forecast.status, "ready");
-  assert.equal(forecast.rows[0].expected_open, 102);
-  assert.equal(forecast.rows[0].expected_return, null);
-  assert.equal(forecast.rows[0].intraday_reference_return, 2);
-  assert.equal(forecast.rows[0].actual_open, null);
-  assert.equal(forecast.rows[0].quality, "naver_intraday_quote_baseline");
-  assert.equal(forecast.rows[0].quote_age_seconds, 0);
-  assert.match(forecast.message, /current closePriceRaw quote baseline/i);
+  assert.equal(forecast.status, "blocked");
+  assert.equal(forecast.rows[0].expected_open, null);
+  assert.match(forecast.message, /history blocked/i);
   assert.equal(forecast.source.retrieved_at, now.toISOString());
 });
 
@@ -580,13 +575,13 @@ test("Naver crawl provider maps open and close stages to actual fields", async (
     now: () => now,
   });
   const open = await makeProvider(new Date("2026-10-27T01:00:00.000Z"), { symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "102", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T10:00:00+09:00", marketStatus: "OPEN" }).settleOpen();
-  assert.equal(open.status, "ready");
+  assert.equal(open.status, "blocked");
   assert.equal(open.rows[0].actual_open, 101);
   assert.equal(open.rows[0].actual_close, null);
   assert.equal(open.rows[0].actual_return, null);
 
   const close = await makeProvider(new Date("2026-10-27T08:00:00.000Z"), { symbolCode: "000001", stockName: "종목", openPriceRaw: "101", closePriceRaw: "103", compareToPreviousClosePriceRaw: "2", localTradedAt: "2026-10-27T15:30:00+09:00", marketStatus: "CLOSE" }).settleClose();
-  assert.equal(close.status, "ready");
+  assert.equal(close.status, "blocked");
   assert.equal(close.rows[0].actual_open, 101);
   assert.equal(close.rows[0].actual_close, 103);
   assert.equal(close.rows[0].session_return, 1.98);

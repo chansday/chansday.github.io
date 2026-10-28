@@ -27,6 +27,7 @@ export const RANKING_FIELDS = Object.freeze([
 
 export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "confidence",
+  "expected_open_source",
   "quality",
   "actual_volume",
   "prior_close",
@@ -81,6 +82,11 @@ export function isRankingRow(row) {
   if (row.name !== null && typeof row.name !== "string") return false;
   if (typeof row.status !== "string") return false;
   if (Object.hasOwn(row, "confidence") && !isFiniteOrNull(row.confidence)) return false;
+  if (Object.hasOwn(row, "expected_open_source")) {
+    const src = row.expected_open_source;
+    if (!src || !["preopen_quote", "preopen_history", "retrospective_history"].includes(src.kind) || (typeof src.recorded_at !== "string" || !Number.isFinite(Date.parse(src.recorded_at))) || !Array.isArray(src.history_dates) || !(row.expected_open > 0)) return false;
+    if (Object.keys(src).sort().join(",") !== "history_dates,kind,recorded_at" || (src.kind === "preopen_quote" ? src.history_dates.length !== 0 : src.history_dates.length !== 3 || src.history_dates.some((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d)))) return false;
+  }
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
   if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
   if (Object.hasOwn(row, "session_return") && !isFiniteOrNull(row.session_return)) return false;

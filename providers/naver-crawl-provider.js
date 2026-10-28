@@ -1,7 +1,7 @@
 import {
   createSourceMetadata,
 } from "./provider-adapter.js";
-import { createPublicCsvProvider } from "./public-csv-provider.js";
+import { createPublicCsvProvider, fetchForecastHistory } from "./public-csv-provider.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 
 const QUOTE_ENDPOINT = "https://polling.finance.naver.com/api/realtime/domestic/stock/";
@@ -257,16 +257,39 @@ function percent(value, base) {
   return typeof value === "number" && typeof base === "number" && base > 0 ? round(((value / base) - 1) * 100) : null;
 }
 
-function rowForQuote(quote, phase, stage, snapshotRowsBySymbol) {
+// History is newest first; only prior-day observations enter this opening estimate.
+export function historicalOpenEstimate(sessions, symbol) {
+  if (!Array.isArray(sessions) || sessions.length !== 3) return null;
+  const h = sessions.map((s) => s.rows.find((r) => r.symbol === symbol));
+  if (h.some((r) => !r || !(r.open > 0) || !(r.close > 0) || !(r.volume > 0))) return null;
+  const gap = Math.max(-0.05, Math.min(0.05, ((h[0].open / h[1].close - 1) + (h[1].open / h[2].close - 1)) / 2));
+  return round(h[0].close * (1 + gap));
+}
+
+// Records after run start are usable only from this run, and never from
+// after the current stage's actual collection start.
+export function savedOpeningIsTimely(recordedAt, runStartedAt, stageStartedAt, sameRun) {
+  const recorded = Date.parse(recordedAt), started = Date.parse(runStartedAt), stage = Date.parse(stageStartedAt);
+  return Number.isFinite(recorded) && Number.isFinite(started) && Number.isFinite(stage)
+    && recorded <= stage && (recorded <= started || sameRun === true);
+}
+
+function rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, runStartedAt, stageStartedAt, sameRun) {
   const isForecastStage = ["update-results", "analysis", "forecast"].includes(stage);
   const manualRunAll = quote.manualRunAll === true;
   const existing = snapshotRowsBySymbol.get(quote.symbol);
   const intradayExpectedStart = manualRunAll && isForecastStage && phase !== "before-open" ? quote.closePrice : null;
-  const expectedOpen = phase === "before-open"
-    ? quote.openPrice
-    : intradayExpectedStart !== null
-      ? intradayExpectedStart
-      : (existing?.expected_open ?? null);
+  const src = existing?.expected_open_source;
+  const sourceDate = src?.recorded_at ? new Date(src.recorded_at) : null;
+  const validDates = Array.isArray(src?.history_dates) && (src.kind === "preopen_quote" ? src.history_dates.length === 0 : src.history_dates.length === 3 && src.history_dates.every((date, i) => /^\d{4}-\d{2}-\d{2}$/.test(date) && date < kstDate(quote.quoteAt) && (i === 0 || date < src.history_dates[i - 1])));
+  const sourcePhase = sourceDate && Number.isFinite(sourceDate.getTime()) ? resolveCrawlStage(sourceDate) : null;
+  const recorded = existing?.expected_open > 0 && validDates && sourceDate && savedOpeningIsTimely(src.recorded_at, runStartedAt, stageStartedAt, sameRun) && kstDate(sourceDate) === kstDate(quote.quoteAt) && (["preopen_quote", "preopen_history"].includes(src.kind) ? sourcePhase === "before-open" : src.kind === "retrospective_history" && sourcePhase !== "before-open") ? existing : null;
+  const preopen = phase === "before-open" && quote.marketStatus === "PREOPEN" && quote.quoteAt && resolveCrawlStage(quote.quoteAt) === "before-open" && quote.openPrice > 0;
+  const estimate = history?.ok ? historicalOpenEstimate(history.sessions, quote.symbol) : null;
+  const expectedOpen = recorded?.expected_open ?? (preopen ? quote.openPrice : estimate);
+  const openSource = recorded?.expected_open_source ?? (preopen
+    ? { kind: "preopen_quote", recorded_at: quote.quoteAt.toISOString(), history_dates: [] }
+    : estimate !== null ? { kind: phase === "before-open" ? "preopen_history" : "retrospective_history", recorded_at: history.retrieved_at, history_dates: history.sessions.map((s) => s.date) } : null);
   const expectedClose = existing?.expected_close ?? null;
   const expectedReturn = deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose });
   const actualOpen = ["open-settlement", "close-settlement"].includes(stage) ? quote.openPrice : null;
@@ -278,6 +301,7 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol) {
     symbol: quote.symbol,
     name: quote.name,
     expected_open: expectedOpen,
+    ...(openSource ? { expected_open_source: openSource } : {}),
     expected_close: expectedClose,
     expected_return: expectedReturn,
     actual_open: actualOpen,
@@ -456,9 +480,6 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
       return result("degraded", `Naver quote timestamps are missing, stale, or not from ${kstDate(current)}; no previous snapshot is reused.`, { ...source, status: "stale" }, [], sourceDate);
     }
     const currentOpenQuotes = freshQuotes.filter((quote) => quote.openPrice !== null);
-    if (phase === "before-open" && currentOpenQuotes.length === 0) {
-      return result("no_data", "Before-open Naver response did not contain current open/pre-open quotes; previous close is not used to synthesize expected_open.", { ...source, status: "no_preopen_quote" }, [], sourceDate);
-    }
     const currentQuoteRows = freshQuotes.filter((quote) => quote.closePrice !== null);
     if (stage === "open-settlement" && currentOpenQuotes.length === 0) {
       return result("no_data", "Naver response did not contain openPriceRaw for the current market session; actual_open remains no_data.", { ...source, status: "no_open_quote" }, [], sourceDate);
@@ -466,15 +487,27 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     if (manualRunAll && isForecastStage(stage) && phase !== "before-open" && currentQuoteRows.length === 0) {
       return result("no_data", "Manual intraday run-all requires a fresh current quote; expected_open is not synthesized from a missing quote.", { ...source, status: "no_current_quote" }, [], sourceDate);
     }
-    const snapshotRowsBySymbol = new Map((currentProvider._snapshot?.rows || []).filter((row) => row.symbol).map((row) => [row.symbol, row]));
-    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, stagePhase, stage, snapshotRowsBySymbol)), stagePhase);
-    const readyMessage = stagePhase === "before-open"
-      ? `Collected ${rows.length} fresh Naver pre-open quotes; expected_open is derived only from openPriceRaw.`
-      : manualRunAll && isForecastStage(stage)
-        ? `Collected ${rows.length} fresh Naver intraday quotes; expected_open is the current closePriceRaw quote baseline, not a pre-open forecast.`
-      : phase === "after-close"
-        ? `Collected ${rows.length} fresh-enough Naver post-close quotes; actual_open/actual_close are observed fields.`
-        : `Collected ${rows.length} fresh Naver intraday quotes; actual_open is openPriceRaw.`;
+    const snapshotRowsBySymbol = new Map((currentProvider._snapshot?.asOfDate === kstDate(current) ? currentProvider._snapshot?.rows || [] : []).filter((row) => row.symbol).map((row) => [row.symbol, row]));
+    const sameRun = Boolean(env.KOSPI_RUN_ID && currentProvider._snapshot?.meta?.run_id === env.KOSPI_RUN_ID);
+    const needsHistory = freshQuotes.some((quote) => !(rowForQuote(quote, phase, stage, snapshotRowsBySymbol, null, current, fetchTime, sameRun).expected_open > 0) && !(phase === "before-open" && quote.marketStatus === "PREOPEN" && quote.openPrice > 0 && quote.quoteAt && resolveCrawlStage(quote.quoteAt) === "before-open"));
+    let history = null;
+    let historyFailure = null;
+    if (needsHistory) {
+      history = await fetchForecastHistory({ env, fetchImpl, now, targetDate: kstDate(current) });
+      if (!history.ok) { historyFailure = history; history = null; }
+    }
+    const completedAt = now();
+    if (kstDate(completedAt) !== kstDate(current) || resolveCrawlStage(completedAt) !== phase) return result("no_data", "Market phase changed during collection; no opening estimate recorded.", { ...source, status: "stage_mismatch" }, [], sourceDate);
+    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun)), stagePhase);
+    if (historyFailure) {
+      const historyStatus = historyFailure.blocked ? "blocked" : "degraded";
+      const historyReason = String(historyFailure.reason || "unknown history error");
+      const failedSource = { ...source, status: historyStatus, partial: true, source_rows: rows.length,
+        metrics: { ...source.metrics, history_status: historyStatus, history_reason: historyReason, history_source: "https://aikstockdata.com/data/public/daily" } };
+      return result(historyStatus, `Prior daily history ${historyStatus}: ${historyReason}; missing opening estimates remain unavailable.`, failedSource, rows, sourceDate);
+    }
+    if (isForecastStage(stage) && rows.every((row) => row.expected_open === null)) return result("no_data", "No verified pre-open quote or complete prior history; expected_open remains unavailable.", { ...source, status: "no_preopen_quote" }, [], sourceDate);
+    const readyMessage = `Opening estimates: pre-open quote or prior three-session history; history calculated after the open is retrospective. Missing history remains no_data.`;
     const resultStatus = partialQuotes ? "partial" : "ready";
     const partialMessage = partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps; incomplete source data is not promoted to ready.` : "";
     return result(resultStatus, `${readyMessage}${partialMessage}`, { ...source, status: resultStatus, sourceRows: rows.length }, rows, sourceDate);
