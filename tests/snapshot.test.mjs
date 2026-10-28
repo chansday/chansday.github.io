@@ -775,6 +775,36 @@ test("manual and scheduled runs share the GitHub run-start reference time", asyn
   }
 });
 
+test("runner context wins over KOSPI_RUN_DATE unless an explicit date is provided", async () => {
+  const previousRunDate = process.env.KOSPI_RUN_DATE;
+  const previousStartedAt = process.env.KOSPI_RUN_STARTED_AT;
+  process.env.KOSPI_RUN_DATE = "2026-10-28";
+  delete process.env.KOSPI_RUN_STARTED_AT;
+  try {
+    const inferred = await runStage([
+      "--mode", "forecast",
+      "--provider", "none",
+      "--run-started-at", "2026-10-26T23:59:30.000Z",
+      "--dry-run",
+    ]);
+    assert.equal(inferred.runDate, "2026-10-27");
+
+    const explicit = await runStage([
+      "--mode", "forecast",
+      "--provider", "none",
+      "--run-date", "2026-10-26",
+      "--run-started-at", "2026-10-26T23:59:30.000Z",
+      "--dry-run",
+    ]);
+    assert.equal(explicit.runDate, "2026-10-26");
+  } finally {
+    if (previousRunDate === undefined) delete process.env.KOSPI_RUN_DATE;
+    else process.env.KOSPI_RUN_DATE = previousRunDate;
+    if (previousStartedAt === undefined) delete process.env.KOSPI_RUN_STARTED_AT;
+    else process.env.KOSPI_RUN_STARTED_AT = previousStartedAt;
+  }
+});
+
 test("an omitted run-start reference uses the current execution time, never the Unix epoch", () => {
   const previous = process.env.KOSPI_RUN_STARTED_AT;
   delete process.env.KOSPI_RUN_STARTED_AT;
