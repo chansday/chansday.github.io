@@ -258,27 +258,29 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .toolbar-selects select { min-width: 136px; padding: 7px 26px 7px 9px; border: 1px solid var(--line); border-radius: 7px; outline: 0; background: #10243a; color: var(--muted); font-size: 11px; }
 .toolbar-selects select:hover, .toolbar-selects select:focus { border-color: var(--blue); }
 .ranking-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; align-items: start; }
-/* The wrap owns both scrollbars: a bounded height keeps the horizontal
-   scrollbar on screen (it used to sit below ~900 rows), and only this region
-   scrolls sideways — never the page. */
-.ranking-table-wrap { --sticky-bg: #0d2135; --sticky-bg-active: #15304b; --rank-col: 56px; position: relative; max-width: 100%; max-height: min(76vh, 820px); overflow-x: auto; overflow-y: auto; overscroll-behavior-x: contain; border-radius: 14px; scrollbar-gutter: stable; }
-.ranking-table-wrap:focus-visible { outline-offset: 2px; }
-.table-scroll-hint { margin: 0 0 8px; color: var(--dim); font-size: 10px; line-height: 1.5; word-break: keep-all; }
-.ranking-table-wrap table { width: 100%; min-width: 1060px; border-collapse: separate; border-spacing: 0; }
-.ranking-table-wrap thead th { position: sticky; z-index: 2; top: 0; background: var(--sticky-bg); }
-.ranking-table-wrap th:first-child, .ranking-table-wrap td:first-child { position: sticky; z-index: 1; left: 0; width: var(--rank-col); min-width: var(--rank-col); max-width: var(--rank-col); background: var(--sticky-bg); }
-.ranking-table-wrap th:nth-child(2), .ranking-table-wrap td:nth-child(2) { position: sticky; z-index: 1; left: var(--rank-col); background: var(--sticky-bg); box-shadow: 8px 0 10px -8px rgba(0, 0, 0, .55); }
-.ranking-table-wrap thead th:first-child, .ranking-table-wrap thead th:nth-child(2) { z-index: 3; }
-.ranking-table-wrap tbody tr:hover td:first-child, .ranking-table-wrap tbody tr:hover td:nth-child(2), .ranking-table-wrap tbody tr[aria-selected="true"] td:first-child, .ranking-table-wrap tbody tr[aria-selected="true"] td:nth-child(2) { background: var(--sticky-bg-active); }
-.ranking-table-wrap th { padding: 13px; border-bottom: 1px solid var(--line-strong); color: var(--dim); font-size: 10px; font-weight: 600; text-align: right; white-space: nowrap; }
+/* No inner scroll container (no scrollbars under or beside the list): the
+   page scrolls, the table always fits its container, and when the container
+   is too narrow for ten columns the same rows render as stacked cards. */
+.ranking-table-wrap { --table-head-bg: #0d2135; --row-active: rgba(123, 188, 255, .1); position: relative; max-width: 100%; container-type: inline-size; container-name: ranking; border-radius: 14px; }
+.ranking-table-wrap table { width: 100%; table-layout: auto; border-collapse: separate; border-spacing: 0; }
+.ranking-table-wrap thead th { background: var(--table-head-bg); vertical-align: bottom; }
+.ranking-table-wrap thead th:first-child { border-top-left-radius: 14px; }
+.ranking-table-wrap thead th:last-child { border-top-right-radius: 14px; }
+.ranking-table-wrap th { padding: 11px 8px; border-bottom: 1px solid var(--line-strong); color: var(--dim); font-size: 10px; font-weight: 600; line-height: 1.35; text-align: right; white-space: normal; word-break: keep-all; }
 .ranking-table-wrap th:first-child, .ranking-table-wrap th:nth-child(2) { text-align: left; }
-.ranking-table-wrap td { padding: 11px 13px; border-bottom: 1px solid rgba(164, 191, 221, .1); color: var(--muted); font-family: "DM Mono", monospace; font-size: 11px; text-align: right; white-space: nowrap; }
+.ranking-table-wrap td { padding: 10px 8px; border-bottom: 1px solid rgba(164, 191, 221, .1); color: var(--muted); font-family: "DM Mono", monospace; font-size: 11px; letter-spacing: -.03em; text-align: right; vertical-align: top; white-space: nowrap; }
+.ranking-table-wrap th:first-child, .ranking-table-wrap td:first-child { padding-left: 14px; }
+.ranking-table-wrap th:last-child, .ranking-table-wrap td:last-child { padding-right: 14px; }
 .ranking-table-wrap tbody tr { cursor: pointer; transition: background .15s ease; }
-.ranking-table-wrap tbody tr:hover, .ranking-table-wrap tbody tr[aria-selected="true"] { background: rgba(123, 188, 255, .1); }
+.ranking-table-wrap tbody tr:hover, .ranking-table-wrap tbody tr[aria-selected="true"] { background: var(--row-active); }
 .ranking-table-wrap tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 2px 0 var(--blue); }
+.ranking-table-wrap tbody tr:focus-visible { outline-offset: -3px; }
 .ranking-table-wrap td:first-child { color: var(--blue-strong); font-weight: 500; text-align: left; }
-.ranking-table-wrap td:nth-child(2) { min-width: 175px; text-align: left; }
-.ranking-table-wrap th:last-child, .ranking-table-wrap td:last-child { width: 9rem; min-width: 9rem; }
+.ranking-table-wrap td:nth-child(2) { min-width: 6.5rem; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.ranking-table-wrap td:nth-child(3) { white-space: normal; }
+.ranking-table-wrap .cell-num { display: block; white-space: nowrap; }
+.ranking-table-wrap .cell-sub { display: block; max-width: 8.5rem; margin-left: auto; margin-top: 2px; color: var(--dim); font-family: "Noto Sans KR", sans-serif; font-size: 9px; letter-spacing: 0; line-height: 1.35; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; }
+.ranking-table-wrap th:last-child, .ranking-table-wrap td:last-child { width: 5.5rem; min-width: 5.5rem; }
 .ranking-table-wrap td:last-child { white-space: normal; }
 .positive { color: var(--green) !important; }
 .negative { color: var(--red) !important; }
@@ -288,7 +290,37 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .row-status.valid { border-color: rgba(130, 231, 183, .3); color: var(--green); }
 .row-status.pending, .row-status.degraded { border-color: rgba(255, 210, 123, .3); color: var(--yellow); }
 .row-status.blocked { border-color: rgba(255, 141, 156, .3); color: var(--red); }
-.ranking-cards { display: none; }
+.ranking-cards { display: none; gap: 8px; padding: 9px; }
+.ranking-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(8, 17, 32, .5); cursor: pointer; }
+.ranking-card:hover, .ranking-card[aria-selected="true"] { border-color: var(--blue); box-shadow: 0 0 0 1px rgba(123, 188, 255, .25); }
+.ranking-card:focus-visible { outline-offset: 2px; }
+.ranking-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.ranking-card-rank { color: var(--blue-strong); font-family: "DM Mono", monospace; font-size: 10px; }
+.ranking-card-name { min-width: 0; color: var(--text); font-size: 12px; font-weight: 800; line-height: 1.4; word-break: keep-all; overflow-wrap: anywhere; }
+.ranking-card-code { color: var(--dim); font-family: "DM Mono", monospace; font-size: 9px; }
+.ranking-card-status { margin-top: 12px; }
+.ranking-card-metrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: 10px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--line); }
+.ranking-card-metrics div { min-width: 0; }
+.ranking-card-metrics div span { display: block; color: var(--dim); font-size: 9px; line-height: 1.35; word-break: keep-all; overflow-wrap: anywhere; }
+.ranking-card-metrics div strong { display: block; margin-top: 3px; font-family: "DM Mono", monospace; font-size: 11px; overflow-wrap: anywhere; }
+/* Ten columns need ~720px; below that the wrap shows the card list instead. */
+@container ranking (max-width: 719px) {
+  .ranking-table-wrap table { display: none; }
+  .ranking-cards { display: grid; }
+}
+@supports not (container-type: inline-size) {
+  @media (max-width: 860px) {
+    .ranking-table-wrap table { display: none; }
+    .ranking-cards { display: grid; }
+  }
+}
+.ranking-pager { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; padding: 12px 14px 14px; border-top: 1px solid var(--line); }
+.ranking-page-button { min-width: 72px; min-height: 40px; padding: 6px 12px; border: 1px solid var(--line-strong); border-radius: 8px; background: rgba(255, 255, 255, .04); color: var(--blue-strong); cursor: pointer; font-size: 11px; font-weight: 700; }
+.ranking-page-button:hover:not(:disabled) { border-color: var(--blue); }
+.ranking-page-button:disabled { cursor: default; opacity: .4; }
+.ranking-page-jump select { min-height: 40px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: #10243a; color: var(--muted); font-size: 11px; }
+.ranking-page-jump select:hover, .ranking-page-jump select:focus { border-color: var(--blue); }
+.ranking-page-status { order: -1; flex-basis: 100%; color: var(--dim); font-size: 10px; text-align: center; }
 .empty-state { display: grid; min-height: 370px; padding: 45px 25px; place-items: center; color: var(--muted); text-align: center; }
 .empty-state[hidden] { display: none; }
 .empty-icon { display: block; margin-bottom: 15px; color: var(--dim); font-size: 40px; }
@@ -309,7 +341,9 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .selected-grid strong { font-family: "DM Mono", monospace; font-size: 12px; }
 .selected-policy { margin: 14px 0 0; color: var(--dim); font-size: 10px; line-height: 1.65; word-break: keep-all; }
 .detail-foot { display: grid; gap: 7px; padding-top: 14px; color: var(--dim); font-size: 9px; line-height: 1.55; overflow-wrap: anywhere; }
-.detail-panel { position: sticky; top: 52px; max-height: calc(100vh - 68px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+/* No inner scrollbar beside the list either: the panel grows with its content
+   and selecting a row scrolls its top into view (see selectRow in app.js). */
+.detail-panel { position: static; align-self: start; }
 .detail-panel, .detail-panel * { min-width: 0; }
 .detail-evidence { display: grid; gap: 12px; margin-top: 16px; }
 .detail-section { padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255, 255, 255, .025); }
@@ -372,19 +406,6 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
   .toolbar-selects { justify-content: space-between; }
   .toolbar-selects label { grid-template-columns: 1fr; flex: 1; }
   .toolbar-selects select { width: 100%; min-width: 0; }
-  .ranking-table-wrap table, .table-scroll-hint { display: none; }
-  .ranking-cards { display: grid; gap: 8px; padding: 9px; }
-  .ranking-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(8, 17, 32, .5); cursor: pointer; }
-  .ranking-card:hover, .ranking-card[aria-selected="true"] { border-color: var(--blue); box-shadow: 0 0 0 1px rgba(123, 188, 255, .25); }
-  .ranking-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
-  .ranking-card-rank { color: var(--blue-strong); font-family: "DM Mono", monospace; font-size: 10px; }
-  .ranking-card-name { min-width: 0; overflow: hidden; color: var(--text); font-size: 12px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-  .ranking-card-code { color: var(--dim); font-family: "DM Mono", monospace; font-size: 9px; }
-  .ranking-card-status { margin-top: 12px; }
-  .ranking-card-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 13px; padding-top: 11px; border-top: 1px solid var(--line); }
-  .ranking-card-metrics div { min-width: 0; }
-  .ranking-card-metrics div span { display: block; color: var(--dim); font-size: 9px; line-height: 1.35; word-break: keep-all; }
-  .ranking-card-metrics div strong { display: block; margin-top: 3px; font-family: "DM Mono", monospace; font-size: 11px; overflow-wrap: anywhere; }
   .footer { flex-direction: column; gap: 8px; margin-top: 75px; }
 }
 @media (max-width: 480px) {

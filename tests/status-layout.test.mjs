@@ -7,10 +7,9 @@ test("ranking status labels remain visible in desktop and mobile layouts", async
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 
-  assert.match(css, /\.ranking-table-wrap\s*\{[^}]*overflow-x:\s*auto/s);
   assert.doesNotMatch(css, /\.ranking-table-wrap\s*\{[^}]*overflow:\s*hidden/s);
-  assert.match(css, /\.ranking-table-wrap\s*table\s*\{[^}]*min-width:\s*1060px/s);
-  assert.match(css, /\.ranking-table-wrap th:last-child, \.ranking-table-wrap td:last-child\s*\{[^}]*min-width:\s*9rem/s);
+  assert.doesNotMatch(css, /\.ranking-table-wrap\s*table\s*\{[^}]*min-width/s);
+  assert.match(css, /\.ranking-table-wrap th:last-child, \.ranking-table-wrap td:last-child\s*\{[^}]*min-width:\s*5\.5rem/s);
   assert.match(css, /\.ranking-table-wrap td:last-child\s*\{[^}]*white-space:\s*normal/s);
   assert.match(css, /\.row-status\s*\{[^}]*max-width:\s*100%[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/s);
   assert.match(css, /\.status-pill, \.step-status\s*\{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/s);
