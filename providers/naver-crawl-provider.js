@@ -534,9 +534,11 @@ function isForecastStage(stage) {
   return ["update-results", "analysis", "forecast"].includes(stage);
 }
 
-function rankRows(rows, phase) {
-  const key = phase === "before-open" ? "expected_return" : "session_return";
-  rows.sort((a, b) => (b[key] ?? -Infinity) - (a[key] ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+// Rank is always by expected return in every stage; rows without one follow
+// in symbol order. Intraday session_return is null until close, so ranking by
+// it after the open left the list in symbol order.
+function rankRows(rows) {
+  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
 }

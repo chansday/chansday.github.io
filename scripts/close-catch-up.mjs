@@ -172,8 +172,8 @@ export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () 
     robots: { robots_url: collected.robots_url ?? null, robots_checked_at: collected.robots_checked_at ?? null, robots_status: collected.robots_status ?? null } };
 }
 
-function rankBySessionReturn(rows) {
-  rows.sort((a, b) => (b.session_return ?? -Infinity) - (a.session_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+function rankByExpectedReturn(rows) {
+  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
 }
@@ -190,7 +190,7 @@ export function noTradeEvidence(baseRow, runDate, zeroVolume = new Set()) {
 }
 
 export function buildCatchUpSnapshot({ runDate, base, priorOpenings = new Map(), candles, zeroVolume = new Set(), producedAt, runId, candleSource, fetchStatus = null, fetchReason = null, cacheFiles = [], retrievedAt = null, robots = null, fetched = 0 }) {
-  const rows = rankBySessionReturn(base.snapshot.rows.filter((row) => row.symbol).map((baseRow) => {
+  const rows = rankByExpectedReturn(base.snapshot.rows.filter((row) => row.symbol).map((baseRow) => {
     const row = { ...baseRow };
     const recorded = recordedOpening(baseRow, runDate) || priorOpenings.get(baseRow.symbol) || null;
     if (recorded) copyForecastBundle(row, recorded); else stripOpening(row);
