@@ -5,7 +5,7 @@
   "license_status": "unconfirmed",
   "candidates_as_of": "2026-10-28",
   "collected_at": "2026-10-29T16:24:30.445Z",
-  "verified_at": "2026-10-29T19:03:41.262Z",
+  "verified_at": "2026-10-29T21:10:28.140Z",
   "source": {
     "method": "candidate_verification",
     "url": "https://polling.finance.naver.com/api/realtime/domestic/stock/",
@@ -14,13 +14,13 @@
       "https://api.stock.naver.com": {
         "robots_url": "https://api.stock.naver.com/robots.txt",
         "robots_status": 404,
-        "checked_at": "2026-10-29T19:03:34.229Z",
+        "checked_at": "2026-10-29T21:10:21.771Z",
         "allowed": true
       },
       "https://polling.finance.naver.com": {
         "robots_url": "https://polling.finance.naver.com/robots.txt",
         "robots_status": 404,
-        "checked_at": "2026-10-29T19:03:36.465Z",
+        "checked_at": "2026-10-29T21:10:23.389Z",
         "allowed": true
       }
     }
@@ -38,10 +38,12 @@
   },
   "discovers_new_listings": false,
   "excluded": {
-    "missing": [],
+    "missing": [
+      "004415"
+    ],
     "other": []
   },
-  "count": 913,
+  "count": 912,
   "symbols": [
     {
       "symbol": "000020",
@@ -930,10 +932,6 @@
     {
       "symbol": "004410",
       "name": "서울식품"
-    },
-    {
-      "symbol": "004415",
-      "name": "서울식품우"
     },
     {
       "symbol": "004430",
