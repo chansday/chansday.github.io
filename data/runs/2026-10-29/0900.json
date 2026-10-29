@@ -3,7 +3,7 @@
   "status": "ready",
   "mode": "provider",
   "asOfDate": "2026-10-29",
-  "publishedAt": "2026-10-29T05:49:22.522Z",
+  "publishedAt": "2026-10-29T06:01:46.793Z",
   "market": {
     "name": "KOSPI",
     "currency": "KRW",
@@ -42,7 +42,7 @@
     },
     "openSettlement": {
       "status": "ready",
-      "attemptedAt": "2026-10-29T05:49:22.522Z",
+      "attemptedAt": "2026-10-29T06:01:46.793Z",
       "provider_id": "naver-crawl",
       "message": "Opening estimates: pre-open quote or prior three-session history; history calculated after the open is retrospective. Missing history remains no_data. Naver daily market and adjustment basis unconfirmed and may differ from regular-market quotes; 0 comparison conflicts recorded. 26 symbols lack complete prior history. 27 symbol(s) are no_trade_observed (source halt marker or zero-volume candle) and are kept without prices or error. Universe from committed list data/kospi-universe.json (candidates as of 2026-10-27) because the live list was unavailable: KOSPI universe is empty (marketStatus=PREOPEN). Naver daily market and adjustment basis are unconfirmed; preferred shares may be included. Warning: Source license_status is unconfirmed; daily market and adjustment basis and common-share classification are unconfirmed. Preferred shares may be included."
     },
@@ -2313,7 +2313,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:45.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -8091,7 +8091,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:45.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -8996,7 +8996,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:45.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -9804,7 +9804,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -12261,7 +12261,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -13457,7 +13457,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -13489,7 +13489,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -33018,7 +33018,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -34311,7 +34311,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       },
       "expected_open_source": {
@@ -34805,7 +34805,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -35225,7 +35225,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -38070,7 +38070,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:05.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -40042,7 +40042,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -43857,7 +43857,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -43986,7 +43986,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -45570,7 +45570,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:46.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -47542,7 +47542,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -48156,7 +48156,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -56724,7 +56724,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -57144,7 +57144,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -60183,7 +60183,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -61670,7 +61670,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -70141,7 +70141,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       },
       "expected_open_source": {
@@ -70247,7 +70247,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -72510,7 +72510,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -72542,7 +72542,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:06.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -81595,7 +81595,7 @@
         "trade_stop_type": "HALTED",
         "tradable_status": "halt",
         "tradable_status_code": "eventHalt01",
-        "observed_at": "2026-10-29T05:49:47.000Z",
+        "observed_at": "2026-10-29T06:02:07.000Z",
         "reason": "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)"
       }
     },
@@ -86937,7 +86937,7 @@
   ],
   "meta": {
     "generatedBy": "provider-adapter",
-    "lastAttemptAt": "2026-10-29T05:49:22.522Z",
+    "lastAttemptAt": "2026-10-29T06:01:46.793Z",
     "lastAttemptMode": "open-settlement",
     "blockedReason": null,
     "isDemo": false,
@@ -86946,11 +86946,11 @@
       "url": "https://polling.finance.naver.com/api/realtime/domestic/stock/",
       "license_status": "unconfirmed",
       "license_url": null,
-      "retrieved_at": "2026-10-29T05:49:48.311Z",
+      "retrieved_at": "2026-10-29T06:02:07.381Z",
       "source_id": "naver-public-polling-crawl",
-      "run_id": "40825548407.1",
+      "run_id": "40826719170.1",
       "status": "ready",
-      "fetched_at": "2026-10-29T05:49:48.311Z",
+      "fetched_at": "2026-10-29T06:02:07.381Z",
       "source_date": "2026-10-29",
       "raw_rows": 913,
       "source_rows": 913,
@@ -86961,20 +86961,20 @@
         "failed": 0,
         "retries": 0,
         "deadline_hit": false,
-        "elapsed_ms": 4921,
+        "elapsed_ms": 3147,
         "estimated_ms": 120000,
         "overall_deadline_ms": 120000,
         "max_concurrency": 1,
         "max_age_seconds": 180,
         "close_max_age_seconds": 86400,
         "quote_count": 913,
-        "min_quote_age_seconds": 0.31,
-        "max_quote_age_seconds": 3.31,
+        "min_quote_age_seconds": 0.38,
+        "max_quote_age_seconds": 2.38,
         "universe_endpoint": "data/kospi-universe.json",
         "universe_source": "cache",
         "universe_as_of": "2026-10-27",
         "universe_stale": false,
-        "universe_age_days": 2.62,
+        "universe_age_days": 2.63,
         "universe_verified_at": "2026-10-28T21:10:24.158Z",
         "universe_fallback_reason": "KOSPI universe is empty (marketStatus=PREOPEN)",
         "universe_cache_method": "candidate_verification",
@@ -86982,13 +86982,13 @@
           "https://api.stock.naver.com": {
             "robots_url": "https://api.stock.naver.com/robots.txt",
             "robots_status": 404,
-            "checked_at": "2026-10-29T05:49:44.255Z",
+            "checked_at": "2026-10-29T06:02:04.604Z",
             "allowed": true
           },
           "https://polling.finance.naver.com": {
             "robots_url": "https://polling.finance.naver.com/robots.txt",
             "robots_status": 404,
-            "checked_at": "2026-10-29T05:49:45.059Z",
+            "checked_at": "2026-10-29T06:02:04.958Z",
             "allowed": true
           }
         },
@@ -87005,7 +87005,7 @@
     },
     "run_date": "2026-10-29",
     "run_stage": "open-settlement",
-    "run_id": "40825548407.1",
+    "run_id": "40826719170.1",
     "source_warning": "Source license_status is unconfirmed; daily market and adjustment basis and common-share classification are unconfirmed. Preferred shares may be included."
   }
 }
