@@ -30,6 +30,8 @@ test("mode-specific paths prevent stale fallback and preserve the requested date
   assert.equal(snapshotPath("historical-test", "2026-10-22"), "data/runs/historical-test/2026-10-22/1530.json");
   assert.equal(snapshotPath("fixture", "2026-10-23"), "data/fixtures/2026-10-23.json");
   assert.equal(snapshotPath("provider", "2026-10-26"), "data/runs/2026-10-26/1530.json");
+  assert.equal(snapshotPath("provider", "2026-10-29", "0900"), "data/runs/2026-10-29/0900.json");
+  assert.equal(normalizeDateIndex({ latestStages: { provider: { "2026-10-29": "0900", bad: "x" } } }).latestStages.provider["2026-10-29"], "0900");
 });
 
 test("date index generator lists only dates with the configured stage file", async () => {
@@ -41,7 +43,9 @@ test("date index generator lists only dates with the configured stage file", asy
     const names = await readdir(runRoot, { withFileTypes: true });
     const expected = [];
     for (const entry of names) if (entry.isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(entry.name)) {
-      try { if ((await stat(new URL(`${entry.name}/1530.json`, runRoot))).isFile()) expected.push(entry.name); } catch (error) { if (error.code !== "ENOENT") throw error; }
+      for (const stage of ["1530", "0900", "0820", "0800", "0700"]) {
+        try { if ((await stat(new URL(`${entry.name}/${stage}.json`, runRoot))).isFile()) { expected.push(entry.name); break; } } catch (error) { if (error.code !== "ENOENT") throw error; }
+      }
     }
     assert.deepEqual(generated.availableDates.provider, expected.sort());
     assert.deepEqual(JSON.parse(await readFile(output, "utf8")).availableDates, generated.availableDates);

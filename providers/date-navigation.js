@@ -24,15 +24,20 @@ export function normalizeDateIndex(index) {
     const rawDates = Array.isArray(index?.availableDates?.[mode]) ? index.availableDates[mode] : [];
     availableDates[mode] = [...new Set(rawDates.map((date) => typeof date === "string" ? date : date?.date).filter(isIsoDate))].sort();
   }
-  return { schemaVersion: index?.schemaVersion || "1.0.0", availableDates };
+  const latestStages = {};
+  for (const [mode, stages] of Object.entries(index?.latestStages || {})) {
+    if (!Object.hasOwn(CALENDAR_MODES, mode) || !stages || typeof stages !== "object") continue;
+    latestStages[mode] = Object.fromEntries(Object.entries(stages).filter(([date, stage]) => isIsoDate(date) && /^\d{4}$/.test(String(stage))));
+  }
+  return { schemaVersion: index?.schemaVersion || "1.0.0", availableDates, latestStages };
 }
 
-export function snapshotPath(mode, date) {
+export function snapshotPath(mode, date, stage = null) {
   const normalizedMode = normalizeMode(mode);
   if (!isIsoDate(date)) throw new Error("Snapshot date is invalid");
   const config = CALENDAR_MODES[normalizedMode];
   if (config.extension) return `${config.root}/${encodeURIComponent(date)}.${config.extension}`;
-  return `${config.root}/${encodeURIComponent(date)}/${config.stage}.json`;
+  return `${config.root}/${encodeURIComponent(date)}/${/^\d{4}$/.test(String(stage || "")) ? stage : config.stage}.json`;
 }
 
 export function holidayForDate(date, calendar) {

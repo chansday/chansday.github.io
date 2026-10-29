@@ -162,7 +162,8 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$OPERATING_ALLOWED" = true ] && ! git diff --quiet -- data/latest-snapshot.json data/runs; then
-            git add data/latest-snapshot.json data/runs
+            node scripts/generate-date-index.mjs
+            git add data/latest-snapshot.json data/runs data/date-index.json
           fi
           if [ "$OPERATING_ALLOWED" = true ] && [ "$RETROSPECTIVE_STATUS" = ready ]; then
             [[ "$EXPERIMENT_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]

@@ -236,7 +236,7 @@ function dateState(date, mode = currentDataMode) { return classifyDate(date, mod
 
 async function loadSnapshotForMode(mode, date) {
   const normalizedMode = dateModeForRoute(mode);
-  const path = snapshotPath(normalizedMode, date);
+  const path = snapshotPath(normalizedMode, date, normalizedMode === "provider" ? dateIndex?.latestStages?.provider?.[date] : null);
   const snapshotData = await fetchSnapshot(`./${path}`, `${normalizedMode} request failed`);
   if (!isSnapshot(snapshotData)) throw new Error(`${normalizedMode} snapshot shape is invalid`);
   if (normalizedMode === "historical-test" && !isHistoricalTestSnapshot(snapshotData)) throw new Error("Historical-test snapshot shape is invalid");
