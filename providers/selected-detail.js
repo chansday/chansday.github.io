@@ -236,7 +236,11 @@ function expectedSection(row, ctx) {
     } else if (retroDates) {
       basis = true;
       items.push(item("모델", retro?.model || "기록 없음"), item("사용한 이력 날짜", retroDates.join(", ")), item("사후 계산 시각", formatKst(retro?.created_at)));
-      if (retro?.model === RETROSPECTIVE_MODEL_ID) {
+      if ([RANK_MODEL_ID, RIDGE_MODEL_ID, CLOSE_SHRUNK_MODEL_ID].includes(retro?.model)) {
+        sentences.push(`장 마감 후, 그날 아침 일봉 수집에서 쓴 것과 같은 모델(${retro.model})로 계산했습니다. 예상 시가 = 직전 거래일 종가 × (1 + 최근 두 번의 시가 갭 평균, ±5% 제한) → ${formatWon(eo)}.`);
+        if (finite(ec)) sentences.push(`예상 종가 = 예상 시가 × (1 + 모델 예상 장중 수익률) → ${formatWon(ec)}.`);
+        if (finite(er)) sentences.push(`저장된 예상 시가·종가로 보면 예상 장중 수익률은 ${formatPct(er)}입니다.`);
+      } else if (retro?.model === RETROSPECTIVE_MODEL_ID) {
         sentences.push(`장 마감 후 직전 3거래일 일봉(${retroDates.join(", ")})으로 계산했습니다: 예상 시가 = 직전 거래일 종가 × (1 + 최근 두 번의 시가 갭 평균, ±5% 제한) → ${formatWon(eo)}.`);
         if (finite(ec)) sentences.push(`예상 종가 = 예상 시가 × (1 + 최근 3거래일 평균 장중 수익률, ±5% 제한) → ${formatWon(ec)}.`);
         if (finite(er)) sentences.push(`저장된 예상 시가·종가로 보면 적용된 평균 장중 수익률은 ${formatPct(er)}입니다.`);

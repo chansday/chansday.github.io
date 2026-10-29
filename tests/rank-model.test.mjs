@@ -94,3 +94,22 @@ test("estimate stores a verifiable rank basis; tampering fails; the cache re-ver
     assert.equal((await load()).ok, false, "a dropped symbol changes every rank");
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test("one engine: shared inputs train the rank model, and the post-close retrospective uses the day's model", async () => {
+  const { buildForecastInputs } = await import("../providers/forecast-inputs.js");
+  const { buildPostCloseRows } = await import("../scripts/post-close-evaluation.mjs");
+  const { out, dates } = history();
+  const target = "2099-01-01";
+  const observations = [...out].flatMap(([symbol, bars]) => bars.map((b) => ({ symbol, ...b })));
+  const symbols = [...out.keys()];
+  const inputs = buildForecastInputs({ observations: [...observations, { symbol: symbols[0], date: target, open: 1, close: 1, high: 1, low: 1, volume: 1 }], targetDate: target, symbols });
+  assert.equal(inputs.rankForecast.model.model, RANK_MODEL); assert.equal(inputs.rankForecast.model.train_last_date, dates[dates.length - 1], "target-day bars never enter training");
+  assert.equal(Object.keys(inputs.rankForecast.predictions).length, symbols.length);
+  assert.ok(Object.values(inputs.returnHistory).every((bars) => bars.length === RANK_FEATURE_SESSIONS && bars[0].date < target));
+  // Retrospective: rows scored by the rank model; an unscored symbol has no estimate.
+  const sessions = [0, 1, 2].map((k) => ({ date: inputs.returnHistory[symbols[0]][k].date, rows: symbols.map((s) => { const b = inputs.returnHistory[s][k]; return { symbol: s, ...b }; }) }));
+  const historyRecord = { return_history: inputs.returnHistory, forecast_model: inputs.forecastModel, rank_forecast: { ...inputs.rankForecast, predictions: { ...inputs.rankForecast.predictions, [symbols[1]]: undefined } } };
+  const [scored, unscored] = buildPostCloseRows(sessions, [{ symbol: symbols[0], name: "a", actual_open: 100, actual_close: 101 }, { symbol: symbols[1], name: "b", actual_open: 100, actual_close: 101 }], historyRecord);
+  assert.equal(scored.expected_close_basis.model, RANK_MODEL); assert.ok(scored.expected_return !== null);
+  assert.equal(unscored.expected_open, null); assert.equal(unscored.expected_close, null); assert.equal(unscored.missing_reason, "insufficient_prior_history");
+});

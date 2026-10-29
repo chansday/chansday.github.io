@@ -8,6 +8,7 @@ import { validateRankingRows } from "../providers/provider-adapter.js";
 import { NO_TRADE_STATUS, compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
 import { dataRoot, repoPath } from "../providers/repo-paths.js";
 import { copyForecastBundle } from "./update-results.mjs";
+import { buildForecastInputs } from "../providers/forecast-inputs.js";
 import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
 import { buildDateIndex } from "./generate-date-index.mjs";
 
@@ -165,6 +166,9 @@ export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () 
         sessions: dates.map((date, i) => ({ date, url: DAILY_CHART_ENDPOINT, rows: valid.map((symbol) => maps[i].get(symbol)) })),
         symbols, valid_symbols: valid, retrieved_at: now().toISOString(), excluded_count: symbols.length - valid.length, comparison_conflicts: 0, partial: valid.length !== symbols.length,
         robots_url: collected.robots_url ?? null, robots_checked_at: collected.robots_checked_at ?? null, robots_status: collected.robots_status ?? null, fetched_after_close: true };
+      // Same engine as the morning collector: bars before D only.
+      const inputs = buildForecastInputs({ observations, targetDate: runDate, symbols: valid });
+      Object.assign(history, { return_history: inputs.returnHistory, forecast_model: inputs.forecastModel, rank_forecast: inputs.rankForecast });
     }
   } catch { history = null; }
   const zeroVolume = new Set((Array.isArray(collected.rejected) ? collected.rejected : []).filter((r) => r?.reason === "zero_volume" && r.date === runDate).map((r) => r.symbol));

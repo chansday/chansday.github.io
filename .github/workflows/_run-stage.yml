@@ -45,7 +45,9 @@ jobs:
     timeout-minutes: 30
     env:
       KOSPI_PROVIDER: ${{ inputs.provider }}
-      KOSPI_DAILY_HISTORY: ${{ (inputs.auto_stage || inputs.stage == 'analysis' || inputs.stage == 'forecast' || inputs.stage == 'open-settlement' || inputs.stage == 'close-settlement') && 'naver-cache' || '' }}
+      # Every stage reads the 06:10 Naver daily cache, so the first (07:00)
+      # forecast already uses the same model as the later stages.
+      KOSPI_DAILY_HISTORY: ${{ (inputs.auto_stage || inputs.stage == 'update-results' || inputs.stage == 'analysis' || inputs.stage == 'forecast' || inputs.stage == 'open-settlement' || inputs.stage == 'close-settlement') && 'naver-cache' || '' }}
       KOSPI_RUN_ID: ${{ inputs.run_id }}.${{ inputs.run_attempt }}
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
       KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
