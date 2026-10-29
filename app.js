@@ -8,6 +8,7 @@ import { NO_TRADE_LABEL, buildSelectedDetail } from "./providers/selected-detail
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
+const percentFormatter = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
 const timeFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 
@@ -108,7 +109,9 @@ function formatPrice(value) { return finite(value) ? `${numberFormatter.format(n
 function formatPercent(value) { const displayValue = normalizeDisplayZero(value); return finite(displayValue) ? `${displayValue > 0 ? "+" : ""}${numberFormatter.format(displayValue)}%` : "—"; }
 function roundExpectedHalfUp(value) { if (!finite(value)) return value; const magnitude = Math.floor(Math.abs(value) + 0.5); const rounded = value < 0 ? -magnitude : magnitude; return rounded === 0 ? 0 : rounded; }
 function formatExpectedPrice(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(roundExpectedHalfUp(value), 0); return `${integerFormatter.format(displayValue)}원`; }
-function formatExpectedPercent(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(roundExpectedHalfUp(value), 0); return `${displayValue > 0 ? "+" : ""}${integerFormatter.format(displayValue)}%`; }
+// Expected return is shown at the engine precision (2 decimals, half up) so
+// distinct values are not displayed as ties.
+function formatExpectedPercent(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(Math.sign(value) * Math.round((Math.abs(value) + Number.EPSILON) * 100) / 100, 2); return `${displayValue > 0 ? "+" : ""}${percentFormatter.format(displayValue)}%`; }
 function formatNumber(value) { return finite(value) ? integerFormatter.format(value) : "—"; }
 function formatDate(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date).replaceAll(". ", "."); }
 function formatPlainDate(value) { const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); return match ? `${match[1]}.${match[2]}.${match[3]}` : "—"; }

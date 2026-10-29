@@ -290,7 +290,7 @@ function makeRows(latest, prior, { includeClose = true } = {}) {
       status: "valid",
     };
   });
-  rows.sort((a, b) => (b.session_return ?? -Infinity) - (a.session_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
 }
