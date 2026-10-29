@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261030e">
-    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261030e","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261030e","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261030e","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261030e","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261030e","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261030e","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261030e","./providers/rank-model.js":"./providers/rank-model.js?v=20261030e","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261030e","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261030e","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261030e","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261030e","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261030e"}}</script>
-    <script type="module" src="./app.js?v=20261030e"></script>
-    <script type="module" src="./providers/daily-experiment-view.js?v=20261030e"></script>
+    <link rel="stylesheet" href="./styles.css?v=20261030f">
+    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261030f","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261030f","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261030f","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261030f","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261030f","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261030f","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261030f","./providers/rank-model.js":"./providers/rank-model.js?v=20261030f","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261030f","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261030f","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261030f","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261030f","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261030f"}}</script>
+    <script type="module" src="./app.js?v=20261030f"></script>
+    <script type="module" src="./providers/daily-experiment-view.js?v=20261030f"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content" onclick="event.preventDefault(); const target = document.getElementById('main-content'); if (target) { target.focus({ preventScroll: true }); target.scrollIntoView(); }">본문으로 바로가기</a>
@@ -64,6 +64,8 @@
             <div class="hero-meta-grid" aria-label="현재 스냅샷의 기준 정보">
               <div><span>기준일</span><strong id="as-of-date">—</strong></div>
               <div><span>기록 단계</span><strong id="published-at">—</strong></div>
+              <div><span>예측 모델</span><strong id="model-version">—</strong></div>
+              <div><span>모델 학습</span><strong id="model-trained-at">—</strong></div>
             </div>
           </aside>
         </section>

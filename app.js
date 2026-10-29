@@ -61,7 +61,7 @@ const historicalTestDataRoot = "data/runs/historical-test";
 const HISTORICAL_TEST_STAGE = "1530";
 const HISTORICAL_TEST_REQUIRED_FIELDS = Object.freeze(["rank", "expected_open", "actual_open", "actual_close"]);
 const elementIds = [
-  "mode-badge", "data-purpose", "global-status", "status-message", "as-of-date", "published-at", "row-count", "provider-label", "top-clock", "refresh-button",
+  "mode-badge", "data-purpose", "global-status", "status-message", "as-of-date", "published-at", "model-version", "model-trained-at", "row-count", "provider-label", "top-clock", "refresh-button",
   "quality-ribbon", "quality-ribbon-label", "quality-ribbon-text", "truth-label", "truth-note-text", "evaluation-status", "evaluation-headline", "evaluation-description", "summary-status", "summary-status-detail", "summary-samples", "summary-samples-detail", "summary-range", "summary-range-detail", "summary-rmse", "summary-rmse-detail", "summary-expected", "summary-expected-detail", "summary-actual", "summary-actual-detail", "summary-error", "summary-error-detail", "summary-scope", "summary-scope-detail",
   "kpi-market", "kpi-market-note", "kpi-market-bar", "kpi-universe", "kpi-valid", "kpi-accuracy", "kpi-accuracy-note", "kpi-model", "kpi-model-note", "kpi-model-time", "kpi-model-quality", "table-state", "table-count", "ranking-table", "ranking-body", "ranking-cards", "empty-state", "empty-state-note", "search-input", "status-filter", "sort-select", "ranking-date-picker", "ranking-date-button", "ranking-date-label", "ranking-date-popover", "calendar-month", "calendar-grid", "calendar-status", "calendar-prev", "calendar-next",
   "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-close", "selected-expected-return", "selected-actual-open", "selected-actual-close", "selected-actual-return", "selected-error", "selected-confidence", "selected-quality", "selected-reasons", "selected-evidence",
@@ -137,6 +137,26 @@ function providerDisplayName(data) {
   return labels[providerId] || "데이터 공급자 정보";
 }
 function sourceDisplayName(source, data) { const sourceName = String(source?.name || "").trim(); return sourceName && !/^[a-z0-9_-]+$/i.test(sourceName) ? sourceName : providerDisplayName(data); }
+const MODEL_LABELS = { ridge_rank_11_features_60_sessions_v1: "순위 리지 모델", ridge_6_features_60_sessions_v1: "리지 모델", prior_20_sessions_trimmed_shrunk_mean_capped_1pct: "20일 축소 평균", prior_3_sessions_gap_and_session_mean_capped_5pct: "직전 3거래일 평균" };
+// The expected-close model actually stored on most rows of this snapshot, with
+// the training identity carried in its basis (version = model generation +
+// last training date, e.g. v1.20261029).
+function forecastModelInfo(data) {
+  const counts = new Map();
+  for (const row of Array.isArray(data?.rows) ? data.rows : []) {
+    const basis = row?.expected_close_basis;
+    if (!basis?.model) continue;
+    const entry = counts.get(basis.model) || { n: 0, params: basis.inputs?.model_params || null };
+    entry.n += 1; counts.set(basis.model, entry);
+  }
+  if (!counts.size) return null;
+  const [id, { params }] = [...counts].sort((a, b) => b[1].n - a[1].n)[0];
+  const generation = id.match(/_v(\d+)$/)?.[1];
+  const last = typeof params?.train_last_date === "string" ? params.train_last_date : null;
+  return { id, label: MODEL_LABELS[id] || id, version: generation && last ? `v${generation}.${last.replaceAll("-", "")}` : null, trainedAt: params?.trained_at || null,
+    first: params?.train_first_date || null, last, days: params?.train_days ?? null, samples: params?.samples ?? null };
+}
+
 function modelDisplayName(data) {
   if (data?.meta?.retrospective_evaluation) return data.meta.retrospective_mixed ? "장전 기록과 사후 기준선 혼합" : "직전 3거래일 사후 기준선";
   if (isHistorical(data)) return "공개 일봉 기준선";
@@ -387,8 +407,10 @@ function renderProvenance(data, source, status) {
   setText(elementIds["snapshot-date"], formatDate(data?.asOfDate || data?.trade_date));
   setText(elementIds["source-collection"], data?.meta?.source_collection_date || formatDate(source?.retrieved_at));
   setText(elementIds["source-range"], range);
-  setText(elementIds["model-name"], model);
-  setText(elementIds["baseline-input"], data?.meta?.retrospective_evaluation ? `직전 3거래일 시가·종가: ${data.retrospective_history_dates.join(", ")}` : historical ? `직전 ${baseline.lookback_sessions || 5}개 거래일 종가 기반 · ${baseline.input_through_date || "기준일 미상"}` : "연결된 데이터 기준");
+  const modelInfo = forecastModelInfo(data);
+  setText(elementIds["model-name"], modelInfo && !historical && !data?.meta?.retrospective_evaluation ? `${modelInfo.label}${modelInfo.version ? ` ${modelInfo.version}` : ""}` : model);
+  if (modelInfo?.last && !historical && !data?.meta?.retrospective_evaluation) setText(elementIds["baseline-input"], `학습 ${modelInfo.first ? `${formatPlainDate(modelInfo.first)}~` : "~"}${formatPlainDate(modelInfo.last)} · ${modelInfo.days ?? "—"}거래일 · ${formatNumber(modelInfo.samples)}개 표본${modelInfo.trainedAt ? ` · 학습 ${formatTime(modelInfo.trainedAt)}` : ""}`);
+  else setText(elementIds["baseline-input"], data?.meta?.retrospective_evaluation ? `직전 3거래일 시가·종가: ${data.retrospective_history_dates.join(", ")}` : historical ? `직전 ${baseline.lookback_sessions || 5}개 거래일 종가 기반 · ${baseline.input_through_date || "기준일 미상"}` : "연결된 데이터 기준");
   setText(elementIds["model-note"], data?.meta?.retrospective_mixed ? "장전 기록과 사후 계산이 섞여 있습니다. 종목별 출처를 확인하세요." : data?.meta?.retrospective_evaluation || historical ? "당시 08:20 예측이 아닌 사후 재현 가능한 기준선" : `예상 기준 상태: ${model === "미설정" ? "미설정" : status}`);
   setText(elementIds["limit-title"], historical ? "장전 정보가 없습니다" : "없는 값은 만들지 않습니다");
   setText(elementIds["quality-summary"], historical ? `${limitation} 예상값은 실제 과거 예측이 아닙니다.` : isNaverCrawl ? limitation : stateMessages[status] || stateMessages.no_data);
@@ -415,6 +437,9 @@ function renderHeader(data) {
   setText(elementIds["status-message"], data?.meta?.fallback_from_no_data ? "운영 데이터가 없어 과거 공개 일봉 기준선을 표시합니다." : historical ? stateMessages.historical : stateMessages[data?.mode] || stateMessages[status] || stateMessages.no_data);
   setText(elementIds["as-of-date"], formatDate(data?.asOfDate || data?.trade_date));
   setText(elementIds["published-at"], formatTime(data?.publishedAt || data?.meta?.lastAttemptAt));
+  const info = forecastModelInfo(data);
+  setText(elementIds["model-version"], info ? `${info.label}${info.version ? ` ${info.version}` : ""}` : "—");
+  setText(elementIds["model-trained-at"], info?.trainedAt ? formatTime(info.trainedAt) : info?.last ? `데이터 ~${formatPlainDate(info.last)}` : "—");
   setText(elementIds["row-count"], formatNumber(rows.length));
   setText(elementIds["provider-label"], historical ? "과거 기준 데이터" : providerDisplayName(data));
   setText(elementIds["table-state"], test ? "과거 시험 데이터" : stateLabels[status] || status);

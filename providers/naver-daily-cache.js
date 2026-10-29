@@ -28,8 +28,12 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
     const expected = await priorTradingDates(targetDate);
     const record = JSON.parse(await readFile(path ? repoPath(path) : dailyHistoryPath(targetDate), "utf8"));
     const start = Date.parse(record.started_at), end = Date.parse(record.retrieved_at), cutoff = Date.parse(`${targetDate}T08:00:00+09:00`);
+    // A morning cache starts on the target date; an evening cache starts after
+    // 18:00 KST (after-hours close) of the previous trading day.
+    if (![undefined, "morning", "evening"].includes(record.collection)) throw new Error("invalid collection kind");
+    const earliestStart = record.collection === "evening" ? Date.parse(`${expected[0]}T18:00:00+09:00`) : Date.parse(`${targetDate}T00:00:00+09:00`);
     const current = now().getTime();
-    if (record.schema_version !== 1 || record.source !== "naver-daily" || record.target_date !== targetDate || record.license_status !== "unconfirmed" || ![start, end, current].every(Number.isFinite) || start > end || end >= cutoff || end > current || start < Date.parse(`${targetDate}T00:00:00+09:00`)) throw new Error("history identity or collection time mismatch");
+    if (record.schema_version !== 1 || record.source !== "naver-daily" || record.target_date !== targetDate || record.license_status !== "unconfirmed" || ![start, end, current].every(Number.isFinite) || start > end || end >= cutoff || end > current || start < earliestStart) throw new Error("history identity or collection time mismatch");
     if (!Array.isArray(record.sessions) || record.sessions.length !== 3 || record.sessions.some((s, i) => s.date !== expected[i] || !Array.isArray(s.rows))) throw new Error("history session coverage mismatch");
     if (!Array.isArray(record.symbols) || new Set(record.symbols).size !== record.symbols.length || record.symbols.some(s => !isKoreanSymbol(s))) throw new Error("invalid universe");
     const universe = new Set(record.symbols);

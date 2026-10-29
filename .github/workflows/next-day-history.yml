@@ -1,0 +1,65 @@
+name: KOSPI next-day history and model
+
+on:
+  # After the close and after-hours trading (18:00 KST) of a trading day:
+  # collects the daily bars, trains the forecast models and computes the rank
+  # forecast for the next trading day. The 06:10 KST morning run verifies this
+  # cache and replaces it only if the bars changed. Several starts absorb late
+  # schedule events; a complete cache is kept, so repeats are no-ops, and a start
+  # delayed past midnight becomes that morning's collection.
+  schedule:
+    - cron: "37 9 * * 1-5"   # 18:37 KST Mon-Fri
+    - cron: "7 11 * * 1-5"   # 20:07 KST
+    - cron: "37 13 * * 1-5"  # 22:37 KST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    if: github.repository == 'chansday/chansday.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - id: market
+        run: node scripts/market-session-guard.mjs
+      - name: Refresh committed KOSPI universe (robots-checked, no retry)
+        if: steps.market.outputs.should_run == 'true'
+        continue-on-error: true
+        run: node scripts/update-kospi-universe.mjs --candidates-csv latest
+      - name: Collect after 18:00 KST for the next trading day
+        id: collect
+        if: steps.market.outputs.should_run == 'true'
+        run: node scripts/collect-naver-daily.mjs --evening
+      - name: Save next-day history
+        if: steps.market.outputs.should_run == 'true'
+        shell: bash
+        env:
+          TARGET_DATE: ${{ steps.collect.outputs.target_date }}
+        run: |
+          set -euo pipefail
+          if [[ -z "$TARGET_DATE" ]]; then echo "Nothing to collect at this time."; exit 0; fi
+          [[ "$TARGET_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
+          git add -- "data/daily-history/$TARGET_DATE.json"
+          if [[ -f data/kospi-universe.json ]]; then git add -- data/kospi-universe.json; fi
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(data): record next-day history and model $TARGET_DATE"
+          branch="${GITHUB_REF_NAME:-main}"
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((i * 5))
+          done
+          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi

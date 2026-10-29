@@ -133,3 +133,30 @@ test("cache return_history is optional, must start with the three sessions, and 
     assert.equal(legacy.ok, true); assert.equal(legacy.return_history, null);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test("evening collection prepares the next trading day; the morning run verifies or replaces it; late starts are handled", async () => {
+  const root = await mkdtemp(join(tmpdir(), "naver-evening-")), old = process.cwd();
+  const dates = await priorTradingDates("2026-10-27"); // Monday 10-26 evening -> Tuesday 10-27
+  const bars = (close) => dates.map(date => ({ symbol: "005930", date, open: 100, high: 120, low: 90, close, volume: 100 }));
+  const universeFetcher = async () => ({ ok: true, symbols: [{ symbol: "005930" }] });
+  const collector = (rows) => async () => ({ status: "ready", observations: rows, rejected: [], requested: 1, elapsed_ms: 500, durations_ms: [5] });
+  const at = (iso) => () => new Date(iso);
+  try {
+    process.chdir(root); process.env.KOSPI_DATA_ROOT = root;
+    const evening = await collectDaily({ now: at("2026-10-26T10:00:00Z"), universeFetcher, collector: collector(bars(110)), sleep: async () => {}, evening: true }); // 19:00 KST
+    assert.equal(evening.status, "ready"); assert.equal(evening.targetDate, "2026-10-27");
+    const content = await readFile(evening.path, "utf8");
+    assert.equal(JSON.parse(content).collection, "evening");
+    assert.equal((await loadNaverDailyHistory({ targetDate: "2026-10-27", now: at("2026-10-26T23:20:00Z") })).ok, true, "an evening cache is valid for the next morning");
+    assert.equal((await collectDaily({ now: at("2026-10-26T12:00:00Z"), universeFetcher, collector: async () => { throw new Error("must not request"); }, evening: true })).status, "preserved", "repeat evening run is a no-op");
+    assert.equal((await collectDaily({ now: at("2026-10-26T03:00:00Z"), universeFetcher, collector: collector(bars(110)), evening: true })).status, "skipped", "12:00 KST: nothing to do");
+    // A start delayed past midnight (01:00 KST 10-27) is that morning's run: it verifies the evening cache.
+    const late = await collectDaily({ now: at("2026-10-26T16:00:00Z"), universeFetcher, collector: collector(bars(110)), sleep: async () => {}, evening: true });
+    assert.equal(late.targetDate, "2026-10-27"); assert.equal(late.status, "verified"); assert.equal(await readFile(evening.path, "utf8"), content);
+    const replaced = await collectDaily({ now: at("2026-10-26T21:20:00Z"), universeFetcher, collector: collector(bars(111)), sleep: async () => {} }); // 06:20 KST
+    assert.equal(replaced.status, "replaced");
+    const record = JSON.parse(await readFile(evening.path, "utf8"));
+    assert.equal(record.collection, "morning"); assert.equal(record.replaced_evening_collection.retrieved_at, JSON.parse(content).retrieved_at); assert.equal(record.sessions[0].rows[0].close, 111);
+    assert.equal((await collectDaily({ now: at("2026-10-26T21:30:00Z"), universeFetcher, collector: async () => { throw new Error("must not request"); } })).status, "preserved", "a morning cache is not re-checked");
+  } finally { process.chdir(old); delete process.env.KOSPI_DATA_ROOT; await rm(root, { recursive: true, force: true }); }
+});

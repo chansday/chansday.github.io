@@ -483,7 +483,9 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, runStar
   const expectedOpen = recorded?.expected_open ?? (preopen ? quote.openPrice : estimate);
   const openSource = recorded?.expected_open_source ?? (preopen
     ? { kind: "preopen_quote", recorded_at: quote.quoteAt.toISOString(), history_dates: [] }
-    : estimate !== null ? { kind: phase === "before-open" ? "preopen_history" : "retrospective_history", recorded_at: history.retrieved_at, history_dates: history.sessions.map((s) => s.date) } : null);
+    // recorded_at is when this stage recorded the estimate (not when the cache
+    // was collected, which may be the previous evening).
+    : estimate !== null ? { kind: phase === "before-open" ? "preopen_history" : "retrospective_history", recorded_at: new Date(stageStartedAt).toISOString(), history_dates: history.sessions.map((s) => s.date) } : null);
   // The basis travels with the value it explains. A recorded opening keeps its
   // own basis and closing estimate; a new history opening brings the closing
   // estimate of the same prior-history model; a pre-open quote has no closing model.
