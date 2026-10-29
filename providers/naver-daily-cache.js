@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { classifyMarketDate, isValidDate, loadMarketCalendar } from "../scripts/market-calendar.mjs";
 import { isKoreanSymbol } from "./korean-symbol.js";
 import { repoPath } from "./repo-paths.js";
+import { RETURN_HISTORY_SESSIONS } from "./forecast-basis.js";
 
 export const dailyHistoryPath = (targetDate) => repoPath(`data/daily-history/${targetDate}.json`);
 
@@ -52,7 +53,23 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
     const no_trade_symbols = record.symbols.filter(symbol => !allowed.has(symbol) && zero.has(symbol) && expected.every((date, i) => maps[i].has(symbol) || zero.get(symbol).has(date)))
       .map(symbol => ({ symbol, dates: expected.filter(date => zero.get(symbol).has(date)) }));
     const sessions = record.sessions.map(s => ({ ...s, url: "https://api.stock.naver.com/chart/domestic/item/", rows: s.rows.filter(r => allowed.has(r.symbol)) }));
+    // Optional (caches collected before 2026-10-30 lack it): per-symbol prior
+    // [date, open, close] candles, newest first, whose first three entries are
+    // the three sessions above. Any inconsistency invalidates the whole cache.
+    let return_history = null;
+    if (record.return_history !== undefined) {
+      if (!record.return_history || typeof record.return_history !== "object" || Array.isArray(record.return_history)) throw new Error("invalid return history");
+      return_history = {};
+      for (const [symbol, candles] of Object.entries(record.return_history)) {
+        if (!universe.has(symbol) || !Array.isArray(candles) || candles.length < 3 || candles.length > RETURN_HISTORY_SESSIONS) throw new Error("invalid return history");
+        candles.forEach((c, k) => {
+          if (!Array.isArray(c) || c.length !== 3 || !isValidDate(c[0]) || !(c[0] < targetDate) || (k && !(c[0] < candles[k - 1][0])) || ![c[1], c[2]].every(n => Number.isSafeInteger(n) && n > 0)) throw new Error("invalid return history");
+          if (k < 3) { const row = maps[k].get(symbol); if (c[0] !== expected[k] || !row || row.open !== c[1] || row.close !== c[2]) throw new Error("return history disagrees with sessions"); }
+        });
+        if (allowed.has(symbol)) return_history[symbol] = candles.map(([date, open, close]) => ({ date, open, close }));
+      }
+    }
     const comparison_conflicts = sessions.reduce((n, s) => n + s.rows.filter(r => r.comparison === "conflict").length, 0);
-    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
+    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
   } catch (error) { return { ok: false, reason: `Naver daily history unavailable: ${error.message}` }; }
 }

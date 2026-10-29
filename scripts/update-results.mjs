@@ -229,6 +229,11 @@ export function mergeRows(existingRows, incomingRows, mode) {
   for (const existing of existingRows) {
     if (existing.symbol && !incomingSymbols.has(existing.symbol)) mergedRows.push(existing);
   }
+  // Rank on the merged values: incoming rows may carry a rank computed before
+  // recorded expectations were merged in. Expected return descending, then
+  // symbol code; rows without an expected return follow in symbol order.
+  mergedRows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || String(a.symbol ?? "").localeCompare(String(b.symbol ?? "")));
+  mergedRows.forEach((row, index) => { row.rank = index + 1; });
   return mergedRows;
 }
 

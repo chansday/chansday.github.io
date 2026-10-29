@@ -6,6 +6,7 @@ import { collectNaverDailyRows } from "../providers/naver-daily-rows.js";
 import { dailyHistoryPath, loadNaverDailyHistory, priorTradingDates } from "../providers/naver-daily-cache.js";
 import { repoPath } from "../providers/repo-paths.js";
 import { kstDate } from "./market-calendar.mjs";
+import { RETURN_HISTORY_SESSIONS } from "../providers/forecast-basis.js";
 
 export async function collectDaily({ now = () => new Date(), universeFetcher = collectNaverUniverse, collector = collectNaverDailyRows, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)) } = {}) {
   const started = now(), targetDate = kstDate(started), cutoff = Date.parse(`${targetDate}T08:00:00+09:00`);
@@ -41,7 +42,11 @@ export async function collectDaily({ now = () => new Date(), universeFetcher = c
       for (const row of sessions[i].rows) if (previous.has(row.symbol) && JSON.stringify(row) !== JSON.stringify(previous.get(row.symbol))) throw new Error("Previously valid history changed; existing partial cache preserved");
     }
   }
-  const record = { schema_version: 1, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", target_date: targetDate, started_at: started.toISOString(), retrieved_at: now().toISOString(), license_status: "unconfirmed", market_venue: "unconfirmed", adjustment: "unconfirmed", symbols, sessions, rejected: result.rejected, warnings: result.warnings || [], requested: result.requested, elapsed_ms: result.elapsed_ms, durations_ms: result.durations_ms, robots_url: result.robots_url ?? null, robots_status: result.robots_status ?? null, robots_checked_at: result.robots_checked_at ?? null, universe_source: universe.universeSource ?? null, universe_as_of: universe.universeAsOf ?? null, universe_stale: Boolean(universe.universeStale), coverage_status: complete.length === symbols.length ? "complete" : "partial", status: complete.length === symbols.length ? "ready" : "partial", notice: "Unofficial Naver endpoint; market venue, adjustment, publication time and redistribution rights unconfirmed. Daily OHLC can differ from regular-market quotes; comparison conflicts are warnings, not a basis to modify prices." };
+  // Up to RETURN_HISTORY_SESSIONS valid prior candles per complete symbol,
+  // newest first, as [date, open, close] for the expected-close model.
+  const returnHistory = Object.fromEntries(complete.map(symbol => [symbol, result.observations.filter(r => r.symbol === symbol && r.date < targetDate)
+    .sort((a, b) => b.date.localeCompare(a.date)).slice(0, RETURN_HISTORY_SESSIONS).map(r => [r.date, r.open, r.close])]));
+  const record = { schema_version: 1, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", target_date: targetDate, started_at: started.toISOString(), retrieved_at: now().toISOString(), license_status: "unconfirmed", market_venue: "unconfirmed", adjustment: "unconfirmed", symbols, sessions, return_history: returnHistory, rejected: result.rejected, warnings: result.warnings || [], requested: result.requested, elapsed_ms: result.elapsed_ms, durations_ms: result.durations_ms, robots_url: result.robots_url ?? null, robots_status: result.robots_status ?? null, robots_checked_at: result.robots_checked_at ?? null, universe_source: universe.universeSource ?? null, universe_as_of: universe.universeAsOf ?? null, universe_stale: Boolean(universe.universeStale), coverage_status: complete.length === symbols.length ? "complete" : "partial", status: complete.length === symbols.length ? "ready" : "partial", notice: "Unofficial Naver endpoint; market venue, adjustment, publication time and redistribution rights unconfirmed. Daily OHLC can differ from regular-market quotes; comparison conflicts are warnings, not a basis to modify prices." };
   await writeFile(tempPath, `${JSON.stringify(record, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
   const candidate = await loadNaverDailyHistory({ targetDate, now, path: tempPath });
   if (!candidate.ok) throw new Error(`Candidate cache invalid: ${candidate.reason}`);

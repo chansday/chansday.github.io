@@ -10,6 +10,7 @@ export const HISTORICAL_BASELINE_MODEL_ID = "public_daily_momentum_volatility_v1
 export const PREOPEN_QUOTE_MODEL_ID = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL_ID = "prior_3_sessions_open_gap_mean_capped_5pct";
 export const CLOSE_SESSION_MODEL_ID = RETROSPECTIVE_MODEL_ID;
+export const CLOSE_SHRUNK_MODEL_ID = "prior_20_sessions_trimmed_shrunk_mean_capped_1pct";
 
 const decimal = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const decimal4 = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 4 });
@@ -51,7 +52,7 @@ function finite(value) { return typeof value === "number" && Number.isFinite(val
 function round(value, digits = 2) { const factor = 10 ** digits; return Math.round((value + Number.EPSILON) * factor) / factor; }
 function signed(text, value) { return value > 0 ? `+${text}` : text; }
 export function formatWon(value) { return finite(value) ? `${decimal.format(value)}원` : "—"; }
-export function formatPct(value, unit = "%") { return finite(value) ? `${signed(decimal.format(value), value)}${unit}` : "—"; }
+export function formatPct(value, unit = "%") { return finite(value) ? `${signed(fixed2.format(value), value)}${unit}` : "—"; }
 function formatPct4(value) { return finite(value) ? `${signed(decimal4.format(value), value)}%` : "—"; }
 function formatSpread4(value) { return finite(value) ? `${decimal4.format(value)}%` : "—"; }
 function formatKst(value) {
@@ -97,6 +98,7 @@ function describeOpenBasis(basis, row) {
 // Renders a stored expected_close_basis. Returns null when the model is unknown.
 function describeCloseBasis(basis, row) {
   const model = basisModel(basis), i = basis?.inputs || {}, ec = row.expected_close;
+  if (model === CLOSE_SHRUNK_MODEL_ID) return describeShrunkCloseBasis(basis, row);
   if (model !== CLOSE_SESSION_MODEL_ID) return null;
   const sessions = Array.isArray(i.session_returns) ? i.session_returns : [];
   const multiplier = finite(i.applied_session_return) ? 1 + i.applied_session_return : null;
@@ -109,6 +111,25 @@ function describeCloseBasis(basis, row) {
   if (finite(recomputed) && finite(ec) && Math.abs(recomputed - ec) > 0.011) sentences.push(`저장된 예상 종가(${formatWon(ec)})와 재계산값(${formatWon(recomputed)})이 다릅니다. 화면에는 저장값을 표시합니다.`);
   if (finite(i.expected_open) && finite(row.expected_open) && Math.abs(i.expected_open - row.expected_open) > 0.0001) sentences.push(`예상 종가 근거의 예상 시가(${formatWon(i.expected_open)})가 저장된 예상 시가(${formatWon(row.expected_open)})와 다릅니다.`);
   return { items: [item("예상 종가 모델", model), item("장중 수익률 평균 → 적용", `${ratioPct(i.mean_session_return)} → ${ratioPct(i.applied_session_return)}`)], sentences };
+}
+
+function describeShrunkCloseBasis(basis, row) {
+  const i = basis?.inputs || {}, ec = row.expected_close;
+  const sessions = Array.isArray(i.session_returns) ? i.session_returns : [];
+  const multiplier = finite(i.applied_session_return) ? 1 + i.applied_session_return : null;
+  const recomputed = finite(i.expected_open) && finite(multiplier) ? round(i.expected_open * multiplier, 2) : null;
+  const er = deriveExpectedReturn(row);
+  const base = finite(i.expected_open) ? decimal.format(i.expected_open) : "—";
+  const tail = finite(er) ? ` → 예상 수익률 ${formatPct(er)}` : "";
+  const range = sessions.length ? `${shortDate(sessions[sessions.length - 1].date)}~${shortDate(sessions[0].date)}` : "기록 없음";
+  const shrunk = finite(i.trimmed_mean) && finite(i.shrink_weight) ? i.trimmed_mean * i.shrink_weight : null;
+  const sentences = [
+    `최근 ${sessions.length}거래일(${range}) 장중 수익률에서 위아래 각 ${finite(i.trim_count) ? i.trim_count : "—"}일을 뺀 평균 ${ratioPct(i.trimmed_mean)} × 신뢰도 가중치 ${multiplierText(i.shrink_weight)}(t=${finite(i.t_stat) ? decimal.format(i.t_stat) : "—"}) = ${ratioPct(shrunk)} ${capText(shrunk, i.applied_session_return, i.cap)} → 예상 종가 = ${base} × ${multiplierText(multiplier)} = ${formatWon(recomputed)}${tail}.`,
+    "들쭉날쭉한 수익률일수록 가중치가 0에 가까워져 예상 수익률이 작아집니다.",
+  ];
+  if (finite(recomputed) && finite(ec) && Math.abs(recomputed - ec) > 0.011) sentences.push(`저장된 예상 종가(${formatWon(ec)})와 재계산값(${formatWon(recomputed)})이 다릅니다. 화면에는 저장값을 표시합니다.`);
+  if (finite(i.expected_open) && finite(row.expected_open) && Math.abs(i.expected_open - row.expected_open) > 0.0001) sentences.push(`예상 종가 근거의 예상 시가(${formatWon(i.expected_open)})가 저장된 예상 시가(${formatWon(row.expected_open)})와 다릅니다.`);
+  return { items: [item("예상 종가 모델", CLOSE_SHRUNK_MODEL_ID), item("절사 평균 → 축소 → 적용", `${ratioPct(i.trimmed_mean)} → ${ratioPct(shrunk)} → ${ratioPct(i.applied_session_return)}`)], sentences };
 }
 
 function item(label, value) { return { label, value: value === null || value === undefined || value === "" ? "—" : String(value) }; }

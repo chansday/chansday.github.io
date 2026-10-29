@@ -193,3 +193,32 @@ test("every committed snapshot under data/runs and latest-snapshot.json still va
   for (const file of files) if (!isSnapshot(JSON.parse(await readFile(file, "utf8")))) invalid.push(file.pathname);
   assert.deepEqual(invalid, []);
 });
+
+test("20-session model: trimmed, shrunk, capped close estimate is stored and re-verified; bad history falls back to 3 sessions", async () => {
+  const { CLOSE_SHRUNK_MODEL, SHRUNK_CAP, isCloseBasis, shrunkSessionReturn } = await import("../providers/forecast-basis.js");
+  // First three candles are SESSIONS; 17 older candles alternate up and down around +0.5%.
+  const older = Array.from({ length: 17 }, (_, k) => {
+    const day = new Date(Date.UTC(2026, 9, 21) - k * 86400e3).toISOString().slice(0, 10);
+    return { date: day, open: 1000, close: k % 2 ? 1010 : 1000 };
+  });
+  const returnHistory = [...SESSIONS.map((s) => ({ date: s.date, open: s.rows[0].open, close: s.rows[0].close })), ...older];
+  const e = priorHistoryEstimate(SESSIONS, "005930", { returnHistory });
+  const c = e.close_basis.inputs;
+  assert.equal(e.close_basis.model, CLOSE_SHRUNK_MODEL); assert.deepEqual(e.close_basis.history_dates, e.open_basis.history_dates);
+  assert.equal(c.session_returns.length, 20); assert.equal(c.trim_count, 2); assert.equal(c.cap, SHRUNK_CAP);
+  // Independent recomputation of the documented formula.
+  const ratios = returnHistory.map((x) => x.close / x.open - 1).sort((a, b) => a - b).slice(2, 18);
+  const mean = ratios.reduce((s, r) => s + r, 0) / 16, se = Math.sqrt(ratios.reduce((s, r) => s + (r - mean) ** 2, 0) / 16) / 4, t = mean / se;
+  assert.ok(Math.abs(c.applied_session_return - Math.max(-0.01, Math.min(0.01, mean * t * t / (1 + t * t)))) < 1e-12);
+  assert.equal(e.expected_close, Math.round((e.expected_open * (1 + c.applied_session_return) + Number.EPSILON) * 100) / 100);
+  const row = { expected_open: e.expected_open, expected_close: e.expected_close, expected_open_basis: e.open_basis, expected_close_basis: e.close_basis };
+  assert.equal(isCloseBasis(e.close_basis, row), true);
+  assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...c, applied_session_return: c.applied_session_return + 0.001 } }, row), false, "tampered value fails");
+  assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...c, session_returns: c.session_returns.slice(1) } }, row), false, "dropped session fails");
+  // A steady +3% history is capped at +1%; flat history gives 0.
+  assert.equal(shrunkSessionReturn(Array.from({ length: 20 }, (_, k) => 0.03 + k * 1e-4)).applied_session_return, 0.01);
+  assert.equal(shrunkSessionReturn(Array(20).fill(0)).applied_session_return, 0);
+  // History that disagrees with the three sessions is ignored.
+  const bad = [{ ...returnHistory[0], close: returnHistory[0].close + 1 }, ...returnHistory.slice(1)];
+  assert.equal(priorHistoryEstimate(SESSIONS, "005930", { returnHistory: bad }).close_basis.model, CLOSE_SESSION_MODEL);
+});

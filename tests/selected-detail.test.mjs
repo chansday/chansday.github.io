@@ -18,7 +18,7 @@ test("historical baseline row explains the stored momentum/volatility calculatio
   assert.equal(expected.state, "partial");
   assert.match(body, /public_daily_momentum_volatility_v1/);
   assert.match(body, /2026-10-16, 2026-10-19, 2026-10-20, 2026-10-21, 2026-10-22/);
-  assert.match(body, /예상 신호 = 0\.6 × 모멘텀 \+11\.341% − 0\.1 × 변동성 11\.4907% = \+5\.66% → 상한 ±5% 적용 → \+5%/);
+  assert.match(body, /예상 신호 = 0\.6 × 모멘텀 \+11\.341% − 0\.1 × 변동성 11\.4907% = \+5\.66% → 상한 ±5% 적용 → \+5\.00%/);
   assert.match(body, /예상 시가 = 전일 종가 10,860원 × \(1 \+ 5%\) = 11,403원/);
   assert.doesNotMatch(body, /재계산값이 다릅니다/);
   assert.match(body, /당시 08:20에 게시된 예측이 아닙니다/);

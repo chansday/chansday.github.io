@@ -114,3 +114,22 @@ test("forecast uses dated cached close while settlement rejects pre-boundary quo
     assert.equal(closed.status, "degraded"); assert.equal(closed.rows.length, 0);
   } finally { process.chdir(old); delete process.env.KOSPI_DATA_ROOT; await rm(root, { recursive: true, force: true }); }
 });
+
+test("cache return_history is optional, must start with the three sessions, and is exposed per valid symbol", async () => {
+  const root = await mkdtemp(join(tmpdir(), "naver-daily-rh-"));
+  const path = join(root, "cache.json"), dates = await priorTradingDates("2026-10-27");
+  const row = (symbol, date) => ({ symbol, date, open: 100, high: 120, low: 90, close: 110, volume: 100 });
+  const record = { schema_version: 1, source: "naver-daily", target_date: "2026-10-27", started_at: "2026-10-26T22:40:00Z", retrieved_at: "2026-10-26T22:55:00Z", license_status: "unconfirmed", symbols: ["005930"], sessions: dates.map((date) => ({ date, rows: [row("005930", date)] })),
+    return_history: { "005930": [...dates.map((d) => [d, 100, 110]), ["2026-10-01", 100, 101]] } };
+  const load = async () => loadNaverDailyHistory({ targetDate: record.target_date, path, now: () => new Date("2026-10-26T23:20:00Z") });
+  try {
+    await writeFile(path, JSON.stringify(record));
+    const ok = await load();
+    assert.equal(ok.ok, true, ok.reason); assert.equal(ok.return_history["005930"].length, 4); assert.deepEqual(ok.return_history["005930"][3], { date: "2026-10-01", open: 100, close: 101 });
+    record.return_history["005930"][0][2] = 111; await writeFile(path, JSON.stringify(record));
+    assert.equal((await load()).ok, false, "disagreeing first candle invalidates the cache");
+    delete record.return_history; await writeFile(path, JSON.stringify(record));
+    const legacy = await load();
+    assert.equal(legacy.ok, true); assert.equal(legacy.return_history, null);
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
