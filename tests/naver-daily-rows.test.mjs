@@ -8,7 +8,7 @@ const options = { symbol: "005930", targetDate: "2026-10-28" };
 const json = (payload) => ({ status: 200, headers: new Headers({ "content-type": "application/json" }), text: async () => JSON.stringify(payload) });
 
 test("chart URL targets api.stock.naver.com and ends the day before the target", () => {
-  assert.equal(dailyChartUrl("005930", "2026-10-28"), "https://api.stock.naver.com/chart/domestic/item/005930/day?startDateTime=202609180000&endDateTime=202610272359");
+  assert.equal(dailyChartUrl("005930", "2026-10-28"), "https://api.stock.naver.com/chart/domestic/item/005930/day?startDateTime=202605310000&endDateTime=202610272359");
   assert.throws(() => dailyChartUrl("0059/0", "2026-10-28"));
 });
 

@@ -6,9 +6,9 @@ import { checkRobotsUrl } from "./robots-policy.js";
 // m.stock.naver.com disallows all paths and is not requested.
 export const DAILY_CHART_ENDPOINT = "https://api.stock.naver.com/chart/domestic/item/";
 const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
-// 40 calendar days cover at least 20 prior trading sessions for the
-// expected-close model (RETURN_HISTORY_SESSIONS in forecast-basis.js).
-const LOOKBACK_DAYS = 40;
+// 150 calendar days cover the 60 training sessions plus 20 feature sessions
+// of the ridge model (ridge-model.js) with room for holidays.
+const LOOKBACK_DAYS = 150;
 
 function compactDate(isoDate) { return isoDate.replaceAll("-", ""); }
 function shiftDate(isoDate, days) {

@@ -178,7 +178,7 @@ test("without cached candles, the robots-gated chart response settles D and supp
     assert.equal(outcome.results[0].candleSource, "chart_request"); assert.equal(outcome.results[0].priorHistory, "chart_request");
     assert.equal(urls.length, 2);
     for (const [url, agent] of urls) {
-      assert.match(url, /^https:\/\/api\.stock\.naver\.com\/chart\/domestic\/item\/\d{6}\/day\?startDateTime=202609190000&endDateTime=202610282359$/);
+      assert.match(url, /^https:\/\/api\.stock\.naver\.com\/chart\/domestic\/item\/\d{6}\/day\?startDateTime=202606010000&endDateTime=202610282359$/);
       assert.equal(agent, "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)");
     }
     const settled = await readJson(join(root, "data", "runs", D, "1530.json"));

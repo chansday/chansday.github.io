@@ -7,6 +7,7 @@ import { dailyHistoryPath, loadNaverDailyHistory, priorTradingDates } from "../p
 import { repoPath } from "../providers/repo-paths.js";
 import { kstDate } from "./market-calendar.mjs";
 import { RETURN_HISTORY_SESSIONS } from "../providers/forecast-basis.js";
+import { trainRidgeModel } from "../providers/ridge-model.js";
 
 export async function collectDaily({ now = () => new Date(), universeFetcher = collectNaverUniverse, collector = collectNaverDailyRows, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)) } = {}) {
   const started = now(), targetDate = kstDate(started), cutoff = Date.parse(`${targetDate}T08:00:00+09:00`);
@@ -46,7 +47,13 @@ export async function collectDaily({ now = () => new Date(), universeFetcher = c
   // newest first, as [date, open, close] for the expected-close model.
   const returnHistory = Object.fromEntries(complete.map(symbol => [symbol, result.observations.filter(r => r.symbol === symbol && r.date < targetDate)
     .sort((a, b) => b.date.localeCompare(a.date)).slice(0, RETURN_HISTORY_SESSIONS).map(r => [r.date, r.open, r.close])]));
-  const record = { schema_version: 1, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", target_date: targetDate, started_at: started.toISOString(), retrieved_at: now().toISOString(), license_status: "unconfirmed", market_venue: "unconfirmed", adjustment: "unconfirmed", symbols, sessions, return_history: returnHistory, rejected: result.rejected, warnings: result.warnings || [], requested: result.requested, elapsed_ms: result.elapsed_ms, durations_ms: result.durations_ms, robots_url: result.robots_url ?? null, robots_status: result.robots_status ?? null, robots_checked_at: result.robots_checked_at ?? null, universe_source: universe.universeSource ?? null, universe_as_of: universe.universeAsOf ?? null, universe_stale: Boolean(universe.universeStale), coverage_status: complete.length === symbols.length ? "complete" : "partial", status: complete.length === symbols.length ? "ready" : "partial", notice: "Unofficial Naver endpoint; market venue, adjustment, publication time and redistribution rights unconfirmed. Daily OHLC can differ from regular-market quotes; comparison conflicts are warnings, not a basis to modify prices." };
+  // Retrained every morning on all valid prior candles; null (the 20-session
+  // model is used instead) when there is not enough history.
+  const byCandles = new Map();
+  for (const r of result.observations) if (r.date < targetDate) { if (!byCandles.has(r.symbol)) byCandles.set(r.symbol, []); byCandles.get(r.symbol).push({ date: r.date, open: r.open, close: r.close }); }
+  let forecastModel = null;
+  try { forecastModel = trainRidgeModel(byCandles); } catch { forecastModel = null; }
+  const record = { schema_version: 1, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", target_date: targetDate, started_at: started.toISOString(), retrieved_at: now().toISOString(), license_status: "unconfirmed", market_venue: "unconfirmed", adjustment: "unconfirmed", symbols, sessions, return_history: returnHistory, forecast_model: forecastModel, rejected: result.rejected, warnings: result.warnings || [], requested: result.requested, elapsed_ms: result.elapsed_ms, durations_ms: result.durations_ms, robots_url: result.robots_url ?? null, robots_status: result.robots_status ?? null, robots_checked_at: result.robots_checked_at ?? null, universe_source: universe.universeSource ?? null, universe_as_of: universe.universeAsOf ?? null, universe_stale: Boolean(universe.universeStale), coverage_status: complete.length === symbols.length ? "complete" : "partial", status: complete.length === symbols.length ? "ready" : "partial", notice: "Unofficial Naver endpoint; market venue, adjustment, publication time and redistribution rights unconfirmed. Daily OHLC can differ from regular-market quotes; comparison conflicts are warnings, not a basis to modify prices." };
   await writeFile(tempPath, `${JSON.stringify(record, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
   const candidate = await loadNaverDailyHistory({ targetDate, now, path: tempPath });
   if (!candidate.ok) throw new Error(`Candidate cache invalid: ${candidate.reason}`);

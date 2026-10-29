@@ -478,7 +478,7 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, runStar
   const sourcePhase = sourceDate && Number.isFinite(sourceDate.getTime()) ? resolveCrawlStage(sourceDate) : null;
   const recorded = existing?.expected_open > 0 && validDates && sourceDate && savedOpeningIsTimely(src.recorded_at, runStartedAt, stageStartedAt, sameRun) && kstDate(sourceDate) === kstDate(quote.quoteAt) && (["preopen_quote", "preopen_history"].includes(src.kind) ? sourcePhase === "before-open" : src.kind === "retrospective_history" && sourcePhase !== "before-open") ? existing : null;
   const preopen = phase === "before-open" && quote.marketStatus === "PREOPEN" && quote.quoteAt && resolveCrawlStage(quote.quoteAt) === "before-open" && quote.openPrice > 0;
-  const historyEstimate = history?.ok ? priorHistoryEstimate(history.sessions, quote.symbol, { returnHistory: history.return_history?.[quote.symbol] ?? null }) : null;
+  const historyEstimate = history?.ok ? priorHistoryEstimate(history.sessions, quote.symbol, { returnHistory: history.return_history?.[quote.symbol] ?? null, forecastModel: history.forecast_model ?? null }) : null;
   const estimate = historyEstimate?.expected_open ?? null;
   const expectedOpen = recorded?.expected_open ?? (preopen ? quote.openPrice : estimate);
   const openSource = recorded?.expected_open_source ?? (preopen

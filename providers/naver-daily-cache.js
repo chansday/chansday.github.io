@@ -3,6 +3,7 @@ import { classifyMarketDate, isValidDate, loadMarketCalendar } from "../scripts/
 import { isKoreanSymbol } from "./korean-symbol.js";
 import { repoPath } from "./repo-paths.js";
 import { RETURN_HISTORY_SESSIONS } from "./forecast-basis.js";
+import { isRidgeModel } from "./ridge-model.js";
 
 export const dailyHistoryPath = (targetDate) => repoPath(`data/daily-history/${targetDate}.json`);
 
@@ -69,7 +70,11 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
         if (allowed.has(symbol)) return_history[symbol] = candles.map(([date, open, close]) => ({ date, open, close }));
       }
     }
+    // Optional trained model; a malformed one invalidates the cache, null means
+    // training had too little history.
+    if (record.forecast_model !== undefined && record.forecast_model !== null && (!isRidgeModel(record.forecast_model) || !(record.forecast_model.train_last_date < targetDate))) throw new Error("invalid forecast model");
+    const forecast_model = record.forecast_model ?? null;
     const comparison_conflicts = sessions.reduce((n, s) => n + s.rows.filter(r => r.comparison === "conflict").length, 0);
-    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
+    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
   } catch (error) { return { ok: false, reason: `Naver daily history unavailable: ${error.message}` }; }
 }

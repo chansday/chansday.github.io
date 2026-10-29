@@ -11,6 +11,8 @@ export const PREOPEN_QUOTE_MODEL_ID = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL_ID = "prior_3_sessions_open_gap_mean_capped_5pct";
 export const CLOSE_SESSION_MODEL_ID = RETROSPECTIVE_MODEL_ID;
 export const CLOSE_SHRUNK_MODEL_ID = "prior_20_sessions_trimmed_shrunk_mean_capped_1pct";
+export const RIDGE_MODEL_ID = "ridge_6_features_60_sessions_v1";
+const RIDGE_FEATURE_LABELS = ["20일 절사평균 장중수익률", "5일 평균 장중수익률", "전일 장중수익률", "전일 갭", "20일 모멘텀", "20일 변동성"];
 
 const decimal = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const decimal4 = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 4 });
@@ -99,6 +101,7 @@ function describeOpenBasis(basis, row) {
 function describeCloseBasis(basis, row) {
   const model = basisModel(basis), i = basis?.inputs || {}, ec = row.expected_close;
   if (model === CLOSE_SHRUNK_MODEL_ID) return describeShrunkCloseBasis(basis, row);
+  if (model === RIDGE_MODEL_ID) return describeRidgeCloseBasis(basis, row);
   if (model !== CLOSE_SESSION_MODEL_ID) return null;
   const sessions = Array.isArray(i.session_returns) ? i.session_returns : [];
   const multiplier = finite(i.applied_session_return) ? 1 + i.applied_session_return : null;
@@ -111,6 +114,26 @@ function describeCloseBasis(basis, row) {
   if (finite(recomputed) && finite(ec) && Math.abs(recomputed - ec) > 0.011) sentences.push(`저장된 예상 종가(${formatWon(ec)})와 재계산값(${formatWon(recomputed)})이 다릅니다. 화면에는 저장값을 표시합니다.`);
   if (finite(i.expected_open) && finite(row.expected_open) && Math.abs(i.expected_open - row.expected_open) > 0.0001) sentences.push(`예상 종가 근거의 예상 시가(${formatWon(i.expected_open)})가 저장된 예상 시가(${formatWon(row.expected_open)})와 다릅니다.`);
   return { items: [item("예상 종가 모델", model), item("장중 수익률 평균 → 적용", `${ratioPct(i.mean_session_return)} → ${ratioPct(i.applied_session_return)}`)], sentences };
+}
+
+function describeRidgeCloseBasis(basis, row) {
+  const i = basis?.inputs || {}, m = i.model_params || {}, ec = row.expected_close;
+  const multiplier = finite(i.predicted_return) ? 1 + i.predicted_return : null;
+  const recomputed = finite(i.expected_open) && finite(multiplier) ? round(i.expected_open * multiplier, 2) : null;
+  const er = deriveExpectedReturn(row);
+  const base = finite(i.expected_open) ? decimal.format(i.expected_open) : "—";
+  const tail = finite(er) ? ` → 예상 수익률 ${formatPct(er)}` : "";
+  const features = Array.isArray(i.clipped_features) ? i.clipped_features : [];
+  const weights = Array.isArray(m.weights) ? m.weights : [];
+  const parts = features.map((v, k) => finite(weights[k + 1]) && finite(m.means?.[k]) && finite(m.sds?.[k]) ? weights[k + 1] * ((v - m.means[k]) / m.sds[k]) : null);
+  const featureText = features.map((v, k) => `${RIDGE_FEATURE_LABELS[k] || `요인 ${k + 1}`} ${ratioPct(v)}(기여 ${ratioPct(parts[k])})`).join(", ") || "기록 없음";
+  const sentences = [
+    `${m.train_first_date || "—"}~${m.train_last_date || "—"} ${finite(m.train_days) ? m.train_days : "—"}거래일·${finite(m.samples) ? integer.format(m.samples) : "—"}개 표본으로 매일 다시 학습한 리지 회귀(λ=${finite(m.lambda) ? m.lambda : "—"})입니다.`,
+    `요인: ${featureText}. 기본값 ${ratioPct(weights[0])} + 기여 합계 → 예상 장중 수익률 ${ratioPct(i.predicted_return)} → 예상 종가 = ${base} × ${multiplierText(multiplier)} = ${formatWon(recomputed)}${tail}.`,
+    "요인 값은 학습 표본의 상하위 1% 범위로 자른 뒤 사용하며, 별도 상한은 두지 않습니다.",
+  ];
+  if (finite(recomputed) && finite(ec) && Math.abs(recomputed - ec) > 0.011) sentences.push(`저장된 예상 종가(${formatWon(ec)})와 재계산값(${formatWon(recomputed)})이 다릅니다. 화면에는 저장값을 표시합니다.`);
+  return { items: [item("예상 종가 모델", RIDGE_MODEL_ID), item("예상 장중 수익률", ratioPct(i.predicted_return))], sentences };
 }
 
 function describeShrunkCloseBasis(basis, row) {

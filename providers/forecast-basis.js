@@ -2,6 +2,8 @@
 // Every number in a basis is an input or intermediate value actually used in
 // the calculation; nothing is synthesized. Sessions are newest first and never
 // include the target date.
+import { FEATURE_SESSIONS, RIDGE_MODEL, isRidgeModel, ridgeFeatures, ridgePredict } from "./ridge-model.js";
+
 export const PREOPEN_QUOTE_MODEL = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL = "prior_3_sessions_open_gap_mean_capped_5pct";
 // Same identifier as the post-close retrospective: expected_close applies the
@@ -39,7 +41,7 @@ export function shrunkSessionReturn(ratios) {
 // returnHistory: the symbol's prior candles ({ date, open, close }, newest
 // first, first three equal to `sessions`). Without it the 3-session close model
 // is kept (caches collected before the new model, post-close retrospective).
-export function priorHistoryEstimate(sessions, symbol, { returnHistory = null } = {}) {
+export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, forecastModel = null } = {}) {
   if (!Array.isArray(sessions) || sessions.length !== 3) return null;
   const h = sessions.map((session) => session?.rows?.find((row) => row.symbol === symbol));
   if (h.some((row) => !row || !positive(row.open) || !positive(row.close) || !positive(row.volume))) return null;
@@ -54,6 +56,17 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null } 
   const candles = Array.isArray(returnHistory) && returnHistory.length >= 3 && returnHistory.length <= RETURN_HISTORY_SESSIONS
     && returnHistory.every((c, k) => c && DATE.test(c.date) && positive(c.open) && positive(c.close) && (k >= 3 || (c.date === dates[k] && c.open === h[k].open && c.close === h[k].close)) && (k === 0 || c.date < returnHistory[k - 1].date))
     ? returnHistory : null;
+  if (candles && candles.length === FEATURE_SESSIONS && isRidgeModel(forecastModel) && forecastModel.train_last_date <= dates[0]) {
+    const returns = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, ratio: c.close / c.open - 1 }));
+    const features = ridgeFeatures(candles);
+    const { clipped, predicted } = ridgePredict(forecastModel, features);
+    return {
+      expected_open: expectedOpen,
+      expected_close: round(expectedOpen * (1 + predicted)),
+      open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
+      close_basis: { model: RIDGE_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, session_returns: returns, features, clipped_features: clipped, predicted_return: predicted, model_params: forecastModel } },
+    };
+  }
   if (candles) {
     const returns = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, ratio: c.close / c.open - 1 }));
     const stats = shrunkSessionReturn(returns.map((r) => r.ratio));
@@ -123,7 +136,26 @@ function isShrunkCloseBasis(basis, row, asOfDate) {
   return o.prior_close === s0.close && o.gaps[0].open === s0.open && o.gaps[0].previous_close === s1.close && o.gaps[1].open === s1.open && o.gaps[1].previous_close === s2.close;
 }
 
+function isRidgeCloseBasis(basis, row, asOfDate) {
+  const i = basis.inputs;
+  if (!validHistoryDates(basis.history_dates, 3) || !exactKeys(i, ["expected_open", "session_returns", "features", "clipped_features", "predicted_return", "model_params"]) || !positive(i.expected_open) || i.expected_open !== row.expected_open) return false;
+  if (asOfDate && !(basis.history_dates[0] < asOfDate)) return false;
+  const m = i.model_params, s = i.session_returns;
+  if (!isRidgeModel(m) || !(m.train_last_date <= basis.history_dates[0])) return false;
+  if (!Array.isArray(s) || s.length !== FEATURE_SESSIONS || !s.every((x, k) => exactKeys(x, ["date", "open", "close", "ratio"]) && DATE.test(x.date) && (k >= 3 ? x.date < s[k - 1].date : x.date === basis.history_dates[k]) && positive(x.open) && positive(x.close) && near(x.ratio, x.close / x.open - 1))) return false;
+  const features = ridgeFeatures(s);
+  if (!features || !Array.isArray(i.features) || !features.every((v, k) => near(v, i.features[k]))) return false;
+  const { clipped, predicted } = ridgePredict(m, features);
+  if (!Array.isArray(i.clipped_features) || !clipped.every((v, k) => near(v, i.clipped_features[k])) || !near(i.predicted_return, predicted)) return false;
+  if (row.expected_close !== round(i.expected_open * (1 + i.predicted_return))) return false;
+  const o = row.expected_open_basis?.inputs;
+  if (!o || !Array.isArray(o.gaps) || o.gaps.length !== 2) return false;
+  const [s0, s1, s2] = s;
+  return o.prior_close === s0.close && o.gaps[0].open === s0.open && o.gaps[0].previous_close === s1.close && o.gaps[1].open === s1.open && o.gaps[1].previous_close === s2.close;
+}
+
 export function isCloseBasis(basis, row, { asOfDate = null } = {}) {
+  if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === RIDGE_MODEL) return positive(row?.expected_close) && isRidgeCloseBasis(basis, row, asOfDate);
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === CLOSE_SHRUNK_MODEL) return positive(row?.expected_close) && isShrunkCloseBasis(basis, row, asOfDate);
   if (!exactKeys(basis, ["model", "history_dates", "inputs"]) || basis.model !== CLOSE_SESSION_MODEL || !positive(row?.expected_close) || !validHistoryDates(basis.history_dates, 3)) return false;
   const i = basis.inputs;
