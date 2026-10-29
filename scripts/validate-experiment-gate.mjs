@@ -34,12 +34,14 @@ export function experimentGateDecision({ status, statusSaved, candidate, candida
     reasons.push("candidate state does not match candidate phases");
   }
 
+  // After the close no new forecast can be made; that is accepted whether or
+  // not an earlier run of the same day saved one (2026-10-29 run 40839158054).
   const emptyNoData = status === "no_data"
     && reason === "data_unavailable"
     && explicitlyNotApplicable === true
     && postClose === true
-    && hasCandidate === false
-    && phases?.length === 0;
+    && hasCandidate !== null
+    && Array.isArray(phases);
   if (ACCEPTED_EXPERIMENT_STATUSES.has(status) && (hasCandidate !== true || !phases || phases.length === 0)) {
     reasons.push("experimental result must have a non-empty candidate phase state");
   }

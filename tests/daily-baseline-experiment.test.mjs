@@ -87,8 +87,8 @@ test("run-all saves an isolated forecast once and does not promote blocked settl
     const before = await readFile(first.experiment.path, "utf8");
     await rm(join(root, "2026-10-27-status.json"));
     const second = await runAll(args, deps);
-    assert.equal(second.experiment.status, "preserved");
-    assert.equal(await readFile(first.experiment.path, "utf8"), before);
+    // Each run updates the phase with its new validated forecast.
+    assert.equal(second.experiment.status, "experimental"); assert.equal(second.experiment.reason, "updated"); assert.equal(second.experiment.saved, true);
     const record = JSON.parse(before);
     assert.ok(record.rows.every((row) => !("expected_open" in row) && !("actual_open" in row) && !("actual_close" in row)));
   } finally { await rm(root, { recursive: true, force: true }); }
@@ -143,10 +143,9 @@ test("mock collection saves a phase record served from the site root and renders
     assert.equal(await readFile(saved.path, "utf8"), original);
     await rm(blocked.statusPath);
     const retried = await runDailyBaseline({ ...setup(), root: join(root, "data", "experiments") });
-    assert.equal(retried.status, "preserved");
+    assert.equal(retried.status, "experimental"); assert.equal(retried.reason, "updated");
     await renderDailyExperiments("2026-10-27");
-    assert.match(elements.get("daily-experiment-status").textContent, /기존 실험 보존/);
-    assert.equal(await readFile(saved.path, "utf8"), original);
+    assert.match(elements.get("daily-experiment-status").textContent, /새 실험으로 갱신/);
     await rm(retried.statusPath);
     const missingResult = await runDailyBaseline({ ...setup({ missing: ["20261026", "20261023"] }), root: join(root, "data", "experiments") });
     await renderDailyExperiments("2026-10-27");
@@ -214,9 +213,10 @@ test("run-all experiment gate allows post-close no_data only with a saved empty 
   assert.equal(experimentGateDecision({ ...noData, postCloseRun: false }).allowed, false);
   assert.equal(experimentGateDecision({ ...noData, notApplicable: false }).allowed, false);
   assert.equal(experimentGateDecision({ ...noData, reason: "data_unavailable", notApplicable: true, postCloseRun: false }).allowed, false);
-  assert.equal(experimentGateDecision({ ...noData, candidate: true }).allowed, false);
-  assert.equal(experimentGateDecision({ ...noData, candidate: true, candidatePhases: ["before-open"] }).allowed, false);
-  assert.equal(experimentGateDecision({ ...noData, candidatePhases: ["before-open"] }).allowed, false);
+  assert.equal(experimentGateDecision({ ...noData, candidate: true }).allowed, false, "candidate state must match its phases");
+  // 2026-10-29 run 40839158054: post-close after a saved during-market forecast.
+  assert.equal(experimentGateDecision({ ...noData, candidate: true, candidatePhases: ["during-market"] }).allowed, true);
+  assert.equal(experimentGateDecision({ ...noData, candidatePhases: ["before-open"] }).allowed, false, "candidate state must match its phases");
   assert.equal(experimentGateDecision({ status: "no_data", reason: "data_unavailable", notApplicable: false, postCloseRun: false, statusSaved: true, candidate: false, candidatePhases: [] }).allowed, false);
   assert.equal(experimentGateDecision({ status: "experimental", statusSaved: true, candidate: true, candidatePhases: ["before-open"] }).allowed, true);
   for (const status of ["experimental", "preserved"]) {
@@ -323,29 +323,38 @@ test("status failure retry stages validated unpublished forecast through the wor
     assert.deepEqual(exec("git", ["diff", "--cached", "--name-only"], checkout).split(/\r?\n/).sort(), ["data/experiments/2026-10-27-before-open.json", "data/experiments/2026-10-27-status.json"]);
     assert.equal(exec("git", ["show", ":data/experiments/2026-10-27-before-open.json"], checkout), original.trim());
     exec("git", ["commit", "-qm", "publish fixture"], checkout);
+    // A later run updates the tracked phase; the new validated forecast is staged.
+    const updated = await runDailyBaseline({ ...setup({ missing: [] }), root });
+    assert.equal(updated.status, "experimental"); assert.equal(updated.reason, "updated");
+    const after = await readFile(predictionPath, "utf8");
+    assert.notEqual(after, original);
+    exec(bash, ["scripts/stage-daily-experiment.sh"], checkout, { ...env, STATUS_HASH: updated.statusHash });
+    assert.ok(exec("git", ["diff", "--cached", "--name-only"], checkout).split(/\r?\n/).includes("data/experiments/2026-10-27-before-open.json"));
+    assert.equal(exec("git", ["show", ":data/experiments/2026-10-27-before-open.json"], checkout), after.trim());
+    exec("git", ["commit", "-qm", "update fixture"], checkout);
     exec("git", ["clone", "-q", checkout, clone], work);
     const clonePath = join(clone, "data", "experiments", "2026-10-27-before-open.json");
     await writeFile(clonePath, "local-user-modification\n");
     exec(bash, ["scripts/stage-daily-experiment.sh"], clone, { ...env, STATUS_SAVED: "false" });
     assert.equal(exec("git", ["diff", "--cached", "--name-only"], clone), "");
     assert.equal(await readFile(clonePath, "utf8"), "local-user-modification\n");
-    assert.equal(exec("git", ["show", "HEAD:data/experiments/2026-10-27-before-open.json"], clone), original.trim());
+    assert.equal(exec("git", ["show", "HEAD:data/experiments/2026-10-27-before-open.json"], clone), after.trim());
   } finally { await rm(work, { recursive: true, force: true }); }
 });
 
-test("invalid existing orphan forecast is not accepted or staged", async () => {
+test("an invalid existing forecast is replaced by the new validated one, never accepted as is", async () => {
   const root = await mkdtemp(join(tmpdir(), "experiment-invalid-"));
   try {
     const path = join(root, "2026-10-27-before-open.json");
     await writeFile(path, "{}\n");
     const retry = await runDailyBaseline({ ...setup(), root });
-    assert.equal(retry.status, "failed"); assert.notEqual(retry.candidate, true);
-    assert.equal(await readFile(path, "utf8"), "{}\n");
+    assert.equal(retry.status, "experimental"); assert.equal(retry.reason, "updated"); assert.equal(retry.candidate, true);
+    assert.notEqual(await readFile(path, "utf8"), "{}\n");
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
 
-test("concurrent attempts reserve one phase file without overwriting it", async () => {
+test("concurrent attempts leave one valid phase file", async () => {
   const root = await mkdtemp(join(tmpdir(), "experiment-reserve-"));
   try {
     const forecast = await createDailyBaselineExperiment(setup());

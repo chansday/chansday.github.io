@@ -36,7 +36,7 @@ export async function renderDailyExperiments(date) {
       if (response.status === 404) return null;
       if (!response.ok) return { readError: true };
       const x = await response.json();
-      const reasons = { experimental: "saved", preserved: "existing_forecast_preserved", blocked: ["robots_blocked", "source_blocked"], no_data: "data_unavailable", failed: "collection_error" };
+      const reasons = { experimental: ["saved", "updated"], preserved: "existing_forecast_preserved", blocked: ["robots_blocked", "source_blocked"], no_data: "data_unavailable", failed: "collection_error" };
       if (x.schema_version !== 1 || x.target_date !== date || !Object.hasOwn(reasons, x.status) || ![reasons[x.status]].flat().includes(x.reason) || !Number.isFinite(Date.parse(x.attempted_at)) || ![null, "before-open", "during-market"].includes(x.phase)) return { readError: true };
       return x;
     } catch { return { readError: true }; }
@@ -55,7 +55,7 @@ export async function renderDailyExperiments(date) {
   if (token !== currentToken) return;
   saved = records.filter((record) => record && !record.readError);
   const error = records.some((record) => record?.readError);
-  const labels = { experimental: "최근 실행: 실험 저장", preserved: "최근 실행: 기존 실험 보존", blocked: latest?.reason === "robots_blocked" ? "최근 실행: robots 정책으로 차단" : "최근 실행: 수집 출처 차단", no_data: "최근 실행: 수집 데이터 부족 또는 실행 조건 불충족", failed: "최근 실행: 수집 또는 검증 실패" };
+  const labels = { experimental: latest?.reason === "updated" ? "최근 실행: 새 실험으로 갱신" : "최근 실행: 실험 저장", preserved: "최근 실행: 기존 실험 보존", blocked: latest?.reason === "robots_blocked" ? "최근 실행: robots 정책으로 차단" : "최근 실행: 수집 출처 차단", no_data: "최근 실행: 수집 데이터 부족 또는 실행 조건 불충족", failed: "최근 실행: 수집 또는 검증 실패" };
   const last = latest?.readError ? "최근 실행 상태 읽기 오류" : latest ? `${labels[latest.status]} (${latest.attempted_at})` : "실행 상태 기록 없음 (미실행 또는 상태 기록 누락)";
   status.textContent = `${date} 실험 기록 ${saved.length}개 · ${last}${error ? " · 일부 실험 기록 읽기 오류" : ""} · 실제 시세 및 정산 아님`;
   showRows();

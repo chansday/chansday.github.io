@@ -68,11 +68,12 @@ export async function runDailyBaseline({ targetDate, root = "data/experiments", 
           result = { status: "experimental", reason: "saved", saved: true, candidate: true, path, phase: forecast.phase, stale: forecast.stale };
         } catch (error) {
           if (error.code !== "EEXIST") throw error;
+          // Every run updates the phase with its new, validated forecast
+          // (atomic rename over the regular file); nothing older is preserved.
           const info = await lstat(path);
           if (!info.isFile() || info.isSymbolicLink()) throw new Error("Existing experiment is not a regular file");
-          const existing = JSON.parse(await readFile(path, "utf8"));
-          if (!isDailyExperiment(existing, targetDate, forecast.phase)) throw new Error("Existing experiment failed validation");
-          result = { status: "preserved", reason: "existing_forecast_preserved", saved: false, candidate: true, path, phase: forecast.phase };
+          await rename(temporaryForecast, path);
+          result = { status: "experimental", reason: "updated", saved: true, candidate: true, path, phase: forecast.phase, stale: forecast.stale };
         }
       } finally { await rm(temporaryForecast, { force: true }); }
     }
