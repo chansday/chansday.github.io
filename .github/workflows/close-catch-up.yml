@@ -21,7 +21,8 @@ concurrency:
 
 jobs:
   catch-up:
-    runs-on: ubuntu-latest
+    if: github.repository == 'chansday/chansday.github.io'
+    runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:
       KOSPI_RUN_ID: ${{ github.run_id }}.${{ github.run_attempt }}
@@ -74,7 +75,14 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- data/runs data/date-index.json data/latest-snapshot.json
           git commit -m "chore(data): record KOSPI close-settlement catch-up"
-          git push
+          branch="${GITHUB_REF_NAME:-main}"
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((i * 5))
+          done
+          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
 
       - name: Fail when the catch-up is not ready
         if: always()

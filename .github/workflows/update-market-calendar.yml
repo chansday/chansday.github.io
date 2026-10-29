@@ -20,7 +20,8 @@ concurrency:
 
 jobs:
   update-calendar:
-    runs-on: ubuntu-latest
+    if: github.repository == 'chansday/chansday.github.io'
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -46,4 +47,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore(data): update KRX market calendar"
-          git push
+          branch="${GITHUB_REF_NAME:-main}"
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((i * 5))
+          done
+          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi

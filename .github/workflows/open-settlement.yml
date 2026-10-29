@@ -11,10 +11,13 @@ permissions:
 
 jobs:
   open-settlement:
+    if: github.repository == 'chansday/chansday.github.io'
     uses: ./.github/workflows/_run-stage.yml
     with:
       stage: open-settlement
       provider: naver-crawl
       run_id: ${{ github.run_id }}
       run_attempt: ${{ github.run_attempt }}
-    secrets: inherit
+    secrets:
+      KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
+      KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}

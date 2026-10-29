@@ -12,13 +12,28 @@ on:
       - "scripts/**"
       - "schema/**"
       - "tests/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/**"
+      - "package.json"
+      - "app.js"
+      - "providers/**"
+      - "scripts/**"
+      - "schema/**"
+      - "tests/**"
 
 permissions:
   contents: read
 
+concurrency:
+  group: validation-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out repository
         uses: actions/checkout@v7

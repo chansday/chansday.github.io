@@ -40,7 +40,9 @@ concurrency:
 
 jobs:
   run-stage:
-    runs-on: ubuntu-latest
+    if: github.repository == 'chansday/chansday.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
     env:
       KOSPI_PROVIDER: ${{ inputs.provider }}
       KOSPI_DAILY_HISTORY: ${{ (inputs.auto_stage || inputs.stage == 'analysis' || inputs.stage == 'forecast' || inputs.stage == 'open-settlement' || inputs.stage == 'close-settlement') && 'naver-cache' || '' }}
@@ -112,7 +114,9 @@ jobs:
           (inputs.auto_stage != true || steps.auto_stage.outcome == 'success') &&
           steps.static-contract.outcome == 'success'
         continue-on-error: true
-        run: node scripts/update-results.mjs --mode "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" --run-started-at "${{ steps.capture-run-context.outputs.run_started_at }}" --attempted-at "${{ steps.capture-run-context.outputs.run_started_at }}"
+        env:
+          RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
+        run: node scripts/update-results.mjs --mode "$RESOLVED_STAGE" --run-started-at "${{ steps.capture-run-context.outputs.run_started_at }}" --attempted-at "${{ steps.capture-run-context.outputs.run_started_at }}"
 
       - name: Collect isolated daily baseline
         id: daily-experiment
@@ -138,18 +142,20 @@ jobs:
       - name: Write workflow summary
         if: always()
         shell: bash
+        env:
+          RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
         run: |
           if [ "${{ steps.market-day.outputs.should_run }}" != "true" ]; then
             {
               echo "### KOSPI stage: market closed"
-              echo "- stage: \`${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}\`"
+              echo "- stage: \`${RESOLVED_STAGE}\`"
               echo "- provider: \`${KOSPI_PROVIDER}\`"
               echo "- collection and snapshot mutation: **not run**"
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
               echo "### KOSPI stage workflow"
-              echo "- stage: \`${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}\`"
+              echo "- stage: \`${RESOLVED_STAGE}\`"
               echo "- provider: \`${KOSPI_PROVIDER}\`"
               echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (runner-captured start UTC; KST stage is derived from the same value)"
               echo "- manual button and schedule use the same stage command"
@@ -176,6 +182,8 @@ jobs:
           ((inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) != 'close-settlement' ||
            (steps.retrospective.outcome == 'success' && steps.retrospective.outputs.status == 'ready'))
         shell: bash
+        env:
+          RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
         run: |
           set -euo pipefail
           changes="$(git status --short -- data/latest-snapshot.json data/runs)"
@@ -186,8 +194,15 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/latest-snapshot.json data/runs
-          git commit -m "chore(data): record KOSPI ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }} stage"
-          git push
+          git commit -m "chore(data): record KOSPI $RESOLVED_STAGE stage"
+          branch="${GITHUB_REF_NAME:-main}"
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((i * 5))
+          done
+          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
 
       - name: Save isolated daily baseline
         id: save-experiment
@@ -208,11 +223,21 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "chore(data): record isolated daily experiment $EXPERIMENT_DATE"
-          git push
+          branch="${GITHUB_REF_NAME:-main}"
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((i * 5))
+          done
+          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
 
       - name: Fail when the stage is not ready
         if: always()
         shell: bash
+        env:
+          RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
+          AUTO_STAGE: ${{ inputs.auto_stage }}
         run: |
           run_started_at="${{ steps.capture-run-context.outputs.run_started_at }}"
           if [ "${{ steps.capture-run-context.outcome }}" != "success" ] || [ -z "$run_started_at" ]; then
@@ -243,20 +268,20 @@ jobs:
             echo "Static contract validation failed." >&2
             exit 1
           fi
-          if [ "${{ inputs.auto_stage }}" = "true" ] && [ "${{ steps.auto_stage.outcome }}" != "success" ]; then
+          if [ "$AUTO_STAGE" = "true" ] && [ "${{ steps.auto_stage.outcome }}" != "success" ]; then
             echo "Automatic stage resolution failed or was skipped." >&2
             exit 1
           fi
           if [ "${{ steps.stage.outcome }}" != "success" ]; then
-            echo "Stage '${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}' returned no_data, partial, degraded, blocked, or another failure." >&2
+            echo "Stage '$RESOLVED_STAGE' returned no_data, partial, degraded, blocked, or another failure." >&2
             exit 1
           fi
           status="${{ steps.stage.outputs.status }}"
           if [ "$status" != "ready" ]; then
-            echo "Stage '${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}' did not return the required ready status: '$status'." >&2
+            echo "Stage '$RESOLVED_STAGE' did not return the required ready status: '$status'." >&2
             exit 1
           fi
-          if [ "${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}" = "close-settlement" ] && { [ "${{ steps.retrospective.outcome }}" != "success" ] || [ "${{ steps.retrospective.outputs.status }}" != "ready" ]; }; then
+          if [ "$RESOLVED_STAGE" = "close-settlement" ] && { [ "${{ steps.retrospective.outcome }}" != "success" ] || [ "${{ steps.retrospective.outputs.status }}" != "ready" ]; }; then
             echo "Post-close retrospective failed or was skipped." >&2
             exit 1
           fi

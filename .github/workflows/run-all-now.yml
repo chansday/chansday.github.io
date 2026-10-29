@@ -17,7 +17,9 @@ concurrency:
 
 jobs:
   run-all:
-    runs-on: ubuntu-latest
+    if: github.repository == 'chansday/chansday.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
     env:
       KOSPI_PROVIDER: naver-crawl
       KOSPI_DAILY_HISTORY: naver-cache
@@ -33,6 +35,16 @@ jobs:
       KOSPI_PUBLIC_SOURCE_LICENSE_URL: ${{ vars.KOSPI_PUBLIC_SOURCE_LICENSE_URL || '' }}
       KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS: ${{ vars.KOSPI_PUBLIC_SOURCE_ALLOWED_HOSTS || '' }}
     steps:
+      - name: Validate run date input
+        id: validate-input
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! [[ "$KOSPI_RUN_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] || ! date -d "$KOSPI_RUN_DATE" +%F >/dev/null 2>&1; then
+            echo "::error::run_date must be a valid YYYY-MM-DD date."
+            exit 1
+          fi
+
       - name: Capture actual run start timestamp
         id: run-context
         shell: bash
@@ -49,6 +61,17 @@ jobs:
       - name: Check out repository
         id: checkout
         uses: actions/checkout@v7
+
+      - name: Require a stored close settlement for past dates
+        id: historical-guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          today_kst="$(TZ=Asia/Seoul date +%F)"
+          if [[ "$KOSPI_RUN_DATE" < "$today_kst" ]] && [ ! -f "data/runs/$KOSPI_RUN_DATE/1530.json" ]; then
+            echo "::error::run_date $KOSPI_RUN_DATE is before today ($today_kst KST) and data/runs/$KOSPI_RUN_DATE/1530.json does not exist. Run all now only re-evaluates a stored close settlement for past dates; run the 'KOSPI close-settlement catch-up' workflow (close-catch-up.yml) for this date instead."
+            exit 1
+          fi
 
       - name: Set up Node.js
         id: setup-node
@@ -79,7 +102,7 @@ jobs:
       - name: Run all KOSPI stages sequentially
         id: run-all
         continue-on-error: true
-        run: node scripts/run-all.mjs --run-date "${{ inputs.run_date }}" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.collection-context.outputs.collection_started_at }}" --run-id "$KOSPI_RUN_ID"
+        run: node scripts/run-all.mjs --run-date "$KOSPI_RUN_DATE" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.collection-context.outputs.collection_started_at }}" --run-id "$KOSPI_RUN_ID"
 
       - name: Commit final run state once
         id: commit
@@ -97,7 +120,7 @@ jobs:
           EXPERIMENT_CANDIDATE: ${{ steps.run-all.outputs.experiment_candidate }}
           STATUS_SAVED: ${{ steps.run-all.outputs.experiment_status_saved }}
           STATUS_HASH: ${{ steps.run-all.outputs.experiment_status_hash }}
-          EXPERIMENT_DATE: ${{ inputs.run_date }}
+          EXPERIMENT_DATE: ${{ env.KOSPI_RUN_DATE }}
           EXPERIMENT_CANDIDATES: ${{ steps.run-all.outputs.experiment_candidates }}
           RETROSPECTIVE_STATUS: ${{ steps.run-all.outputs.retrospective_status }}
           RETROSPECTIVE_SOURCE_RUN_ID: ${{ steps.run-all.outputs.retrospective_source_run_id }}
@@ -115,11 +138,19 @@ jobs:
           if git diff --cached --quiet; then echo "No permitted changes to commit."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): record KOSPI run all ${{ inputs.run_date }}"
-          git push
+          git commit -m "chore(data): record KOSPI run all $KOSPI_RUN_DATE"
+          branch="${GITHUB_REF_NAME:-main}"
+          pushed=0
+          for i in 1 2 3; do
+            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
+            git rebase --abort >/dev/null 2>&1 || true
+            sleep $((i * 5))
+          done
+          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
 
       - name: Fail when the all-stage result is not ready
-        if: always()
+        # A failed input or historical guard already failed the job with its own error.
+        if: always() && steps.validate-input.outcome != 'failure' && steps.historical-guard.outcome != 'failure'
         shell: bash
         run: |
           if [ "${{ steps.run-context.outcome }}" != "success" ]; then
@@ -181,7 +212,12 @@ jobs:
           esac
 
       - name: Fail when the isolated experiment failed
-        if: always() && steps.static-contract.outcome == 'success' && steps.run-all.outputs.overall_status != '' && !(steps.run-all.outputs.retrospective_historical == 'true' && steps.run-all.outputs.retrospective_status == 'ready')
+        # run-all.mjs reports experiment_status=not_run only on its early-return
+        # paths (future date, market closed, historical re-evaluation); the
+        # current-day path always runs the experiment and reports its status.
+        if: >-
+          always() && steps.static-contract.outcome == 'success' && steps.run-all.outputs.overall_status != '' &&
+          steps.run-all.outputs.retrospective_historical != 'true' && steps.run-all.outputs.experiment_status != 'not_run'
         shell: bash
         env:
           EXPERIMENT_STATUS: ${{ steps.run-all.outputs.experiment_status }}

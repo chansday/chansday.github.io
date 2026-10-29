@@ -31,7 +31,8 @@ concurrency:
 
 jobs:
   keep:
-    runs-on: ubuntu-latest
+    if: github.repository == 'chansday/chansday.github.io'
+    runs-on: ubuntu-24.04
     timeout-minutes: 340
     steps:
       - uses: actions/checkout@v7
