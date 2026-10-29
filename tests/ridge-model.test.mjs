@@ -58,3 +58,13 @@ test("estimate uses the model only with 20 candles, stores a verifiable basis an
   assert.notEqual(priorHistoryEstimate(sessions, "100001", { returnHistory: candles.slice(0, 19), forecastModel: m }).close_basis.model, RIDGE_MODEL);
   assert.notEqual(priorHistoryEstimate(sessions, "100001", { returnHistory: candles }).close_basis.model, RIDGE_MODEL);
 });
+
+test("ranking uses the unrounded expected return, then symbol code", async () => {
+  const { compareByExpectedReturn } = await import("../providers/evaluation-contract.js");
+  const { sortRankingRows } = await import("../providers/ranking-sort.js");
+  // Both round to +0.12%; 100.124 ranks above 100.116; equal values fall back to symbol.
+  const rows = [{ symbol: "000003", expected_open: 100, expected_close: 100.116 }, { symbol: "000002", expected_open: 100, expected_close: 100.124 }, { symbol: "000001", expected_open: 100, expected_close: 100.116 }, { symbol: "000000", expected_open: null, expected_close: null }];
+  assert.deepEqual([...rows].sort(compareByExpectedReturn).map((r) => r.symbol), ["000002", "000001", "000003", "000000"]);
+  const ui = rows.map((r) => ({ symbol: r.symbol, name: r.symbol, expectedReturn: r.expected_open ? 0.12 : null, expectedReturnRaw: r.expected_open ? (r.expected_close / r.expected_open - 1) * 100 : null }));
+  assert.deepEqual(sortRankingRows(ui, "expectedReturn").map((r) => r.symbol), ["000002", "000001", "000003", "000000"]);
+});

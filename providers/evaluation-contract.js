@@ -30,6 +30,21 @@ export function deriveExpectedReturn(row) {
     : null;
 }
 
+// Unrounded expected return (percent) used only for ranking: the displayed and
+// stored expected_return is rounded to 2 decimals, which would collapse the
+// model's ordering into ties.
+export function rankingExpectedReturn(row) {
+  return finite(row?.expected_open) && row.expected_open > 0 && finite(row?.expected_close)
+    ? (row.expected_close / row.expected_open - 1) * 100
+    : null;
+}
+
+// Rank order: unrounded expected return descending, then symbol code; rows
+// without an expected return follow in symbol order.
+export function compareByExpectedReturn(a, b) {
+  return (rankingExpectedReturn(b) ?? -Infinity) - (rankingExpectedReturn(a) ?? -Infinity) || String(a?.symbol ?? "").localeCompare(String(b?.symbol ?? ""));
+}
+
 export function deriveSessionReturn(row) {
   return finite(row?.actual_open) && row.actual_open > 0 && finite(row?.actual_close)
     ? round((row.actual_close / row.actual_open - 1) * 100, 2)

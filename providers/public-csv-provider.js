@@ -4,7 +4,7 @@ import {
 } from "./provider-adapter.js";
 import { checkRobotsUrl } from "./robots-policy.js";
 import { classifyMarketDate, loadMarketCalendar } from "../scripts/market-calendar.mjs";
-import { deriveSessionReturn } from "./evaluation-contract.js";
+import { compareByExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 import { isKoreanSymbol } from "./korean-symbol.js";
 
 const SOURCE_HOST = "aikstockdata.com";
@@ -290,7 +290,7 @@ function makeRows(latest, prior, { includeClose = true } = {}) {
       status: "valid",
     };
   });
-  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+  rows.sort(compareByExpectedReturn);
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
 }

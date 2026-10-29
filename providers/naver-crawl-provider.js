@@ -6,7 +6,7 @@ import { loadNaverDailyHistory } from "./naver-daily-cache.js";
 import { isKoreanSymbol } from "./korean-symbol.js";
 import { checkRobotsUrl } from "./robots-policy.js";
 import { KOSPI_UNIVERSE_PATH, loadKospiUniverseCache, DEFAULT_UNIVERSE_MAX_AGE_DAYS } from "./kospi-universe-cache.js";
-import { NO_TRADE_STATUS, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
+import { NO_TRADE_STATUS, compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 import { preopenQuoteBasis, priorHistoryEstimate } from "./forecast-basis.js";
 
 // Every request host below is checked against its robots.txt before each data
@@ -538,7 +538,7 @@ function isForecastStage(stage) {
 // in symbol order. Intraday session_return is null until close, so ranking by
 // it after the open left the list in symbol order.
 function rankRows(rows) {
-  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+  rows.sort(compareByExpectedReturn);
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
 }

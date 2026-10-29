@@ -1,7 +1,7 @@
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
-import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./providers/evaluation-contract.js";
+import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, rankingExpectedReturn } from "./providers/evaluation-contract.js";
 import { sortRankingRows } from "./providers/ranking-sort.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
 import { NO_TRADE_LABEL, buildSelectedDetail } from "./providers/selected-detail.js";
@@ -162,7 +162,7 @@ function normalizeRow(row, index) {
     rank: valueOf(row, "rank") ?? index + 1,
     symbol: valueOf(row, "symbol", "code", "instrument_id") || "—",
     name: valueOf(row, "name", "instrument_name") || "종목명 미정",
-    expectedOpen, expectedOpenSource: row?.expected_open_source || (row?.retrospective_overlay ? { kind: "retrospective_history", history_dates: row.retrospective_overlay } : null), expectedClose, expectedReturn: deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }),
+    expectedOpen, expectedOpenSource: row?.expected_open_source || (row?.retrospective_overlay ? { kind: "retrospective_history", history_dates: row.retrospective_overlay } : null), expectedClose, expectedReturn: deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }), expectedReturnRaw: rankingExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }),
     actualOpen, actualClose, sessionReturn: deriveSessionReturn({ actual_open: actualOpen, actual_close: actualClose }), actualVolume: valueOf(row, "actual_volume"),
     error: deriveEvaluationError({ expected_open: expectedOpen, expected_close: expectedClose, actual_open: actualOpen, actual_close: actualClose }), confidence: valueOf(row, "confidence", "confidence_score"), quality: valueOf(row, "quality", "quality_status") || rawStatus,
     reasons: row?.eligibility?.reasons || row?.reasons || [], status: rawStatus === "ready" ? "valid" : rawStatus,

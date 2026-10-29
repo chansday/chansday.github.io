@@ -5,7 +5,7 @@ import { classifyMarketDate, isValidDate, kstDate, loadMarketCalendar } from "./
 import { dailyHistoryPath, loadNaverDailyHistory, priorTradingDates } from "../providers/naver-daily-cache.js";
 import { DAILY_CHART_ENDPOINT, collectNaverDailyRows } from "../providers/naver-daily-rows.js";
 import { validateRankingRows } from "../providers/provider-adapter.js";
-import { NO_TRADE_STATUS, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
+import { NO_TRADE_STATUS, compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
 import { dataRoot, repoPath } from "../providers/repo-paths.js";
 import { copyForecastBundle } from "./update-results.mjs";
 import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
@@ -173,7 +173,7 @@ export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () 
 }
 
 function rankByExpectedReturn(rows) {
-  rows.sort((a, b) => (b.expected_return ?? -Infinity) - (a.expected_return ?? -Infinity) || a.symbol.localeCompare(b.symbol));
+  rows.sort(compareByExpectedReturn);
   rows.forEach((row, index) => { row.rank = index + 1; });
   return rows;
 }

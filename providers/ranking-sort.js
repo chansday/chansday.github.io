@@ -35,6 +35,9 @@ export function compareRankingRows(a, b, sortKey = "expectedReturn") {
     const aError = finite(a.error) ? Math.abs(a.error) : null;
     const bError = finite(b.error) ? Math.abs(b.error) : null;
     result = compareNullableAscending(aError, bError);
+  } else if (sortKey === "expectedReturn") {
+    // Unrounded value when present, matching the stored rank order.
+    result = compareNullableDescending(finite(a.expectedReturnRaw) ? a.expectedReturnRaw : a.expectedReturn, finite(b.expectedReturnRaw) ? b.expectedReturnRaw : b.expectedReturn);
   } else {
     result = compareNullableDescending(a[sortKey], b[sortKey]);
   }
