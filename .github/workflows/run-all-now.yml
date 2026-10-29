@@ -62,22 +62,55 @@ jobs:
         id: checkout
         uses: actions/checkout@v7
 
-      - name: Require a stored close settlement for past dates
-        id: historical-guard
-        shell: bash
-        run: |
-          set -euo pipefail
-          today_kst="$(TZ=Asia/Seoul date +%F)"
-          if [[ "$KOSPI_RUN_DATE" < "$today_kst" ]] && [ ! -f "data/runs/$KOSPI_RUN_DATE/1530.json" ]; then
-            echo "::error::run_date $KOSPI_RUN_DATE is before today ($today_kst KST) and data/runs/$KOSPI_RUN_DATE/1530.json does not exist. Run all now only re-evaluates a stored close settlement for past dates; run the 'KOSPI close-settlement catch-up' workflow (close-catch-up.yml) for this date instead."
-            exit 1
-          fi
-
       - name: Set up Node.js
         id: setup-node
         uses: actions/setup-node@v7
         with:
           node-version: 22
+
+      - name: Require a stored close settlement for past dates
+        id: historical-guard
+        # "Today" is the KST date of the same runner-captured start run-all.mjs
+        # uses. Market-closed dates pass so run-all reports market_closed as
+        # before; past trading days without 1530.json fail with the matching
+        # recovery path (close-catch-up.yml eligibility is reused, not copied).
+        shell: bash
+        env:
+          RUN_STARTED_AT: ${{ steps.run-context.outputs.run_started_at }}
+        run: |
+          set -euo pipefail
+          node --input-type=module <<'JS'
+          import { existsSync } from "node:fs";
+          import { classifyMarketDate, kstDate, loadMarketCalendar } from "./scripts/market-calendar.mjs";
+          import { MAX_CATCH_UP_TRADING_DAYS, catchUpEligibility, loadCatchUpBase } from "./scripts/close-catch-up.mjs";
+          const runDate = process.env.KOSPI_RUN_DATE;
+          const started = new Date(process.env.RUN_STARTED_AT || "");
+          const fail = (message) => { console.log(`::error::${message}`); process.exitCode = 1; };
+          if (Number.isNaN(started.getTime())) {
+            fail("Runner start timestamp is missing or invalid; the run date cannot be checked.");
+          } else {
+            const today = kstDate(started);
+            const settlement = `data/runs/${runDate}/1530.json`;
+            if (runDate >= today) {
+              console.log(`run_date ${runDate} is not before ${today} KST; run-all decides.`);
+            } else if (existsSync(settlement)) {
+              console.log(`${settlement} exists; run-all re-evaluates the stored settlement.`);
+            } else {
+              const calendar = await loadMarketCalendar();
+              const market = classifyMarketDate(runDate, calendar);
+              const eligibility = market.status === "run" ? catchUpEligibility(runDate, today, calendar) : null;
+              if (market.status !== "run") {
+                console.log(`::notice::run_date ${runDate} is not a KOSPI trading day (${market.reason}); run-all reports the market-closed result.`);
+              } else if (!eligibility.eligible) {
+                fail(`run_date ${runDate} has no ${settlement} and is not within the last ${MAX_CATCH_UP_TRADING_DAYS} trading days before ${today} KST (${eligibility.reason}). close-catch-up.yml cannot settle it and run all now only re-evaluates a stored settlement; manual recovery is required.`);
+              } else if (!(await loadCatchUpBase(runDate))) {
+                fail(`run_date ${runDate} has no ${settlement} and no same-date 0900/0820 stage file, so there are no recorded forecasts to settle; neither run all now nor close-catch-up.yml can produce a close settlement for this date.`);
+              } else {
+                fail(`run_date ${runDate} has no ${settlement}. Run all now only re-evaluates a stored close settlement for past dates; run the 'KOSPI close-settlement catch-up' workflow (close-catch-up.yml) with run_date=${runDate} instead.`);
+              }
+            }
+          }
+          JS
 
       - name: Validate the static contract
         id: static-contract

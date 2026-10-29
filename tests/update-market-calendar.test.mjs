@@ -3,7 +3,7 @@ import test from "node:test";
 import { mkdtemp, readFile, writeFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { fetchKrxHolidays, parseKrxHolidays, updateMarketCalendar } from "../scripts/update-market-calendar.mjs";
+import { fetchKrxHolidays, parseKrxHolidays, runCalendarUpdateCli, updateMarketCalendar } from "../scripts/update-market-calendar.mjs";
 import { checkMarketDate } from "../scripts/market-calendar.mjs";
 
 const rows = [
@@ -55,5 +55,29 @@ test("update extends coverage without removing historical holidays; repeated run
     assert.equal(await readFile(path, "utf8"), before);
     await assert.rejects(updateMarketCalendar({ year: 2027, path, fetchImpl: mockFetch({ block1: rows.slice(0, 3) }), today: "2026-12-31" }), /Incomplete/);
     assert.equal(await readFile(path, "utf8"), before);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("scheduled December runs no-op when covered and retry later while KRX has not published", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "krx-calendar-cli-"));
+  const path = join(dir, "calendar.json"), summaryPath = join(dir, "summary.md");
+  const noFetch = async () => { throw new Error("no request expected"); };
+  const logs = [];
+  try {
+    const existing = JSON.parse(await readFile(new URL("../data/krx-market-holidays.json", import.meta.url), "utf8"));
+    const base = { ...existing, coverage: { ...existing.coverage, end: "2026-12-31" }, holidays: existing.holidays.filter((item) => item.date.startsWith("2026-")) };
+    await writeFile(path, JSON.stringify(base));
+    const before = await readFile(path, "utf8");
+    const unpublished = mockFetch({ block1: rows.slice(0, 3) });
+    const early = await runCalendarUpdateCli({ today: "2026-12-20", path, fetchImpl: unpublished, summaryPath, log: (line) => logs.push(line) });
+    assert.equal(early.status, "krx_unavailable_retry_later"); assert.equal(early.exitCode, 0);
+    assert.match(logs.join("\n"), /^::warning::KRX 2027 market calendar is not available yet/m);
+    assert.match(await readFile(summaryPath, "utf8"), /later scheduled December run retries/);
+    assert.equal(await readFile(path, "utf8"), before);
+    await assert.rejects(runCalendarUpdateCli({ today: "2026-12-31", path, fetchImpl: unpublished, summaryPath, log: () => {} }), /Incomplete/);
+    const updated = await runCalendarUpdateCli({ today: "2026-12-24", path, fetchImpl: mockFetch(), summaryPath, log: () => {} });
+    assert.equal(updated.status, "updated"); assert.equal(updated.exitCode, 0);
+    const covered = await runCalendarUpdateCli({ today: "2026-12-27", path, fetchImpl: noFetch, summaryPath, log: () => {} });
+    assert.equal(covered.status, "already_covered"); assert.equal(covered.changed, false); assert.equal(covered.exitCode, 0);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });

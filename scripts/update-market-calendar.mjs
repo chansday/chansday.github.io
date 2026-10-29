@@ -1,4 +1,4 @@
-import { readFile, writeFile, rename, rm } from "node:fs/promises";
+import { appendFile, readFile, writeFile, rename, rm } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { DEFAULT_CALENDAR_PATH, isValidDate, kstDate, loadMarketCalendar } from "./market-calendar.mjs";
@@ -63,7 +63,9 @@ export function extendCalendar(calendar, year, holidays, retrievedAt) {
 export async function updateMarketCalendar({ year, path = DEFAULT_CALENDAR_PATH, fetchImpl = globalThis.fetch, today = kstDate(), dryRun = false } = {}) {
   const initial = await readFile(path, "utf8");
   const calendar = await loadMarketCalendar(path);
-  const holidays = await fetchKrxHolidays(year, fetchImpl);
+  let holidays;
+  try { holidays = await fetchKrxHolidays(year, fetchImpl); }
+  catch (error) { error.krxUnavailable = true; throw error; }
   const next = extendCalendar(calendar, year, holidays, today);
   // Repeated same-year checks need not update retrieval metadata or create a commit.
   if (JSON.stringify(calendar.holidays) === JSON.stringify(next.holidays) && calendar.coverage.end === next.coverage.end) return { changed: false, year, count: holidays.length };
@@ -75,8 +77,42 @@ export async function updateMarketCalendar({ year, path = DEFAULT_CALENDAR_PATH,
   return { changed: true, year, count: holidays.length };
 }
 
-if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  const today = kstDate();
+// The scheduled job runs on several late-December days. The last one is the
+// final attempt before the checked-in coverage ends; earlier ones may find that
+// KRX has not published next year's list yet and leave the retry to a later day.
+export const FINAL_ATTEMPT_MONTH_DAY = "12-31";
+
+async function appendSummary(summaryPath, lines) {
+  if (!summaryPath) return;
+  await appendFile(summaryPath, `${["### KRX market calendar update", ...lines].join("\n")}\n`, "utf8");
+}
+
+export async function runCalendarUpdateCli({ today = kstDate(), path = DEFAULT_CALENDAR_PATH, fetchImpl = globalThis.fetch, dryRun = false, summaryPath = process.env.GITHUB_STEP_SUMMARY, log = console.log } = {}) {
+  if (!isValidDate(today)) throw new Error("Invalid KST date");
   const year = Number(today.slice(0, 4)) + 1;
-  updateMarketCalendar({ year, today, dryRun: process.env.KOSPI_CALENDAR_DRY_RUN === "true" }).then((result) => console.log(JSON.stringify(result))).catch((error) => { console.error(`KRX calendar update failed: ${error.message}`); process.exitCode = 1; });
+  const calendar = await loadMarketCalendar(path);
+  if (calendar.coverage.end >= `${year}-12-31`) {
+    await appendSummary(summaryPath, [`- ${year}: already covered (coverage ends ${calendar.coverage.end}); no KRX request.`]);
+    return { status: "already_covered", changed: false, year, exitCode: 0 };
+  }
+  try {
+    const result = await updateMarketCalendar({ year, path, fetchImpl, today, dryRun });
+    const status = result.changed ? "updated" : result.wouldChange ? "dry_run_would_change" : "unchanged";
+    await appendSummary(summaryPath, [`- ${year}: ${status} (${result.count} KRX holidays).`]);
+    return { status, ...result, exitCode: 0 };
+  } catch (error) {
+    if (!error.krxUnavailable || today.slice(5) >= FINAL_ATTEMPT_MONTH_DAY) throw error;
+    const reason = String(error.message).replace(/[\r\n]+/g, " ");
+    log(`::warning::KRX ${year} market calendar is not available yet (${reason}); a later scheduled run will retry.`);
+    await appendSummary(summaryPath, [`- ${year}: KRX list not available yet (${reason}).`, "- calendar unchanged; a later scheduled December run retries."]);
+    return { status: "krx_unavailable_retry_later", changed: false, year, reason, exitCode: 0 };
+  }
+}
+
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
+  runCalendarUpdateCli({ dryRun: process.env.KOSPI_CALENDAR_DRY_RUN === "true" }).then((result) => {
+    const { exitCode, ...rest } = result;
+    console.log(JSON.stringify(rest));
+    process.exitCode = exitCode;
+  }).catch((error) => { console.error(`KRX calendar update failed: ${error.message}`); process.exitCode = 1; });
 }

@@ -2,8 +2,11 @@ name: KOSPI annual market calendar update
 
 on:
   schedule:
-    # December 31 at 12:00 KST (03:00 UTC), every year.
-    - cron: "0 3 31 12 *"
+    # 12:00 KST (03:00 UTC) on several late-December days, every year. Once the
+    # next year is covered the later runs are no-ops; while KRX has not
+    # published it yet a run warns and passes so a later day retries. December
+    # 31 is the final attempt and fails if KRX is still unavailable.
+    - cron: "0 3 20,24,27,29,31 12 *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -22,6 +25,7 @@ jobs:
   update-calendar:
     if: github.repository == 'chansday/chansday.github.io'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
