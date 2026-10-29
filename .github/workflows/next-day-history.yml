@@ -8,7 +8,7 @@ on:
   # schedule events; a complete cache is kept, so repeats are no-ops, and a start
   # delayed past midnight becomes that morning's collection.
   schedule:
-    - cron: "37 9 * * 1-5"   # 18:37 KST Mon-Fri
+    - cron: "45 9 * * 1-5"   # 18:45 KST Mon-Fri
     - cron: "7 11 * * 1-5"   # 20:07 KST
     - cron: "37 13 * * 1-5"  # 22:37 KST
   workflow_dispatch:
