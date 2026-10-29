@@ -81,3 +81,59 @@ test("scheduled December runs no-op when covered and retry later while KRX has n
     assert.equal(covered.status, "already_covered"); assert.equal(covered.changed, false); assert.equal(covered.exitCode, 0);
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
+
+test("only transient KRX failures are retried later; structural ones and final or January attempts fail", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "krx-calendar-classes-"));
+  const path = join(dir, "calendar.json");
+  const page = '<form action="/contents/OPN/99/OPN99000001.jspx" data-bld="MKD/01/0110/01100305/mkd01100305_01">';
+  const krx = ({ pageText = page, otp = "form-token", data = JSON.stringify({ block1: rows }), status = 200 } = {}) => async (url) => {
+    const target = new URL(url).pathname;
+    if (status !== 200) return new Response("unavailable", { status });
+    if (target.endsWith("MKD01100305.jsp")) return new Response(pageText);
+    if (target.endsWith("GenerateOTP.jspx")) return new Response(otp);
+    if (target.endsWith("OPN99000001.jspx")) return new Response(data);
+    throw new Error("Unexpected request");
+  };
+  const transient = {
+    network: async () => { throw new TypeError("fetch failed"); },
+    timeout: async () => { throw new DOMException("The operation was aborted due to timeout", "TimeoutError"); },
+    http503: krx({ status: 503 }),
+    http429: krx({ status: 429 }),
+    incomplete: krx({ data: JSON.stringify({ block1: rows.slice(0, 3) }) }),
+    missingYearEnd: krx({ data: JSON.stringify({ block1: [...rows.slice(0, 5), { calnd_dd: "2027-12-24", calnd_dd_dy: "2027-12-24", holdy_nm: "성탄절" }] }) }),
+  };
+  const structural = {
+    http404: krx({ status: 404 }),
+    formChanged: krx({ pageText: "<html>maintenance</html>" }),
+    tokenAnomaly: krx({ otp: "<html>" }),
+    invalidJson: krx({ data: "not json" }),
+    wrongYear: krx({ data: JSON.stringify({ block1: rows.map((row) => ({ ...row, calnd_dd: row.calnd_dd.replace("2027", "2028"), calnd_dd_dy: null })) }) }),
+    duplicate: krx({ data: JSON.stringify({ block1: [...rows, rows[0]] }) }),
+    malformed: krx({ data: JSON.stringify({ rows }) }),
+  };
+  try {
+    const existing = JSON.parse(await readFile(new URL("../data/krx-market-holidays.json", import.meta.url), "utf8"));
+    const base = { ...existing, coverage: { ...existing.coverage, end: "2026-12-31" }, holidays: existing.holidays.filter((item) => item.date.startsWith("2026-")) };
+    await writeFile(path, JSON.stringify(base));
+    const before = await readFile(path, "utf8");
+    const run = (today, fetchImpl, logs = []) => runCalendarUpdateCli({ today, path, fetchImpl, summaryPath: null, log: (line) => logs.push(line) });
+    for (const [name, fetchImpl] of Object.entries(transient)) {
+      const logs = [];
+      const early = await run("2026-12-20", fetchImpl, logs);
+      assert.equal(early.status, "krx_unavailable_retry_later", name); assert.equal(early.exitCode, 0, name);
+      assert.match(logs.join("\n"), /^::warning::KRX 2027 /m, name);
+      await assert.rejects(run("2026-12-31", fetchImpl), undefined, `${name} on the final December attempt`);
+      await assert.rejects(run("2027-01-01", fetchImpl), undefined, `${name} in January`);
+    }
+    for (const [name, fetchImpl] of Object.entries(structural)) {
+      for (const today of ["2026-12-20", "2026-12-31", "2027-01-01"]) await assert.rejects(run(today, fetchImpl), undefined, `${name} on ${today}`);
+    }
+    assert.equal(await readFile(path, "utf8"), before);
+    // A delayed Dec 31 schedule that starts on Jan 1 KST still targets the year that just began.
+    const january = await run("2027-01-01", krx());
+    assert.equal(january.status, "updated"); assert.equal(january.year, 2027);
+    assert.equal((await checkMarketDate("2027-02-09", { calendarPath: path })).status, "skip");
+    const coveredInJanuary = await run("2027-01-02", async () => { throw new Error("no request expected"); });
+    assert.equal(coveredInJanuary.status, "already_covered"); assert.equal(coveredInJanuary.year, 2027);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});

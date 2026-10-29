@@ -99,7 +99,9 @@ jobs:
               const calendar = await loadMarketCalendar();
               const market = classifyMarketDate(runDate, calendar);
               const eligibility = market.status === "run" ? catchUpEligibility(runDate, today, calendar) : null;
-              if (market.status !== "run") {
+              if (market.reason === "calendar_coverage_missing") {
+                fail(`run_date ${runDate} is outside the checked-in KRX calendar coverage (${calendar.coverage.start}..${calendar.coverage.end}); run the 'KOSPI annual market calendar update' workflow (update-market-calendar.yml) first.`);
+              } else if (market.status !== "run") {
                 console.log(`::notice::run_date ${runDate} is not a KOSPI trading day (${market.reason}); run-all reports the market-closed result.`);
               } else if (!eligibility.eligible) {
                 fail(`run_date ${runDate} has no ${settlement} and is not within the last ${MAX_CATCH_UP_TRADING_DAYS} trading days before ${today} KST (${eligibility.reason}). close-catch-up.yml cannot settle it and run all now only re-evaluates a stored settlement; manual recovery is required.`);
@@ -185,6 +187,8 @@ jobs:
         # A failed input or historical guard already failed the job with its own error.
         if: always() && steps.validate-input.outcome != 'failure' && steps.historical-guard.outcome != 'failure'
         shell: bash
+        env:
+          OVERALL_REASON: ${{ steps.run-all.outputs.overall_reason }}
         run: |
           if [ "${{ steps.run-context.outcome }}" != "success" ]; then
             echo "Runner timestamp capture failed or was skipped." >&2
@@ -203,6 +207,24 @@ jobs:
             exit 1
           fi
           status="${{ steps.run-all.outputs.overall_status }}"
+          # run-all.mjs reports a closed market as blocked with overall_reason
+          # "<classifyMarketDate reason>: ..."; only weekend and holiday kinds
+          # are a successful no-op. Every other blocked reason still fails.
+          if [ "$status" = "blocked" ]; then
+            case "$OVERALL_REASON" in
+              weekend:*|public_holiday:*|substitute_holiday:*|temporary_holiday:*|market_holiday:*)
+                echo "::notice::휴장일이라 실행할 것이 없음 (${OVERALL_REASON%%:*})"
+                {
+                  echo "### KOSPI run all now: market closed"
+                  echo "- 휴장일이라 실행할 것이 없음 (\`${OVERALL_REASON%%:*}\`); no collection or snapshot write was performed."
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 0
+                ;;
+              calendar_coverage_missing:*)
+                echo "::error::The KRX calendar does not cover this run date; run the 'KOSPI annual market calendar update' workflow (update-market-calendar.yml) first."
+                ;;
+            esac
+          fi
           case "$status" in
             ready)
               if [ "${{ steps.run-all.outputs.executed_stages_ready }}" != "true" ] || [ "${{ steps.run-all.outputs.commit_allowed }}" != "true" ]; then

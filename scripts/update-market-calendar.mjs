@@ -8,44 +8,64 @@ const PAGE = "/contents/MKD/01/0110/01100305/MKD01100305.jsp";
 const BLD = "MKD/01/0110/01100305/mkd01100305_01";
 const ENDPOINT = "/contents/OPN/99/OPN99000001.jspx";
 
+// Errors a later scheduled run may resolve (network, timeout, HTTP 5xx/429, a
+// list KRX has not fully published yet) carry krxRetryable=true. Every other
+// error (form or token change, invalid JSON, malformed rows, other HTTP 4xx)
+// is structural and fails immediately.
+function krxError(message, retryable = false) {
+  const error = new Error(message);
+  error.krxRetryable = retryable;
+  return error;
+}
+
 async function checkedFetch(fetchImpl, url, options = {}) {
-  const response = await fetchImpl(url, { ...options, redirect: "error", signal: AbortSignal.timeout(15000) });
-  if (!response.ok) throw new Error(`KRX request failed: HTTP ${response.status}`);
+  let response;
+  try { response = await fetchImpl(url, { ...options, redirect: "error", signal: AbortSignal.timeout(15000) }); }
+  catch (error) { throw krxError(`KRX request failed: ${error?.name === "TimeoutError" ? "timeout" : error?.message || "network error"}`, true); }
+  if (!response.ok) throw krxError(`KRX request failed: HTTP ${response.status}`, response.status >= 500 || response.status === 429);
   return response;
 }
 
+async function readText(response) {
+  try { return await response.text(); }
+  catch (error) { throw krxError(`KRX response could not be read: ${error?.message || "network error"}`, true); }
+}
+
 export async function fetchKrxHolidays(year, fetchImpl = globalThis.fetch) {
-  if (!Number.isInteger(year) || year < 2026 || year > 9999) throw new Error("Invalid target year");
+  if (!Number.isInteger(year) || year < 2026 || year > 9999) throw krxError("Invalid target year");
   const page = await checkedFetch(fetchImpl, ORIGIN + PAGE);
-  const pageText = await page.text();
-  if (!pageText.includes(`data-bld="${BLD}"`) || !pageText.includes(ENDPOINT)) throw new Error("KRX holiday form changed");
+  const pageText = await readText(page);
+  if (!pageText.includes(`data-bld="${BLD}"`) || !pageText.includes(ENDPOINT)) throw krxError("KRX holiday form changed");
   const cookies = (page.headers.getSetCookie?.() || []).map((cookie) => cookie.split(";", 1)[0]).join("; ");
   const headers = { Referer: ORIGIN + PAGE, ...(cookies ? { Cookie: cookies } : {}) };
   const otpUrl = new URL("/contents/COM/GenerateOTP.jspx", ORIGIN);
   otpUrl.search = new URLSearchParams({ bld: BLD, name: "form" }).toString();
-  const otp = (await (await checkedFetch(fetchImpl, otpUrl, { headers })).text()).trim();
-  if (!otp || otp.length > 4096 || /[<>\r\n]/.test(otp)) throw new Error("KRX form token unavailable");
+  const otp = (await readText(await checkedFetch(fetchImpl, otpUrl, { headers }))).trim();
+  if (!otp || otp.length > 4096 || /[<>\r\n]/.test(otp)) throw krxError("KRX form token unavailable");
   const body = new URLSearchParams({ search_bas_yy: String(year), gridTp: "KRX", pagePath: PAGE, code: otp, pageFirstCall: "Y" });
   const response = await checkedFetch(fetchImpl, ORIGIN + ENDPOINT, { method: "POST", headers: { ...headers, "Content-Type": "application/x-www-form-urlencoded" }, body });
   let json;
-  try { json = JSON.parse(await response.text()); } catch { throw new Error("KRX response is not valid JSON"); }
+  const text = await readText(response);
+  try { json = JSON.parse(text); } catch { throw krxError("KRX response is not valid JSON"); }
   return parseKrxHolidays(json, year);
 }
 
 export function parseKrxHolidays(json, year) {
-  if (!Array.isArray(json?.block1) || json.block1.length < 5 || json.block1.length > 50) throw new Error("Incomplete KRX holiday list");
+  if (!Array.isArray(json?.block1) || json.block1.length > 50) throw krxError("Malformed KRX holiday list");
+  if (json.block1.length < 5) throw krxError("Incomplete KRX holiday list", true);
   const seen = new Set();
   const holidays = json.block1.map((row) => {
     const date = row?.calnd_dd, name = row?.holdy_nm?.trim();
-    if (!isValidDate(date) || !date.startsWith(`${year}-`) || !name || name.length > 100 || seen.has(date) || (row.calnd_dd_dy && row.calnd_dd_dy !== date)) throw new Error("Invalid or duplicate KRX holiday");
+    if (!isValidDate(date) || !date.startsWith(`${year}-`) || !name || name.length > 100 || seen.has(date) || (row.calnd_dd_dy && row.calnd_dd_dy !== date)) throw krxError("Invalid or duplicate KRX holiday");
     seen.add(date);
     const kind = /대체/.test(name) ? "substitute_holiday" : /임시/.test(name) ? "temporary_holiday" : /연말|근로|노동/.test(name) ? "market_holiday" : "public_holiday";
     return { date, name, kind };
   }).sort((a, b) => a.date.localeCompare(b.date));
   const first = `${year}-01-01`;
   const weekday = new Date(`${first}T00:00:00Z`).getUTCDay();
-  if (weekday !== 0 && weekday !== 6 && !seen.has(first)) throw new Error("KRX list is missing New Year's Day");
-  if (!holidays.some((item) => item.date.startsWith(`${year}-12-`) && /연말/.test(item.name))) throw new Error("KRX list is missing the year-end market closure");
+  // A list without its first or last closure is treated as not fully published yet.
+  if (weekday !== 0 && weekday !== 6 && !seen.has(first)) throw krxError("KRX list is missing New Year's Day", true);
+  if (!holidays.some((item) => item.date.startsWith(`${year}-12-`) && /연말/.test(item.name))) throw krxError("KRX list is missing the year-end market closure", true);
   return holidays;
 }
 
@@ -63,9 +83,7 @@ export function extendCalendar(calendar, year, holidays, retrievedAt) {
 export async function updateMarketCalendar({ year, path = DEFAULT_CALENDAR_PATH, fetchImpl = globalThis.fetch, today = kstDate(), dryRun = false } = {}) {
   const initial = await readFile(path, "utf8");
   const calendar = await loadMarketCalendar(path);
-  let holidays;
-  try { holidays = await fetchKrxHolidays(year, fetchImpl); }
-  catch (error) { error.krxUnavailable = true; throw error; }
+  const holidays = await fetchKrxHolidays(year, fetchImpl);
   const next = extendCalendar(calendar, year, holidays, today);
   // Repeated same-year checks need not update retrieval metadata or create a commit.
   if (JSON.stringify(calendar.holidays) === JSON.stringify(next.holidays) && calendar.coverage.end === next.coverage.end) return { changed: false, year, count: holidays.length };
@@ -80,7 +98,15 @@ export async function updateMarketCalendar({ year, path = DEFAULT_CALENDAR_PATH,
 // The scheduled job runs on several late-December days. The last one is the
 // final attempt before the checked-in coverage ends; earlier ones may find that
 // KRX has not published next year's list yet and leave the retry to a later day.
+// A run in January (e.g. a delayed Dec 31 schedule) targets the current year,
+// which has already started, and treats any failure as final.
 export const FINAL_ATTEMPT_MONTH_DAY = "12-31";
+
+export function calendarUpdateTarget(today) {
+  const currentYear = Number(today.slice(0, 4));
+  if (today.slice(5, 7) === "01") return { year: currentYear, finalAttempt: true };
+  return { year: currentYear + 1, finalAttempt: today.slice(5) >= FINAL_ATTEMPT_MONTH_DAY };
+}
 
 async function appendSummary(summaryPath, lines) {
   if (!summaryPath) return;
@@ -89,7 +115,7 @@ async function appendSummary(summaryPath, lines) {
 
 export async function runCalendarUpdateCli({ today = kstDate(), path = DEFAULT_CALENDAR_PATH, fetchImpl = globalThis.fetch, dryRun = false, summaryPath = process.env.GITHUB_STEP_SUMMARY, log = console.log } = {}) {
   if (!isValidDate(today)) throw new Error("Invalid KST date");
-  const year = Number(today.slice(0, 4)) + 1;
+  const { year, finalAttempt } = calendarUpdateTarget(today);
   const calendar = await loadMarketCalendar(path);
   if (calendar.coverage.end >= `${year}-12-31`) {
     await appendSummary(summaryPath, [`- ${year}: already covered (coverage ends ${calendar.coverage.end}); no KRX request.`]);
@@ -101,7 +127,7 @@ export async function runCalendarUpdateCli({ today = kstDate(), path = DEFAULT_C
     await appendSummary(summaryPath, [`- ${year}: ${status} (${result.count} KRX holidays).`]);
     return { status, ...result, exitCode: 0 };
   } catch (error) {
-    if (!error.krxUnavailable || today.slice(5) >= FINAL_ATTEMPT_MONTH_DAY) throw error;
+    if (error.krxRetryable !== true || finalAttempt) throw error;
     const reason = String(error.message).replace(/[\r\n]+/g, " ");
     log(`::warning::KRX ${year} market calendar is not available yet (${reason}); a later scheduled run will retry.`);
     await appendSummary(summaryPath, [`- ${year}: KRX list not available yet (${reason}).`, "- calendar unchanged; a later scheduled December run retries."]);
