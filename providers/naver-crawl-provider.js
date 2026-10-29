@@ -21,6 +21,7 @@ const SOURCE_ID = "naver-public-polling-crawl";
 export const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
 const DEFAULT_TIMEOUT_MS = 8_000;
 const DEFAULT_OVERALL_DEADLINE_MS = 120_000;
+const HISTORY_GAP_TOLERANCE = 0.02;
 const DEFAULT_MAX_RETRIES = 1;
 const DEFAULT_RETRY_BASE_MS = 250;
 const DEFAULT_MAX_AGE_SECONDS = 180;
@@ -780,9 +781,23 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     source.metrics.no_trade_count = noTradeCount;
     // History gaps of symbols that are no_trade (zero-volume history or a
     // current halt marker) do not make the stage partial; any other gap does.
-    const historyPartial = Boolean(history?.partial) && (!Array.isArray(history.symbols) || !Array.isArray(history.valid_symbols) || history.symbols.some((s) => !history.valid_symbols.includes(s) && !historyNoTrade.has(s) && !settlementZero.has(s)));
-    const resultStatus = universePartial || partialQuotes || (historyPartial && !settlementStage) || missingOpenings || missingHistory || missingObserved ? "partial" : "ready";
-    const partialMessage = `${partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps.` : ""}${historyPartial ? ` ${history.excluded_count} symbols lack complete prior history.` : ""}${missingHistory ? ` ${missingHistory} current symbols have no complete history.` : ""}${missingOpenings ? ` ${missingOpenings} symbols have no expected opening.` : ""}${missingObserved ? ` ${missingObserved} symbols lack required observed prices.` : ""}${noTradeCount ? ` ${noTradeCount} symbol(s) are no_trade_observed (source halt marker or zero-volume candle) and are kept without prices or error.` : ""}${historyWarning}`;
+    const historyPartialRaw = Boolean(history?.partial) && (!Array.isArray(history.symbols) || !Array.isArray(history.valid_symbols) || history.symbols.some((s) => !history.valid_symbols.includes(s) && !historyNoTrade.has(s) && !settlementZero.has(s)));
+    // A few thinly traded symbols (e.g. a preferred share with a zero-volume
+    // prior session) lacking complete history keep their own expected_open as
+    // no_data; only gaps above HISTORY_GAP_TOLERANCE of the fresh quotes make
+    // the stage partial. Malformed history metadata is never tolerated.
+    const historyGapSymbols = !settlementStage && env.KOSPI_DAILY_HISTORY === "naver-cache" ? [...new Set([
+      ...(Array.isArray(history?.symbols) && Array.isArray(history?.valid_symbols) ? history.symbols.filter((s) => !history.valid_symbols.includes(s) && !historyNoTrade.has(s) && !settlementZero.has(s)) : []),
+      ...freshQuotes.filter(quote => !priorRows.has(quote.symbol) && !historyNoTrade.has(quote.symbol) && !settlementZero.has(quote.symbol)).map((quote) => quote.symbol),
+      ...rows.filter(row => !(row.expected_open > 0) && row.trading_status !== NO_TRADE_STATUS).map((row) => row.symbol),
+    ])].sort() : [];
+    const historyMetaValid = !history?.partial || (Array.isArray(history.symbols) && Array.isArray(history.valid_symbols));
+    const historyGapTolerated = historyMetaValid && historyGapSymbols.length > 0 && historyGapSymbols.length <= Math.floor(freshQuotes.length * HISTORY_GAP_TOLERANCE);
+    if (historyGapSymbols.length) source.metrics.history_gap_symbols = historyGapSymbols;
+    const historyPartial = historyPartialRaw && !historyGapTolerated;
+    const historyGapPartial = !historyGapTolerated && (missingOpenings || missingHistory);
+    const resultStatus = universePartial || partialQuotes || (historyPartial && !settlementStage) || historyGapPartial || missingObserved ? "partial" : "ready";
+    const partialMessage = `${partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps.` : ""}${historyPartial ? ` ${history.excluded_count} symbols lack complete prior history.` : ""}${missingHistory ? ` ${missingHistory} current symbols have no complete history.` : ""}${missingOpenings ? ` ${missingOpenings} symbols have no expected opening.` : ""}${historyGapTolerated ? ` ${historyGapSymbols.length} symbol(s) without complete prior history keep expected_open as no_data (within the ${HISTORY_GAP_TOLERANCE * 100}% tolerance): ${historyGapSymbols.join(", ")}.` : ""}${missingObserved ? ` ${missingObserved} symbols lack required observed prices.` : ""}${noTradeCount ? ` ${noTradeCount} symbol(s) are no_trade_observed (source halt marker or zero-volume candle) and are kept without prices or error.` : ""}${historyWarning}`;
     return result(resultStatus, `${readyMessage}${partialMessage}${universeWarning}${excludedWarning} Naver daily market and adjustment basis are unconfirmed; preferred shares may be included.`, { ...source, status: resultStatus, partial: resultStatus === "partial", source_rows: rows.length }, rows, sourceDate);
   }
 

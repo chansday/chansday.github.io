@@ -113,6 +113,24 @@ test("history: symbols excluded only by zero-volume sessions are no_trade, other
   assert.equal(hm.expected_open, null); assert.equal(hm.no_trade_evidence.source, "naver_polling_quote"); assert.equal(hm.no_trade_evidence.trade_stop_type, "HALTED");
 }));
 
+test("history: one trading symbol without complete history stays no_data within the 2% tolerance; more gaps keep the stage partial", async () => withRoot(async (root) => {
+  // 2026-10-29: preferred share 001067 traded today but a prior session had no
+  // valid candle, which used to fail the whole manual run-all.
+  const target = "2026-10-27", dates = await priorTradingDates(target);
+  const symbols = Array.from({ length: 60 }, (_, i) => String(100000 + i));
+  await mkdir(join(root, "data", "daily-history"), { recursive: true });
+  const write = (gaps) => writeFile(join(root, "data", "daily-history", `${target}.json`), JSON.stringify(cacheRecord(target, dates, symbols, gaps.map((symbol) => ({ symbol, date: dates[0], reason: "invalid_ohlcv" })), () => symbols.filter((s) => !gaps.includes(s)))));
+  const pre = { localTradedAt: "2026-10-27T08:20:00+09:00", marketStatus: "PREOPEN" };
+  const quotes = symbols.map((s) => quote(s, { ...pre, openPriceRaw: "" }));
+  await write([symbols[0]]);
+  const one = await settle("generateForecast", "2026-10-26T23:20:00Z", quotes);
+  assert.equal(one.status, "ready", one.message);
+  assert.equal(one.rows.find((r) => r.symbol === symbols[0]).expected_open, null);
+  assert.deepEqual(one.source.metrics.history_gap_symbols, [symbols[0]]);
+  await write(symbols.slice(0, 2));
+  assert.equal((await settle("generateForecast", "2026-10-26T23:20:00Z", quotes)).status, "partial");
+}));
+
 const baseRow = (symbol, extra = {}) => ({ rank: 1, symbol, name: symbol, expected_open: null, expected_close: null, expected_return: null, actual_open: null, actual_close: null, actual_return: null, session_return: null, actual_volume: null, error: null, status: "valid", ...extra });
 const pollingEvidence = { source: "naver_polling_quote", trade_stop_type: "HALTED", tradable_status: "halt", tradable_status_code: "eventHalt01", observed_at: "2026-10-28T00:10:00.000Z", reason: "halted" };
 

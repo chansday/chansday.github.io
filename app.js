@@ -730,7 +730,7 @@ function renderSelected() {
   setText(elementIds["selected-symbol"], row.symbol);
   setText(elementIds["selected-name"], row.name);
   setStatusPill(elementIds["selected-status"], row.status, rowStatusLabel(row));
-  setText(elementIds["selected-expected-open"], `${formatExpectedPrice(row.expectedOpen)} · ${openSourceLabel(row.expectedOpenSource)}`);
+  setText(elementIds["selected-expected-open"], formatExpectedPrice(row.expectedOpen));
   setText(elementIds["selected-expected-close"], formatExpectedPrice(row.expectedClose));
   setText(elementIds["selected-expected-return"], formatExpectedPercent(row.expectedReturn));
   setText(elementIds["selected-actual-open"], formatPrice(row.actualOpen));
