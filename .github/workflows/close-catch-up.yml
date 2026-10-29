@@ -1,0 +1,103 @@
+name: KOSPI close-settlement catch-up
+
+on:
+  # Started by scheduler-keeper.yml (workflow_dispatch) at 09:30 KST or later,
+  # after every earlier stage of the day has finished, only when a recent past
+  # trading day has a 0900/0820 file but no 1530.json. No schedule cron.
+  workflow_dispatch:
+    inputs:
+      run_date:
+        description: "Past KOSPI trading date(s) YYYY-MM-DD, comma-separated; empty settles every missing date of the last 5 trading days"
+        required: false
+        default: ""
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+
+jobs:
+  catch-up:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      KOSPI_RUN_ID: ${{ github.run_id }}.${{ github.run_attempt }}
+      # The input reaches the script only through the environment, never
+      # through shell interpolation.
+      KOSPI_CATCH_UP_DATES: ${{ inputs.run_date }}
+    steps:
+      - name: Check out repository
+        id: checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        id: setup-node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Validate the static contract
+        id: static-contract
+        # Tests must not inherit any stage or catch-up mode from the job.
+        env:
+          KOSPI_DAILY_HISTORY: ""
+          KOSPI_CATCH_UP_DATES: ""
+        run: npm test && npm run check && npm run check:experiment
+
+      - name: Settle missed close from the Naver daily candle
+        id: catch-up
+        # Eligibility is checked per date D (past KOSPI trading day within the
+        # last 5 trading days); today may be any day, so a manual run on a
+        # weekend can still settle Friday.
+        if: steps.static-contract.outcome == 'success'
+        continue-on-error: true
+        run: node scripts/close-catch-up.mjs
+
+      - name: Commit caught-up settlement
+        id: commit
+        if: >-
+          always() &&
+          steps.static-contract.outcome == 'success' &&
+          steps.catch-up.outputs.wrote == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          changes="$(git status --short -- data/runs data/date-index.json data/latest-snapshot.json)"
+          if [ -z "$changes" ]; then
+            echo "No catch-up changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- data/runs data/date-index.json data/latest-snapshot.json
+          git commit -m "chore(data): record KOSPI close-settlement catch-up"
+          git push
+
+      - name: Fail when the catch-up is not ready
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.checkout.outcome }}" != "success" ] || [ "${{ steps.setup-node.outcome }}" != "success" ]; then
+            echo "Checkout or Node.js setup failed." >&2
+            exit 1
+          fi
+          if [ "${{ steps.static-contract.outcome }}" != "success" ]; then
+            echo "Static contract validation failed." >&2
+            exit 1
+          fi
+          status="${{ steps.catch-up.outputs.status }}"
+          if [ "$status" != "ready" ] && [ "$status" != "not_needed" ]; then
+            echo "Catch-up did not return ready/not_needed: '$status' (step: ${{ steps.catch-up.outcome }})." >&2
+            exit 1
+          fi
+          if [ "${{ steps.catch-up.outputs.wrote }}" = "true" ] && [ "${{ steps.commit.outcome }}" != "success" ]; then
+            echo "Catch-up commit failed or was skipped." >&2
+            exit 1
+          fi
+          if [ "${{ steps.catch-up.outputs.retrospective }}" = "failed" ]; then
+            echo "Settlement recorded, but the post-close retrospective failed (see summary)." >&2
+            exit 1
+          fi

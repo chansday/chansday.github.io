@@ -254,6 +254,7 @@ stage workflow에는 더 이상 schedule cron이 없습니다. 2026-10-28 실측
 | `KOSPI analysis` | 08:00 | 08:50 | `analysis` / `naver-crawl` |
 | `KOSPI forecast` | 08:20 | 08:50 | `forecast` / `naver-crawl` |
 | `KOSPI open-settlement` | 09:00 | 23:00 (늦어도 실행) | `open-settlement` / `naver-crawl` |
+| `KOSPI close-settlement catch-up` | 09:30 이후, 앞선 오늘 stage가 모두 끝난 뒤 (누락 날짜가 있을 때만) | 14:30 | 지난 거래일 `1530.json` 보충 / Naver 일봉 |
 | `KOSPI close-settlement` | 15:30 | 23:00 (늦어도 실행) | `close-settlement` / `naver-crawl` |
 | `KOSPI run all now` → **Run workflow** | 수동 | — | 5개 stage 순차 실행 / live 또는 historical crawl |
 
@@ -267,6 +268,7 @@ stage workflow에는 더 이상 schedule cron이 없습니다. 2026-10-28 실측
 - 중복 방지: dispatch 전에 Actions API에서 해당 stage workflow의 오늘(KST) `workflow_dispatch`/`schedule` run을 조회합니다. queued·실행 중·성공·실패 run이 있으면 다시 시작하지 않습니다. 취소된 run만 최대 3회까지 다시 시작합니다(stage 공용 concurrency 대기열에서 교체·취소된 경우). 일봉 수집만 실패 후 07:10에 1회 재시도합니다.
 - 지난 stage: 장전 stage(일봉·update-results·analysis·forecast)는 마지막 시작 허용 시각이 지나면 `missed`로 건너뜁니다. 장후 실행은 단계 판정상 의미가 없기 때문입니다. 정산 stage는 관측 가격만 기록하므로 같은 KST 날짜 23:00까지는 늦게라도 실행합니다.
 - runner 6시간 한도: job `timeout-minutes: 340`, keeper는 시작 후 325분이 되면 남은 stage가 있을 때 자신을 `workflow_dispatch`로 다시 호출(relay)하고 종료합니다. 마지막 stage(15:30) dispatch 후에는 종료합니다.
+- 누락 마감 정산 보충: 직전 5거래일 중 `data/runs/D/0900.json`(없으면 `0820.json`)은 있는데 `1530.json`이 없는 날짜 D가 있으면, keeper가 contents API(`api.github.com`, 읽기 전용)로 확인한 뒤 `close-catch-up.yml`을 `run_date=D[,D2…]` 입력으로 하루 1회 dispatch합니다. 시각은 09:30 이후이며 일봉·update-results·analysis·forecast·open-settlement가 모두 끝난(done/failed/missed) 뒤에만 시작하고 마지막 시작은 14:30입니다. 장전 stage(마감 08:50)와 09:00 시가 정산을 늦추지 않고, 15:30 마감 정산 전 유휴 구간에서 끝나도록 한 선택입니다. [`scripts/close-catch-up.mjs`](scripts/close-catch-up.mjs)는 D의 0900/0820 행과 D 당일 기록된 예측 묶음(`FORECAST_BUNDLE`)만 이어받고, 실제 시가·종가·거래량은 커밋된 일봉 캐시(`data/daily-history/T.json`, T는 D 이후 거래일)에서 읽습니다. 캐시에 없는 종목이나 사후 평가용 직전 3거래일 이력이 없을 때만 같은 robots 확인·User-Agent·500ms 간격의 `api.stock.naver.com` 일봉 요청을 사용합니다. 결과에는 `meta.settlement_source: "naver_daily_candle_catch_up"`, `run_stage: "close-settlement"`, 생성 시각·KST 날짜와 "네이버 일봉 종가는 NXT 시간외 거래를 포함할 수 있고 기준이 확인되지 않음" 경고가 기록됩니다. 모든 행에 유효한 일봉이 있고 정상 정산과 같은 행 검증을 통과해야 `ready`이며, `partial`·`blocked`·`no_data`는 파일을 쓰지 않습니다. 기존 `1530.json`이나 다른 날짜 파일은 덮어쓰지 않고, `latest-snapshot.json`은 아직 D의 정산 전 단계를 보여줄 때만 갱신합니다. 이어서 정상 정산과 같은 사후 평가(`retrospective-<run_id>.json`)와 `data/date-index.json`을 생성합니다. 수동 실행: Actions → `KOSPI close-settlement catch-up` → `run_date`(비우면 누락 날짜 자동 탐색).
 - 권한은 `actions: write`, `contents: read`뿐입니다. checkout은 `scripts/`와 휴장일 달력만 sparse로 받습니다.
 - 정시 의미: dispatch된 stage도 reusable runner가 runner 시작 시각을 `run-started-at`으로 캡처하고 그 KST 날짜·시각으로 거래일과 stage를 판정합니다. keeper는 경계 시각 3초 뒤에 dispatch하므로 09:00·15:30 경계 전에 시작하지 않습니다.
 - runner 사용량: 거래일에는 첫 keeper 시작(가장 이르면 00:07)부터 15:30까지 대부분 sleep으로 약 9.5~15.5시간(570~925분), 그 외 stage job은 각 수 분입니다. 휴장일·주말은 keeper 1회당 1분 미만입니다. 공개 저장소의 표준 GitHub-hosted runner 기준입니다.

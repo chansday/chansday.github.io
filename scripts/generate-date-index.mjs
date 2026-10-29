@@ -4,12 +4,17 @@ import { fileURLToPath } from "node:url";
 
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUTPUT = join(PROJECT_ROOT, "data", "date-index.json");
-const SOURCE_CONFIG = {
-  provider: { root: join(PROJECT_ROOT, "data", "runs"), stage: "1530" },
-  "historical-test": { root: join(PROJECT_ROOT, "data", "runs", "historical-test"), stage: "1530" },
-  fixture: { root: join(PROJECT_ROOT, "data", "fixtures"), fileMode: true },
-  replay: { root: join(PROJECT_ROOT, "data", "replays"), fileMode: true },
-  "backfill-test": { root: join(PROJECT_ROOT, "data", "backfill-test"), fileMode: true },
+// An isolated root (tests, KOSPI_DATA_ROOT dry-runs) may lack the test-only
+// folders; the repository root must have them all.
+const sourceConfig = (base) => {
+  const optional = resolve(base) !== PROJECT_ROOT;
+  return {
+    provider: { root: join(base, "data", "runs"), stage: "1530", optional },
+    "historical-test": { root: join(base, "data", "runs", "historical-test"), stage: "1530", optional },
+    fixture: { root: join(base, "data", "fixtures"), fileMode: true, optional },
+    replay: { root: join(base, "data", "replays"), fileMode: true, optional },
+    "backfill-test": { root: join(base, "data", "backfill-test"), fileMode: true, optional },
+  };
 };
 
 function isDate(value) { return /^\d{4}-\d{2}-\d{2}$/.test(value); }
@@ -19,7 +24,8 @@ async function isFile(path) {
 }
 
 async function datesForSource(config) {
-  const names = await readdir(config.root, { withFileTypes: true });
+  let names;
+  try { names = await readdir(config.root, { withFileTypes: true }); } catch (error) { if (error.code === "ENOENT" && config.optional) return []; throw error; }
   if (config.fileMode) return names.filter((entry) => entry.isFile() && isDate(entry.name.replace(/\.json$/, ""))).map((entry) => entry.name.replace(/\.json$/, ""));
   const dates = [];
   for (const entry of names) {
@@ -29,9 +35,10 @@ async function datesForSource(config) {
   return dates;
 }
 
-export async function buildDateIndex({ output = DEFAULT_OUTPUT } = {}) {
+// `root` lets an isolated data root (KOSPI_DATA_ROOT, tests) index its own files.
+export async function buildDateIndex({ root = PROJECT_ROOT, output = root === PROJECT_ROOT ? DEFAULT_OUTPUT : join(root, "data", "date-index.json") } = {}) {
   const availableDates = {};
-  for (const [mode, config] of Object.entries(SOURCE_CONFIG)) availableDates[mode] = (await datesForSource(config)).sort();
+  for (const [mode, config] of Object.entries(sourceConfig(root))) availableDates[mode] = (await datesForSource(config)).sort();
   const index = {
     schemaVersion: "1.0.0",
     generatedAt: new Date().toISOString(),

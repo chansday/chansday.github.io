@@ -41,8 +41,18 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
     const valid = record.symbols.filter(symbol => maps.every(map => map.has(symbol)));
     if (!valid.length) throw new Error("no symbol has three valid sessions");
     const allowed = new Set(valid);
+    // A symbol is no_trade only when every session it lacks was rejected
+    // because the source reported volume 0; any other gap is still missing.
+    const zero = new Map();
+    for (const r of Array.isArray(record.rejected) ? record.rejected : []) {
+      if (r?.reason !== "zero_volume" || !universe.has(r.symbol) || !expected.includes(r.date)) continue;
+      if (!zero.has(r.symbol)) zero.set(r.symbol, new Set());
+      zero.get(r.symbol).add(r.date);
+    }
+    const no_trade_symbols = record.symbols.filter(symbol => !allowed.has(symbol) && zero.has(symbol) && expected.every((date, i) => maps[i].has(symbol) || zero.get(symbol).has(date)))
+      .map(symbol => ({ symbol, dates: expected.filter(date => zero.get(symbol).has(date)) }));
     const sessions = record.sessions.map(s => ({ ...s, url: "https://api.stock.naver.com/chart/domestic/item/", rows: s.rows.filter(r => allowed.has(r.symbol)) }));
     const comparison_conflicts = sessions.reduce((n, s) => n + s.rows.filter(r => r.comparison === "conflict").length, 0);
-    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, comparison_conflicts, partial: valid.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
+    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
   } catch (error) { return { ok: false, reason: `Naver daily history unavailable: ${error.message}` }; }
 }

@@ -29,7 +29,7 @@ const EXPECTED_FIELDS = Object.freeze(["expected_open", "expected_close", "expec
 // A recorded opening, its source, its basis and the closing estimate derived
 // with it are kept or replaced together, never mixed across runs.
 const FORECAST_BUNDLE = Object.freeze(["expected_open", "expected_open_source", "expected_open_basis", "expected_close", "expected_close_basis"]);
-function copyForecastBundle(target, from) {
+export function copyForecastBundle(target, from) {
   for (const field of FORECAST_BUNDLE) {
     if (Object.hasOwn(from, field)) target[field] = from[field];
     else if (field === "expected_close") target[field] = null;
@@ -165,6 +165,21 @@ function derivedSessionReturn(row) {
   return deriveSessionReturn(row);
 }
 
+// The no-trade marker and its evidence belong to the incoming observation;
+// a history-based marker is dropped if a recorded opening was kept.
+function applyTradingStatus(merged, incoming) {
+  if (Object.hasOwn(incoming, "trading_status")) {
+    merged.trading_status = incoming.trading_status; merged.no_trade_evidence = incoming.no_trade_evidence;
+    if (merged.no_trade_evidence?.source !== "naver_daily_history") { merged.actual_open = null; merged.actual_close = null; merged.actual_volume = null; merged.session_return = null; }
+    else if (merged.expected_open > 0) { delete merged.trading_status; delete merged.no_trade_evidence; }
+    // A halt seen by a forecast-stage quote leaves no opening estimate.
+    if (merged.no_trade_evidence?.source === "naver_polling_quote" && incoming.expected_open === null && merged.expected_open !== null) { merged.expected_open = null; delete merged.expected_open_source; delete merged.expected_open_basis; if (merged.expected_close_basis) { merged.expected_close = null; delete merged.expected_close_basis; } }
+  } else { delete merged.trading_status; delete merged.no_trade_evidence; }
+  merged.expected_return = deriveExpectedReturn(merged);
+  merged.error = deriveEvaluationError(merged);
+  return merged;
+}
+
 export function mergeRows(existingRows, incomingRows, mode) {
   const bySymbol = new Map(existingRows.filter((row) => row.symbol).map((row) => [row.symbol, row]));
   const incomingSymbols = new Set(incomingRows.filter((row) => row.symbol).map((row) => row.symbol));
@@ -185,7 +200,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
       const expectedReturn = deriveExpectedReturn(merged);
       merged.expected_return = expectedReturn;
       merged.error = derivedError(merged);
-      return merged;
+      return applyTradingStatus(merged, incoming);
     }
 
     if (mode === "close-settlement") {
@@ -198,7 +213,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
       if (sessionReturn !== null) merged.session_return = sessionReturn;
       merged.expected_return = deriveExpectedReturn(merged);
       merged.error = derivedError(merged);
-      return merged;
+      return applyTradingStatus(merged, incoming);
     }
 
     const merged = { ...existing, ...incoming };
@@ -209,7 +224,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
     }
     merged.expected_return = deriveExpectedReturn(merged);
     merged.error = derivedError(merged);
-    return merged;
+    return applyTradingStatus(merged, incoming);
   });
   for (const existing of existingRows) {
     if (existing.symbol && !incomingSymbols.has(existing.symbol)) mergedRows.push(existing);

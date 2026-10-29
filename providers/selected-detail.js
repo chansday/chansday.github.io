@@ -271,6 +271,19 @@ function sourceSection(row, ctx) {
   return { id: "source", title: "출처·신뢰 정보", state: license === "confirmed" ? "available" : "partial", items, sentences: [], missing: [], warnings };
 }
 
+export const NO_TRADE_LABEL = "거래 없음(정지 추정)";
+const NO_TRADE_SOURCE_LABELS = { naver_polling_quote: "네이버 시세의 거래정지(HALTED) 표시", naver_daily_candle: "네이버 일봉의 거래량 0", naver_daily_history: "직전 일봉의 거래량 0" };
+
+// A no_trade row has no prices because the source reported zero trade, not
+// because data is missing: its gaps are stated as "거래 없음(정지 추정)".
+function noTradeSection(section, row) {
+  const evidence = row.no_trade_evidence || {};
+  const basis = `${NO_TRADE_SOURCE_LABELS[evidence.source] || "원천의 거래량 0"}${Array.isArray(evidence.dates) && evidence.dates.length ? ` (${evidence.dates.join(", ")})` : evidence.observed_at ? ` (${formatKst(evidence.observed_at)})` : ""}`;
+  if (!section.missing.length) return section;
+  return { ...section, state: section.state === "missing" ? "no_trade" : section.state,
+    sentences: [...section.sentences, ...section.missing.map((gap) => `${NO_TRADE_LABEL} — ${gap.label}: ${basis} 보고로 값을 기록하지 않았습니다.`)], missing: [] };
+}
+
 // row: raw snapshot row (snake_case), optionally with retrospective_overlay /
 // retrospective_missing_reason attached by the post-close overlay step.
 export function buildSelectedDetail(row, context = {}) {
@@ -286,5 +299,6 @@ export function buildSelectedDetail(row, context = {}) {
     testOnly: Boolean(context.testOnly),
     qualityLabel: typeof context.qualityLabel === "function" ? context.qualityLabel : null,
   };
-  return { sections: [expectedSection(row, ctx), actualSection(row, ctx), errorSection(row), sourceSection(row, ctx)], disclaimer: DETAIL_DISCLAIMER };
+  const sections = [expectedSection(row, ctx), actualSection(row, ctx), errorSection(row), sourceSection(row, ctx)];
+  return { sections: row.trading_status === "no_trade_observed" ? sections.map((section) => noTradeSection(section, row)) : sections, disclaimer: DETAIL_DISCLAIMER };
 }

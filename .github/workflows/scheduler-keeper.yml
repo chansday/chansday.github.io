@@ -2,7 +2,8 @@ name: KOSPI scheduler keeper
 
 # Dispatches the stage workflows at their KST times (06:10 history, 07:00
 # update-results, 08:00 analysis, 08:20 forecast, 09:00 open-settlement,
-# 15:30 close-settlement) because GitHub schedule events were observed 3-6 h
+# 15:30 close-settlement; 09:30+ close-catch-up only when a recent past trading
+# day lacks 1530.json) because GitHub schedule events were observed 3-6 h
 # late. workflow_dispatch from GITHUB_TOKEN creates runs; no PAT or secret.
 # Several cron starts ensure one keeper begins before 06:10 even when delayed;
 # later ones resume remaining stages if a keeper died. Only one keeper runs at a

@@ -4,7 +4,7 @@ import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPat
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./providers/evaluation-contract.js";
 import { sortRankingRows } from "./providers/ranking-sort.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
-import { buildSelectedDetail } from "./providers/selected-detail.js";
+import { NO_TRADE_LABEL, buildSelectedDetail } from "./providers/selected-detail.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
@@ -270,7 +270,7 @@ async function loadSnapshot() {
 }
 
 function setStatusPill(node, status, text = stateLabels[normalizeStatus(status)] || normalizeStatus(status)) { if (!node) return; node.className = `status-pill ${statusClass(status)}`; node.textContent = text; }
-function rowStatusLabel(row) { if (isHistorical(snapshot)) return row.status === "valid" ? "정상 확인" : (rowStateLabels[row.status] || row.status); return rowStateLabels[row.status] || qualityLabel(row.quality); }
+function rowStatusLabel(row) { if (row.raw?.trading_status === "no_trade_observed") return NO_TRADE_LABEL; if (isHistorical(snapshot)) return row.status === "valid" ? "정상 확인" : (rowStateLabels[row.status] || row.status); return rowStateLabels[row.status] || qualityLabel(row.quality); }
 function renderPipeline(data) {
   const pipeline = data?.pipeline || {};
   const steps = { previousResult: pipeline.previousResult, analysis: pipeline.analysis, forecast: pipeline.forecast, openSettlement: pipeline.openSettlement, closeSettlement: pipeline.closeSettlement };
@@ -594,21 +594,64 @@ function createMobileCard(row) {
   card.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol, { reveal: true }); } });
   return card;
 }
+// The ranking list has no inner scroll container; ~900 rows are split into
+// pages so the page itself stays a sensible length. A new snapshot, search,
+// filter or sort returns to page 1; selecting a row keeps the current page.
+const RANKING_PAGE_SIZE = 50;
+const rankingPager = {
+  nav: document.getElementById("ranking-pager"),
+  prev: document.getElementById("ranking-page-prev"),
+  next: document.getElementById("ranking-page-next"),
+  select: document.getElementById("ranking-page-select"),
+  status: document.getElementById("ranking-page-status")
+};
+let rankingPage = 1;
+let rankingPageSnapshot = null;
+let rankingPageKey = "";
+function renderRankingPager(total, pageCount, start, shown) {
+  if (!rankingPager.nav) return;
+  rankingPager.nav.hidden = total <= RANKING_PAGE_SIZE;
+  setText(rankingPager.status, total ? `${formatNumber(start + 1)}–${formatNumber(start + shown)} / 전체 ${formatNumber(total)}개` : "");
+  if (rankingPager.select && rankingPager.select.options.length !== pageCount) {
+    rankingPager.select.replaceChildren(...Array.from({ length: pageCount }, (_, index) => new Option(`${index + 1} / ${pageCount}쪽`, String(index + 1))));
+  }
+  if (rankingPager.select) rankingPager.select.value = String(rankingPage);
+  if (rankingPager.prev) rankingPager.prev.disabled = rankingPage <= 1;
+  if (rankingPager.next) rankingPager.next.disabled = rankingPage >= pageCount;
+}
+function goToRankingPage(page, trigger) {
+  rankingPage = page;
+  renderRows();
+  if (trigger?.disabled) rankingPager.select?.focus();
+  const wrap = document.querySelector(".ranking-table-wrap");
+  if (wrap && wrap.getBoundingClientRect().top < 0) wrap.scrollIntoView({ block: "start" });
+}
+rankingPager.prev?.addEventListener("click", () => goToRankingPage(rankingPage - 1, rankingPager.prev));
+rankingPager.next?.addEventListener("click", () => goToRankingPage(rankingPage + 1, rankingPager.next));
+rankingPager.select?.addEventListener("change", () => goToRankingPage(Number(rankingPager.select.value) || 1));
 function renderRows() {
   const allRows = snapshot?.rows || [];
   const query = elementIds["search-input"].value.trim().toLowerCase();
   const filter = elementIds["status-filter"].value;
-  const rows = sortRows(allRows.filter((row) => (!query || `${row.symbol} ${row.name}`.toLowerCase().includes(query)) && (filter === "all" || row.status === filter)), elementIds["sort-select"].value);
+  const sortKey = elementIds["sort-select"].value;
+  const rows = sortRows(allRows.filter((row) => (!query || `${row.symbol} ${row.name}`.toLowerCase().includes(query)) && (filter === "all" || row.status === filter)), sortKey);
+  const pageKey = `${query}\u0000${filter}\u0000${sortKey}`;
+  if (rankingPageSnapshot !== snapshot || rankingPageKey !== pageKey) { rankingPage = 1; rankingPageSnapshot = snapshot; rankingPageKey = pageKey; }
+  const pageCount = Math.max(1, Math.ceil(rows.length / RANKING_PAGE_SIZE));
+  rankingPage = Math.min(Math.max(1, rankingPage), pageCount);
+  const pageStart = (rankingPage - 1) * RANKING_PAGE_SIZE;
+  const pageRows = rows.slice(pageStart, pageStart + RANKING_PAGE_SIZE);
   elementIds["ranking-body"].replaceChildren();
   elementIds["ranking-cards"].replaceChildren();
-  rows.forEach((row) => {
+  renderRankingPager(rows.length, pageCount, pageStart, pageRows.length);
+  pageRows.forEach((row) => {
     const tr = document.createElement("tr");
     tr.tabIndex = 0;
     tr.dataset.symbol = row.symbol;
     tr.setAttribute("role", "button");
     tr.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
     tr.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
-    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시">${formatExpectedPrice(row.expectedOpen)}<br><small>${escapeText(openSourceLabel(row.expectedOpenSource))}</small></td><td class="${toneClass(row.expectedReturn)}" aria-label="예상 수익률 ${formatExpectedPercent(row.expectedReturn)}. 퍼센트 단위 정수 표시">${formatExpectedPercent(row.expectedReturn)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 장중 수익률">${formatPercent(row.sessionReturn)}</td><td class="${toneClass(row.error)}">${formatPercent(row.error)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
+    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시"><span class="cell-num">${formatExpectedPrice(row.expectedOpen)}</span><small class="cell-sub">${escapeText(openSourceLabel(row.expectedOpenSource))}</small></td><td class="${toneClass(row.expectedReturn)}" aria-label="예상 수익률 ${formatExpectedPercent(row.expectedReturn)}. 퍼센트 단위 정수 표시">${formatExpectedPercent(row.expectedReturn)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 장중 수익률">${formatPercent(row.sessionReturn)}</td><td class="${toneClass(row.error)}">${formatPercent(row.error)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
     tr.addEventListener("click", () => selectRow(row.symbol, { reveal: true }));
     tr.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol, { reveal: true }); } });
     elementIds["ranking-body"].append(tr);
@@ -621,7 +664,11 @@ function selectRow(symbol, { reveal = false } = {}) {
   selectedSymbol = symbol;
   renderRows();
   renderSelected();
-  if (reveal && window.matchMedia?.("(max-width: 1120px)").matches) document.querySelector(".detail-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  // The detail panel no longer scrolls internally or sticks beside the list,
+  // so bring its top into view whenever it is off screen (any width).
+  const panel = reveal ? document.querySelector(".detail-panel") : null;
+  const panelTop = panel?.getBoundingClientRect().top;
+  if (panel && (window.matchMedia?.("(max-width: 1120px)").matches || panelTop < 0 || panelTop > window.innerHeight - 160)) panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function renderEvidence(row) {
   const container = elementIds["selected-evidence"];
@@ -633,7 +680,7 @@ function renderEvidence(row) {
   });
   container.replaceChildren();
   if (!detail) return;
-  const stateText = { available: "근거 있음", partial: "일부 기록", missing: "근거 데이터 없음" };
+  const stateText = { available: "근거 있음", partial: "일부 기록", missing: "근거 데이터 없음", no_trade: NO_TRADE_LABEL };
   for (const section of detail.sections) {
     const block = document.createElement("section");
     block.className = "detail-section";

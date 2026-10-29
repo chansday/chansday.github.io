@@ -6,7 +6,7 @@ import { loadNaverDailyHistory } from "./naver-daily-cache.js";
 import { isKoreanSymbol } from "./korean-symbol.js";
 import { checkRobotsUrl } from "./robots-policy.js";
 import { KOSPI_UNIVERSE_PATH, loadKospiUniverseCache, DEFAULT_UNIVERSE_MAX_AGE_DAYS } from "./kospi-universe-cache.js";
-import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
+import { NO_TRADE_STATUS, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 import { preopenQuoteBasis, priorHistoryEstimate } from "./forecast-basis.js";
 
 // Every request host below is checked against its robots.txt before each data
@@ -422,7 +422,27 @@ function normalizeQuote(raw, now) {
     quoteAgeSeconds,
     marketStatus: String(raw?.marketStatus || raw?.marketStatusDetailType || "UNKNOWN").toUpperCase(),
     exchange: typeof raw?.stockExchangeType?.code === "string" ? raw.stockExchangeType.code : null,
+    // Trading-halt markers as sent by the polling endpoint (observed
+    // 2026-10-29: tradeStopType.name "HALTED", tradableStatus "halt").
+    tradeStopType: typeof raw?.tradeStopType?.name === "string" ? raw.tradeStopType.name.trim().toUpperCase() : null,
+    tradableStatus: typeof raw?.tradableStatus === "string" ? raw.tradableStatus.trim().toLowerCase() : null,
+    tradableStatusCode: typeof raw?.tradableStatusCode === "string" ? raw.tradableStatusCode.trim() : null,
   };
+}
+
+// The source itself marks the symbol as halted. Missing prices alone are never
+// a halt (a halted quote sends empty open/volume, so zeros are not required).
+export function isHaltedQuote(quote) {
+  return quote?.tradeStopType === "HALTED" || quote?.tradableStatus === "halt";
+}
+
+export function haltEvidence(quote) {
+  return { source: "naver_polling_quote", trade_stop_type: quote.tradeStopType, tradable_status: quote.tradableStatus, tradable_status_code: quote.tradableStatusCode, observed_at: quote.quoteAt.toISOString(), reason: "Naver polling quote marks the symbol as halted (tradeStopType/tradableStatus)" };
+}
+
+export function markNoTrade(row, evidence) {
+  Object.assign(row, { actual_open: null, actual_close: null, actual_volume: null, session_return: null, error: null, trading_status: NO_TRADE_STATUS, no_trade_evidence: evidence });
+  return row;
 }
 
 function round(value) {
@@ -708,6 +728,28 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     if (kstDate(completedAt) !== kstDate(current) || resolveCrawlStage(completedAt) !== phase) return result("no_data", "Market phase changed during collection; no opening estimate recorded.", { ...source, status: "stage_mismatch" }, [], sourceDate);
     const priorRows = new Map((history?.sessions?.[0]?.rows || []).map(row => [row.symbol, row]));
     const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun)), stagePhase);
+    // no_trade: a fresh same-day quote marked halted by the source, in every
+    // stage (freshQuotes already require the stage's timestamp window); in
+    // forecast stages also symbols excluded from history only by zero volume.
+    const settling = stage === "open-settlement" || stage === "close-settlement";
+    // A symbol halted after it traded today (volume > 0) is not "no trade": its
+    // observed prices are settled normally.
+    const settlementZero = new Set(freshQuotes.filter((q) => isHaltedQuote(q) && !(q.volume > 0)).map((q) => q.symbol));
+    const historyNoTrade = new Map(!settling ? (history?.no_trade_symbols || []).map((entry) => [entry.symbol, entry]) : []);
+    const quoteBySymbol = new Map(freshQuotes.map((q) => [q.symbol, q]));
+    for (const row of rows) {
+      if (settlementZero.has(row.symbol)) {
+        const evidence = haltEvidence(quoteBySymbol.get(row.symbol));
+        if (settling) markNoTrade(row, evidence);
+        else {
+          // A halted symbol gets no opening estimate in a forecast stage.
+          Object.assign(row, { expected_open: null, expected_return: null, error: null, trading_status: NO_TRADE_STATUS, no_trade_evidence: evidence });
+          delete row.expected_open_source; delete row.expected_open_basis;
+          if (row.expected_close_basis) { row.expected_close = null; delete row.expected_close_basis; }
+        }
+      } else if (historyNoTrade.has(row.symbol) && !(row.expected_open > 0)) Object.assign(row, { trading_status: NO_TRADE_STATUS, no_trade_evidence: { source: "naver_daily_history", volume: 0, dates: historyNoTrade.get(row.symbol).dates, reason: "Prior daily sessions report volume 0 (likely halted); expected_open stays null" } });
+    }
+    const noTradeCount = rows.filter((row) => row.trading_status === NO_TRADE_STATUS).length;
     if (history?.source === "naver-daily") {
       source.metrics.history_status = history.partial ? "partial" : "ready";
       source.metrics.history_reason = `${history.excluded_count} symbols excluded; ${history.comparison_conflicts} daily comparison conflicts; Naver daily venue and adjustment unconfirmed and may differ from regular-market quotes; redistribution rights unconfirmed`;
@@ -732,11 +774,15 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     }
     if (isForecastStage(stage) && rows.every((row) => row.expected_open === null)) return result("no_data", "No verified pre-open quote or complete prior history; expected_open remains unavailable.", { ...source, status: "no_preopen_quote" }, [], sourceDate);
     const readyMessage = `Opening estimates: pre-open quote or prior three-session history; history calculated after the open is retrospective. Missing history remains no_data.${history?.source === "naver-daily" ? ` Naver daily market and adjustment basis unconfirmed and may differ from regular-market quotes; ${history.comparison_conflicts} comparison conflicts recorded.` : ""}`;
-    const missingOpenings = env.KOSPI_DAILY_HISTORY === "naver-cache" && !settlementStage ? rows.filter(row => !(row.expected_open > 0)).length : 0;
-    const missingHistory = env.KOSPI_DAILY_HISTORY === "naver-cache" && !settlementStage ? freshQuotes.filter(quote => !priorRows.has(quote.symbol)).length : 0;
-    const missingObserved = stage === "open-settlement" ? freshQuotes.length - currentOpenQuotes.length : stage === "close-settlement" ? freshQuotes.filter(q => !(q.openPrice > 0 && q.closePrice > 0)).length : 0;
-    const resultStatus = universePartial || partialQuotes || (history?.partial && !settlementStage) || missingOpenings || missingHistory || missingObserved ? "partial" : "ready";
-    const partialMessage = `${partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps.` : ""}${history?.partial ? ` ${history.excluded_count} symbols lack complete prior history.` : ""}${missingHistory ? ` ${missingHistory} current symbols have no complete history.` : ""}${missingOpenings ? ` ${missingOpenings} symbols have no expected opening.` : ""}${missingObserved ? ` ${missingObserved} symbols lack required observed prices.` : ""}${historyWarning}`;
+    const missingOpenings = env.KOSPI_DAILY_HISTORY === "naver-cache" && !settlementStage ? rows.filter(row => !(row.expected_open > 0) && row.trading_status !== NO_TRADE_STATUS).length : 0;
+    const missingHistory = env.KOSPI_DAILY_HISTORY === "naver-cache" && !settlementStage ? freshQuotes.filter(quote => !priorRows.has(quote.symbol) && !historyNoTrade.has(quote.symbol) && !settlementZero.has(quote.symbol)).length : 0;
+    const missingObserved = stage === "open-settlement" ? freshQuotes.filter(q => !(q.openPrice > 0) && !settlementZero.has(q.symbol)).length : stage === "close-settlement" ? freshQuotes.filter(q => !(q.openPrice > 0 && q.closePrice > 0) && !settlementZero.has(q.symbol)).length : 0;
+    source.metrics.no_trade_count = noTradeCount;
+    // History gaps of symbols that are no_trade (zero-volume history or a
+    // current halt marker) do not make the stage partial; any other gap does.
+    const historyPartial = Boolean(history?.partial) && (!Array.isArray(history.symbols) || !Array.isArray(history.valid_symbols) || history.symbols.some((s) => !history.valid_symbols.includes(s) && !historyNoTrade.has(s) && !settlementZero.has(s)));
+    const resultStatus = universePartial || partialQuotes || (historyPartial && !settlementStage) || missingOpenings || missingHistory || missingObserved ? "partial" : "ready";
+    const partialMessage = `${partialQuotes ? ` ${quotes.length - freshQuotes.length} quote(s) were stale or missing timestamps.` : ""}${historyPartial ? ` ${history.excluded_count} symbols lack complete prior history.` : ""}${missingHistory ? ` ${missingHistory} current symbols have no complete history.` : ""}${missingOpenings ? ` ${missingOpenings} symbols have no expected opening.` : ""}${missingObserved ? ` ${missingObserved} symbols lack required observed prices.` : ""}${noTradeCount ? ` ${noTradeCount} symbol(s) are no_trade_observed (source halt marker or zero-volume candle) and are kept without prices or error.` : ""}${historyWarning}`;
     return result(resultStatus, `${readyMessage}${partialMessage}${universeWarning}${excludedWarning} Naver daily market and adjustment basis are unconfirmed; preferred shares may be included.`, { ...source, status: resultStatus, partial: resultStatus === "partial", source_rows: rows.length }, rows, sourceDate);
   }
 

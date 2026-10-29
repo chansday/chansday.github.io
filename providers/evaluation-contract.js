@@ -52,6 +52,11 @@ function range(start, end) {
   return { start: dateOrNull(start), end: dateOrNull(end) };
 }
 
+// A row whose source reported zero trade on the session (e.g. a halted
+// symbol) has no observed prices; it is not an evaluation sample.
+export const NO_TRADE_STATUS = "no_trade_observed";
+export function isNoTradeRow(row) { return row?.trading_status === NO_TRADE_STATUS; }
+
 export function evaluationRowStatus(row) {
   const expectedReturn = deriveExpectedReturn(row);
   const sessionReturn = deriveSessionReturn(row);
@@ -69,7 +74,7 @@ export function buildEvaluationSummary(rows, {
   inputDates = [],
   note = null,
 } = {}) {
-  const safeRows = Array.isArray(rows) ? rows : [];
+  const safeRows = (Array.isArray(rows) ? rows : []).filter((row) => !isNoTradeRow(row));
   const evaluatedErrors = safeRows
     .filter((row) => evaluationRowStatus(row) === "evaluated")
     .map((row) => row.error)

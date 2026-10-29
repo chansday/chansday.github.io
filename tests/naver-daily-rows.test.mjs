@@ -29,7 +29,9 @@ test("reject invalid OHLC, non-integer values and unordered or future dates", ()
   assert.equal(parseNaverChartDailyRows([bar("2026-10-28", 200, 225)], options).rows.length, 0);
   for (const field of ["openPrice", "closePrice", "highPrice", "lowPrice", "accumulatedTradingVolume"]) {
     for (const value of [null, 0, "200", 200.5, -1]) {
-      assert.equal(parseNaverChartDailyRows([bar("2026-10-27", 200, 225, { [field]: value })], options).rejected[0].reason, "invalid_ohlcv", `${field}=${value}`);
+      // Only a JSON number 0 volume is the source reporting no trade.
+      const expected = field === "accumulatedTradingVolume" && value === 0 ? "zero_volume" : "invalid_ohlcv";
+      assert.equal(parseNaverChartDailyRows([bar("2026-10-27", 200, 225, { [field]: value })], options).rejected[0].reason, expected, `${field}=${value}`);
     }
   }
 });

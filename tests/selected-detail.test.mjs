@@ -89,20 +89,29 @@ test("expected_open_source history rows describe the gap calculation without inv
   assert.equal(buildSelectedDetail(null), null);
 });
 
-test("ranking table scrolls inside its own region with sticky header and identity columns", async () => {
+test("ranking list has no inner scroll container, switches to cards when narrow, and pages long lists", async () => {
   const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
   const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
-  assert.match(css, /\.ranking-table-wrap\s*\{[^}]*max-height:\s*min\(76vh, 820px\)[^}]*overflow-x:\s*auto[^}]*overflow-y:\s*auto/s);
-  assert.match(css, /\.ranking-table-wrap thead th\s*\{[^}]*position:\s*sticky[^}]*top:\s*0/s);
-  assert.match(css, /\.ranking-table-wrap th:nth-child\(2\), \.ranking-table-wrap td:nth-child\(2\)\s*\{[^}]*position:\s*sticky[^}]*left:\s*var\(--rank-col\)/s);
-  assert.match(css, /\.ranking-table-wrap td\s*\{[^}]*white-space:\s*nowrap/s);
+  const wrapRule = css.match(/\.ranking-table-wrap\s*\{([^}]*)\}/s)[1];
+  assert.doesNotMatch(wrapRule, /overflow|max-height/, "the list wrap must not become a scroll container");
+  assert.doesNotMatch(css, /\.ranking-(table-wrap|cards|card|pager)[^{]*\{[^}]*overflow(-[xy])?:\s*(auto|scroll)/s);
+  assert.doesNotMatch(css, /\.detail-panel\s*\{[^}]*(overflow(-[xy])?:\s*(auto|scroll)|max-height:\s*calc)/s, "no scrollbar beside the list");
+  assert.match(wrapRule, /container-type:\s*inline-size/);
+  assert.match(css, /@container ranking \(max-width: 719px\)\s*\{\s*\.ranking-table-wrap table\s*\{\s*display:\s*none;\s*\}\s*\.ranking-cards\s*\{\s*display:\s*grid;/s);
+  assert.match(css, /\.ranking-table-wrap th\s*\{[^}]*white-space:\s*normal/s);
+  assert.match(css, /\.ranking-table-wrap td:nth-child\(2\)\s*\{[^}]*white-space:\s*normal/s);
+  assert.doesNotMatch(css, /\.ranking-card-name\s*\{[^}]*text-overflow/s);
+  assert.doesNotMatch(html, /table-scroll-hint/);
+  assert.match(html, /<nav id="ranking-pager" class="ranking-pager"[^>]*hidden>/);
+  assert.match(app, /const RANKING_PAGE_SIZE = 50;/);
+  assert.match(app, /pageRows\.forEach\(\(row\) =>/);
   assert.match(css, /\.detail-facts dd\s*\{[^}]*overflow-wrap:\s*anywhere/s);
   // the placeholder must disappear once a stock is selected (display:grid used to override [hidden])
   assert.match(css, /\.detail-empty\[hidden\][^{]*\{\s*display:\s*none/);
-  assert.match(html, /class="ranking-table-wrap glass-panel" role="region" aria-label="[^"]+" tabindex="0"/);
+  assert.match(html, /class="ranking-table-wrap glass-panel" role="region" aria-label="[^"]+">/);
   assert.match(html, /id="selected-evidence"/);
-  assert.match(app, /import \{ buildSelectedDetail \} from "\.\/providers\/selected-detail\.js/);
+  assert.match(app, /import \{[^}]*\bbuildSelectedDetail\b[^}]*\} from "\.\/providers\/selected-detail\.js/);
   assert.match(app, /"selected-evidence"/);
   assert.match(app, /node\.textContent = `근거 데이터 없음 — \$\{gap\.label\}: \$\{gap\.reason\}`/);
 });

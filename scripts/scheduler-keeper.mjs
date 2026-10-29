@@ -1,7 +1,7 @@
 import { appendFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import { loadMarketCalendar } from "./market-calendar.mjs";
-import { KEEPER_WORKFLOW, STAGES, kstDayStartIso, planKeeper } from "./scheduler-plan.mjs";
+import { KEEPER_WORKFLOW, STAGES, catchUpCandidateDates, kstDayStartIso, missingCloseDates, planKeeper } from "./scheduler-plan.mjs";
 
 // Keeper loop: plans with scheduler-plan.mjs, reads today's stage runs from
 // the Actions API and dispatches stage workflows with the job's GITHUB_TOKEN
@@ -23,9 +23,19 @@ export function githubClient({ token, repository, fetchImpl = globalThis.fetch }
       const body = await response.json();
       return (body.workflow_runs || []).map(({ id, event, status, conclusion, created_at }) => ({ id, event, status, conclusion, created_at }));
     },
-    async dispatch(workflow, ref) {
+    // File names under data/runs/<date>/ on `ref` (contents API, read-only);
+    // a missing directory is an empty list.
+    async listRunFiles(date, ref) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error(`invalid run date ${date}`);
+      const response = await fetchImpl(`${API}/repos/${repository}/contents/data/runs/${date}?ref=${encodeURIComponent(ref)}`, { headers, signal: AbortSignal.timeout(20_000) });
+      if (response.status === 404) return [];
+      if (response.status !== 200) throw new Error(`list data/runs/${date}: HTTP ${response.status}`);
+      const body = await response.json();
+      return Array.isArray(body) ? body.filter((entry) => entry?.type === "file").map((entry) => entry.name) : [];
+    },
+    async dispatch(workflow, ref, inputs = null) {
       const response = await fetchImpl(`${API}/repos/${repository}/actions/workflows/${encodeURIComponent(workflow)}/dispatches`, {
-        method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify({ ref }), signal: AbortSignal.timeout(20_000),
+        method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(inputs ? { ref, inputs } : { ref }), signal: AbortSignal.timeout(20_000),
       });
       if (response.status !== 204) throw new Error(`dispatch ${workflow}: HTTP ${response.status}`);
     },
@@ -36,6 +46,7 @@ export async function runKeeper({ client, calendar, ref = "main", now = () => ne
   const dispatched = new Map(); // stage id -> synthetic queued runs, covers API listing lag
   const events = [];
   const warnings = new Set();
+  let catchUp = null; // { date, dates }: missing 1530.json check, once per KST day
   for (let loop = 0; loop < maxLoops; loop += 1) {
     const current = now();
     const runsByStage = {};
@@ -52,14 +63,27 @@ export async function runKeeper({ client, calendar, ref = "main", now = () => ne
       const synthetic = (dispatched.get(stage.id) || []).filter((s) => !listed.some((r) => Date.parse(r.created_at) >= Date.parse(s.created_at) - 60_000));
       runsByStage[stage.id] = [...listed, ...synthetic];
     }
-    const plan = planKeeper({ now: current, calendar, runsByStage, keeperStartedAt: startedAt, stages });
+    let plan = planKeeper({ now: current, calendar, runsByStage, keeperStartedAt: startedAt, stages, catchUp: catchUp?.date === date ? catchUp : undefined });
+    if (plan.stages.some((s) => s.state === "unchecked") && typeof client.listRunFiles === "function") {
+      try {
+        const candidates = catchUpCandidateDates(date, calendar);
+        const filesByDate = {};
+        for (const candidate of candidates) filesByDate[candidate] = await client.listRunFiles(candidate, ref);
+        catchUp = { date, dates: missingCloseDates(candidates, filesByDate) };
+      } catch (error) {
+        catchUp = { date, dates: [] };
+        const warning = `missing close-settlement check failed; catch-up not dispatched: ${error.message}`;
+        if (!warnings.has(warning)) { warnings.add(warning); log(`::warning::${warning}`); }
+      }
+      plan = planKeeper({ now: current, calendar, runsByStage, keeperStartedAt: startedAt, stages, catchUp });
+    }
     for (const warning of plan.warnings || []) if (!warnings.has(warning)) { warnings.add(warning); log(`::warning::${warning}`); }
     log(JSON.stringify({ at: current.toISOString(), action: plan.action, stages: plan.stages.map((s) => `${s.id}:${s.state}`) }));
     const { action } = plan;
     if (action.type === "dispatch") {
-      await client.dispatch(action.workflow, ref);
+      await client.dispatch(action.workflow, ref, action.inputs || null);
       dispatched.set(action.stage, [...(dispatched.get(action.stage) || []), { status: "queued", conclusion: null, created_at: current.toISOString(), event: "workflow_dispatch", synthetic: true }]);
-      events.push({ at: current.toISOString(), type: "dispatch", stage: action.stage });
+      events.push({ at: current.toISOString(), type: "dispatch", stage: action.stage, ...(action.inputs ? { inputs: action.inputs } : {}) });
       await sleep(5_000);
       continue;
     }

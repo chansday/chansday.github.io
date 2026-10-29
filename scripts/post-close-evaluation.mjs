@@ -22,11 +22,11 @@ export function buildPostCloseRows(sessions, actualRows) {
   });
 }
 
-export async function runPostCloseEvaluation({ runDate, runId, stageFile, historyFetcher = process.env.KOSPI_DAILY_HISTORY === "naver-cache" ? loadNaverDailyHistory : fetchForecastHistory }) {
+export async function runPostCloseEvaluation({ runDate, runId, stageFile, outputDir = null, historyFetcher = process.env.KOSPI_DAILY_HISTORY === "naver-cache" ? loadNaverDailyHistory : fetchForecastHistory }) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(runDate) || !/^[A-Za-z0-9._-]+$/.test(runId)) throw new Error("Invalid post-close identity");
   const snapshot = JSON.parse(await readFile(stageFile, "utf8"));
   if (snapshot.status !== "ready" || snapshot.meta?.run_date !== runDate || snapshot.meta?.run_id !== runId || snapshot.meta?.run_stage !== "close-settlement" || !Array.isArray(snapshot.rows) || !snapshot.rows.length) throw new Error("Post-close settlement is missing or does not belong to this run");
-  const path = join("data", "runs", runDate, `retrospective-${runId}.json`);
+  const path = join(outputDir || join("data", "runs", runDate), `retrospective-${runId}.json`);
   try {
     const previous = JSON.parse(await readFile(path, "utf8"));
     mergePostCloseEvaluation(snapshot, previous); // validate identity and observation matches

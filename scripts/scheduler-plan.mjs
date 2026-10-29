@@ -11,14 +11,58 @@ import { classifyMarketDate, kstDate, loadMarketCalendar } from "./market-calend
 //   they are "missed" and never dispatched late.
 // - Settlement stages record observed prices, so a late dispatch is still
 //   correct on the same KST date; they are dispatched until `lastStart` (23:00).
+// - close-catch-up settles a past trading day whose 15:30 close-settlement left
+//   no data/runs/D/1530.json, from the Naver daily candle. It runs in the idle
+//   gap after open-settlement (09:30, last start 14:30, i.e. well before the
+//   15:30 close) and only once every earlier stage of today has finished, so it
+//   never delays a pre-open stage or the open/close settlement of today. It is
+//   dispatched only when the keeper confirmed missing dates (catchUp.dates).
 export const STAGES = Object.freeze([
   { id: "naver-daily-history", workflow: "naver-daily-history.yml", at: "06:10", lastStart: "07:45", kind: "pre-open", retry: { at: "07:10", maxAttempts: 2 } },
   { id: "update-results", workflow: "update-results.yml", at: "07:00", lastStart: "08:50", kind: "pre-open" },
   { id: "analysis", workflow: "analysis.yml", at: "08:00", lastStart: "08:50", kind: "pre-open" },
   { id: "forecast", workflow: "forecast.yml", at: "08:20", lastStart: "08:50", kind: "pre-open" },
   { id: "open-settlement", workflow: "open-settlement.yml", at: "09:00", lastStart: "23:00", kind: "settlement" },
+  { id: "close-catch-up", workflow: "close-catch-up.yml", at: "09:30", lastStart: "14:30", kind: "catch-up", after: Object.freeze(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]) },
   { id: "close-settlement", workflow: "close-settlement.yml", at: "15:30", lastStart: "23:00", kind: "settlement" },
 ].map(Object.freeze));
+
+export const CATCH_UP_STAGE_ID = "close-catch-up";
+export const CATCH_UP_TRADING_DAYS = 5;
+const TERMINAL_STATES = new Set(["done", "failed", "missed", "gave_up"]);
+
+// The CATCH_UP_TRADING_DAYS trading days before `today`, oldest first.
+export function catchUpCandidateDates(today, calendar, count = CATCH_UP_TRADING_DAYS) {
+  const result = [];
+  for (let days = 1; days <= 45 && result.length < count; days += 1) {
+    const date = new Date(`${today}T00:00:00Z`); date.setUTCDate(date.getUTCDate() - days);
+    const value = date.toISOString().slice(0, 10), state = classifyMarketDate(value, calendar);
+    if (state.status === "error") break;
+    if (state.status === "run") result.push(value);
+  }
+  return result.reverse();
+}
+
+// filesByDate[date] lists the file names in data/runs/<date>/ (empty when the
+// directory is missing). A date needs catch-up when 1530.json is absent and a
+// same-date forecast/open file exists (otherwise there is nothing to settle).
+export function missingCloseDates(candidates, filesByDate) {
+  return candidates.filter((date) => {
+    const files = Array.isArray(filesByDate?.[date]) ? filesByDate[date] : [];
+    return !files.includes("1530.json") && (files.includes("0900.json") || files.includes("0820.json"));
+  });
+}
+
+// The catch-up stage is due only after every `after` stage of today is
+// terminal and the keeper checked the repository for missing settlements.
+function refineCatchUp(state, stage, states, now, catchUp) {
+  if (stage.kind !== "catch-up" || state.state !== "due") return state;
+  const pending = (stage.after || []).filter((id) => { const s = states.find((x) => x.id === id); return s && !TERMINAL_STATES.has(s.state); });
+  if (pending.length) return { ...state, state: "waiting", due_at: new Date(now.getTime() + ACTIVE_POLL_MS).toISOString(), reason: `waits for ${pending.join(", ")}` };
+  if (!catchUp || !Array.isArray(catchUp.dates)) return { ...state, state: "unchecked", reason: "missing close-settlement files not checked" };
+  if (!catchUp.dates.length) return { ...state, state: "not_needed", reason: "no recent trading day lacks 1530.json" };
+  return { ...state, inputs: { run_date: catchUp.dates.join(",") }, reason: `missing 1530.json for ${catchUp.dates.join(", ")}` };
+}
 
 export const KEEPER_WORKFLOW = "scheduler-keeper.yml";
 export const KEEPER_BUDGET_MINUTES = 325; // job timeout is 340; relay leaves margin
@@ -84,20 +128,21 @@ export function stageState(stage, runs, now, date) {
 //   dispatch - start `stage.workflow` now
 //   sleep    - wait until `until`, then plan again
 //   relay    - dispatch the keeper itself and exit (runner time budget reached)
-export function planKeeper({ now, calendar, runsByStage = {}, keeperStartedAt = now, budgetMinutes = KEEPER_BUDGET_MINUTES, stages = STAGES }) {
+export function planKeeper({ now, calendar, runsByStage = {}, keeperStartedAt = now, budgetMinutes = KEEPER_BUDGET_MINUTES, stages = STAGES, catchUp = undefined }) {
   if (!(now instanceof Date) || Number.isNaN(now.getTime())) throw new Error("now must be a valid Date");
   const date = kstDate(now);
   const market = classifyMarketDate(date, calendar);
   if (market.status === "error") return { date, market, stages: [], action: { type: "error", reason: market.message } };
   if (market.status !== "run") return { date, market, stages: [], action: { type: "exit", reason: `market closed: ${market.reason}` } };
-  const states = stages.map((stage) => stageState(stage, runsByStage[stage.id] || [], now, date));
+  const base = stages.map((stage) => stageState(stage, runsByStage[stage.id] || [], now, date));
+  const states = base.map((state, i) => refineCatchUp(state, stages[i], base, now, catchUp));
   const deadline = new Date(keeperStartedAt.getTime() + budgetMinutes * 60_000);
   const warnings = calendarWarnings(date, calendar);
   const result = (action) => ({ date, market, stages: states, deadline: deadline.toISOString(), warnings, action });
   const due = states.find((s) => s.state === "due");
   if (due) {
     const blocking = states.filter((s) => s.active_since && now.getTime() - Date.parse(s.active_since) < STALE_ACTIVE_MS);
-    if (!blocking.length) return result({ type: "dispatch", stage: due.id, workflow: due.workflow, reason: due.reason || "scheduled time reached" });
+    if (!blocking.length) return result({ type: "dispatch", stage: due.id, workflow: due.workflow, ...(due.inputs ? { inputs: due.inputs } : {}), reason: due.reason || "scheduled time reached" });
     if (now >= deadline) return result({ type: "relay", reason: `runner budget of ${budgetMinutes} min reached while ${due.id} waits` });
     const until = new Date(Math.min(now.getTime() + ACTIVE_POLL_MS, deadline.getTime()));
     return result({ type: "sleep", until: until.toISOString(), reason: `${due.id} waits for ${blocking.map((s) => s.id).join(", ")} to complete (shared pipeline queue)` });

@@ -17,6 +17,17 @@
 - `open-settlement`·`close-settlement`는 비어 있지 않은 rows의 `asOfDate`까지 현재 `run_date`와 일치해야 합니다. 이전 거래일 rows를 `partial` 결과로 보존하지 않습니다.
 - 이 입력 차단은 거래일 guard 통과 후에도 적용되며, stage 누락·실행 지연·독립 cron 순서 변경이 stale 화면과 commit으로 이어지지 않도록 합니다.
 
+## 누락 마감 정산 보충 (close-catch-up)
+
+- 지난 거래일 D의 15:30 정산이 누락되면 polling quote로는 D의 종가를 다시 관측할 수 없으므로, `scripts/close-catch-up.mjs`가 D의 Naver 일봉(커밋된 `data/daily-history` 캐시 우선, 부족분만 기존 robots 확인 `api.stock.naver.com/chart/domestic/item/{code}/day` 요청)으로 `data/runs/D/1530.json`을 만듭니다. 새 host·헤더 변경·재시도는 없습니다.
+- 출처는 `meta.settlement_source: naver_daily_candle_catch_up`, `meta.source.source_id: naver-daily-candle-catch-up`, `meta.catch_up.produced_at`으로 표시합니다. 일봉 종가는 NXT 시간외 거래를 포함할 수 있으며 시장 구분·수정 여부·게시 시각·이용권한은 확인되지 않았습니다.
+- 직전 5거래일 이내의 과거 거래일, 같은 날짜 0900/0820 파일이 있을 때만 실행합니다. 없으면 `no_data`이며 값을 만들지 않습니다. 기존 파일은 덮어쓰지 않습니다(`wx`).
+
+## 거래 없음(no_trade, 정지 추정)
+
+- 원천이 0을 직접 보고한 경우만 `trading_status: "no_trade_observed"`와 `no_trade_evidence`(source·volume 0·시각/날짜·사유)를 기록합니다: 정산 단계는 신선한 polling quote의 `openPriceRaw` 0 **그리고** 거래량 0, 일봉은 `accumulatedTradingVolume` 0(`zero_volume` 거부 사유), 예측 단계는 직전 이력에서 빠진 세션이 모두 `zero_volume`인 종목입니다. null·누락은 0으로 보지 않고 기존처럼 partial입니다.
+- no_trade 행은 실제값·오차가 null이며 평가 표본에서 제외됩니다. 메시지와 `metrics.no_trade_count`에 개수를 남기고, 남은 공백이 no_trade뿐이면 ready를 허용합니다. 화면은 "거래 없음(정지 추정)"으로 표시합니다.
+
 ## 결론
 
 기본 운영 수집은 계좌·API key 없이 Naver 공개 market-list JSON과 polling quote endpoint를 GitHub Actions에서 제한된 batch로 가져옵니다. Naver endpoint는 공식 API가 아니며 이용정책/재배포 권한은 확인하지 않습니다. quote의 `openPriceRaw`, `closePriceRaw`, `localTradedAt`, `marketStatus`, `stockName`, `symbolCode`를 사용하고 각 행에 quote 시각과 age를 보존합니다.

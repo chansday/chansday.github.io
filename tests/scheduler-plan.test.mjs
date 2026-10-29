@@ -2,8 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { loadMarketCalendar } from "../scripts/market-calendar.mjs";
-import { KEEPER_WORKFLOW, STAGES, kstDayStartIso, kstInstant, planKeeper, runsForDay } from "../scripts/scheduler-plan.mjs";
-import { runKeeper } from "../scripts/scheduler-keeper.mjs";
+import { CATCH_UP_STAGE_ID, KEEPER_WORKFLOW, STAGES, catchUpCandidateDates, kstDayStartIso, kstInstant, missingCloseDates, planKeeper, runsForDay } from "../scripts/scheduler-plan.mjs";
+import { githubClient, runKeeper } from "../scripts/scheduler-keeper.mjs";
 
 const calendar = await loadMarketCalendar();
 const kst = (date, hhmm, sec = "00") => new Date(`${date}T${hhmm}:${sec}+09:00`);
@@ -28,7 +28,7 @@ test("before 06:10 the keeper sleeps until just after the first stage time, then
 });
 
 test("dispatch order and times follow the KST stage table", () => {
-  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:20"], ["open-settlement", "09:00"], ["close-settlement", "15:30"]]);
+  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:20"], ["open-settlement", "09:00"], ["close-catch-up", "09:30"], ["close-settlement", "15:30"]]);
   const done = (ids) => Object.fromEntries(ids.map((id) => [id, [run(DAY, "06:11")]]));
   assert.equal(plan("07:00", done(["naver-daily-history"]), null, "05").action.stage, "update-results");
   assert.equal(plan("08:20", done(["naver-daily-history", "update-results", "analysis"]), null, "05").action.stage, "forecast");
@@ -107,7 +107,8 @@ test("runKeeper simulation dispatches each stage once at its time and relays wit
   const second = await runKeeper({ ...deps, startedAt: new Date(clock) });
   assert.equal(second.result, "exit");
   const stageDispatches = dispatches.filter(([w]) => w !== KEEPER_WORKFLOW);
-  assert.deepEqual(stageDispatches.map(([w]) => w), STAGES.map((s) => s.workflow));
+  // Without a repository check (no listRunFiles) the catch-up is never dispatched.
+  assert.deepEqual(stageDispatches.map(([w]) => w), STAGES.filter((s) => s.kind !== "catch-up").map((s) => s.workflow));
   for (const [workflow, at] of stageDispatches) {
     const stage = STAGES.find((s) => s.workflow === workflow);
     const delay = Date.parse(at) - kst(DAY, stage.at).getTime();
@@ -217,4 +218,97 @@ test("the planner warns within 30 days of the calendar coverage end", () => {
   assert.deepEqual(planKeeper({ now: kst("2026-10-29", "05:00"), calendar }).warnings, []);
   const warned = planKeeper({ now: kst("2026-12-02", "05:00"), calendar });
   assert.equal(warned.warnings.length, 1); assert.match(warned.warnings[0], /coverage ends 2026-12-31 \(29 days left\)/);
+});
+
+// ---- missed close-settlement catch-up ----
+const PRE = ["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"];
+const doneAll = (ids = PRE) => Object.fromEntries(ids.map((id) => [id, [run(DAY, STAGES.find((s) => s.id === id).at)]]));
+
+test("catch-up candidates are the previous five trading days; only dates with 0900/0820 and no 1530 are missing", () => {
+  assert.deepEqual(catchUpCandidateDates(DAY, calendar), ["2026-10-22", "2026-10-23", "2026-10-26", "2026-10-27", "2026-10-28"]);
+  const files = { "2026-10-27": ["0700.json", "0820.json", "0900.json", "1530.json"], "2026-10-28": ["0700.json", "0800.json", "0820.json", "0900.json"], "2026-10-26": ["0700.json"], "2026-10-23": [] };
+  assert.deepEqual(missingCloseDates(catchUpCandidateDates(DAY, calendar), files), ["2026-10-28"]);
+  assert.deepEqual(missingCloseDates(["2026-10-28"], { "2026-10-28": ["0820.json"] }), ["2026-10-28"]);
+});
+
+test("catch-up is dispatched with run_date only after 09:30 and after every earlier stage of today finished", () => {
+  const catchUp = { dates: ["2026-10-28"] };
+  const p = (hhmm, runs, cu = catchUp, sec = "05") => planKeeper({ now: kst(DAY, hhmm, sec), calendar, runsByStage: runs, keeperStartedAt: kst(DAY, hhmm, sec), catchUp: cu });
+  assert.equal(state(p("09:20", doneAll()), CATCH_UP_STAGE_ID), "waiting", "never before 09:30");
+  const due = p("09:30", doneAll());
+  assert.deepEqual(due.action, { type: "dispatch", stage: CATCH_UP_STAGE_ID, workflow: "close-catch-up.yml", inputs: { run_date: "2026-10-28" }, reason: "missing 1530.json for 2026-10-28" });
+  // open-settlement still running (or not yet started) keeps it waiting; open-settlement goes first.
+  const openRunning = { ...doneAll(PRE.slice(0, 4)), "open-settlement": [run(DAY, "09:00", "in_progress", null)] };
+  assert.equal(state(p("09:31", openRunning), CATCH_UP_STAGE_ID), "waiting"); assert.equal(p("09:31", openRunning).action.type, "sleep");
+  assert.equal(p("09:31", doneAll(PRE.slice(0, 4))).action.stage, "open-settlement");
+  // Nothing missing, unchecked, done today, failed today or after 14:30: no dispatch.
+  assert.equal(state(p("09:31", doneAll(), { dates: [] }), CATCH_UP_STAGE_ID), "not_needed");
+  assert.equal(state(p("09:31", doneAll(), null), CATCH_UP_STAGE_ID), "unchecked");
+  assert.equal(state(p("10:00", { ...doneAll(), [CATCH_UP_STAGE_ID]: [run(DAY, "09:31")] }), CATCH_UP_STAGE_ID), "done");
+  assert.equal(state(p("10:00", { ...doneAll(), [CATCH_UP_STAGE_ID]: [run(DAY, "09:31", "completed", "failure")] }), CATCH_UP_STAGE_ID), "failed");
+  assert.equal(state(p("10:00", { ...doneAll(), [CATCH_UP_STAGE_ID]: [run(DAY, "09:31", "queued", null)] }), CATCH_UP_STAGE_ID), "running");
+  assert.equal(state(p("14:31", doneAll()), CATCH_UP_STAGE_ID), "missed");
+  // A running catch-up blocks the 15:30 close-settlement like any stage run.
+  const blocking = p("15:30", { ...doneAll(), [CATCH_UP_STAGE_ID]: [run(DAY, "15:00", "in_progress", null)] });
+  assert.equal(blocking.action.type, "sleep"); assert.match(blocking.action.reason, /close-settlement waits for close-catch-up/);
+});
+
+test("runKeeper checks data/runs once via the contents API and dispatches the catch-up once with run_date, without overlap", async () => {
+  const sim = simulate({ start: kst(DAY, "05:00") });
+  const listed = [];
+  const repo = { "2026-10-27": ["0900.json", "1530.json"], "2026-10-28": ["0700.json", "0800.json", "0820.json", "0900.json"] };
+  sim.deps.client.listRunFiles = async (date, ref) => { listed.push([date, ref, sim.now()]); return repo[date] || []; };
+  const dispatchInputs = [];
+  const original = sim.deps.client.dispatch;
+  sim.deps.client.dispatch = async (workflow, ref, inputs) => { dispatchInputs.push([workflow, inputs]); return original(workflow, ref, inputs); };
+  let outcome;
+  do outcome = await runKeeper({ ...sim.deps, startedAt: new Date(sim.now()) }); while (outcome.result === "relay");
+  const order = sim.dispatches.filter(([w]) => w !== KEEPER_WORKFLOW).map(([w]) => w);
+  assert.deepEqual(order, ["naver-daily-history.yml", "update-results.yml", "analysis.yml", "forecast.yml", "open-settlement.yml", "close-catch-up.yml", "close-settlement.yml"]);
+  assert.deepEqual(sim.overlaps, []);
+  assert.deepEqual(dispatchInputs.find(([w]) => w === "close-catch-up.yml")[1], { run_date: "2026-10-28" });
+  assert.equal(dispatchInputs.filter(([w]) => w !== "close-catch-up.yml" && w !== KEEPER_WORKFLOW).every(([, inputs]) => inputs === null), true, "other stages get no inputs");
+  const at = Object.fromEntries(sim.dispatches.map(([w, t]) => [w, t]));
+  assert.ok(at["close-catch-up.yml"] >= kst(DAY, "09:30").getTime() + 3000 && at["close-catch-up.yml"] < kst(DAY, "09:31").getTime());
+  assert.ok(listed.every(([, ref, when]) => ref === "main" && when >= kst(DAY, "09:30").getTime()), "checked only when due");
+  assert.equal(new Set(listed.map(([d]) => d)).size, listed.length, "each date listed once per day");
+});
+
+test("runKeeper does not dispatch the catch-up when nothing is missing or the check fails", async () => {
+  for (const listRunFiles of [async () => ["0900.json", "1530.json"], async () => { throw new Error("HTTP 500"); }]) {
+    const sim = simulate({ start: kst(DAY, "09:20") });
+    sim.deps.client.listRunFiles = listRunFiles;
+    let outcome;
+    do outcome = await runKeeper({ ...sim.deps, startedAt: new Date(sim.now()) }); while (outcome.result === "relay");
+    assert.equal(sim.dispatches.some(([w]) => w === "close-catch-up.yml"), false);
+    assert.ok(sim.dispatches.some(([w]) => w === "close-settlement.yml"));
+  }
+});
+
+test("githubClient.listRunFiles accepts a real YYYY-MM-DD date and reads only the contents API", async () => {
+  const calls = [];
+  const fetchImpl = async (url) => { calls.push(url); return url.includes("2026-10-27") ? { status: 404 } : { status: 200, json: async () => [{ type: "file", name: "0900.json" }, { type: "dir", name: "x" }] }; };
+  const client = githubClient({ token: "t", repository: "o/r", fetchImpl });
+  assert.deepEqual(await client.listRunFiles("2026-10-28", "main"), ["0900.json"]);
+  assert.deepEqual(await client.listRunFiles("2026-10-27", "main"), []);
+  await assert.rejects(client.listRunFiles("../x", "main"), /invalid run date/);
+  assert.deepEqual(calls, ["https://api.github.com/repos/o/r/contents/data/runs/2026-10-28?ref=main", "https://api.github.com/repos/o/r/contents/data/runs/2026-10-27?ref=main"]);
+});
+
+test("catch-up workflow: dispatch-only with run_date input, own commit, tests isolated from job env", async () => {
+  const text = (await readFile(new URL("../.github/workflows/close-catch-up.yml", import.meta.url), "utf8")).replace(/\r\n/g, "\n");
+  assert.doesNotMatch(text, /cron:|schedule:/); assert.match(text, /workflow_dispatch:\n    inputs:\n      run_date:/);
+  assert.match(text, /permissions:\n  contents: write\n/);
+  assert.match(text, /concurrency:\n  group: kospi-signal-board-pipeline\n  cancel-in-progress: false/);
+  assert.match(text, /actions\/checkout@v7/); assert.match(text, /actions\/setup-node@v7/);
+  assert.match(text, /KOSPI_CATCH_UP_DATES: \$\{\{ inputs\.run_date \}\}/);
+  assert.doesNotMatch(text, /run:.*inputs\.run_date/, "input never interpolated into a shell command");
+  // The test step overrides job-level modes so they cannot leak into npm test.
+  const testStep = text.slice(text.indexOf("- name: Validate the static contract"), text.indexOf("- name: Settle missed close"));
+  assert.match(testStep, /env:\n {10}KOSPI_DAILY_HISTORY: ""\n {10}KOSPI_CATCH_UP_DATES: ""/);
+  assert.match(testStep, /npm test && npm run check && npm run check:experiment/);
+  assert.match(text, /node scripts\/close-catch-up\.mjs/);
+  assert.match(text, /git add -- data\/runs data\/date-index\.json data\/latest-snapshot\.json/);
+  assert.ok(text.indexOf("Validate the static contract") < text.indexOf("Settle missed close") && text.indexOf("Settle missed close") < text.indexOf("Commit caught-up settlement"));
+  assert.ok(STAGES.some((s) => s.workflow === "close-catch-up.yml" && s.kind === "catch-up"), "keeper lists the workflow");
 });

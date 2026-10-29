@@ -1,4 +1,4 @@
-import { deriveEvaluationError, deriveExpectedReturn, evaluationRowStatus, isEvaluationSummary } from "./evaluation-contract.js";
+import { NO_TRADE_STATUS, deriveEvaluationError, deriveExpectedReturn, evaluationRowStatus, isEvaluationSummary, isNoTradeRow } from "./evaluation-contract.js";
 import { isKoreanSymbol } from "./korean-symbol.js";
 import { OPEN_GAP_MODEL, isCloseBasis, isOpenBasis } from "./forecast-basis.js";
 
@@ -42,7 +42,24 @@ export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "quote_at",
   "quote_age_seconds",
   "market_status",
+  "trading_status",
+  "no_trade_evidence",
 ]);
+
+export const NO_TRADE_SOURCES = Object.freeze(["naver_polling_quote", "naver_daily_candle", "naver_daily_history"]);
+
+// No trade must be reported by the source itself (a polling halt marker, or a
+// daily candle with volume 0), never inferred from missing values; such a row
+// carries no observed prices and no error.
+export function isNoTradeEvidence(row) {
+  const e = row.no_trade_evidence;
+  if (row.trading_status !== NO_TRADE_STATUS || !e || typeof e !== "object" || Array.isArray(e)) return false;
+  if (!NO_TRADE_SOURCES.includes(e.source) || typeof e.reason !== "string" || !e.reason) return false;
+  if (e.source === "naver_polling_quote" && ((e.trade_stop_type !== "HALTED" && e.tradable_status !== "halt") || typeof e.observed_at !== "string" || !Number.isFinite(Date.parse(e.observed_at)))) return false;
+  if (e.source !== "naver_polling_quote" && (e.volume !== 0 || !Array.isArray(e.dates) || !e.dates.length || e.dates.some((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d)))) return false;
+  if (e.source === "naver_daily_history" && row.expected_open !== null) return false;
+  return row.actual_open === null && row.actual_close === null && row.error === null;
+}
 
 export const SNAPSHOT_STATUSES = Object.freeze([
   "ready",
@@ -111,6 +128,7 @@ export function isRankingRow(row) {
     if (Object.keys(row.features).some((field) => !featureFields.includes(field))) return false;
   }
   if (Object.hasOwn(row, "quality") && row.quality !== null && typeof row.quality !== "string") return false;
+  if ((Object.hasOwn(row, "trading_status") || Object.hasOwn(row, "no_trade_evidence")) && !isNoTradeEvidence(row)) return false;
   if (row.expected_return !== deriveExpectedReturn(row)) return false;
   if (row.error !== deriveEvaluationError(row)) return false;
   return RANKING_FIELDS.every((field) => isFiniteOrNull(row[field]));
@@ -200,7 +218,7 @@ export function isSnapshot(candidate) {
   if (!candidate.meta || typeof candidate.meta !== "object" || !Object.hasOwn(candidate.meta, "source")) return false;
   if (candidate.meta.source !== null && !isSourceMetadata(candidate.meta.source)) return false;
   if (candidate.evaluation !== undefined && !isEvaluationSummary(candidate.evaluation)) return false;
-  if (candidate.evaluation && candidate.evaluation.sample_count !== candidate.rows.length) return false;
+  if (candidate.evaluation && candidate.evaluation.sample_count !== candidate.rows.filter((row) => !isNoTradeRow(row)).length) return false;
   if (candidate.evaluation && candidate.evaluation.evaluated_sample_count !== candidate.rows.filter((row) => evaluationRowStatus(row) === "evaluated").length) return false;
   if (["fixture", "replay", "backfill_test"].includes(candidate.mode) && candidate.meta.isDemo !== true) return false;
   if (candidate.mode === "backfill_test" && (candidate.meta.backfill !== true || candidate.provider?.id !== "backfill-test")) return false;

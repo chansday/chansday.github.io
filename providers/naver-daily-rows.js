@@ -43,7 +43,9 @@ export function parseNaverChartDailyRows(payload, { symbol, targetDate }) {
     if (date > targetDate) throw new Error("Future daily date in source");
     if (date === targetDate) continue;
     const open = integer(raw.openPrice), close = integer(raw.closePrice), high = integer(raw.highPrice), low = integer(raw.lowPrice), volume = integer(raw.accumulatedTradingVolume);
-    if (!(open > 0 && close > 0 && high >= Math.max(open, close) && low > 0 && low <= Math.min(open, close) && volume > 0)) { rejected.push({ date, reason: "invalid_ohlcv" }); continue; }
+    // A JSON number 0 for volume is the source reporting no trade (e.g. a
+    // halted symbol); a missing or malformed volume stays invalid_ohlcv.
+    if (!(open > 0 && close > 0 && high >= Math.max(open, close) && low > 0 && low <= Math.min(open, close) && volume > 0)) { rejected.push({ date, reason: raw.accumulatedTradingVolume === 0 ? "zero_volume" : "invalid_ohlcv" }); continue; }
     accepted.push({ symbol, date, open, high, low, close, volume, comparison: "unverified" });
   }
   accepted.reverse(); // newest first, matching the cache consumer
