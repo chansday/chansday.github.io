@@ -4,6 +4,7 @@ import { isKoreanSymbol } from "./korean-symbol.js";
 import { repoPath } from "./repo-paths.js";
 import { RETURN_HISTORY_SESSIONS } from "./forecast-basis.js";
 import { isRidgeModel } from "./ridge-model.js";
+import { RANK_FEATURE_SESSIONS, isRankModel, predictCrossSection } from "./rank-model.js";
 
 export const dailyHistoryPath = (targetDate) => repoPath(`data/daily-history/${targetDate}.json`);
 
@@ -61,20 +62,37 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
     if (record.return_history !== undefined) {
       if (!record.return_history || typeof record.return_history !== "object" || Array.isArray(record.return_history)) throw new Error("invalid return history");
       return_history = {};
+      // Entries are [date, open, close] (older caches) or [date, open, close, high, low, volume].
+      const width = Object.values(record.return_history)[0]?.[0]?.length;
+      if (Object.keys(record.return_history).length && ![3, 6].includes(width)) throw new Error("invalid return history");
       for (const [symbol, candles] of Object.entries(record.return_history)) {
         if (!universe.has(symbol) || !Array.isArray(candles) || candles.length < 3 || candles.length > RETURN_HISTORY_SESSIONS) throw new Error("invalid return history");
         candles.forEach((c, k) => {
-          if (!Array.isArray(c) || c.length !== 3 || !isValidDate(c[0]) || !(c[0] < targetDate) || (k && !(c[0] < candles[k - 1][0])) || ![c[1], c[2]].every(n => Number.isSafeInteger(n) && n > 0)) throw new Error("invalid return history");
-          if (k < 3) { const row = maps[k].get(symbol); if (c[0] !== expected[k] || !row || row.open !== c[1] || row.close !== c[2]) throw new Error("return history disagrees with sessions"); }
+          if (!Array.isArray(c) || c.length !== width || !isValidDate(c[0]) || !(c[0] < targetDate) || (k && !(c[0] < candles[k - 1][0])) || !c.slice(1).every(n => Number.isSafeInteger(n) && n > 0)) throw new Error("invalid return history");
+          if (width === 6 && (c[3] < Math.max(c[1], c[2]) || c[4] > Math.min(c[1], c[2]))) throw new Error("invalid return history");
+          if (k < 3) { const row = maps[k].get(symbol); if (c[0] !== expected[k] || !row || row.open !== c[1] || row.close !== c[2] || (width === 6 && (row.high !== c[3] || row.low !== c[4] || row.volume !== c[5]))) throw new Error("return history disagrees with sessions"); }
         });
-        if (allowed.has(symbol)) return_history[symbol] = candles.map(([date, open, close]) => ({ date, open, close }));
+        if (allowed.has(symbol)) return_history[symbol] = candles.map(([date, open, close, high, low, volume]) => width === 6 ? { date, open, close, high, low, volume } : { date, open, close });
       }
     }
     // Optional trained model; a malformed one invalidates the cache, null means
     // training had too little history.
     if (record.forecast_model !== undefined && record.forecast_model !== null && (!isRidgeModel(record.forecast_model) || !(record.forecast_model.train_last_date < targetDate))) throw new Error("invalid forecast model");
     const forecast_model = record.forecast_model ?? null;
+    // Optional rank forecast: every stored prediction is recomputed from the
+    // stored bars across the same cross-section; any difference invalidates it.
+    let rank_forecast = null;
+    if (record.rank_forecast !== undefined && record.rank_forecast !== null) {
+      const rf = record.rank_forecast, preds = rf?.predictions;
+      if (!isRankModel(rf?.model) || !(rf.model.train_last_date < targetDate) || !preds || typeof preds !== "object" || !return_history) throw new Error("invalid rank forecast");
+      const symbols = Object.keys(preds);
+      if (symbols.some((s) => !return_history[s] || return_history[s].length !== RANK_FEATURE_SESSIONS || return_history[s][0].volume === undefined)) throw new Error("invalid rank forecast");
+      const again = predictCrossSection(rf.model, new Map(symbols.map((s) => [s, return_history[s]])));
+      const same = (a, b) => typeof a === "number" && typeof b === "number" && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
+      if (!again || Object.keys(again).length !== symbols.length || symbols.some((s) => !again[s] || !same(again[s].predicted, preds[s]?.predicted) || !Array.isArray(preds[s].ranks) || !again[s].ranks.every((v, j) => same(v, preds[s].ranks[j])) || !Array.isArray(preds[s].features) || !again[s].features.every((v, j) => same(v, preds[s].features[j])))) throw new Error("rank forecast does not reproduce");
+      rank_forecast = { model: rf.model, predictions: preds };
+    }
     const comparison_conflicts = sessions.reduce((n, s) => n + s.rows.filter(r => r.comparison === "conflict").length, 0);
-    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
+    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, rank_forecast, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
   } catch (error) { return { ok: false, reason: `Naver daily history unavailable: ${error.message}` }; }
 }

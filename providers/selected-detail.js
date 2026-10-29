@@ -12,6 +12,8 @@ export const OPEN_GAP_MODEL_ID = "prior_3_sessions_open_gap_mean_capped_5pct";
 export const CLOSE_SESSION_MODEL_ID = RETROSPECTIVE_MODEL_ID;
 export const CLOSE_SHRUNK_MODEL_ID = "prior_20_sessions_trimmed_shrunk_mean_capped_1pct";
 export const RIDGE_MODEL_ID = "ridge_6_features_60_sessions_v1";
+export const RANK_MODEL_ID = "ridge_rank_11_features_60_sessions_v1";
+const RANK_FEATURE_LABELS = ["20일 절사평균 장중수익률", "5일 평균 장중수익률", "전일 장중수익률", "전일 갭", "20일 모멘텀", "20일 변동성", "20일 평균 일중 변동폭", "전일 거래량 비율(로그)", "전일 종가 위치", "20일 평균 갭", "거래대금 규모(로그)"];
 const RIDGE_FEATURE_LABELS = ["20일 절사평균 장중수익률", "5일 평균 장중수익률", "전일 장중수익률", "전일 갭", "20일 모멘텀", "20일 변동성"];
 
 const decimal = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
@@ -102,6 +104,7 @@ function describeCloseBasis(basis, row) {
   const model = basisModel(basis), i = basis?.inputs || {}, ec = row.expected_close;
   if (model === CLOSE_SHRUNK_MODEL_ID) return describeShrunkCloseBasis(basis, row);
   if (model === RIDGE_MODEL_ID) return describeRidgeCloseBasis(basis, row);
+  if (model === RANK_MODEL_ID) return describeRankCloseBasis(basis, row);
   if (model !== CLOSE_SESSION_MODEL_ID) return null;
   const sessions = Array.isArray(i.session_returns) ? i.session_returns : [];
   const multiplier = finite(i.applied_session_return) ? 1 + i.applied_session_return : null;
@@ -114,6 +117,27 @@ function describeCloseBasis(basis, row) {
   if (finite(recomputed) && finite(ec) && Math.abs(recomputed - ec) > 0.011) sentences.push(`저장된 예상 종가(${formatWon(ec)})와 재계산값(${formatWon(recomputed)})이 다릅니다. 화면에는 저장값을 표시합니다.`);
   if (finite(i.expected_open) && finite(row.expected_open) && Math.abs(i.expected_open - row.expected_open) > 0.0001) sentences.push(`예상 종가 근거의 예상 시가(${formatWon(i.expected_open)})가 저장된 예상 시가(${formatWon(row.expected_open)})와 다릅니다.`);
   return { items: [item("예상 종가 모델", model), item("장중 수익률 평균 → 적용", `${ratioPct(i.mean_session_return)} → ${ratioPct(i.applied_session_return)}`)], sentences };
+}
+
+function describeRankCloseBasis(basis, row) {
+  const i = basis?.inputs || {}, m = i.model_params || {}, ec = row.expected_close;
+  const multiplier = finite(i.predicted_return) ? 1 + i.predicted_return : null;
+  const recomputed = finite(i.expected_open) && finite(multiplier) ? round(i.expected_open * multiplier, 2) : null;
+  const er = deriveExpectedReturn(row);
+  const base = finite(i.expected_open) ? decimal.format(i.expected_open) : "—";
+  const tail = finite(er) ? ` → 예상 수익률 ${formatPct(er)}` : "";
+  const ranks = Array.isArray(i.ranks) ? i.ranks : [], weights = Array.isArray(m.weights) ? m.weights : [];
+  const parts = ranks.map((v, k) => (finite(weights[k + 1]) && finite(v) ? { k, v, c: weights[k + 1] * v } : null)).filter(Boolean).sort((a, b) => Math.abs(b.c) - Math.abs(a.c));
+  const pct = (v) => v >= 0 ? `상위 ${decimal.format(Math.round((0.5 - v) * 1000) / 10)}%` : `하위 ${decimal.format(Math.round((v + 0.5) * 1000) / 10)}%`;
+  const featureText = parts.slice(0, 4).map((p) => `${RANK_FEATURE_LABELS[p.k] || `요인 ${p.k + 1}`} ${pct(p.v)}(기여 ${ratioPct(p.c)})`).join(", ") || "기록 없음";
+  const sentences = [
+    `${m.train_first_date || "—"}~${m.train_last_date || "—"} ${finite(m.train_days) ? m.train_days : "—"}거래일·${finite(m.samples) ? integer.format(m.samples) : "—"}개 표본으로 매일 다시 학습한 순위 리지 회귀(λ=${finite(m.lambda) ? m.lambda : "—"}, 요인 ${ranks.length}개)입니다.`,
+    `영향이 큰 요인(당일 전 종목 중 위치): ${featureText}.`,
+    `시장 수준 ${ratioPct(m.level)} + 기본값 ${ratioPct(weights[0])} + 요인 기여 합계 → 예상 장중 수익률 ${ratioPct(i.predicted_return)} → 예상 종가 = ${base} × ${multiplierText(multiplier)} = ${formatWon(recomputed)}${tail}.`,
+    "요인 값은 그날 전 종목 순위로 바꿔 사용하므로 극단값에 흔들리지 않고, 별도 상한은 두지 않습니다.",
+  ];
+  if (finite(recomputed) && finite(ec) && Math.abs(recomputed - ec) > 0.011) sentences.push(`저장된 예상 종가(${formatWon(ec)})와 재계산값(${formatWon(recomputed)})이 다릅니다. 화면에는 저장값을 표시합니다.`);
+  return { items: [item("예상 종가 모델", RANK_MODEL_ID), item("예상 장중 수익률", ratioPct(i.predicted_return))], sentences };
 }
 
 function describeRidgeCloseBasis(basis, row) {

@@ -54,8 +54,10 @@ test("estimate uses the model only with 20 candles, stores a verifiable basis an
   assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...i, predicted_return: i.predicted_return + 1e-4 } }, row), false);
   assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...i, model_params: { ...m, weights: m.weights.map((w, k) => k ? w : w + 1e-4) } } }, row), false);
   assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...i, model_params: { ...m, train_last_date: "2099-01-01" } } }, row), false, "model trained after the inputs");
-  // Fewer than 20 candles or no model: the 20-session shrunk model applies.
-  assert.notEqual(priorHistoryEstimate(sessions, "100001", { returnHistory: candles.slice(0, 19), forecastModel: m }).close_basis.model, RIDGE_MODEL);
+  // On a model day a symbol the model cannot score gets no expected close (no
+  // differently scaled fallback); without a model the 20-session shrunk model applies.
+  const unscored = priorHistoryEstimate(sessions, "100001", { returnHistory: candles.slice(0, 19), forecastModel: m });
+  assert.equal(unscored.expected_close, null); assert.equal(unscored.close_basis, null); assert.ok(unscored.expected_open > 0);
   assert.notEqual(priorHistoryEstimate(sessions, "100001", { returnHistory: candles }).close_basis.model, RIDGE_MODEL);
 });
 
