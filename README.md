@@ -69,7 +69,7 @@ stage workflow에는 schedule cron이 없습니다. GitHub schedule 이벤트가
 | 목적 | 버튼 |
 | --- | --- |
 | 현재 시각에 맞는 단계 하나 실행 | `[4 수동] run now (현재 시각 단계)` → **Run workflow** |
-| 특정 거래일의 전체 단계 순서 실행 | `[4 수동] run all now (전체 단계)` → **Run workflow** (`run_date` 입력) |
+| 특정 거래일의 전체 단계 순서 실행 (마감 정산이 없는 과거 거래일은 일봉으로 전체 재현) | `[4 수동] run all now (전체 단계)` → **Run workflow** (`run_date` 입력) |
 | 특정 단계만 실행 | `[2 단계] 08:20 forecast`, `[2 단계] 09:00 open-settlement`, `[2 단계] 15:30 close-settlement` 등 |
 | 누락된 마감 정산 보충 | `[3 보충] 누락 마감 정산 catch-up` |
 

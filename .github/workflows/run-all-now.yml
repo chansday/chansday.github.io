@@ -68,12 +68,12 @@ jobs:
         with:
           node-version: 22
 
-      - name: Require a stored close settlement for past dates
+      - name: Check past run dates
         id: historical-guard
         # "Today" is the KST date of the same runner-captured start run-all.mjs
-        # uses. Market-closed dates pass so run-all reports market_closed as
-        # before; past trading days without 1530.json fail with the matching
-        # recovery path (close-catch-up.yml eligibility is reused, not copied).
+        # uses. Market-closed dates pass so run-all reports market_closed; a
+        # past trading day with 1530.json is re-evaluated, one without it is
+        # reconstructed from daily candles (scripts/reconstruct-day.mjs).
         shell: bash
         env:
           RUN_STARTED_AT: ${{ steps.run-context.outputs.run_started_at }}
@@ -82,7 +82,6 @@ jobs:
           node --input-type=module <<'JS'
           import { existsSync } from "node:fs";
           import { classifyMarketDate, kstDate, loadMarketCalendar } from "./scripts/market-calendar.mjs";
-          import { MAX_CATCH_UP_TRADING_DAYS, catchUpEligibility, loadCatchUpBase } from "./scripts/close-catch-up.mjs";
           const runDate = process.env.KOSPI_RUN_DATE;
           const started = new Date(process.env.RUN_STARTED_AT || "");
           const fail = (message) => { console.log(`::error::${message}`); process.exitCode = 1; };
@@ -98,17 +97,12 @@ jobs:
             } else {
               const calendar = await loadMarketCalendar();
               const market = classifyMarketDate(runDate, calendar);
-              const eligibility = market.status === "run" ? catchUpEligibility(runDate, today, calendar) : null;
               if (market.reason === "calendar_coverage_missing") {
                 fail(`run_date ${runDate} is outside the checked-in KRX calendar coverage (${calendar.coverage.start}..${calendar.coverage.end}); run the '[5 관리] 연간 KRX 휴장일 갱신' workflow (update-market-calendar.yml) first.`);
               } else if (market.status !== "run") {
                 console.log(`::notice::run_date ${runDate} is not a KOSPI trading day (${market.reason}); run-all reports the market-closed result.`);
-              } else if (!eligibility.eligible) {
-                fail(`run_date ${runDate} has no ${settlement} and is not within the last ${MAX_CATCH_UP_TRADING_DAYS} trading days before ${today} KST (${eligibility.reason}). close-catch-up.yml cannot settle it and run all now only re-evaluates a stored settlement; manual recovery is required.`);
-              } else if (!(await loadCatchUpBase(runDate))) {
-                fail(`run_date ${runDate} has no ${settlement} and no same-date 0900/0820 stage file, so there are no recorded forecasts to settle; neither run all now nor close-catch-up.yml can produce a close settlement for this date.`);
               } else {
-                fail(`run_date ${runDate} has no ${settlement}. Run all now only re-evaluates a stored close settlement for past dates; run the '[3 보충] 누락 마감 정산 catch-up' workflow (close-catch-up.yml) with run_date=${runDate} instead.`);
+                console.log(`::notice::run_date ${runDate} has no ${settlement}; run-all reconstructs every stage file of the date from Naver daily candles.`);
               }
             }
           }
@@ -161,7 +155,8 @@ jobs:
           RETROSPECTIVE_SOURCE_RUN_ID: ${{ steps.run-all.outputs.retrospective_source_run_id }}
         run: |
           set -euo pipefail
-          if [ "$OPERATING_ALLOWED" = true ] && ! git diff --quiet -- data/latest-snapshot.json data/runs; then
+          # status, not diff: a reconstructed date adds untracked stage files.
+          if [ "$OPERATING_ALLOWED" = true ] && [ -n "$(git status --porcelain -- data/latest-snapshot.json data/runs)" ]; then
             node scripts/generate-date-index.mjs
             git add data/latest-snapshot.json data/runs data/date-index.json
           fi

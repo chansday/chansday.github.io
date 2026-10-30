@@ -5,6 +5,11 @@ import { resolveStage } from "./run-context.mjs";
 import { run as runStage } from "./update-results.mjs";
 import { runDailyBaseline } from "./daily-baseline-run.mjs";
 import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
+import { reconstructDate } from "./reconstruct-day.mjs";
+
+async function exists(path) {
+  try { await access(path); return true; } catch { return false; }
+}
 
 const STAGES = Object.freeze([
   "update-results",
@@ -220,7 +225,7 @@ async function appendSummary(summary) {
   await appendFile(summaryPath, lines.join("\n"), "utf8");
 }
 
-export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState, experimentRunner = stageRunner === runStage ? runDailyBaseline : null, retrospectiveRunner = stageRunner === runStage ? runPostCloseEvaluation : null } = {}) {
+export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState, experimentRunner = stageRunner === runStage ? runDailyBaseline : null, retrospectiveRunner = stageRunner === runStage ? runPostCloseEvaluation : null, reconstructor = stageRunner === runStage ? reconstructDate : null } = {}) {
   const options = parseArgs(argv);
   if (!options) return { help: true };
   const market = await checkMarketDate(options.runDate);
@@ -248,6 +253,20 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
   if (options.dryRun) {
     const decision = overallDecision(plan);
     const summary = { ...base, ...decision, mode: "plan_only", stages: plan };
+    await appendSummary(summary);
+    return summary;
+  }
+
+  // A previous trading day without a stored close settlement is rebuilt from
+  // daily candles: every stage file is (re)written as if analysed that day.
+  if (options.runDate < currentDate && reconstructor && !(await exists(`data/runs/${options.runDate}/1530.json`))) {
+    let result;
+    try { result = await reconstructor({ runDate: options.runDate, runId: options.runId }); }
+    catch (error) { result = { status: "blocked", reason: `Reconstruction failed: ${error.message}`, wrote: [] }; }
+    const ready = result.status === "ready";
+    const retrospective = { ...(result.retrospective || { status: "not_run" }), historical: true, sourceRunId: options.runId, message: result.retrospective?.status === "ready" ? `${result.retrospective.evaluated}/${result.retrospective.total} rows evaluated from the reconstructed settlement` : result.retrospective?.reason || "not run" };
+    const summary = { ...base, status: ready ? "ready" : result.status === "blocked" ? "blocked" : "degraded", reason: result.reason, executedStagesReady: ready, pendingOnlyPartial: false, commitAllowed: ready, reconstructed: true,
+      stages: [{ stage: "reconstruction", status: ready ? "ready" : result.status, executed: true, message: result.reason }], experiment: { status: "not_run", saved: false }, retrospective };
     await appendSummary(summary);
     return summary;
   }
