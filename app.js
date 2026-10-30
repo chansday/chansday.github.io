@@ -407,6 +407,7 @@ function renderProvenance(data, source, status) {
   setText(elementIds["source-name"], sourceDisplayName(source, data));
   setText(elementIds["source-license"], source?.license_status ? `이용 조건: ${displayEnumLabel(source.license_status, "확인 필요")}` : "이용 조건 —");
   const urlNode = elementIds["source-url"];
+  urlNode.hidden = isNaverCrawl;
   if (source?.url) { urlNode.textContent = "원천 파일 열기 ↗"; urlNode.href = source.url; urlNode.removeAttribute("aria-disabled"); } else { urlNode.textContent = "원천 파일 링크 —"; urlNode.href = "#"; urlNode.setAttribute("aria-disabled", "true"); }
   setText(elementIds["evaluation-scope"], evaluation.evaluation_range?.forecast_date ? `${formatPlainDate(evaluation.evaluation_range.forecast_date)} 예상·정산` : historical ? "KOSPI 전체 공개 행" : status === "ready" ? "운영 스냅샷 행" : "평가 대기");
   setText(elementIds["snapshot-date"], formatDate(data?.asOfDate || data?.trade_date));
