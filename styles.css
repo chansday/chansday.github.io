@@ -461,14 +461,3 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 }
 
 
-/* 단타 패널 */
-.daytrade-panel { padding: 20px; border-radius: 14px; }
-.daytrade-panel h3 { margin: 22px 0 8px; font-size: 14px; }
-.daytrade-table { max-width: 100%; overflow-x: auto; }
-.daytrade-table table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.daytrade-table th, .daytrade-table td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-.daytrade-table th:first-child, .daytrade-table td:first-child, .daytrade-table td:nth-child(2) { text-align: left; }
-.daytrade-table th { color: var(--dim); font-weight: 600; }
-.daytrade-up { color: #ff6b6b; }
-.daytrade-down { color: #5aa9ff; }
-.daytrade-note { margin-top: 14px; color: var(--dim); font-size: 11px; }

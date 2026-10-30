@@ -4,6 +4,7 @@
 // include the target date.
 import { FEATURE_SESSIONS, RIDGE_MODEL, isRidgeModel, ridgeFeatures, ridgePredict } from "./ridge-model.js";
 import { RANK_FEATURE_SESSIONS, RANK_MODEL, isRankModel, rankFeatures, rankPredict } from "./rank-model.js";
+import { DAYTRADE_FEATURE_NAMES, DAYTRADE_MODEL, daytradeClosePrediction } from "./daytrade-model.js";
 
 export const PREOPEN_QUOTE_MODEL = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL = "prior_3_sessions_open_gap_mean_capped_5pct";
@@ -194,7 +195,22 @@ function isRidgeCloseBasis(basis, row, asOfDate) {
   return o.prior_close === s0.close && o.gaps[0].open === s0.open && o.gaps[0].previous_close === s1.close && o.gaps[1].open === s1.open && o.gaps[1].previous_close === s2.close;
 }
 
+// Day-trade close (scored at 09:00 with the actual open, whatever the expected
+// open's source): the stored ranks and
+// model coefficients must reproduce predicted_return, and expected_close is the
+// expected open moved by it, so expected_return equals the model's open->close.
+function isDaytradeCloseBasis(basis, row, asOfDate) {
+  const i = basis.inputs, m = i?.model_params;
+  if (!validHistoryDates(basis.history_dates, 3) || !exactKeys(i, ["expected_open", "actual_open", "prior_close", "open_gap", "market_gap", "ranks", "predicted_return", "model_params"]) || !positive(i.expected_open) || i.expected_open !== row.expected_open || !positive(i.actual_open) || !positive(i.prior_close)) return false;
+  if (asOfDate && !(basis.history_dates[0] < asOfDate)) return false;
+  if (!m || m.model !== DAYTRADE_MODEL || !Array.isArray(m.columns) || !m.columns.every((j) => Number.isInteger(j) && j >= 0 && j < DAYTRADE_FEATURE_NAMES.length) || !Array.isArray(m.weights) || m.weights.length !== m.columns.length + 1 || ![m.level_intercept, m.level_slope, ...m.weights].every(finite) || !DATE.test(m.train_last_date) || !(m.train_last_date <= basis.history_dates[0])) return false;
+  if (!Array.isArray(i.ranks) || i.ranks.length !== DAYTRADE_FEATURE_NAMES.length || !i.ranks.every((v) => finite(v) && v >= -0.5 && v <= 0.5) || !finite(i.market_gap)) return false;
+  if (!near(i.open_gap, i.actual_open / i.prior_close - 1)) return false;
+  return near(i.predicted_return, daytradeClosePrediction(m, i.ranks, i.market_gap)) && row.expected_close === round(i.expected_open * (1 + i.predicted_return));
+}
+
 export function isCloseBasis(basis, row, { asOfDate = null } = {}) {
+  if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === DAYTRADE_MODEL) return positive(row?.expected_close) && isDaytradeCloseBasis(basis, row, asOfDate);
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === RANK_MODEL) return positive(row?.expected_close) && isRankCloseBasis(basis, row, asOfDate);
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === RIDGE_MODEL) return positive(row?.expected_close) && isRidgeCloseBasis(basis, row, asOfDate);
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === CLOSE_SHRUNK_MODEL) return positive(row?.expected_close) && isShrunkCloseBasis(basis, row, asOfDate);

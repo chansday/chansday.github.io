@@ -111,13 +111,25 @@ export function isDaytradeModel(m) {
 // Predicted returns from the open (fractions) for every entry of one day.
 export function predictDaytrade(model, { entries, marketGap }) {
   return entries.map((e) => {
-    const out = { symbol: e.symbol, gap: e.gap, turnover: e.turnover };
+    const out = { symbol: e.symbol, gap: e.gap, turnover: e.turnover, ranks: e.ranks };
     for (const target of DAYTRADE_TARGETS) {
       const t = model.targets[target], x = [1, ...model.columns.map((j) => e.ranks[j])];
       out[target] = t.level_intercept + t.level_slope * marketGap + x.reduce((s, v, i) => s + v * t.weights[i], 0);
     }
     return out;
   });
+}
+
+// Expected-close basis of a stock row scored at 09:00: everything needed to
+// recompute predicted_return (and the row's expected_close) from the model.
+export function daytradeCloseBasis({ model, prediction, marketGap, expectedOpen, actualOpen, priorClose, historyDates }) {
+  const t = model.targets.close;
+  return { model: DAYTRADE_MODEL, history_dates: [...historyDates], inputs: { expected_open: expectedOpen, actual_open: actualOpen, prior_close: priorClose, open_gap: prediction.gap, market_gap: marketGap, ranks: [...prediction.ranks], predicted_return: prediction.close,
+    model_params: { model: model.model, columns: [...model.columns], train_first_date: model.train_first_date, train_last_date: model.train_last_date, train_days: model.train_days, ...(model.trained_at ? { trained_at: model.trained_at } : {}), level_intercept: t.level_intercept, level_slope: t.level_slope, weights: [...t.weights] } } };
+}
+
+export function daytradeClosePrediction(params, ranks, marketGap) {
+  return params.level_intercept + params.level_slope * marketGap + [1, ...params.columns.map((j) => ranks[j])].reduce((s, v, i) => s + v * params.weights[i], 0);
 }
 
 // The day's picks: liquid symbols ranked by predicted close return.

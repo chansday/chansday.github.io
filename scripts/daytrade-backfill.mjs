@@ -9,6 +9,27 @@ import { RANK_FEATURE_SESSIONS } from "../providers/rank-model.js";
 import { buildDays, trainDaytradeModel } from "../providers/daytrade-model.js";
 import { createProgressLog } from "../providers/progress-log.js";
 import { daytradeClose, daytradeOpen } from "./daytrade-signal.mjs";
+import { priorHistoryEstimate } from "../providers/forecast-basis.js";
+import { readFile as read, writeFile as write } from "node:fs/promises";
+import { repoPath } from "../providers/repo-paths.js";
+
+async function fillExpectedOpen(date, observations, recordedAt, log) {
+  const dates = [...new Set(observations.map((o) => o.date))].filter((d) => d < date).sort().slice(-3).reverse();
+  const sessions = dates.map((d) => ({ date: d, rows: observations.filter((o) => o.date === d) }));
+  for (const label of ["0900", "1530"]) {
+    const path = repoPath(`data/runs/${date}/${label}.json`);
+    let snapshot; try { snapshot = JSON.parse(await read(path, "utf8")); } catch { continue; }
+    let filled = 0;
+    snapshot.rows = snapshot.rows.map((row) => {
+      if (row.expected_open > 0 || row.trading_status === "no_trade_observed") return row;
+      const estimate = priorHistoryEstimate(sessions, row.symbol);
+      if (!estimate) return row;
+      filled++;
+      return { ...row, expected_open: estimate.expected_open, expected_open_source: { kind: "retrospective_history", recorded_at: recordedAt, history_dates: dates }, expected_open_basis: estimate.open_basis };
+    });
+    if (filled) { await write(path, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8"); log(`${label}.json 예상 시가 채움 · ${filled}종목 (직전 3거래일 일봉)`); }
+  }
+}
 
 export async function backfillDaytrade({ observations, from, to, log = () => {} }) {
   const days = buildDays(observations), results = [];
@@ -21,6 +42,7 @@ export async function backfillDaytrade({ observations, from, to, log = () => {} 
       const list = (prior[o.symbol] ||= []);
       if (list.length < RANK_FEATURE_SESSIONS) list.push([o.date, o.open, o.close, o.high, o.low, o.volume]);
     }
+    await fillExpectedOpen(date, observations, new Date().toISOString(), log);
     const opened = await daytradeOpen({ date, model, returnHistory: prior, backfill: true, log });
     const closed = opened.status === "ready" ? await daytradeClose({ date, log }) : null;
     results.push({ date, model: `${model.train_first_date}~${model.train_last_date}`, open: opened.status, close: closed?.status ?? "not_run", net_return: closed?.net_return ?? null, market_return: closed?.market_return ?? null });
