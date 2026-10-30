@@ -312,6 +312,8 @@
         "evaluation_score_count": { "type": ["integer", "null"], "minimum": 1, "description": "Optional. N, the number of rows in this snapshot with expected_return_raw." },
         "actual_open": { "type": ["number", "null"] },
         "actual_close": { "type": ["number", "null"] },
+        "actual_high": { "type": ["number", "null"], "exclusiveMinimum": 0 },
+        "actual_low": { "type": ["number", "null"], "exclusiveMinimum": 0 },
         "actual_return": { "type": ["number", "null"] },
         "session_return": { "type": ["number", "null"] },
         "intraday_reference_return": { "type": ["number", "null"] },
@@ -353,6 +355,7 @@
         "status": { "type": "string" }
       },
       "allOf": [
+        { "if": { "required": ["trading_status"], "properties": { "trading_status": { "const": "no_trade_observed" } } }, "then": { "properties": { "actual_high": { "type": "null" }, "actual_low": { "type": "null" } } } },
         {
           "if": { "required": ["expected_open_source"] },
           "then": { "properties": { "expected_open": { "type": "number", "exclusiveMinimum": 0 }, "expected_open_source": { "allOf": [

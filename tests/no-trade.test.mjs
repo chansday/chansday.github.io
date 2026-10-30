@@ -137,7 +137,8 @@ const pollingEvidence = { source: "naver_polling_quote", trade_stop_type: "HALTE
 test("row validation: the marker requires source zero evidence and no observed prices", () => {
   const ok = baseRow(H, { trading_status: "no_trade_observed", no_trade_evidence: pollingEvidence });
   assert.equal(validateRankingRows([ok]).valid, true);
-  for (const bad of [{ ...ok, actual_open: 100 }, { ...ok, no_trade_evidence: { ...pollingEvidence, trade_stop_type: "TRADING", tradable_status: "tradable" } }, { ...ok, no_trade_evidence: { ...pollingEvidence, observed_at: null } }, { ...ok, no_trade_evidence: { source: "naver_daily_candle", volume: null, dates: ["2026-10-28"], reason: "x" } }, { ...ok, trading_status: "halted" }, { ...baseRow(H), no_trade_evidence: pollingEvidence },
+  assert.equal(validateRankingRows([{ ...ok, actual_high: null, actual_low: null }]).valid, true);
+  for (const bad of [{ ...ok, actual_high: 120 }, { ...ok, actual_low: 90 }, { ...ok, actual_high: 120, actual_low: 90 }, { ...ok, actual_open: 100 }, { ...ok, no_trade_evidence: { ...pollingEvidence, trade_stop_type: "TRADING", tradable_status: "tradable" } }, { ...ok, no_trade_evidence: { ...pollingEvidence, observed_at: null } }, { ...ok, no_trade_evidence: { source: "naver_daily_candle", volume: null, dates: ["2026-10-28"], reason: "x" } }, { ...ok, trading_status: "halted" }, { ...baseRow(H), no_trade_evidence: pollingEvidence },
     { ...ok, no_trade_evidence: { source: "naver_daily_history", volume: 0, dates: ["2026-10-27"], reason: "x" }, expected_open: 100 }]) assert.equal(validateRankingRows([bad]).valid, false);
 });
 
@@ -182,3 +183,18 @@ test("detail panel says 거래 없음(정지 추정) instead of missing-data not
   const normal = buildSelectedDetail(baseRow(N), {});
   assert.ok(normal.sections.find((s) => s.id === "actual").missing.length > 0, "ordinary missing rows keep their notes");
 });
+
+test("close settlement records polling highs and lows and merges optional values safely", async () => withRoot(async () => {
+  const at = "2026-10-27T06:35:00Z";
+  const close = { localTradedAt: "2026-10-27T15:34:50+09:00", marketStatus: "CLOSE" };
+  const result = await settle("settleClose", at, [quote(A, { ...close, highPriceRaw: "1,200", lowPriceRaw: "95" }), quote(N, { ...close, highPriceRaw: "0", lowPriceRaw: " " })]);
+  const a = result.rows.find((r) => r.symbol === A), n = result.rows.find((r) => r.symbol === N);
+  assert.equal(a.actual_high, 1200); assert.equal(a.actual_low, 95);
+  assert.equal(n.actual_high, null); assert.equal(n.actual_low, null);
+  assert.equal(validateRankingRows(result.rows).valid, true);
+  const old = { ...a }; delete old.actual_high; delete old.actual_low;
+  assert.equal(validateRankingRows([old]).valid, true);
+  const merged = mergeRows([old], [a], "close-settlement")[0];
+  assert.equal(merged.actual_high, 1200); assert.equal(merged.actual_low, 95);
+  assert.equal(validateRankingRows([{ ...a, actual_high: 0 }]).valid, false);
+}));

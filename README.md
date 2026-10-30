@@ -80,7 +80,7 @@
 - 각 행에 `quote_at`과 `quote_age_seconds`, `market_status`를 보존하고, source metadata에 `retrieved_at`, 요청 수, freshness max age, universe/quote endpoint와 지연 가능성, `universe_source`(`live`/`cache`), `universe_as_of`, `universe_stale`, cache 사용 시 `universe_fallback_reason`, host별 robots 확인 결과(`robots`)를 기록합니다.
 - 장전(`KST < 09:00`): 신선하고 PREOPEN으로 확인된 `openPriceRaw`를 기록하며, 없으면 검증된 직전 3거래일 이력으로 예상 시가를 계산합니다. 이력 수집이 실패하면 차단은 `blocked`, 그 밖의 오류는 `degraded`로 기록합니다.
 - 장중(`09:00 ≤ KST < 15:30`): 신선한 `openPriceRaw`를 `actual_open`으로 저장합니다.
-- 장마감 후(`KST ≥ 15:30`): 당일 `openPriceRaw`와 `closePriceRaw`를 실제 시가·종가로 저장합니다. 장마감 quote의 허용 max age는 별도로 검증합니다.
+- 장마감 후(`KST ≥ 15:30`): 당일 `openPriceRaw`와 `closePriceRaw`를 실제 시가·종가로 저장하고, polling 응답의 `highPriceRaw`·`lowPriceRaw`를 `actual_high`·`actual_low`로 저장합니다. 빈 값, 0 또는 유효하지 않은 값은 null이며 기존 기록은 소급 변경하지 않습니다. 최고·최저의 거래시간 범위는 공급자에서 확인되지 않았습니다. 장마감 quote의 허용 max age는 별도로 검증합니다.
 - 수동 `run-all`의 장중 현재가는 `intraday_reference_return` 참고값에만 사용합니다. 예상 시가는 저장된 장전 값 또는 직전 이력의 사후 계산값이며, `openPriceRaw`는 정산 단계에서 `actual_open`으로 기록합니다. `close-settlement`는 15:30 KST 이후에만 실행됩니다.
 - `run-started-at`은 단계 eligibility와 target 거래일을 정하는 기준시각이고, `meta.source.retrieved_at`은 각 provider 요청이 실제로 수집된 시각입니다. 두 시각을 동일한 값으로 가장하지 않으며, Naver `localTradedAt`은 실제 수집시각보다 최대 5초 앞선 서버 clock skew만 허용합니다. 그 밖의 stale·missing·다른 날짜 timestamp는 계속 `degraded`/`no_data`입니다.
 - Naver 이용정책/라이선스가 확인되지 않아 `license_status=unconfirmed`이며, 이 값은 source metadata에 그대로 보존합니다. fresh·current-day·schema-valid quote여도 시장 기준과 보통주 분류가 확인되기 전에는 `partial`로 처리하고 신규 운영 snapshot commit을 차단합니다. stale·missing·out-of-date timestamp, HTTP/parse failure는 계속 `no_data`/`degraded`/`blocked`로 처리되어 run-all commit을 허용하지 않습니다.

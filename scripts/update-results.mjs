@@ -39,7 +39,7 @@ export function copyForecastBundle(target, from) {
   return target;
 }
 const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open"]);
-const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "session_return", "actual_volume"]);
+const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "actual_high", "actual_low", "session_return", "actual_volume"]);
 
 export { calculateRunContext } from "./run-context.mjs";
 
@@ -171,7 +171,7 @@ function derivedSessionReturn(row) {
 function applyTradingStatus(merged, incoming) {
   if (Object.hasOwn(incoming, "trading_status")) {
     merged.trading_status = incoming.trading_status; merged.no_trade_evidence = incoming.no_trade_evidence;
-    if (merged.no_trade_evidence?.source !== "naver_daily_history") { merged.actual_open = null; merged.actual_close = null; merged.actual_volume = null; merged.session_return = null; }
+    if (merged.no_trade_evidence?.source !== "naver_daily_history") { merged.actual_open = null; merged.actual_close = null; merged.actual_high = null; merged.actual_low = null; merged.actual_volume = null; merged.session_return = null; }
     else if (merged.expected_open > 0) { delete merged.trading_status; delete merged.no_trade_evidence; }
     // A halt seen by a forecast-stage quote leaves no opening estimate.
     if (merged.no_trade_evidence?.source === "naver_polling_quote" && incoming.expected_open === null && merged.expected_open !== null) { merged.expected_open = null; delete merged.expected_open_source; delete merged.expected_open_basis; if (merged.expected_close_basis) { merged.expected_close = null; delete merged.expected_close_basis; } }

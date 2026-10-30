@@ -35,6 +35,8 @@ export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "prior_close_source",
   "quality",
   "actual_volume",
+  "actual_high",
+  "actual_low",
   "prior_close",
   "session_return",
   "intraday_reference_return",
@@ -63,7 +65,8 @@ export function isNoTradeEvidence(row) {
   if (e.source === "naver_polling_quote" && ((e.trade_stop_type !== "HALTED" && e.tradable_status !== "halt") || typeof e.observed_at !== "string" || !Number.isFinite(Date.parse(e.observed_at)))) return false;
   if (e.source !== "naver_polling_quote" && (e.volume !== 0 || !Array.isArray(e.dates) || !e.dates.length || e.dates.some((d) => !/^\d{4}-\d{2}-\d{2}$/.test(d)))) return false;
   if (e.source === "naver_daily_history" && row.expected_open !== null) return false;
-  return row.actual_open === null && row.actual_close === null && row.error === null;
+  return row.actual_open === null && row.actual_close === null && row.error === null
+    && ["actual_high", "actual_low"].every((field) => !Object.hasOwn(row, field) || row[field] === null);
 }
 
 export const SNAPSHOT_STATUSES = Object.freeze([
@@ -118,6 +121,7 @@ export function isRankingRow(row) {
   if (Object.hasOwn(row, "expected_open_basis") && !isOpenBasis(row.expected_open_basis, row)) return false;
   if (Object.hasOwn(row, "expected_close_basis") && (!isCloseBasis(row.expected_close_basis, row) || row.expected_open_basis?.model !== OPEN_GAP_MODEL || row.expected_close_basis.history_dates.join() !== row.expected_open_basis.history_dates.join())) return false;
   if (Object.hasOwn(row, "prior_close_source") && (row.prior_close_source !== "naver_polling_close_minus_change" || !(row.prior_close > 0))) return false;
+  if (["actual_high", "actual_low"].some((field) => Object.hasOwn(row, field) && row[field] !== null && !(typeof row[field] === "number" && Number.isFinite(row[field]) && row[field] > 0))) return false;
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;
   if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
   if (Object.hasOwn(row, "session_return") && !isFiniteOrNull(row.session_return)) return false;

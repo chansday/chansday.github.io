@@ -417,6 +417,8 @@ function normalizeQuote(raw, now) {
     name: name || symbol,
     openPrice,
     closePrice,
+    highPrice: parseNumber(raw?.highPriceRaw),
+    lowPrice: parseNumber(raw?.lowPriceRaw),
     priorClose: priorClose !== null && priorClose > 0 ? priorClose : null,
     volume: parseNumber(raw?.accumulatedTradingVolumeRaw),
     quoteAt,
@@ -442,7 +444,7 @@ export function haltEvidence(quote) {
 }
 
 export function markNoTrade(row, evidence) {
-  Object.assign(row, { actual_open: null, actual_close: null, actual_volume: null, session_return: null, error: null, trading_status: NO_TRADE_STATUS, no_trade_evidence: evidence });
+  Object.assign(row, { actual_open: null, actual_close: null, actual_high: null, actual_low: null, actual_volume: null, session_return: null, error: null, trading_status: NO_TRADE_STATUS, no_trade_evidence: evidence });
   return row;
 }
 
@@ -512,6 +514,7 @@ function rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, runStar
     expected_return: expectedReturn,
     actual_open: actualOpen,
     actual_close: actualClose,
+    ...(stage === "close-settlement" ? { actual_high: quote.highPrice > 0 ? quote.highPrice : null, actual_low: quote.lowPrice > 0 ? quote.lowPrice : null } : {}),
     actual_return: null,
     session_return: sessionReturn,
     ...(intradayReferenceReturn !== null ? { intraday_reference_return: intradayReferenceReturn } : {}),
