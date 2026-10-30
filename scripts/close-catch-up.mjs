@@ -6,6 +6,7 @@ import { dailyHistoryPath, loadNaverDailyHistory, priorTradingDates } from "../p
 import { DAILY_CHART_ENDPOINT, collectNaverDailyRows } from "../providers/naver-daily-rows.js";
 import { validateRankingRows } from "../providers/provider-adapter.js";
 import { NO_TRADE_STATUS, compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
+import { withEvaluationScores } from "../providers/evaluation-score.js";
 import { dataRoot, repoPath } from "../providers/repo-paths.js";
 import { copyForecastBundle } from "./update-results.mjs";
 import { buildForecastInputs } from "../providers/forecast-inputs.js";
@@ -179,7 +180,7 @@ export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () 
 function rankByExpectedReturn(rows) {
   rows.sort(compareByExpectedReturn);
   rows.forEach((row, index) => { row.rank = index + 1; });
-  return rows;
+  return withEvaluationScores(rows);
 }
 
 // Pure builder: the 1530 snapshot for D from its base stage file and candles.

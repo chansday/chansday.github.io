@@ -21,6 +21,9 @@
 + 운영 provider의 보통주·우선주 분류는 미확인이고 우선주가 포함될 수 있습니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
 - 운영 quote의 시장 표기와 일봉의 시장·조정 기준은 독립적으로 확인되지 않았습니다. 관측·계산값은 원본과 출처 경고를 표시하며, 일봉과 정규시장 quote의 시장 범위가 다를 수 있습니다. 통화는 KRW, 시간대는 `Asia/Seoul`입니다.
 - `expected_return = (expected_close / expected_open - 1) × 100`은 예상 시가와 예상 종가가 모두 있을 때만 계산합니다. 예상 종가 모델이 없으면 `expected_return`과 `error`는 `null`/`no_data`입니다. `session_return = (actual_close / actual_open - 1) × 100`은 실제 시가→실제 종가 기준입니다. `intraday_reference_return`은 별도 실행시점 참고값이며 `expected_return`과 구분합니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
+- 화면의 `종목 평가` 열(이전 `예상 수익률` 열)은 예상 수익률 자체가 아니라 그 날 snapshot 안에서의 백분위 점수 0–100을 소수 셋째 자리(예: `87.342`)로 표시합니다. 입력은 반올림하지 않은 `expected_return_raw = (expected_close / expected_open - 1) × 100`이고, 값이 있는 종목 수를 N, 자신보다 낮은 종목 수를 L, 자신과 정확히 같은 종목 수(자신 포함)를 E라 할 때 `score = (L + 0.5 × (E - 1)) / (N - 1) × 100`(평균 순위 백분위, `(평균 오름차순 순위 - 1) / (N - 1) × 100`과 같음)입니다. 예상 수익률이 높을수록 점수가 높고, 최고 단독 값은 100, 최저 단독 값은 0, 동률은 차지한 순위의 평균을 나눠 갖습니다. N = 1이면 50입니다. 예상 시가·예상 종가가 없는 종목은 N에서 제외되고 `—`로 표시됩니다. 마우스를 올리면 `885종목 중 113위 · 원래 값 +0.0371%`처럼 내림차순 순위(동률은 `공동`)와 반올림하지 않은 원래 예상 수익률(소수 넷째 자리)을 보여 줍니다. 정렬 키 `expectedReturn`(종목 평가 높은 순)은 같은 원값 순서를 사용합니다.
+- 계산은 `providers/evaluation-score.js` 한 곳에 있으며 파이프라인과 브라우저가 함께 사용합니다. `update-results.mjs`와 `close-catch-up.mjs`는 snapshot을 쓸 때마다 최종 행 전체로 선택 필드 `expected_return_raw`, `evaluation_score`(half-up 소수 셋째 자리 반올림), `evaluation_score_rank`, `evaluation_score_count`를 다시 계산해 저장합니다. 기존 `expected_return`(소수 둘째 자리)과 `error = session_return - expected_return` 평가 계약은 바뀌지 않습니다. 화면은 표시 중인 행(사후 평가 overlay 적용 후 포함)의 `expected_open`/`expected_close`로 같은 함수를 실행해 점수를 그리므로, 이 필드가 없는 과거 snapshot도 같은 방식으로 표시됩니다.
+- 사후 평가 overlay를 적용한 뒤에는 저장된 `evaluation_*`·`expected_return_raw` 필드가 갱신되지 않으며, 화면이 표시 행으로 다시 계산한 점수를 보여 줍니다. 점수는 정수 연산 `round_half_up((2L + E - 1) × 100000 / (2 × (N - 1)))`(0.001 단위)으로 반올림하며, 터치 기기에서도 보이도록 모바일 카드와 상세 패널에 `113위/885 · +0.0371%` 형식의 순위·원래 값을 함께 표시합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
 - Naver 공개 웹 크롤링은 출처와 비공식·지연 가능성을 화면과 snapshot metadata에 표시하며, 403/429/CAPTCHA·challenge·HTML 응답은 즉시 중단합니다. HTML 우회, rate-limit 우회, 무한 재시도는 하지 않습니다.
@@ -110,7 +113,7 @@
 
 `data/date-index.json`은 [`scripts/generate-date-index.mjs`](scripts/generate-date-index.mjs)가 `data/runs` 및 mode별 fixture/replay/backfill 폴더를 스캔해 생성합니다. 새 run stage를 추가할 때는 이 인덱스를 갱신하고, 브라우저는 mode별 실제 경로를 다시 읽습니다. 달력은 색상뿐 아니라 `결과 있음·조회 중·미수집·휴장일·오류` 텍스트, `aria-selected`, `aria-disabled`, `aria-live`로 상태를 전달합니다. 모바일에서는 860px 이하에서 제목·달력·컨텍스트가 줄바꿈되고 달력 폭은 viewport 안으로 제한됩니다.
 
-화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `예상 수익률`은 예상 시가→예상 종가가 확인된 경우에만 표시하며, `실제 장중 수익률`은 실제 시가→실제 종가로 계산합니다. fallback에서는 실제 run의 필드를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
+화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `종목 평가`(예상 수익률의 당일 백분위 점수)는 예상 시가→예상 종가가 확인된 경우에만 표시하며, `실제 장중 수익률`은 실제 시가→실제 종가로 계산합니다. fallback에서는 실제 run의 필드를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
 historical baseline은 직전 5개 거래일의 공개 일별 종가만 사용합니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다. `features`에는 전일 수익률, 최근 3개 수익률 평균(momentum), 최근 4개 수익률의 모집단 표준편차(volatility)를 함께 저장합니다.
 

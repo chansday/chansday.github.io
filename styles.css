@@ -454,6 +454,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
 }
+.evaluation-note { display: block; margin-top: 2px; color: var(--dim); font-family: "DM Mono", monospace; font-size: 9px; line-height: 1.35; overflow-wrap: anywhere; }
 @media (forced-colors: active) {
   *, *::before, *::after { box-shadow: none !important; }
   :focus-visible { outline: 3px solid Highlight; }
