@@ -44,6 +44,11 @@ export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "market_status",
   "trading_status",
   "no_trade_evidence",
+  // 종목 평가 fields (providers/evaluation-score.js); recomputed at write time.
+  "expected_return_raw",
+  "evaluation_score",
+  "evaluation_score_rank",
+  "evaluation_score_count",
 ]);
 
 export const NO_TRADE_SOURCES = Object.freeze(["naver_polling_quote", "naver_daily_candle", "naver_daily_history"]);
@@ -117,6 +122,9 @@ export function isRankingRow(row) {
   if (Object.hasOwn(row, "prior_close") && !isFiniteOrNull(row.prior_close)) return false;
   if (Object.hasOwn(row, "session_return") && !isFiniteOrNull(row.session_return)) return false;
   if (Object.hasOwn(row, "intraday_reference_return") && !isFiniteOrNull(row.intraday_reference_return)) return false;
+  if (Object.hasOwn(row, "expected_return_raw") && !isFiniteOrNull(row.expected_return_raw)) return false;
+  if (Object.hasOwn(row, "evaluation_score") && row.evaluation_score !== null && !(isFiniteOrNull(row.evaluation_score) && row.evaluation_score >= 0 && row.evaluation_score <= 100)) return false;
+  if (["evaluation_score_rank", "evaluation_score_count"].some((field) => Object.hasOwn(row, field) && row[field] !== null && !(Number.isInteger(row[field]) && row[field] >= 1))) return false;
   if (Object.hasOwn(row, "quote_at") && row.quote_at !== null && typeof row.quote_at !== "string") return false;
   if (Object.hasOwn(row, "quote_age_seconds") && !isFiniteOrNull(row.quote_age_seconds)) return false;
   if (Object.hasOwn(row, "market_status") && row.market_status !== null && typeof row.market_status !== "string") return false;

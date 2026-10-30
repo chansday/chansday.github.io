@@ -20,5 +20,5 @@ test("ranking status labels remain visible in desktop and mobile layouts", async
   assert.match(app, /deriveExpectedReturn\(\{ expected_open: expectedOpen, expected_close: expectedClose \}\)/);
   assert.match(app, /deriveEvaluationError\(\{ expected_open: expectedOpen, expected_close: expectedClose, actual_open: actualOpen, actual_close: actualClose \}\)/);
   assert.match(app, /sortRankingRows\(rows, sortKey\)/);
-  assert.match(html, /<option value="expectedReturn" selected>예상 수익률 높은 순<\/option>/);
+  assert.match(html, /<option value="expectedReturn" selected>종목 평가 높은 순<\/option>/);
 });

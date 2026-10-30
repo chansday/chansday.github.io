@@ -208,7 +208,8 @@ test("unavailable settlement preserves previously successful actual fields", asy
     for (const mode of ["open-settlement", "close-settlement"]) {
       await execExpectNonReady(process.execPath, [script, "--mode", mode, "--provider", "none", "--run-date", "2026-10-23", "--data-file", dataFile], { cwd: PROJECT_ROOT });
       const observed = JSON.parse(await readFile(dataFile, "utf8"));
-      assert.deepEqual(observed.rows[0], { ...row, error: 1.94 });
+      // 종목 평가 fields are recomputed on every write (single scored row: N = 1 -> 50).
+      assert.deepEqual(observed.rows[0], { ...row, error: 1.94, expected_return_raw: (101 / 100 - 1) * 100, evaluation_score: 50, evaluation_score_rank: 1, evaluation_score_count: 1 });
     }
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
