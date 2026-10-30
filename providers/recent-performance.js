@@ -14,10 +14,16 @@ export function summarizePerformance(snapshot, date) {
   return { date, top10: mean(10), top20: mean(20) };
 }
 
-// Match the ranking table: apply the matching, validated retrospective record
-// when present; callers must distinguish a missing record from a read error.
+// Match the ranking table: a snapshot already scored by the close model or
+// already marked retrospective keeps its own expected values; otherwise apply
+// the matching, validated retrospective record when present. Callers must
+// distinguish a missing record from a read error.
+export function usesRetrospectiveOverlay(snapshot) {
+  return !snapshot?.meta?.retrospective_evaluation && !snapshot?.meta?.close_model;
+}
+
 export function summarizeDisplayedPerformance(snapshot, date, record = null) {
-  return summarizePerformance(record ? mergePostCloseEvaluation(snapshot, record) : snapshot, date);
+  return summarizePerformance(record && usesRetrospectiveOverlay(snapshot) ? mergePostCloseEvaluation(snapshot, record) : snapshot, date);
 }
 
 export function isNegativePerformance(value) {

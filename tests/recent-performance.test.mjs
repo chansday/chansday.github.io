@@ -12,9 +12,23 @@ test('retrospective overlay uses the same ranks as the displayed table', async (
   const date = '2026-10-27';
   const snapshot = JSON.parse(await readFile(new URL(`../data/runs/${date}/1530.json`, import.meta.url)));
   const record = JSON.parse(await readFile(new URL(`../data/runs/${date}/retrospective-${snapshot.meta.run_id}.json`, import.meta.url)));
+  delete snapshot.meta.close_model;
   const result = summarizeDisplayedPerformance(snapshot, date, record);
   assert.ok(Math.abs(result.top10 - 2.0711) < 0.001);
   assert.ok(Math.abs(result.top20 - 0.8850) < 0.001);
+});
+
+test('close-model snapshot keeps its own expected values instead of the retrospective record', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { summarizeDisplayedPerformance } = await import('../providers/recent-performance.js');
+  const date = '2026-10-27';
+  const snapshot = JSON.parse(await readFile(new URL(`../data/runs/${date}/1530.json`, import.meta.url)));
+  const record = JSON.parse(await readFile(new URL(`../data/runs/${date}/retrospective-${snapshot.meta.run_id}.json`, import.meta.url)));
+  assert.ok(snapshot.meta.close_model);
+  assert.deepEqual(summarizeDisplayedPerformance(snapshot, date, record), summarizePerformance(snapshot, date));
+  const synthetic = make(); synthetic.meta.close_model = { model: 'test' };
+  const reversed = { ...record, rows: synthetic.rows.map(row => ({ ...row, expected_close: 80 + Number(row.symbol) })) };
+  assert.deepEqual(summarizeDisplayedPerformance(synthetic, '2026-10-29', reversed), summarizePerformance(synthetic, '2026-10-29'));
 });
 
 test('negative highlight requires a finite top 10 return below zero', () => {

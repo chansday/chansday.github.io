@@ -1,4 +1,4 @@
-import { summarizeDisplayedPerformance, isNegativePerformance } from "./providers/recent-performance.js";
+import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
@@ -467,7 +467,7 @@ function renderHeader(data) {
   renderDateNavigation();
   setText(document.getElementById("ranking-lede"), data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
   // A table already scored by the day-trade model keeps its own expected values.
-  if (!data?.meta?.retrospective_evaluation && !data?.meta?.close_model) void renderPostClose(data);
+  if (usesRetrospectiveOverlay(data)) void renderPostClose(data);
 }
 
 function currentRouteDate(data = snapshot) {
@@ -864,7 +864,7 @@ async function renderRecentPerformance() {
       const data = await fetchSnapshot(`./data/runs/${date}/1530.json`, "Close settlement request failed");
       let result;
       const runId = data?.meta?.run_id;
-      if (data?.meta?.run_stage === "close-settlement" && /^[A-Za-z0-9._-]+$/.test(runId || "")) {
+      if (data?.meta?.run_stage === "close-settlement" && usesRetrospectiveOverlay(data) && /^[A-Za-z0-9._-]+$/.test(runId || "")) {
         try {
           const response = await fetch(`./data/runs/${date}/retrospective-${runId}.json`, { cache: "no-store" });
           if (!response.ok && response.status !== 404) throw new Error("Retrospective record unavailable");
