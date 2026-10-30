@@ -6,6 +6,7 @@ import { run as runStage } from "./update-results.mjs";
 import { runDailyBaseline } from "./daily-baseline-run.mjs";
 import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
 import { reconstructDate } from "./reconstruct-day.mjs";
+import { daytradeClose, daytradeOpen } from "./daytrade-signal.mjs";
 import { createProgressLog } from "../providers/progress-log.js";
 
 async function exists(path) {
@@ -226,7 +227,7 @@ async function appendSummary(summary) {
   await appendFile(summaryPath, lines.join("\n"), "utf8");
 }
 
-export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState, experimentRunner = stageRunner === runStage ? runDailyBaseline : null, retrospectiveRunner = stageRunner === runStage ? runPostCloseEvaluation : null, reconstructor = stageRunner === runStage ? reconstructDate : null } = {}) {
+export async function runAll(argv = process.argv.slice(2), { stageRunner = runStage, consistencyChecker = verifyFinalState, experimentRunner = stageRunner === runStage ? runDailyBaseline : null, retrospectiveRunner = stageRunner === runStage ? runPostCloseEvaluation : null, reconstructor = stageRunner === runStage ? reconstructDate : null, daytradeRunner = stageRunner === runStage ? { open: daytradeOpen, close: daytradeClose } : null } = {}) {
   const options = parseArgs(argv);
   if (!options) return { help: true };
   const market = await checkMarketDate(options.runDate);
@@ -345,6 +346,12 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
         stageResults.set(stage, stageResult);
         executedStages.push(stageResult);
       }
+    }
+    // Day-trade picks from the 09:00 open and their 15:30 result, as in the stage workflows.
+    for (const [stage, mode] of [["open-settlement", "open"], ["close-settlement", "close"]]) {
+      if (!daytradeRunner || stageResults.get(stage)?.status !== "ready") continue;
+      try { const result = await daytradeRunner[mode]({ date: options.runDate, log }); log(`단타 신호 ${mode} · ${result.status}${result.reason ? ` (${result.reason})` : ""}`); }
+      catch (error) { log(`단타 신호 ${mode} 실패 · ${error.message}`); }
     }
   } finally {
     for (const [key, value] of Object.entries(previousEnv)) {

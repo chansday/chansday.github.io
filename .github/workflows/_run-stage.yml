@@ -141,6 +141,19 @@ jobs:
           KOSPI_RUN_DATE: ${{ steps.validate-run-context.outputs.run_date }}
         run: node scripts/stage-post-close-evaluation.mjs
 
+      - name: Score day-trade picks
+        id: daytrade
+        # 09:00 scores the picks from the actual open; 15:30 records their result.
+        if: >-
+          steps.market-day.outputs.should_run == 'true' &&
+          steps.stage.outcome == 'success' && steps.stage.outputs.status == 'ready' &&
+          contains(fromJSON('["open-settlement","close-settlement"]'), (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage))
+        continue-on-error: true
+        env:
+          RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
+          KOSPI_RUN_DATE: ${{ steps.validate-run-context.outputs.run_date }}
+        run: node scripts/daytrade-signal.mjs "$([ "$RESOLVED_STAGE" = open-settlement ] && echo open || echo close)" --date "$KOSPI_RUN_DATE"
+
       - name: Write workflow summary
         if: always()
         shell: bash
@@ -188,13 +201,14 @@ jobs:
           RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
         run: |
           set -euo pipefail
-          changes="$(git status --short -- data/latest-snapshot.json data/runs)"
+          changes="$(git status --short -- data/latest-snapshot.json data/runs data/daytrade)"
           if [ -z "$changes" ]; then
             echo "No snapshot changes to commit."
             exit 0
           fi
           node scripts/generate-date-index.mjs
           git add data/latest-snapshot.json data/runs data/date-index.json
+          if [ -d data/daytrade ]; then git add -- data/daytrade; fi
           bash scripts/commit-and-push.sh "chore(data): record KOSPI $RESOLVED_STAGE stage"
 
       - name: Save isolated daily baseline

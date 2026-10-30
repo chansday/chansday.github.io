@@ -6,6 +6,7 @@ import { sortRankingRows } from "./providers/ranking-sort.js";
 import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore } from "./providers/evaluation-score.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
 import { NO_TRADE_LABEL, buildSelectedDetail } from "./providers/selected-detail.js";
+import { renderDaytrade } from "./providers/daytrade-view.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
@@ -466,6 +467,7 @@ function renderHeader(data) {
   renderDateNavigation();
   setText(document.getElementById("ranking-lede"), data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
   if (!data?.meta?.retrospective_evaluation) void renderPostClose(data);
+  void renderDaytrade(currentDate);
 }
 
 function currentRouteDate(data = snapshot) {

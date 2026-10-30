@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261030i">
-    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261030i","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261030i","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261030i","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261030i","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261030i","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261030i","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261030i","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261030i","./providers/rank-model.js":"./providers/rank-model.js?v=20261030i","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261030i","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261030i","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261030i","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261030i","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261030i"}}</script>
-    <script type="module" src="./app.js?v=20261030i"></script>
-    <script type="module" src="./providers/daily-experiment-view.js?v=20261030i"></script>
+    <link rel="stylesheet" href="./styles.css?v=20261030j">
+    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261030j","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261030j","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261030j","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261030j","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261030j","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261030j","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261030j","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261030j","./providers/rank-model.js":"./providers/rank-model.js?v=20261030j","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261030j","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261030j","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261030j","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261030j","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261030j","./providers/daytrade-view.js":"./providers/daytrade-view.js?v=20261030j"}}</script>
+    <script type="module" src="./app.js?v=20261030j"></script>
+    <script type="module" src="./providers/daily-experiment-view.js?v=20261030j"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content" onclick="event.preventDefault(); const target = document.getElementById('main-content'); if (target) { target.focus({ preventScroll: true }); target.scrollIntoView(); }">본문으로 바로가기</a>
@@ -98,6 +98,16 @@
           </div>
         </section>
 
+        <section id="daytrade" class="section page-width daytrade-section" aria-labelledby="daytrade-title" hidden>
+          <div class="section-heading"><div><p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> 하루 단타 · 09:00 시가 기준</p><h2 id="daytrade-title">오늘의 단타 후보</h2></div></div>
+          <div class="daytrade-panel glass-panel">
+            <p id="daytrade-status" aria-live="polite">단타 점수를 확인하는 중입니다.</p>
+            <div id="daytrade-picks" class="daytrade-table"></div>
+            <h3>운영 기록</h3><div id="daytrade-record" class="daytrade-table"></div>
+            <h3>백테스트 비교</h3><div id="daytrade-backtest" class="daytrade-table"></div>
+            <p class="daytrade-note">시가에 사서 종가에 판다고 가정한 정보용 점수입니다. 투자 조언이 아니며 수익을 보장하지 않습니다. 주문·자동매매 기능은 없습니다.</p>
+          </div>
+        </section>
         <section id="daily-experiment" class="section page-width" aria-labelledby="daily-experiment-title" hidden>
           <h2 id="daily-experiment-title">일봉 기준가 실험 · 실제 시세 아님</h2>
           <p>추정 기준가는 이전 일봉 종가입니다. 예상 시가나 현재가가 아닙니다. 예상 종가와 수익률은 기준가 대비 실험 추정치이며 실제 종가 정산은 별도입니다.</p>
