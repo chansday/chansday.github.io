@@ -1,4 +1,4 @@
-name: "[5 관리] scheduler keeper"
+name: "[5 관리] 단계 정시 실행 스케줄러"
 
 # Dispatches the stage workflows at their KST times (06:10 history, 07:00
 # update-results, 08:00 analysis, 08:20 forecast, 09:00 open-settlement,

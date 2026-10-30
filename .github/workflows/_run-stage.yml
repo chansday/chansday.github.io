@@ -1,4 +1,4 @@
-name: "[내부] 공용 stage 실행기"
+name: "[내부] 공용 단계 실행기"
 
 on:
   workflow_call:

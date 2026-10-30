@@ -1,4 +1,4 @@
-name: "[4 수동] run now (현재 시각 단계)"
+name: "[4 수동] 지금 실행 (현재 시각 단계)"
 
 on:
   workflow_dispatch:

@@ -1,4 +1,4 @@
-name: "[4 수동] run all now (전체 단계)"
+name: "[4 수동] 전체 단계 실행 (날짜 지정)"
 
 on:
   workflow_dispatch:
@@ -203,7 +203,7 @@ jobs:
               weekend:*|public_holiday:*|substitute_holiday:*|temporary_holiday:*|market_holiday:*)
                 echo "::notice::휴장일이라 실행할 것이 없음 (${OVERALL_REASON%%:*})"
                 {
-                  echo "### [4 수동] run all now (전체 단계): market closed"
+                  echo "### [4 수동] 전체 단계 실행 (날짜 지정): market closed"
                   echo "- 휴장일이라 실행할 것이 없음 (\`${OVERALL_REASON%%:*}\`); no collection or snapshot write was performed."
                 } >> "$GITHUB_STEP_SUMMARY"
                 exit 0

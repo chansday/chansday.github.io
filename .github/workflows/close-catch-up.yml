@@ -1,4 +1,4 @@
-name: "[3 보충] 누락 마감 정산 catch-up"
+name: "[3 보충] 누락 마감 정산 보충"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at 09:30 KST or later,

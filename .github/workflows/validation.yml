@@ -1,4 +1,4 @@
-name: "[6 검증] push·PR validation"
+name: "[6 검증] 푸시·PR 코드 검증"
 
 on:
   push:

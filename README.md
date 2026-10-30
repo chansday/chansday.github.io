@@ -62,16 +62,16 @@ endpoint, robots 확인 결과, 종목 목록 파일, timeout과 freshness 규�
 
 ## 실행 일정
 
-stage workflow에는 schedule cron이 없습니다. GitHub schedule 이벤트가 수 시간씩 지연된 실측(2026-10-28) 때문에, `[5 관리] scheduler keeper`가 KST 정시까지 기다렸다가 각 stage를 `workflow_dispatch`로 시작합니다.
+stage workflow에는 schedule cron이 없습니다. GitHub schedule 이벤트가 수 시간씩 지연된 실측(2026-10-28) 때문에, `[5 관리] 단계 정시 실행 스케줄러`가 KST 정시까지 기다렸다가 각 stage를 `workflow_dispatch`로 시작합니다.
 
 수동 실행은 Actions에서 다음 버튼을 사용합니다. 입력값은 비워 둡니다.
 
 | 목적 | 버튼 |
 | --- | --- |
-| 현재 시각에 맞는 단계 하나 실행 | `[4 수동] run now (현재 시각 단계)` → **Run workflow** |
-| 특정 거래일의 전체 단계 순서 실행 (마감 정산이 없는 과거 거래일은 일봉으로 전체 재현) | `[4 수동] run all now (전체 단계)` → **Run workflow** (`run_date` 입력) |
-| 특정 단계만 실행 | `[2 단계] 08:20 forecast`, `[2 단계] 09:00 open-settlement`, `[2 단계] 15:30 close-settlement` 등 |
-| 누락된 마감 정산 보충 | `[3 보충] 누락 마감 정산 catch-up` |
+| 현재 시각에 맞는 단계 하나 실행 | `[4 수동] 지금 실행 (현재 시각 단계)` → **Run workflow** |
+| 특정 거래일의 전체 단계 순서 실행 (마감 정산이 없는 과거 거래일은 일봉으로 전체 재현) | `[4 수동] 전체 단계 실행 (날짜 지정)` → **Run workflow** (`run_date` 입력) |
+| 특정 단계만 실행 | `[2 단계] 08:20 장전 예측`, `[2 단계] 09:00 시가 정산`, `[2 단계] 15:30 종가 정산` 등 |
+| 누락된 마감 정산 보충 | `[3 보충] 누락 마감 정산 보충` |
 
 keeper 동작, 중복 방지, 거래일 guard, 연간 휴장일 갱신은 [docs/OPERATIONS.md](docs/OPERATIONS.md)를 참고하세요.
 

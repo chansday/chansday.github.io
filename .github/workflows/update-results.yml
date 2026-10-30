@@ -1,4 +1,4 @@
-name: "[2 단계] 07:00 update-results"
+name: "[2 단계] 07:00 전일 결과 정리"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the

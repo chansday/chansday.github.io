@@ -163,7 +163,7 @@ test("a non-ready stage exposes its status and cannot satisfy the snapshot commi
 
 test("run all now exposes only run_date and commits the final state once", async () => {
   const workflow = await readFile(new URL("run-all-now.yml", new URL("../.github/workflows/", import.meta.url)), "utf8");
-  assert.match(workflow, /^name: "\[4 수동\] run all now/m);
+  assert.match(workflow, /^name: "\[4 수동\] 전체 단계 실행/m);
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /run_date:/);
   assert.doesNotMatch(workflow, /inputs:\s*\n\s+provider:/);
