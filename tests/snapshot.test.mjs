@@ -383,6 +383,16 @@ test("ranking views expose actual close whenever settlement data is present", as
   assert.match(html, /id="selected-actual-close"/);
 });
 
+test("ranking table and mobile cards show actual high between close and session return", async () => {
+  const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(app, /actualHigh: valueOf\(row, "actual_high"\)/);
+  assert.match(app, /function formatHigh\(value\) \{ return finite\(value\) \? formatPrice\(value\) : "-"; \}/);
+  assert.match(app, /rowMetric\("실제 종가", formatPrice\(row\.actualClose\)\)\}\$\{rowMetric\("실제 최고가", formatHigh\(row\.actualHigh\)\)\}\$\{rowMetric\("실제 장중 수익률"/);
+  assert.match(app, /formatPrice\(row\.actualClose\)\}<\/td><td>\$\{formatHigh\(row\.actualHigh\)\}<\/td><td class="\$\{toneClass\(row\.sessionReturn\)/);
+  assert.match(html, />실제 종가<\/th><th scope="col">실제 최고가<\/th><th scope="col" title="실제 시가 대비 실제 종가 수익률">실제 장중 수익률/);
+});
+
 test("public documentation keeps the return definitions scoped to expected, session, and intraday reference fields", async () => {
   const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
   const systemDesign = await readFile(new URL("../docs/SYSTEM_DESIGN.md", import.meta.url), "utf8");
