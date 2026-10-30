@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "days": [
+    {
+      "date": "2026-10-26",
+      "settled": 20,
+      "net_return": -1.2397,
+      "win_rate": 0.2,
+      "market_return": -1.3173,
+      "mean_high": 2.7744,
+      "mean_low": -2.4787
+    },
+    {
+      "date": "2026-10-27",
+      "settled": 20,
+      "net_return": 0.7119,
+      "win_rate": 0.6,
+      "market_return": 0.6521,
+      "mean_high": null,
+      "mean_low": null
+    },
+    {
+      "date": "2026-10-28",
+      "settled": 20,
+      "net_return": 1.5966,
+      "win_rate": 0.75,
+      "market_return": 0.5402,
+      "mean_high": null,
+      "mean_low": null
+    },
+    {
+      "date": "2026-10-29",
+      "settled": 20,
+      "net_return": -2.728,
+      "win_rate": 0.1,
+      "market_return": -0.9821,
+      "mean_high": null,
+      "mean_low": null
+    },
+    {
+      "date": "2026-10-30",
+      "settled": 20,
+      "net_return": -1.1765,
+      "win_rate": 0.35,
+      "market_return": -0.8513,
+      "mean_high": 2.0869,
+      "mean_low": -3.0934
+    }
+  ]
+}

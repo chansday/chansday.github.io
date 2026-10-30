@@ -18,8 +18,10 @@ const mean = (a) => (a.length ? a.reduce((s, v) => s + v, 0) / a.length : null);
 const readJson = async (path) => { try { return JSON.parse(await readFile(repoPath(path), "utf8")); } catch (error) { if (error.code === "ENOENT") return null; throw error; } };
 const writeJson = async (path, value) => { await mkdir(repoPath("data/daytrade"), { recursive: true }); await writeFile(repoPath(path), `${JSON.stringify(value, null, 2)}\n`, "utf8"); };
 
-export async function daytradeOpen({ date, now = () => new Date(), log = () => {} }) {
-  const cache = await readJson(`data/daily-history/${date}.json`), stage = await readJson(`data/runs/${date}/0900.json`);
+// model / returnHistory override the morning cache (used by the past-date
+// backfill, which trains on the sessions before each date itself).
+export async function daytradeOpen({ date, now = () => new Date(), log = () => {}, model = null, returnHistory = null, backfill = false }) {
+  const cache = model ? { daytrade_model: model, return_history: returnHistory } : await readJson(`data/daily-history/${date}.json`), stage = await readJson(`data/runs/${date}/0900.json`);
   if (!cache || !isDaytradeModel(cache.daytrade_model)) return { status: "no_data", reason: "morning cache has no day-trade model" };
   if (!stage || stage.meta?.run_date !== date || stage.meta?.run_stage !== "open-settlement") return { status: "no_data", reason: "no 09:00 open-settlement file for the date" };
   const names = new Map(stage.rows.map((r) => [r.symbol, r.name]));
@@ -30,7 +32,8 @@ export async function daytradeOpen({ date, now = () => new Date(), log = () => {
   const picks = daytradePicks(predictions).map((p, i) => ({ rank: i + 1, symbol: p.symbol, name: names.get(p.symbol) ?? p.symbol, open_gap: pct(p.gap), expected_close: pct(p.close), expected_high: pct(p.high), expected_low: pct(p.low), turnover_krw: Math.round(p.turnover) }));
   const m = cache.daytrade_model;
   const record = { schema_version: 1, date, generated_at: now().toISOString(), model: { id: m.model, train_first_date: m.train_first_date, train_last_date: m.train_last_date }, assumptions: { entry: "open", exit: "close", top_n: DAYTRADE_TOP_N, min_turnover_krw: DAYTRADE_MIN_TURNOVER, round_trip_cost_pct: DAYTRADE_COST_PCT }, market_gap: pct(day.marketGap), scored: predictions.length, picks, result: null,
-    notice: "09:00 score from the actual open; for information only, not investment advice. Returns are not guaranteed." };
+    ...(backfill ? { backfill: { produced_at: now().toISOString(), method: "model trained on the sessions before the date from Naver daily candles, scored with the stored 09:00 open after the fact" } } : {}),
+    notice: `${backfill ? "Calculated after the fact for a past date, not recorded at 09:00. " : ""}09:00 score from the actual open; for information only, not investment advice. Returns are not guaranteed.` };
   await writeJson(`data/daytrade/${date}.json`, record);
   log(`시가 기준 점수 · ${predictions.length}종목 채점 · 시장 갭 ${record.market_gap}% · 상위 ${picks.length}: ${picks.slice(0, 5).map((p) => `${p.name} ${p.expected_close}%`).join(", ")}…`);
   return { status: "ready", picks: picks.length };
