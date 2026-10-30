@@ -136,16 +136,17 @@ test("stored open/close basis renders as readable sentences with the stored numb
   const expected = section(buildSelectedDetail(historyRow(estimate), {}), "expected");
   const body = text(expected);
   assert.equal(expected.state, "available");
-  assert.match(body, /모델 입력 직전 거래일 종가\(네이버 일봉\) 10-26 104원\. 최근 시가 갭: 10-26 \+0\.99% \(시가 102원 ÷ 10-23 종가 101원 − 1\), 10-23 \+1\.02% \(시가 99원 ÷ 10-22 종가 98원 − 1\) → 평균 \+1\.01% \(±5% 제한 내\) → 예상 시가 = 104 × 1\.0101 = 105\.05원\./);
-  assert.match(body, /최근 3거래일 장중 수익률: 10-26 \+1\.96%, 10-23 \+2\.02%, 10-22 -2\.00% → 평균 \+0\.66% \(±5% 제한 내\) → 예상 종가 = 105\.05 × 1\.0066 = 105\.74원 → 예상 수익률 \+0\.66%\./);
-  assert.match(body, /prior_3_sessions_open_gap_mean_capped_5pct/);
+  assert.match(body, /모델 입력 직전 거래일 종가\(네이버 일봉\) 10-26 104원을 예상 시가로 사용했습니다\. 최근 시가 갭\(10-26 \+0\.99%, 10-23 \+1\.02%\)은 참고용으로만 저장하며 반영하지 않습니다\./);
+  assert.match(body, /최근 3거래일 장중 수익률: 10-26 \+1\.96%, 10-23 \+2\.02%, 10-22 -2\.00% → 평균 \+0\.66% \(±5% 제한 내\) → 예상 종가 = 104 × 1\.0066 = 104\.69원 → 예상 수익률 \+0\.66%\./);
+  assert.match(body, /prior_close_open_v1/);
   assert.match(body, /prior_3_sessions_gap_and_session_mean_capped_5pct/);
   assert.doesNotMatch(body, /저장되지 않아/);
   assert.doesNotMatch(body, /다릅니다/);
   assert.equal(expected.missing.length, 0);
 
   const capped = priorHistoryEstimate([{ date: "2026-10-26", rows: [basisBar("2026-10-26", 130, 131)] }, BASIS_SESSIONS[1], BASIS_SESSIONS[2]], "005930");
-  assert.match(text(section(buildSelectedDetail(historyRow(capped), {}), "expected")), /평균 \+14\.87% \(±5% 제한 적용 → \+5\.00%\) → 예상 시가 = 131 × 1\.0500 = 137\.55원/);
+  // A large recent gap no longer moves the estimate: the prior close is used as is.
+  assert.match(text(section(buildSelectedDetail(historyRow(capped), {}), "expected")), /10-26 131원을 예상 시가로 사용했습니다\. 최근 시가 갭\(10-26 \+28\.71%, 10-23 \+1\.02%\)은 참고용으로만 저장하며 반영하지 않습니다/);
 });
 
 test("row reference price and the model's daily close are labelled separately", async () => {
@@ -188,8 +189,8 @@ test("basis that does not reproduce the stored values is flagged; rows without b
   const { priorHistoryEstimate } = await import("../providers/forecast-basis.js");
   const estimate = priorHistoryEstimate(BASIS_SESSIONS, "005930");
   const body = text(section(buildSelectedDetail(historyRow(estimate, { expected_open: 106, expected_close: 106.7 }), {}), "expected"));
-  assert.match(body, /저장된 예상 시가\(106원\)와 재계산값\(105\.05원\)이 다릅니다/);
-  assert.match(body, /저장된 예상 종가\(106\.7원\)와 재계산값\(105\.74원\)이 다릅니다/);
+  assert.match(body, /저장된 예상 시가\(106원\)와 전일 종가\(104원\)가 다릅니다/);
+  assert.match(body, /저장된 예상 종가\(106\.7원\)와 재계산값\(104\.69원\)이 다릅니다/);
   const legacy = historyRow(estimate);
   delete legacy.expected_open_basis; delete legacy.expected_close_basis;
   assert.match(text(section(buildSelectedDetail(legacy, {}), "expected")), /갭 비율과 직전 거래일 종가 수치\(expected_open_basis\)가 이 행에 저장되지 않아 표시하지 않습니다/);

@@ -17,8 +17,8 @@ const actual = { symbol: "000001", name: "Example", actual_open: 120, actual_clo
 
 test("prior sessions determine both estimates; same-day observations only change evaluation", () => {
   const [row] = buildPostCloseRows(sessions, [actual]);
-  assert.equal(row.expected_open, 112.75);
-  assert.equal(row.expected_close, 114.54);
+  assert.equal(row.expected_open, 110);
+  assert.equal(row.expected_close, 111.75);
   assert.equal(row.expected_return, 1.59);
   assert.equal(row.session_return, 5);
   assert.equal(row.error, 3.41);
@@ -87,7 +87,7 @@ test("retrospective overlays the existing sheet without changing observed values
   const snapshot = { status: "ready", meta: { run_date: "2026-10-27", run_id: "42.1", run_stage: "close-settlement" }, rows: [{ ...actual, status: "valid", actual_volume: 12 }] };
   const record = { schema_version: 1, kind: "post_close_retrospective", run_date: "2026-10-27", run_id: "42.1", history_dates: sessions.map((session) => session.date), notice: "Retrospective", rows: [estimated] };
   const result = mergePostCloseEvaluation(snapshot, record);
-  assert.equal(result.rows[0].expected_open, 112.75);
+  assert.equal(result.rows[0].expected_open, 110);
   assert.equal(result.rows[0].actual_open, 120);
   assert.equal(result.rows[0].actual_volume, 12);
   assert.equal(result.evaluation.evaluated_sample_count, 1);

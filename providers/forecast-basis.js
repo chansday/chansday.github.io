@@ -8,6 +8,12 @@ import { DAYTRADE_FEATURE_NAMES, DAYTRADE_MODEL, daytradeClosePrediction } from 
 
 export const PREOPEN_QUOTE_MODEL = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL = "prior_3_sessions_open_gap_mean_capped_5pct";
+// Expected open from 2026-10-30: the prior close itself. 120-session check on
+// Naver daily bars (912 symbols): |expected / actual open - 1| MAE 1.18% versus
+// 1.50% for the capped two-gap mean (OPEN_GAP_MODEL, kept to read older files);
+// a recent-gap tilt only added noise. The two prior gaps stay in the basis as
+// reference inputs that the close bases cross-check.
+export const PRIOR_CLOSE_OPEN_MODEL = "prior_close_open_v1";
 // Same identifier as the post-close retrospective: expected_close applies the
 // capped mean of the three prior session returns to the gap-based opening.
 export const CLOSE_SESSION_MODEL = "prior_3_sessions_gap_and_session_mean_capped_5pct";
@@ -53,7 +59,8 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, f
   const gaps = [0, 1].map((i) => ({ date: dates[i], open: h[i].open, previous_date: dates[i + 1], previous_close: h[i + 1].close, ratio: h[i].open / h[i + 1].close - 1 }));
   const meanGap = (gaps[0].ratio + gaps[1].ratio) / 2;
   const appliedGap = clamp(meanGap);
-  const expectedOpen = round(h[0].close * (1 + appliedGap));
+  const expectedOpen = round(h[0].close);
+  const openBasis = { model: PRIOR_CLOSE_OPEN_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps } };
   const sessionReturns = h.map((row, i) => ({ date: dates[i], open: row.open, close: row.close, ratio: row.close / row.open - 1 }));
   const meanSession = sessionReturns.reduce((sum, item) => sum + item.ratio, 0) / 3;
   const appliedSession = clamp(meanSession);
@@ -67,14 +74,14 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, f
     return {
       expected_open: expectedOpen,
       expected_close: round(expectedOpen * (1 + predicted)),
-      open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
+      open_basis: openBasis,
       close_basis: { model: RANK_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, candles: bars, features: rank.features, ranks: rank.ranks, predicted_return: predicted, model_params: rankForecast.model } },
     };
   }
   // The day's model decides the scale of every expected return: a symbol the
   // rank (or ridge) model cannot score gets no expected close rather than a
   // value from a differently scaled fallback that would distort the ranking.
-  const openOnly = () => ({ expected_open: expectedOpen, expected_close: null, open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } }, close_basis: null });
+  const openOnly = () => ({ expected_open: expectedOpen, expected_close: null, open_basis: openBasis, close_basis: null });
   if (isRankModel(rankForecast?.model)) return openOnly();
   if (candles && candles.length === FEATURE_SESSIONS && isRidgeModel(forecastModel) && forecastModel.train_last_date <= dates[0]) {
     const returns = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, ratio: c.close / c.open - 1 }));
@@ -83,7 +90,7 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, f
     return {
       expected_open: expectedOpen,
       expected_close: round(expectedOpen * (1 + predicted)),
-      open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
+      open_basis: openBasis,
       close_basis: { model: RIDGE_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, session_returns: returns, features, clipped_features: clipped, predicted_return: predicted, model_params: forecastModel } },
     };
   }
@@ -95,7 +102,7 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, f
     return {
       expected_open: expectedOpen,
       expected_close: shrunkClose,
-      open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
+      open_basis: openBasis,
       close_basis: { model: CLOSE_SHRUNK_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, session_returns: returns, ...stats, cap: SHRUNK_CAP } },
     };
   }
@@ -103,7 +110,7 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, f
   return {
     expected_open: expectedOpen,
     expected_close: expectedClose,
-    open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
+    open_basis: openBasis,
     close_basis: { model: CLOSE_SESSION_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, session_returns: sessionReturns, mean_session_return: meanSession, applied_session_return: appliedSession, cap: BASIS_CAP } },
   };
 }
@@ -131,6 +138,13 @@ export function isOpenBasis(basis, row, { asOfDate = null } = {}) {
   if (basis.model === PREOPEN_QUOTE_MODEL) {
     return src.kind === "preopen_quote" && validHistoryDates(basis.history_dates, 0) && exactKeys(i, ["open_price", "quote_at", "market_status"])
       && positive(i.open_price) && i.open_price === row.expected_open && typeof i.quote_at === "string" && Number.isFinite(Date.parse(i.quote_at)) && i.market_status === "PREOPEN";
+  }
+  if (basis.model === PRIOR_CLOSE_OPEN_MODEL) {
+    if (src.kind === "preopen_quote" || !validHistoryDates(basis.history_dates, 3) || basis.history_dates.join() !== src.history_dates.join()) return false;
+    if (!exactKeys(i, ["prior_close_date", "prior_close", "gaps"]) || i.prior_close_date !== basis.history_dates[0] || !positive(i.prior_close)) return false;
+    if (asOfDate && !(basis.history_dates[0] < asOfDate)) return false;
+    if (!Array.isArray(i.gaps) || i.gaps.length !== 2 || !i.gaps.every((g, k) => exactKeys(g, ["date", "open", "previous_date", "previous_close", "ratio"]) && g.date === basis.history_dates[k] && g.previous_date === basis.history_dates[k + 1] && positive(g.open) && positive(g.previous_close) && near(g.ratio, g.open / g.previous_close - 1))) return false;
+    return row.expected_open === round(i.prior_close);
   }
   if (basis.model === OPEN_GAP_MODEL) {
     if (src.kind === "preopen_quote" || !validHistoryDates(basis.history_dates, 3) || basis.history_dates.join() !== src.history_dates.join()) return false;

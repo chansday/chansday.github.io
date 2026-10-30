@@ -1,7 +1,7 @@
 import { DAYTRADE_MODEL } from "./daytrade-model.js";
 import { NO_TRADE_STATUS, deriveEvaluationError, deriveExpectedReturn, evaluationRowStatus, isEvaluationSummary, isNoTradeRow } from "./evaluation-contract.js";
 import { isKoreanSymbol } from "./korean-symbol.js";
-import { OPEN_GAP_MODEL, isCloseBasis, isOpenBasis } from "./forecast-basis.js";
+import { OPEN_GAP_MODEL, PRIOR_CLOSE_OPEN_MODEL, isCloseBasis, isOpenBasis } from "./forecast-basis.js";
 
 /**
  * Provider contract for the static KOSPI signal board.
@@ -121,7 +121,7 @@ export function isRankingRow(row) {
   // Basis fields must reproduce the stored value from their own inputs.
   if (Object.hasOwn(row, "expected_open_basis") && !isOpenBasis(row.expected_open_basis, row)) return false;
   // The day-trade close basis is self-contained (it carries its own prior close and dates).
-  if (Object.hasOwn(row, "expected_close_basis") && (!isCloseBasis(row.expected_close_basis, row) || (row.expected_close_basis?.model !== DAYTRADE_MODEL && (row.expected_open_basis?.model !== OPEN_GAP_MODEL || row.expected_close_basis.history_dates.join() !== row.expected_open_basis.history_dates.join())))) return false;
+  if (Object.hasOwn(row, "expected_close_basis") && (!isCloseBasis(row.expected_close_basis, row) || (row.expected_close_basis?.model !== DAYTRADE_MODEL && (![OPEN_GAP_MODEL, PRIOR_CLOSE_OPEN_MODEL].includes(row.expected_open_basis?.model) || row.expected_close_basis.history_dates.join() !== row.expected_open_basis.history_dates.join())))) return false;
   if (Object.hasOwn(row, "prior_close_source") && (row.prior_close_source !== "naver_polling_close_minus_change" || !(row.prior_close > 0))) return false;
   if (["actual_high", "actual_low"].some((field) => Object.hasOwn(row, field) && row[field] !== null && !(typeof row[field] === "number" && Number.isFinite(row[field]) && row[field] > 0))) return false;
   if (Object.hasOwn(row, "actual_volume") && !isFiniteOrNull(row.actual_volume)) return false;

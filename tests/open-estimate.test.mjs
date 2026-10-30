@@ -39,7 +39,7 @@ test("history estimate before open and retrospective intraday use only prior dat
     const { provider, calls } = makeProvider(time);
     const result = await provider.generateForecast();
     assert.equal(result.status, "ready");
-    assert.equal(result.rows[0].expected_open, 126);
+    assert.equal(result.rows[0].expected_open, 120);
     assert.equal(result.rows[0].expected_open_source.kind, kind);
     assert.deepEqual(result.rows[0].expected_open_source.history_dates, ["2026-10-26", "2026-10-23", "2026-10-22"]);
     assert.ok(!calls.some((u) => u.includes("quotes_20261027")));

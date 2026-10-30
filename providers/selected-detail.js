@@ -9,6 +9,7 @@ export const RETROSPECTIVE_MODEL_ID = "prior_3_sessions_gap_and_session_mean_cap
 export const HISTORICAL_BASELINE_MODEL_ID = "public_daily_momentum_volatility_v1";
 export const PREOPEN_QUOTE_MODEL_ID = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL_ID = "prior_3_sessions_open_gap_mean_capped_5pct";
+export const PRIOR_CLOSE_OPEN_MODEL_ID = "prior_close_open_v1";
 export const CLOSE_SESSION_MODEL_ID = RETROSPECTIVE_MODEL_ID;
 export const CLOSE_SHRUNK_MODEL_ID = "prior_20_sessions_trimmed_shrunk_mean_capped_1pct";
 export const RIDGE_MODEL_ID = "ridge_6_features_60_sessions_v1";
@@ -84,6 +85,14 @@ function describeOpenBasis(basis, row) {
     const sentences = [`장전 동시호가 예상 체결가(${formatKst(i.quote_at)}, ${i.market_status || "상태 미상"})를 예상 시가로 사용했습니다: ${formatWon(i.open_price)}. 예상 종가 모델은 없습니다.`];
     if (finite(i.open_price) && finite(eo) && Math.abs(i.open_price - eo) > 0.0001) sentences.push(`저장된 예상 시가(${formatWon(eo)})와 근거의 예상 체결가(${formatWon(i.open_price)})가 다릅니다. 화면에는 저장값을 표시합니다.`);
     return { items: [item("예상 시가 모델", model), item("호가 시각", formatKst(i.quote_at)), item("호가 시장 상태", MARKET_STATUS_LABELS[String(i.market_status || "").toUpperCase()] || i.market_status)], sentences };
+  }
+  if (model === PRIOR_CLOSE_OPEN_MODEL_ID) {
+    const gaps = Array.isArray(i.gaps) ? i.gaps : [];
+    const gapText = gaps.map((g) => `${shortDate(g.date)} ${ratioPct(g.ratio)}`).join(", ");
+    const sentences = [`${MODEL_PRIOR_CLOSE_LABEL} ${shortDate(i.prior_close_date)} ${formatWon(i.prior_close)}을 예상 시가로 사용했습니다. 최근 시가 갭(${gapText || "기록 없음"})은 참고용으로만 저장하며 반영하지 않습니다.`];
+    if (finite(i.prior_close) && finite(eo) && Math.abs(Math.round(i.prior_close * 100) / 100 - eo) > 0.011) sentences.push(`저장된 예상 시가(${formatWon(eo)})와 전일 종가(${formatWon(i.prior_close)})가 다릅니다. 화면에는 저장값을 표시합니다.`);
+    const dates = isHistoryDates(basis.history_dates) ? basis.history_dates.join(", ") : "기록 없음";
+    return { items: [item("예상 시가 모델", model), item("사용한 이력 날짜", dates), item(MODEL_PRIOR_CLOSE_LABEL, `${formatWon(i.prior_close)} (${i.prior_close_date || "날짜 미상"})`)], sentences };
   }
   if (model === OPEN_GAP_MODEL_ID) {
     const gaps = Array.isArray(i.gaps) ? i.gaps : [];

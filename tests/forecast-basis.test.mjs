@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CLOSE_SESSION_MODEL, OPEN_GAP_MODEL, PREOPEN_QUOTE_MODEL, priorHistoryEstimate } from "../providers/forecast-basis.js";
+import { CLOSE_SESSION_MODEL, PRIOR_CLOSE_OPEN_MODEL as OPEN_GAP_MODEL, PREOPEN_QUOTE_MODEL, priorHistoryEstimate } from "../providers/forecast-basis.js";
 import { isRankingRow } from "../providers/provider-adapter.js";
 import { buildPostCloseRows } from "../scripts/post-close-evaluation.mjs";
 import { run } from "../scripts/update-results.mjs";
@@ -19,18 +19,19 @@ const SESSIONS = [
 
 test("prior-history estimate stores exactly the inputs it used and reproduces both values", () => {
   const e = priorHistoryEstimate(SESSIONS, "005930");
-  assert.equal(e.expected_open, 105.05); assert.equal(e.expected_close, 105.74);
+  assert.equal(e.expected_open, 104); assert.equal(e.expected_close, 104.69);
   const o = e.open_basis.inputs, c = e.close_basis.inputs;
   assert.equal(e.open_basis.model, OPEN_GAP_MODEL); assert.deepEqual(e.open_basis.history_dates, ["2026-10-26", "2026-10-23", "2026-10-22"]);
   assert.equal(o.prior_close_date, "2026-10-26"); assert.equal(o.prior_close, 104);
   assert.deepEqual(o.gaps.map((g) => [g.date, g.open, g.previous_date, g.previous_close]), [["2026-10-26", 102, "2026-10-23", 101], ["2026-10-23", 99, "2026-10-22", 98]]);
-  assert.equal(o.gaps[0].ratio, 102 / 101 - 1); assert.equal(o.mean_gap, ((102 / 101 - 1) + (99 / 98 - 1)) / 2); assert.equal(o.applied_gap, o.mean_gap); assert.equal(o.cap, 0.05);
-  assert.equal(e.close_basis.model, CLOSE_SESSION_MODEL); assert.equal(c.expected_open, 105.05);
+  // The gaps are kept as reference inputs only; the expected open is the prior close.
+  assert.equal(o.gaps[0].ratio, 102 / 101 - 1); assert.deepEqual(Object.keys(o).sort(), ["gaps", "prior_close", "prior_close_date"]);
+  assert.equal(e.close_basis.model, CLOSE_SESSION_MODEL); assert.equal(c.expected_open, 104);
   assert.deepEqual(c.session_returns.map((s) => [s.date, s.open, s.close]), [["2026-10-26", 102, 104], ["2026-10-23", 99, 101], ["2026-10-22", 100, 98]]);
   assert.equal(c.mean_session_return, ((104 / 102 - 1) + (101 / 99 - 1) + (98 / 100 - 1)) / 3);
-  // Large gaps are capped and the cap is visible in the basis.
+  // A large recent gap does not move the estimate: it stays at the prior close.
   const capped = priorHistoryEstimate([{ date: "2026-10-26", rows: [bar("2026-10-26", 130, 131)] }, SESSIONS[1], SESSIONS[2]], "005930");
-  assert.equal(capped.open_basis.inputs.applied_gap, 0.05); assert.ok(capped.open_basis.inputs.mean_gap > 0.05);
+  assert.equal(capped.expected_open, 131); assert.ok(capped.open_basis.inputs.gaps[0].ratio > 0.05);
   assert.equal(priorHistoryEstimate(SESSIONS.slice(0, 2), "005930"), null);
   assert.equal(priorHistoryEstimate(SESSIONS, "000660"), null);
 });
@@ -112,7 +113,7 @@ test("scheduled forecast → open-settlement → close-settlement keeps the hist
     const forecast = await stage("forecast", "2026-10-26T23:20:00.000Z", { openPriceRaw: 0, closePriceRaw: 104, localTradedAt: "2026-10-27T08:19:50+09:00", marketStatus: "PREOPEN" });
     assert.equal(forecast.status, "ready", forecast.message);
     const f = (await read("0820")).rows[0];
-    assert.equal(f.expected_open, 105.05); assert.equal(f.expected_close, 105.74); assert.equal(f.expected_return, 0.66);
+    assert.equal(f.expected_open, 104); assert.equal(f.expected_close, 104.69); assert.equal(f.expected_return, 0.66);
     assert.equal(f.expected_open_source.kind, "preopen_history"); assert.equal(f.expected_open_basis.model, OPEN_GAP_MODEL); assert.equal(f.expected_close_basis.model, CLOSE_SESSION_MODEL);
     assert.deepEqual(f.expected_open_basis, priorHistoryEstimate(SESSIONS, "005930").open_basis);
     const opened = await stage("open-settlement", "2026-10-27T00:05:00.000Z", { openPriceRaw: 106, closePriceRaw: 107, localTradedAt: "2026-10-27T09:04:50+09:00", marketStatus: "OPEN" });
@@ -151,8 +152,8 @@ test("an intraday current-price baseline without a pre-open source is still remo
     const opened = await stage("open-settlement", "2026-10-27T04:05:00.000Z", { openPriceRaw: 106, closePriceRaw: 107, localTradedAt: "2026-10-27T13:04:50+09:00", marketStatus: "OPEN" });
     assert.equal(opened.status, "ready", opened.message);
     const o = (await read("0900")).rows[0];
-    // The cache gives a retrospective estimate after the open; the legacy baseline (104) is not kept.
-    assert.notEqual(o.expected_open, 104); assert.equal(o.expected_open_source.kind, "retrospective_history"); assert.equal(o.expected_open_basis.model, OPEN_GAP_MODEL);
+    // The cache gives a retrospective estimate after the open (the prior close), not the legacy current-price baseline.
+    assert.equal(o.expected_open_source.kind, "retrospective_history"); assert.equal(o.expected_open_basis.model, OPEN_GAP_MODEL);
   });
 });
 
