@@ -40,6 +40,7 @@ jobs:
           sparse-checkout: |
             scripts/
             data/krx-market-holidays.json
+            providers/progress-log.js
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v7
         with:
