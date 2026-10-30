@@ -65,13 +65,17 @@ test("operational rows without a stored basis say so and quote the pipeline's ow
   assert.match(body, /현재가\(closePriceRaw\) 기준값이며 장전 예측이 아닙니다/);
   assert.match(body, /실행 시점 참고 수익률\(전일 기준가 대비\) \+0\.58%/);
 
-  const latest = await readJson("data/latest-snapshot.json");
-  const latestRow = latest.rows.find((candidate) => candidate.expected_open === null);
-  if (latestRow && latest.pipeline?.forecast?.status !== "ready") {
-    const latestDetail = buildSelectedDetail(latestRow, contextOf(latest));
-    assert.equal(section(latestDetail, "expected").state, "missing");
-    assert.match(text(section(latestDetail, "expected")), /장전 예상 단계 기록이 포함되지 않았습니다 \(장전 예상 단계 상태: 대기\)/);
-  }
+  // The live snapshot changes with every run, so exercise the pending state
+  // with a fixed ordinary row instead of assuming its first null row is tradable.
+  const pending = {
+    provider: { id: "naver-crawl" },
+    meta: { run_stage: "analysis", source: { license_status: "unconfirmed" } },
+    pipeline: { forecast: { status: "pending" }, openSettlement: { status: "pending" }, closeSettlement: { status: "pending" } },
+  };
+  const pendingRow = { symbol: "000020", name: "동화약품", expected_open: null, expected_close: null, status: "valid" };
+  const pendingDetail = buildSelectedDetail(pendingRow, contextOf(pending));
+  assert.equal(section(pendingDetail, "expected").state, "missing");
+  assert.match(text(section(pendingDetail, "expected")), /장전 예상 단계 기록이 포함되지 않았습니다 \(장전 예상 단계 상태: 대기\)/);
 });
 
 test("expected_open_source history rows describe the gap calculation without inventing missing figures", () => {
