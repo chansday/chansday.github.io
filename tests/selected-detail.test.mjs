@@ -30,7 +30,12 @@ test("historical baseline row explains the stored momentum/volatility calculatio
 });
 
 test("retrospective overlay rows show model, history dates, expected-close path and error", async () => {
-  const settlement = await readJson("data/runs/2026-10-27/1530.json");
+  const stored = await readJson("data/runs/2026-10-27/1530.json");
+  // The stored row was later re-scored by the day-trade backfill; strip that
+  // bundle so the row is in its original state (no recorded opening) and the
+  // retrospective overlay applies, as it did on the day.
+  const legacy = (row) => { const { expected_open_source, expected_open_basis, expected_close_basis, ...rest } = row; return { ...rest, expected_open: null, expected_close: null, expected_return: null, error: null }; };
+  const settlement = { ...stored, rows: stored.rows.map((row) => (row.symbol === "308170" ? legacy(row) : row)) };
   const record = await readJson("data/runs/2026-10-27/retrospective-40517864324.1.json");
   const merged = mergePostCloseEvaluation(settlement, record);
   const retrospective = { model: record.model, created_at: record.created_at };
