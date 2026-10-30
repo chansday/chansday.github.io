@@ -5,7 +5,7 @@ import { resolveStage } from "./run-context.mjs";
 import { run as runStage } from "./update-results.mjs";
 import { runDailyBaseline } from "./daily-baseline-run.mjs";
 import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
-import { reconstructDate } from "./reconstruct-day.mjs";
+import { createProgressLog, reconstructDate } from "./reconstruct-day.mjs";
 
 async function exists(path) {
   try { await access(path); return true; } catch { return false; }
@@ -319,9 +319,13 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
   });
   const stageResults = new Map();
   const executedStages = [];
+  const log = createProgressLog({ label: "run-all" });
+  log(`${options.runDate} 단계 실행 시작 · 대상 ${plan.filter((entry) => entry.eligible).map((entry) => entry.stage).join(" → ") || "없음"}`);
   try {
     for (const planned of plan.filter((entry) => entry.eligible)) {
       const stage = planned.stage;
+      const stageStarted = Date.now();
+      log(`${stage} 시작`);
       try {
         const result = await stageRunner([
           "--mode", stage,
@@ -333,7 +337,9 @@ export async function runAll(argv = process.argv.slice(2), { stageRunner = runSt
         const stageResult = { stage, status: result.status, executed: true, eligible: true, reason: planned.reason, message: result.message, sourceWarning: result.sourceWarning || null, stageFile: result.stageFile };
         stageResults.set(stage, stageResult);
         executedStages.push(stageResult);
+        log(`${stage} 완료 (${((Date.now() - stageStarted) / 1000).toFixed(1)}s) · 상태 ${result.status}`);
       } catch (error) {
+        log(`${stage} 실패 (${((Date.now() - stageStarted) / 1000).toFixed(1)}s) · ${error.message}`);
         const stageResult = { stage, status: "blocked", executed: true, eligible: true, reason: planned.reason, message: `Stage execution failed: ${error.message}`, stageFile: null };
         stageResults.set(stage, stageResult);
         executedStages.push(stageResult);

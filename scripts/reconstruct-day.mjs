@@ -27,7 +27,42 @@ export const RECONSTRUCTED_STAGES = Object.freeze([
   ["0900", "open-settlement", "openSettlement"],
   ["1530", "close-settlement", "closeSettlement"],
 ]);
-const RECONSTRUCTION_BUDGET_MS = 30 * 60_000;
+// No overall collection deadline: a slow source finishes late rather than
+// failing. Each request still has its own 8 s timeout (naver-daily-rows.js).
+const RECONSTRUCTION_BUDGET_MS = Infinity;
+export const PROGRESS_EVERY = 50;
+
+const duration = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}m${String(s % 60).padStart(2, "0")}s`; };
+
+// Progress lines on stdout, which GitHub Actions streams live while the step
+// runs: UTC time, KST clock time, and elapsed time since the reconstruction began.
+export function createProgressLog({ now = () => new Date(), write = (line) => console.log(line), label = "재현" } = {}) {
+  const t0 = now().getTime();
+  const log = (message) => {
+    const at = now(), kst = new Date(at.getTime() + 9 * 3_600_000).toISOString().slice(11, 19);
+    write(`[${label} ${at.toISOString()} | ${kst} KST | +${duration(at.getTime() - t0)}] ${message}`);
+  };
+  // Times one phase: logs its start, then its end with the phase duration.
+  log.phase = async (name, task, summary = () => "") => {
+    const started = now().getTime();
+    log(`${name} 시작`);
+    const result = await task();
+    log(`${name} 완료 (${duration(now().getTime() - started)}) ${summary(result)}`.trimEnd());
+    return result;
+  };
+  return log;
+}
+
+// Collection progress every PROGRESS_EVERY symbols and on the last one.
+export function collectionProgress(log) {
+  let maxMs = 0;
+  return ({ done, total, symbol, elapsedMs, lastMs, observations, rejected }) => {
+    maxMs = Math.max(maxMs, lastMs ?? 0);
+    if (done % PROGRESS_EVERY && done !== total) return;
+    const perSymbol = elapsedMs / done;
+    log(`수집 ${done}/${total} (${Math.round((done / total) * 100)}%) · 경과 ${duration(elapsedMs)} · 남은 예상 ${duration(perSymbol * (total - done))} · 평균 ${(perSymbol / 1000).toFixed(2)}s/종목 · 마지막 요청 ${lastMs ?? "-"}ms (${symbol}) · 최대 요청 ${maxMs}ms · 일봉 ${observations}행 · 제외 ${rejected}건`);
+  };
+}
 
 async function readJson(path) {
   try { return JSON.parse(await readFile(path, "utf8")); } catch (error) { if (error.code === "ENOENT") return null; throw error; }
@@ -85,39 +120,53 @@ export function buildStageSnapshot({ runDate, runId, producedAt, stageIndex, row
   };
 }
 
-export async function reconstructDate({ runDate, runId, now = () => new Date(), fetchImpl = globalThis.fetch, sleep, universeLoader = loadKospiUniverseCache, evaluator = runPostCloseEvaluation, budgetMs = RECONSTRUCTION_BUDGET_MS }) {
+export async function reconstructDate({ runDate, runId, now = () => new Date(), fetchImpl = globalThis.fetch, sleep, universeLoader = loadKospiUniverseCache, evaluator = runPostCloseEvaluation, budgetMs = RECONSTRUCTION_BUDGET_MS, log = createProgressLog({ now }) }) {
   const dir = repoPath(`data/runs/${runDate}`);
-  if (await readJson(`${dir}/1530.json`)) return { status: "not_needed", reason: "stored 1530.json is preserved", wrote: [] };
+  const stop = (result) => { log(`중단: ${result.status} · ${result.reason}`); return result; };
+  log(`${runDate} 재현 시작 (run ${runId})`);
+  if (await readJson(`${dir}/1530.json`)) return stop({ status: "not_needed", reason: "stored 1530.json is preserved", wrote: [] });
   const universe = await universeLoader({ now });
-  if (!universe.ok) return { status: "blocked", reason: universe.reason, wrote: [] };
-  const fetched = await fetchDailyCandles({ runDate, symbols: universe.symbols.map((s) => s.symbol), fetchImpl, now, sleep, budgetMs });
-  if (!["ready", "partial"].includes(fetched.status) || !fetched.history || !fetched.candles.size) return { status: fetched.status === "blocked" ? "blocked" : "degraded", reason: `Daily candles for ${runDate} unavailable: ${fetched.reason || fetched.status}`, wrote: [] };
+  if (!universe.ok) return stop({ status: "blocked", reason: universe.reason, wrote: [] });
+  log(`종목 목록 ${universe.symbols.length}종목 (${universe.path || "injected"}, 후보 기준일 ${universe.candidatesAsOf || "-"})`);
+  const fetched = await log.phase("일봉 수집", () => fetchDailyCandles({ runDate, symbols: universe.symbols.map((s) => s.symbol), fetchImpl, now, sleep, budgetMs, onProgress: collectionProgress(log) }),
+    (r) => `· 상태 ${r.status}${r.reason ? ` (${r.reason})` : ""} · 요청 ${r.requested} · ${runDate} 일봉 ${r.candles.size}종목 · 직전 이력 ${r.history ? `${r.history.valid_symbols.length}종목, 모델 ${r.history.rank_forecast ? "rank" : r.history.forecast_model ? "ridge" : "shrunk"}` : "없음"}`);
+  if (!["ready", "partial"].includes(fetched.status) || !fetched.history || !fetched.candles.size) return stop({ status: fetched.status === "blocked" ? "blocked" : "degraded", reason: `Daily candles for ${runDate} unavailable: ${fetched.reason || fetched.status}`, wrote: [] });
   const producedAt = now().toISOString();
-  const forecastRows = buildForecastRows({ runDate, universe: universe.symbols, history: fetched.history, candles: fetched.candles, zeroVolume: fetched.zeroVolume, recordedAt: producedAt });
+  const forecastRows = await log.phase("예측 계산", () => buildForecastRows({ runDate, universe: universe.symbols, history: fetched.history, candles: fetched.candles, zeroVolume: fetched.zeroVolume, recordedAt: producedAt }),
+    (rows) => `· ${rows.length}종목 · 예상 종가 ${rows.filter((row) => row.expected_close !== null).length}종목 · 거래 없음 ${rows.filter((row) => row.noTrade).length}종목`);
   const estimated = forecastRows.filter((row) => row.expected_close !== null).length;
   const message = `Reconstructed ${runDate} on ${kstDate(new Date(producedAt))} KST from Naver daily candles: ${forecastRows.length} symbols traded on the date, ${estimated} with an expected close from bars before it. Warning: ${RECONSTRUCTION_CAVEAT}`;
-  const snapshots = RECONSTRUCTED_STAGES.map((_, index) => buildStageSnapshot({ runDate, runId, producedAt, stageIndex: index, rows: stageRows(forecastRows, RECONSTRUCTED_STAGES[index][1]), fetched, message }));
-  const invalid = snapshots.find((snapshot) => snapshot.status !== "ready" || !isSnapshot(snapshot));
-  if (invalid) return { status: "degraded", reason: `Reconstructed ${invalid.meta.run_stage} snapshot failed validation: ${invalid.meta.blockedReason || "snapshot contract"}`, wrote: [] };
+  const { snapshots, invalid } = await log.phase("단계 스냅샷 생성·검증", () => {
+    const built = RECONSTRUCTED_STAGES.map((_, index) => buildStageSnapshot({ runDate, runId, producedAt, stageIndex: index, rows: stageRows(forecastRows, RECONSTRUCTED_STAGES[index][1]), fetched, message }));
+    return { snapshots: built, invalid: built.find((snapshot) => snapshot.status !== "ready" || !isSnapshot(snapshot)) };
+  }, (r) => (r.invalid ? `· 실패: ${r.invalid.meta.run_stage}` : `· ${RECONSTRUCTED_STAGES.length}개 단계 통과`));
+  if (invalid) return stop({ status: "degraded", reason: `Reconstructed ${invalid.meta.run_stage} snapshot failed validation: ${invalid.meta.blockedReason || "snapshot contract"}`, wrote: [] });
   await mkdir(dir, { recursive: true });
   const wrote = [];
-  for (const [index, [label]] of RECONSTRUCTED_STAGES.entries()) {
-    await writeFile(`${dir}/${label}.json`, `${JSON.stringify(snapshots[index], null, 2)}\n`, "utf8");
-    wrote.push(`data/runs/${runDate}/${label}.json`);
-  }
-  let retrospective;
-  try {
-    const result = await evaluator({ runDate, runId, stageFile: `${dir}/1530.json`, outputDir: dir, historyFetcher: async () => fetched.history });
-    retrospective = { status: result.status, evaluated: result.evaluated, total: result.total, path: `data/runs/${runDate}/retrospective-${runId}.json` };
-    if (result.status === "ready" && !result.preserved) wrote.push(retrospective.path);
-  } catch (error) { retrospective = { status: "failed", reason: error.message }; }
+  await log.phase("파일 쓰기", async () => {
+    for (const [index, [label]] of RECONSTRUCTED_STAGES.entries()) {
+      const text = `${JSON.stringify(snapshots[index], null, 2)}\n`;
+      await writeFile(`${dir}/${label}.json`, text, "utf8");
+      wrote.push(`data/runs/${runDate}/${label}.json`);
+      log(`  ${label}.json ${(Buffer.byteLength(text) / 1_048_576).toFixed(1)}MB · ${snapshots[index].rows.length}행`);
+    }
+  });
+  const retrospective = await log.phase("사후 평가", async () => {
+    try {
+      const result = await evaluator({ runDate, runId, stageFile: `${dir}/1530.json`, outputDir: dir, historyFetcher: async () => fetched.history });
+      const value = { status: result.status, evaluated: result.evaluated, total: result.total, path: `data/runs/${runDate}/retrospective-${runId}.json` };
+      if (result.status === "ready" && !result.preserved) wrote.push(value.path);
+      return value;
+    } catch (error) { return { status: "failed", reason: error.message }; }
+  }, (r) => `· ${r.status}${r.status === "ready" ? ` · ${r.evaluated}/${r.total}종목 평가` : ` · ${r.reason}`}`);
   // Like close catch-up: the latest snapshot follows D only while it still shows D.
   const latestPath = repoPath("data/latest-snapshot.json"), latest = await readJson(latestPath);
   if (latest && latest.meta?.run_date === runDate && latest.asOfDate === runDate) {
     await writeFile(latestPath, `${JSON.stringify(snapshots.at(-1), null, 2)}\n`, "utf8");
     wrote.push("data/latest-snapshot.json");
   }
-  await buildDateIndex({ root: dataRoot() });
+  await log.phase("날짜 인덱스 갱신", () => buildDateIndex({ root: dataRoot() }));
   wrote.push("data/date-index.json");
+  log(`재현 완료 · ${forecastRows.length}종목 · 예상 종가 ${estimated}종목 · 기록 ${wrote.length}개 파일`);
   return { status: "ready", reason: message, rows: forecastRows.length, estimated, wrote, retrospective };
 }

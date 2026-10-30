@@ -19,7 +19,9 @@ jobs:
   run-all:
     if: github.repository == 'chansday/chansday.github.io'
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    # No timeout-minutes: a past-date reconstruction requests every symbol's
+    # daily chart one by one and is allowed to finish late (GitHub's 6 h job
+    # maximum still applies). Progress lines show where it is.
     env:
       KOSPI_PROVIDER: naver-crawl
       KOSPI_DAILY_HISTORY: naver-cache

@@ -62,11 +62,13 @@ function challengeBody(body) {
 // (no waiting) and records retry_not_before; no further requests are made. Each
 // request URL is checked against robots.txt first; a denial or an unavailable
 // policy (other than HTTP 404/410) stops the collection as blocked.
-export async function collectNaverDailyRows({ symbols, targetDate, fetchImpl = fetch, clock = Date.now, sleep = (ms) => new Promise(r => setTimeout(r, ms)), intervalMs = 500, deadline = Infinity, now = () => new Date() }) {
+export async function collectNaverDailyRows({ symbols, targetDate, fetchImpl = fetch, clock = Date.now, sleep = (ms) => new Promise(r => setTimeout(r, ms)), intervalMs = 500, deadline = Infinity, now = () => new Date(), onProgress = null }) {
   if (!Array.isArray(symbols) || !symbols.length || symbols.some(s => !isKoreanSymbol(s)) || new Set(symbols).size !== symbols.length || !isValidDate(targetDate) || intervalMs < 500) throw new Error("Invalid collection configuration");
   const started = clock(), observations = [], rejected = [], warnings = [], durations = [];
   const robotsContext = { fetchImpl, now };
-  let last = null, robots = null;
+  let last = null, robots = null, done = 0;
+  // onProgress (optional) observes each finished symbol; it never changes the result.
+  const progress = (symbol) => { done += 1; if (onProgress) onProgress({ done, total: symbols.length, symbol, elapsedMs: clock() - started, lastMs: durations.at(-1) ?? null, observations: observations.length, rejected: rejected.length }); };
   for (const symbol of symbols) {
     const url = dailyChartUrl(symbol, targetDate);
     const policy = await checkRobotsUrl(robotsContext, url, USER_AGENT, { allowMissing: true });
@@ -94,6 +96,7 @@ export async function collectNaverDailyRows({ symbols, targetDate, fetchImpl = f
       observations.push(...parsed.rows); rejected.push(...parsed.rejected.map(item => ({ symbol, ...item })));
       warnings.push(...parsed.warnings);
     } catch { rejected.push({ symbol, reason: "invalid_response" }); }
+    progress(symbol);
   }
   return { status: rejected.length ? "partial" : "ready", observations, rejected, warnings, requested: durations.length, durations_ms: durations, elapsed_ms: clock() - started, market_venue: "unconfirmed", adjustment: "unconfirmed", license_status: "unconfirmed", ...robots };
 }

@@ -153,8 +153,8 @@ export async function loadCachedCandles({ runDate, today, calendar, now = () => 
 
 // One robots-gated chart request per symbol; the window ends on D, so D's
 // candle and its three prior sessions come from the same response.
-export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () => new Date(), sleep, clock = Date.now, budgetMs = FETCH_BUDGET_MS }) {
-  const collected = await collectNaverDailyRows({ symbols, targetDate: shiftDate(runDate, 1), fetchImpl, now, clock, deadline: clock() + budgetMs, ...(sleep ? { sleep } : {}) });
+export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () => new Date(), sleep, clock = Date.now, budgetMs = FETCH_BUDGET_MS, onProgress = null }) {
+  const collected = await collectNaverDailyRows({ symbols, targetDate: shiftDate(runDate, 1), fetchImpl, now, clock, deadline: clock() + budgetMs, onProgress, ...(sleep ? { sleep } : {}) });
   const observations = Array.isArray(collected.observations) ? collected.observations : [];
   const candles = new Map(observations.filter((row) => row.date === runDate).map((row) => [row.symbol, row]));
   let history = null;
