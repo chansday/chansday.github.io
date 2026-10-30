@@ -461,3 +461,8 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 }
 
 
+
+.performance-message { padding: 20px; color: var(--muted); }
+.performance-day .performance-values { display: grid; gap: 8px; margin-top: 12px; }
+.performance-values div { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
+.performance-values strong { color: var(--text); }

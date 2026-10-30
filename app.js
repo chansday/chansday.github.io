@@ -1,3 +1,4 @@
+import { summarizeDisplayedPerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
@@ -823,7 +824,7 @@ initSkipLink();
 elementIds["search-input"].addEventListener("input", renderRows);
 elementIds["status-filter"].addEventListener("change", renderRows);
 elementIds["sort-select"].addEventListener("change", renderRows);
-elementIds["refresh-button"].addEventListener("click", refresh);
+elementIds["refresh-button"].addEventListener("click", async () => { await loadDateMetadata(); renderRecentPerformance(); refresh(); });
 elementIds["ranking-date-button"].addEventListener("click", () => {
   const expanded = elementIds["ranking-date-button"].getAttribute("aria-expanded") === "true";
   if (expanded) closeDatePopover(); else openDatePopover();
@@ -850,5 +851,33 @@ updateClock();
 setInterval(updateClock, 1000);
 (async () => {
   await loadDateMetadata();
+  renderRecentPerformance();
   refresh();
 })();
+
+async function renderRecentPerformance() {
+  const container = document.getElementById("recent-performance-list");
+  const dates = [...(dateIndex.availableDates.provider || [])].filter(date => dateIndex.latestStages?.provider?.[date] === "1530" && classifyDate(date, "provider", dateIndex, marketCalendar).status !== "holiday").sort().reverse();
+  const results = [];
+  for (const date of dates) {
+    try {
+      const data = await fetchSnapshot(`./data/runs/${date}/1530.json`, "Close settlement request failed");
+      let result;
+      const runId = data?.meta?.run_id;
+      if (data?.meta?.run_stage === "close-settlement" && /^[A-Za-z0-9._-]+$/.test(runId || "")) {
+        try {
+          const response = await fetch(`./data/runs/${date}/retrospective-${runId}.json`, { cache: "no-store" });
+          if (!response.ok && response.status !== 404) throw new Error("Retrospective record unavailable");
+          result = summarizeDisplayedPerformance(data, date, response.status === 404 ? null : await response.json());
+        } catch {
+          // Do not present an unverified ranking when the overlay cannot be read.
+          result = { date, top10: null, top20: null };
+        }
+      } else result = summarizeDisplayedPerformance(data, date);
+      if (result) results.push(result);
+    } catch { /* A missing or invalid settlement is never substituted. */ }
+    if (results.length === 5) break;
+  }
+  if (!results.length) { container.innerHTML = '<p class="performance-message">확인된 종가 정산 기록이 없습니다.</p>'; return; }
+  container.innerHTML = results.map((result, index) => `<article class="pipeline-step performance-day" role="listitem"><div class="step-index">${String(index + 1).padStart(2, "0")}</div><div class="step-copy"><h3>${formatPlainDate(result.date)}</h3><div class="performance-values"><div><span>상위 10위 수익률</span><strong>${formatPercent(result.top10)}</strong></div><div><span>상위 20위 수익률</span><strong>${formatPercent(result.top20)}</strong></div></div></div></article>`).join("");
+}

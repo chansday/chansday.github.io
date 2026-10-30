@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261030o">
-    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261030o","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261030o","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261030o","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261030o","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261030o","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261030o","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261030o","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261030o","./providers/rank-model.js":"./providers/rank-model.js?v=20261030o","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261030o","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261030o","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261030o","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261030o","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261030o","./providers/daytrade-model.js":"./providers/daytrade-model.js?v=20261030o"}}</script>
-    <script type="module" src="./app.js?v=20261030o"></script>
-    <script type="module" src="./providers/daily-experiment-view.js?v=20261030o"></script>
+    <link rel="stylesheet" href="./styles.css?v=20261030p">
+    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261030p","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261030p","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261030p","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261030p","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261030p","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261030p","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261030p","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261030p","./providers/rank-model.js":"./providers/rank-model.js?v=20261030p","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261030p","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261030p","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261030p","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261030p","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261030p","./providers/daytrade-model.js":"./providers/daytrade-model.js?v=20261030p"}}</script>
+    <script type="module" src="./app.js?v=20261030p"></script>
+    <script type="module" src="./providers/daily-experiment-view.js?v=20261030p"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content" onclick="event.preventDefault(); const target = document.getElementById('main-content'); if (target) { target.focus({ preventScroll: true }); target.scrollIntoView(); }">본문으로 바로가기</a>
@@ -68,6 +68,12 @@
               <div><span>모델 학습</span><strong id="model-trained-at">—</strong></div>
             </div>
           </aside>
+        </section>
+
+        <section id="recent-performance" class="section page-width" aria-labelledby="recent-performance-title">
+          <div class="section-heading"><div><p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> 마감 결과</p><h2 id="recent-performance-title">최근 5일 성과</h2></div><p class="section-note">종가 정산 기준 최근 5거래일 · 예상 수익률 순위별 실제 시가→종가 수익률의 동일 비중 평균</p></div>
+          <p class="ranking-lede">운영 종가 정산과 종목별 비교 화면의 사후 평가를 반영한 순위 기준이며 사후 재구성된 예측이 포함될 수 있습니다. 거래 비용은 반영하지 않습니다. 상위 종목의 가격이 모두 확인되지 않으면 수익률을 표시하지 않습니다.</p>
+          <div id="recent-performance-list" class="pipeline glass-panel" role="list" aria-label="최근 거래일별 상위 종목 성과" aria-live="polite"><p class="performance-message">종가 정산 기록을 확인 중입니다.</p></div>
         </section>
 
         <section id="pipeline" class="section page-width" aria-labelledby="pipeline-title">
