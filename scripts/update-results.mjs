@@ -384,6 +384,35 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
       || await readIfPresent(previousPath, previousMode);
     if (snapshot?.meta?.historical_test || snapshot?.meta?.test_only || snapshot?.mode === "historical_test") snapshot = null;
     snapshot ||= noDataSnapshot();
+    // Never carry a result observed after this run's reference time, even if
+    // it was inherited from the existing same-stage file.
+    const referenceMs = Date.parse(options.runContext.referenceTime);
+    const availableAtReference = (step, sourceSnapshot = null) => {
+      const time = Date.parse(step?.attemptedAt);
+      if (!Number.isFinite(time) || time > stageStartedAt.getTime()) return false;
+      if (time <= referenceMs) return true;
+      // run-all shares a start time but records its actual invocation time in
+      // every stage. Only its own stage file can establish that provenance.
+      return Boolean(currentRunId && sourceSnapshot?.meta?.run_id === currentRunId
+        && time <= Date.parse(options.attemptedAt) && time <= stageStartedAt.getTime());
+    };
+    const pendingPipeline = noDataSnapshot().pipeline;
+    const pipeline = { ...snapshot.pipeline };
+    for (const { key } of Object.values(MODES)) {
+      const step = pipeline[key];
+      if (step?.status !== "pending" && !availableAtReference(step)) pipeline[key] = pendingPipeline[key];
+    }
+    snapshot = { ...snapshot, pipeline };
+    // Each saved stage owns its own pipeline result. A rerun of a later stage
+    // can otherwise retain an obsolete inherited status from its existing file.
+    const stages = [["0700", "update-results"], ["0800", "analysis"], ["0820", "forecast"], ["0900", "open-settlement"], ["1530", "close-settlement"]];
+    for (const [label, stage] of stages.slice(0, stages.findIndex(([, name]) => name === options.mode))) {
+      const prior = await readIfPresent(resolve("data", "runs", options.runDate, `${label}.json`), stage);
+      if (prior?.mode !== "provider" || prior.meta?.historical_test || prior.meta?.test_only) continue;
+      const key = MODES[stage].key;
+      const step = prior.pipeline?.[key];
+      if (step && step.status && step.status !== "pending" && availableAtReference(step, prior)) snapshot = { ...snapshot, pipeline: { ...snapshot.pipeline, [key]: step } };
+    }
     // Recover the latest genuine pre-open record even if an intermediate run is missing.
     const recovered = new Map();
     for (const [label, stage] of [["0820", "forecast"], ["0800", "analysis"], ["0700", "update-results"]]) {

@@ -23,10 +23,10 @@
   },
   "pipeline": {
     "previousResult": {
-      "status": "pending",
-      "attemptedAt": null,
-      "provider_id": null,
-      "message": null
+      "status": "ready",
+      "attemptedAt": "2026-10-30T01:10:32.419Z",
+      "provider_id": "naver-crawl",
+      "message": "Opening estimates: pre-open quote or prior three-session history; history calculated after the open is retrospective. Missing history remains no_data. Naver daily market and adjustment basis unconfirmed and may differ from regular-market quotes; 0 comparison conflicts recorded. 28 symbol(s) are no_trade_observed (source halt marker or zero-volume candle) and are kept without prices or error. Universe from committed list data/kospi-universe.json (candidates as of 2026-10-28) because the live list was unavailable: KOSPI universe is empty (marketStatus=PREOPEN). Naver daily market and adjustment basis are unconfirmed; preferred shares may be included. Warning: Source license_status is unconfirmed; daily market and adjustment basis and common-share classification are unconfirmed. Preferred shares may be included."
     },
     "analysis": {
       "status": "ready",
