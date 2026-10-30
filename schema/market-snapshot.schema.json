@@ -228,6 +228,47 @@
           },
           "additionalProperties": false
         },
+        "ranking_metrics": {
+          "type": "object",
+          "required": ["sample_count", "rank_ic", "hit_rate", "calibration_slope", "top_k", "score_buckets", "bucket_spread"],
+          "properties": {
+            "sample_count": { "type": "integer", "minimum": 0 },
+            "rank_ic": { "type": ["number", "null"], "minimum": -1, "maximum": 1 },
+            "hit_rate": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+            "calibration_slope": { "type": ["number", "null"] },
+            "top_k": {
+              "anyOf": [
+                { "type": "null" },
+                {
+                  "type": "object",
+                  "required": ["k", "mean_session_return", "excess_return"],
+                  "properties": {
+                    "k": { "type": "integer", "minimum": 1 },
+                    "mean_session_return": { "type": "number" },
+                    "excess_return": { "type": "number" }
+                  },
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "score_buckets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["bucket", "count", "mean_expected_return", "mean_session_return"],
+                "properties": {
+                  "bucket": { "type": "integer", "minimum": 1 },
+                  "count": { "type": "integer", "minimum": 1 },
+                  "mean_expected_return": { "type": "number" },
+                  "mean_session_return": { "type": "number" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "bucket_spread": { "type": ["number", "null"] }
+          },
+          "additionalProperties": false
+        },
         "note": { "type": "string" }
       },
       "additionalProperties": false

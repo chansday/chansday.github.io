@@ -80,6 +80,97 @@ export function evaluationRowStatus(row) {
   return "pending";
 }
 
+// Ranking quality of the evaluated rows, judged on unrounded values: the
+// expected return used for ranking and the observed open->close return.
+//   rank_ic           Spearman correlation (average ranks for ties)
+//   hit_rate          share of rows where both are nonzero and share a sign
+//   calibration_slope OLS slope of the observed on the expected return
+//   top_k             top RANKING_TOP_K by expected return (symbol breaks ties)
+//                     versus the mean of every evaluated row; needs n > k
+//   score_buckets     RANKING_SCORE_BUCKETS equal-count groups in ascending
+//                     expected-return order (bucket 1 lowest score); needs n >= buckets
+//   bucket_spread     top bucket minus bottom bucket mean observed return
+// Undefined values (n < 2, zero variance) are null.
+export const RANKING_TOP_K = 20;
+export const RANKING_SCORE_BUCKETS = 10;
+
+function rawSessionReturn(row) {
+  return finite(row?.actual_open) && row.actual_open > 0 && finite(row?.actual_close)
+    ? (row.actual_close / row.actual_open - 1) * 100
+    : null;
+}
+
+const average = (values) => values.reduce((sum, value) => sum + value, 0) / values.length;
+const roundOrNull = (value) => (finite(value) ? round(value) : null);
+
+function averageRanks(values) {
+  const order = values.map((value, index) => index).sort((a, b) => values[a] - values[b]);
+  const ranks = new Array(values.length);
+  for (let start = 0; start < order.length;) {
+    let end = start;
+    while (end + 1 < order.length && values[order[end + 1]] === values[order[start]]) end++;
+    for (let i = start; i <= end; i++) ranks[order[i]] = (start + end) / 2 + 1;
+    start = end + 1;
+  }
+  return ranks;
+}
+
+function covariance(x, y) {
+  const mx = average(x), my = average(y);
+  return x.reduce((sum, value, i) => sum + (value - mx) * (y[i] - my), 0) / x.length;
+}
+
+function correlation(x, y) {
+  const denominator = Math.sqrt(covariance(x, x) * covariance(y, y));
+  return denominator > 0 ? covariance(x, y) / denominator : null;
+}
+
+export function buildRankingMetrics(rows) {
+  const pairs = (Array.isArray(rows) ? rows : [])
+    .filter((row) => !isNoTradeRow(row) && evaluationRowStatus(row) === "evaluated")
+    .map((row) => ({ symbol: String(row.symbol ?? ""), expected: rankingExpectedReturn(row), actual: rawSessionReturn(row) }))
+    .filter((pair) => finite(pair.expected) && finite(pair.actual))
+    .sort((a, b) => a.expected - b.expected || a.symbol.localeCompare(b.symbol));
+  const n = pairs.length;
+  const empty = { sample_count: n, rank_ic: null, hit_rate: null, calibration_slope: null, top_k: null, score_buckets: [], bucket_spread: null };
+  if (n < 2) return empty;
+  const expected = pairs.map((pair) => pair.expected), actual = pairs.map((pair) => pair.actual);
+  const varExpected = covariance(expected, expected);
+  const signed = pairs.filter((pair) => pair.expected !== 0 && pair.actual !== 0);
+  const meanActual = average(actual);
+  let topK = null;
+  if (n > RANKING_TOP_K) {
+    const top = pairs.slice(-RANKING_TOP_K).map((pair) => pair.actual), topMean = average(top);
+    topK = { k: RANKING_TOP_K, mean_session_return: round(topMean), excess_return: round(topMean - meanActual) };
+  }
+  const buckets = [];
+  if (n >= RANKING_SCORE_BUCKETS) {
+    for (let b = 0; b < RANKING_SCORE_BUCKETS; b++) {
+      const group = pairs.slice(Math.floor((b * n) / RANKING_SCORE_BUCKETS), Math.floor(((b + 1) * n) / RANKING_SCORE_BUCKETS));
+      buckets.push({ bucket: b + 1, count: group.length, mean_expected_return: round(average(group.map((p) => p.expected))), mean_session_return: round(average(group.map((p) => p.actual))) });
+    }
+  }
+  return {
+    sample_count: n,
+    rank_ic: roundOrNull(correlation(averageRanks(expected), averageRanks(actual))),
+    hit_rate: signed.length ? round(signed.filter((pair) => Math.sign(pair.expected) === Math.sign(pair.actual)).length / signed.length) : null,
+    calibration_slope: varExpected > 0 ? round(covariance(expected, actual) / varExpected) : null,
+    top_k: topK,
+    score_buckets: buckets,
+    bucket_spread: buckets.length ? round(buckets.at(-1).mean_session_return - buckets[0].mean_session_return) : null,
+  };
+}
+
+const nullableNumber = (value) => value === null || finite(value);
+
+export function isRankingMetrics(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  if (!Number.isInteger(value.sample_count) || value.sample_count < 0) return false;
+  if (!["rank_ic", "hit_rate", "calibration_slope", "bucket_spread"].every((field) => nullableNumber(value[field]))) return false;
+  if (value.top_k !== null && !(value.top_k && Number.isInteger(value.top_k.k) && finite(value.top_k.mean_session_return) && finite(value.top_k.excess_return))) return false;
+  return Array.isArray(value.score_buckets) && value.score_buckets.every((bucket) => bucket && Number.isInteger(bucket.bucket) && Number.isInteger(bucket.count) && finite(bucket.mean_expected_return) && finite(bucket.mean_session_return));
+}
+
 export function buildEvaluationSummary(rows, {
   testOnly = false,
   dataset = testOnly ? "historical_test" : "operational",
@@ -126,6 +217,7 @@ export function buildEvaluationSummary(rows, {
       min_error: evaluatedCount ? round(Math.min(...evaluatedErrors)) : null,
       max_error: evaluatedCount ? round(Math.max(...evaluatedErrors)) : null,
     },
+    ranking_metrics: buildRankingMetrics(safeRows),
     note: note || (testOnly
       ? "Test-only evaluation. It is isolated from operating snapshots and does not represent live forecast performance."
       : "Evaluation fields reference the normalized row fields in this snapshot."),
@@ -153,5 +245,7 @@ export function isEvaluationSummary(value) {
   if (!inputRange || (inputRange.start !== null && !dateOrNull(inputRange.start)) || (inputRange.end !== null && !dateOrNull(inputRange.end))) return false;
   if (!value.metrics || typeof value.metrics !== "object") return false;
   if (!["mean_absolute_error", "root_mean_squared_error", "mean_error", "min_error", "max_error"].every((field) => value.metrics[field] === null || finite(value.metrics[field]))) return false;
+  // Optional: summaries stored before ranking metrics existed omit it.
+  if (value.ranking_metrics !== undefined && !isRankingMetrics(value.ranking_metrics)) return false;
   return typeof value.note === "string";
 }
