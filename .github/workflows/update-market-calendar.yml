@@ -1,12 +1,12 @@
-name: "[5 관리] 연간 KRX 휴장일 갱신"
+name: "[5 관리] KRX 휴장일 갱신 (매일)"
 
 on:
   schedule:
-    # 12:00 KST (03:00 UTC) on several late-December days, every year. Once the
-    # next year is covered the later runs are no-ops; while KRX has not
-    # published it yet a run warns and passes so a later day retries. December
-    # 31 is the final attempt and fails if KRX is still unavailable.
-    - cron: "0 3 20,24,27,29,31 12 *"
+    # Daily at 03:00 KST (18:00 UTC), away from the stage runs. Each run
+    # re-checks the current year for mid-year changes and, from December, the
+    # next year; an unchanged list makes no commit. While KRX has not published
+    # the next year a run warns and passes; December 31 is the final attempt.
+    - cron: "0 18 * * *"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -17,8 +17,10 @@ on:
 permissions:
   contents: write
 
+# Own group: a daily run must not take the shared stage queue's single pending
+# slot (a newer pending run cancels the older one there).
 concurrency:
-  group: kospi-signal-board-pipeline
+  group: kospi-market-calendar
   cancel-in-progress: false
 
 jobs:
@@ -33,7 +35,7 @@ jobs:
           node-version: 22
       - name: Validate current contract
         run: npm test && npm run check && npm run check:experiment
-      - name: Fetch next year from KRX
+      - name: Refresh holidays from KRX
         env:
           KOSPI_CALENDAR_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         run: node scripts/update-market-calendar.mjs

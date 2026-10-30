@@ -98,7 +98,7 @@ jobs:
               const calendar = await loadMarketCalendar();
               const market = classifyMarketDate(runDate, calendar);
               if (market.reason === "calendar_coverage_missing") {
-                fail(`run_date ${runDate} is outside the checked-in KRX calendar coverage (${calendar.coverage.start}..${calendar.coverage.end}); run the '[5 관리] 연간 KRX 휴장일 갱신' workflow (update-market-calendar.yml) first.`);
+                fail(`run_date ${runDate} is outside the checked-in KRX calendar coverage (${calendar.coverage.start}..${calendar.coverage.end}); run the '[5 관리] KRX 휴장일 갱신 (매일)' workflow (update-market-calendar.yml) first.`);
               } else if (market.status !== "run") {
                 console.log(`::notice::run_date ${runDate} is not a KOSPI trading day (${market.reason}); run-all reports the market-closed result.`);
               } else {
@@ -207,7 +207,7 @@ jobs:
                 exit 0
                 ;;
               calendar_coverage_missing:*)
-                echo "::error::The KRX calendar does not cover this run date; run the '[5 관리] 연간 KRX 휴장일 갱신' workflow (update-market-calendar.yml) first."
+                echo "::error::The KRX calendar does not cover this run date; run the '[5 관리] KRX 휴장일 갱신 (매일)' workflow (update-market-calendar.yml) first."
                 ;;
             esac
           fi
