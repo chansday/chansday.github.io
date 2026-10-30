@@ -7,6 +7,7 @@ import { dailyHistoryPath, loadNaverDailyHistory, priorTradingDates } from "../p
 import { repoPath } from "../providers/repo-paths.js";
 import { classifyMarketDate, kstDate, loadMarketCalendar } from "./market-calendar.mjs";
 import { buildForecastInputs } from "../providers/forecast-inputs.js";
+import { collectionProgress, createProgressLog } from "../providers/progress-log.js";
 
 // The first trading day after `date`.
 export async function nextTradingDate(date) {
@@ -26,14 +27,16 @@ export const EVENING_START = "18:00";
 // of a trading day D0, for the next trading day; history, models and the rank
 // forecast are then ready before the next morning. The morning run (default)
 // verifies an evening cache: unchanged bars keep it, changed bars replace it.
-export async function collectDaily({ now = () => new Date(), universeFetcher = collectNaverUniverse, collector = collectNaverDailyRows, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), evening = false } = {}) {
+export async function collectDaily({ now = () => new Date(), universeFetcher = collectNaverUniverse, collector = collectNaverDailyRows, sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), evening = false, log = createProgressLog({ label: "일봉 수집", now }) } = {}) {
   const started = now(), today = kstDate(started);
+  const done = (result) => { log(`종료 · ${result.status}${result.reason ? ` (${result.reason})` : ""}${result.targetDate ? ` · 대상일 ${result.targetDate}` : ""}`); return result; };
+  log(`시작 · ${evening ? "저녁" : "아침"} 수집 요청 · 오늘 ${today} KST`);
   let targetDate = today;
   // GitHub cron can start hours late: an evening run that starts after
   // midnight and before 08:00 KST becomes today's morning collection, and one
   // between 08:00 and 18:00 has nothing to do.
   if (evening && started.getTime() < Date.parse(`${today}T08:00:00+09:00`)) evening = false;
-  else if (evening && started.getTime() < Date.parse(`${today}T${EVENING_START}:00+09:00`)) return { status: "skipped", reason: `evening collection starts after ${EVENING_START} KST`, targetDate: null };
+  else if (evening && started.getTime() < Date.parse(`${today}T${EVENING_START}:00+09:00`)) return done({ status: "skipped", reason: `evening collection starts after ${EVENING_START} KST`, targetDate: null });
   if (evening) {
     if (classifyMarketDate(today, await loadMarketCalendar()).status !== "run") throw new Error("Evening collection runs only after a trading day");
     targetDate = await nextTradingDate(today);
@@ -42,6 +45,7 @@ export async function collectDaily({ now = () => new Date(), universeFetcher = c
   if (started.getTime() >= cutoff) throw new Error("Daily collection must start and finish before 08:00 KST");
   const dates = await priorTradingDates(targetDate);
   const path = dailyHistoryPath(targetDate);
+  log(`대상일 ${targetDate} (${evening ? "저녁" : "아침"} 수집) · 직전 거래일 ${dates.join(", ")} · 마감 ${new Date(cutoff).toISOString()} (08:00 KST)`);
   await mkdir(repoPath("data/daily-history"), { recursive: true });
   const lockPath = `${path}.lock`, tempPath = `${path}.${randomUUID()}.tmp`;
   let lock;
@@ -54,24 +58,26 @@ export async function collectDaily({ now = () => new Date(), universeFetcher = c
   const existingRecord = original === null ? null : JSON.parse(original);
   // A morning run re-checks a cache collected the evening before.
   const verifyEvening = Boolean(!evening && existing && existingRecord?.collection === "evening");
-  if (existing && !existing.partial && !verifyEvening) return { status: "preserved", path, targetDate, excluded: 0 };
-  const universe = await universeFetcher({ deadline: cutoff });
+  log(`기존 캐시 ${original === null ? "없음" : `${existingRecord?.collection || "morning"} 수집, ${existing.valid_symbols.length}종목 유효${existing.partial ? ", 부분" : ""}${verifyEvening ? " → 아침 재확인" : ""}`}`);
+  if (existing && !existing.partial && !verifyEvening) return done({ status: "preserved", path, targetDate, excluded: 0 });
+  const universe = await log.phase("종목 목록 조회", () => universeFetcher({ deadline: cutoff }), (u) => (u.ok ? `· ${u.symbols.length}종목 · 출처 ${u.universeSource ?? "-"}${u.universeStale ? " (오래됨)" : ""}` : `· 실패 ${u.reason}`));
   if (!universe.ok) throw new Error(`universe unavailable: ${universe.reason}`);
   const symbols = universe.symbols.map(s => s.symbol);
   if (existing && !verifyEvening && (symbols.length !== existing.symbols.length || symbols.some(s => !existing.symbols.includes(s)))) throw new Error("Universe changed; existing partial cache preserved");
   await sleep(500); // Separate the final universe request from the first daily request.
   if (now().getTime() >= cutoff) throw new Error("Daily collection deadline reached after universe lookup");
-  const result = await collector({ symbols, targetDate, deadline: cutoff });
+  const result = await log.phase("일봉 차트 요청", () => collector({ symbols, targetDate, deadline: cutoff, onProgress: collectionProgress(log) }), (r) => `· 상태 ${r.status}${r.reason ? ` (${r.reason})` : ""} · 요청 ${r.requested} · 일봉 ${r.observations?.length ?? 0}행 · 제외 ${r.rejected?.length ?? 0}건`);
   if (!["ready", "partial"].includes(result.status) || now().getTime() >= cutoff || result.requested !== symbols.length) throw new Error(`daily collection incomplete: ${result.reason || result.status}`);
   const sessions = dates.map(date => ({ date, rows: result.observations.filter(r => r.date === date) }));
   const maps = sessions.map(s => new Set(s.rows.map(r => r.symbol)));
   const complete = symbols.filter(s => maps.every(m => m.has(s)));
+  log(`세 거래일 완전 종목 ${complete.length}/${symbols.length} · 세션별 ${sessions.map((s) => `${s.date} ${s.rows.length}`).join(", ")}`);
   if (!complete.length) throw new Error("No symbol has complete prior trading sessions");
   if (verifyEvening) {
     const same = JSON.stringify(existingRecord.symbols) === JSON.stringify(symbols) && existingRecord.sessions.every((s, i) => JSON.stringify(s.rows) === JSON.stringify(sessions[i].rows));
-    if (same) return { status: "verified", path, targetDate, excluded: existing.excluded_count };
+    if (same) return done({ status: "verified", path, targetDate, excluded: existing.excluded_count });
   }
-  if (existing && !verifyEvening && (complete.length <= existing.valid_symbols.length || existing.valid_symbols.some(s => !complete.includes(s)))) return { status: "preserved", path, targetDate, excluded: existing.excluded_count, reason: "no_coverage_improvement" };
+  if (existing && !verifyEvening && (complete.length <= existing.valid_symbols.length || existing.valid_symbols.some(s => !complete.includes(s)))) return done({ status: "preserved", path, targetDate, excluded: existing.excluded_count, reason: "no_coverage_improvement" });
   if (existing && !verifyEvening) {
     for (let i = 0; i < sessions.length; i++) {
       const previous = new Map(existing.sessions[i].rows.map(row => [row.symbol, row]));
@@ -80,13 +86,15 @@ export async function collectDaily({ now = () => new Date(), universeFetcher = c
   }
   // Same engine inputs as close catch-up: last 20 bars per complete symbol
   // (stored as [date, open, close, high, low, volume]), ridge model, rank forecast.
-  const inputs = buildForecastInputs({ observations: result.observations, targetDate, symbols: complete });
+  const inputs = await log.phase("예측 모델 학습", () => buildForecastInputs({ observations: result.observations, targetDate, symbols: complete }), (i) => `· ridge ${i.forecastModel ? `${i.forecastModel.train_first_date}~${i.forecastModel.train_last_date}` : "없음"} · rank ${i.rankForecast ? `${Object.keys(i.rankForecast.predictions).length}종목 예측` : "없음"}`);
   const returnHistory = Object.fromEntries(Object.entries(inputs.returnHistory).map(([symbol, bars]) => [symbol, bars.map(b => [b.date, b.open, b.close, b.high, b.low, b.volume])]));
   const trainedAt = now().toISOString();
   const forecastModel = inputs.forecastModel ? { ...inputs.forecastModel, trained_at: trainedAt } : null;
   const rankForecast = inputs.rankForecast ? { ...inputs.rankForecast, model: { ...inputs.rankForecast.model, trained_at: trainedAt } } : null;
   const record = { schema_version: 1, collection: evening ? "evening" : "morning", ...(verifyEvening ? { replaced_evening_collection: { retrieved_at: existingRecord.retrieved_at } } : {}), source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", target_date: targetDate, started_at: started.toISOString(), retrieved_at: now().toISOString(), license_status: "unconfirmed", market_venue: "unconfirmed", adjustment: "unconfirmed", symbols, sessions, return_history: returnHistory, forecast_model: forecastModel, rank_forecast: rankForecast, rejected: result.rejected, warnings: result.warnings || [], requested: result.requested, elapsed_ms: result.elapsed_ms, durations_ms: result.durations_ms, robots_url: result.robots_url ?? null, robots_status: result.robots_status ?? null, robots_checked_at: result.robots_checked_at ?? null, universe_source: universe.universeSource ?? null, universe_as_of: universe.universeAsOf ?? null, universe_stale: Boolean(universe.universeStale), coverage_status: complete.length === symbols.length ? "complete" : "partial", status: complete.length === symbols.length ? "ready" : "partial", notice: "Unofficial Naver endpoint; market venue, adjustment, publication time and redistribution rights unconfirmed. Daily OHLC can differ from regular-market quotes; comparison conflicts are warnings, not a basis to modify prices." };
-  await writeFile(tempPath, `${JSON.stringify(record, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+  const text = `${JSON.stringify(record, null, 2)}\n`;
+  await writeFile(tempPath, text, { encoding: "utf8", flag: "wx" });
+  log(`캐시 파일 작성 · ${(Buffer.byteLength(text) / 1_048_576).toFixed(1)}MB · 검증 중`);
   const candidate = await loadNaverDailyHistory({ targetDate, now, path: tempPath });
   if (!candidate.ok) throw new Error(`Candidate cache invalid: ${candidate.reason}`);
   if (original === null) await link(tempPath, path);
@@ -94,7 +102,7 @@ export async function collectDaily({ now = () => new Date(), universeFetcher = c
     if (await readFile(path, "utf8") !== original) throw new Error("Cache changed during collection; replacement aborted");
     await rename(tempPath, path);
   }
-  return { status: verifyEvening ? "replaced" : record.status, path, targetDate, excluded: symbols.length - complete.length, requested: result.requested, elapsed_ms: result.elapsed_ms };
+  return done({ status: verifyEvening ? "replaced" : record.status, path, targetDate, excluded: symbols.length - complete.length, requested: result.requested, elapsed_ms: result.elapsed_ms });
   } finally {
     await unlink(tempPath).catch(error => { if (error.code !== "ENOENT") throw error; });
     await lock.close();

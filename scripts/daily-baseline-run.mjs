@@ -114,7 +114,11 @@ export async function runDailyBaseline({ targetDate, root = "data/experiments", 
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   const targetDate = process.argv[2] || kstDate();
+  const { createProgressLog } = await import("../providers/progress-log.js");
+  const LOG = createProgressLog({ label: `일봉 기준가 실험 ${targetDate}` });
+  LOG("시작");
   runDailyBaseline({ targetDate }).then(async (result) => {
+    LOG(`종료 · ${result.status}${result.reason ? ` (${result.reason})` : ""} · 저장 ${result.saved === true} · 상태 기록 ${result.statusSaved === true}`);
     if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `saved=${result.saved === true}\nphase=${result.phase || ""}\ncandidates=${result.candidatePhases.join(",")}\ncandidate=${result.candidate === true}\nstatus=${result.status}\nreason=${result.reason || ""}\nnot_applicable=${result.notApplicable === true}\nstatus_saved=${result.statusSaved === true}\nstatus_hash=${result.statusHash}\n`, "utf8");
     if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, `- isolated daily experiment: \`${result.status}\` (${result.reason}); status record saved: ${result.statusSaved === true}\n`, "utf8");
     console.log(JSON.stringify(result));

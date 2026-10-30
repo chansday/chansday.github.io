@@ -2,6 +2,7 @@ import { appendFile, readFile, writeFile, rename, rm } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { pathToFileURL } from "node:url";
 import { DEFAULT_CALENDAR_PATH, isValidDate, kstDate, loadMarketCalendar } from "./market-calendar.mjs";
+import { createProgressLog } from "../providers/progress-log.js";
 
 const ORIGIN = "https://open.krx.co.kr";
 const PAGE = "/contents/MKD/01/0110/01100305/MKD01100305.jsp";
@@ -121,8 +122,11 @@ async function appendSummary(summaryPath, lines) {
 }
 
 async function updateYear({ year, covered, finalAttempt }, { path, fetchImpl, today, dryRun, log }) {
+  const started = Date.now();
+  log(`${year}년 KRX 조회 시작 · ${covered ? "저장된 연도 재확인" : "새 연도 추가"}${finalAttempt ? " · 마지막 시도" : ""}`);
   try {
     const result = await updateMarketCalendar({ year, path, fetchImpl, today, dryRun });
+    log(`${year}년 KRX 조회 완료 (${Date.now() - started}ms) · 휴장일 ${result.count}건 · ${result.changed ? "변경 반영" : result.wouldChange ? "변경 있음(dry run)" : "변경 없음"}`);
     const status = result.changed ? "updated" : result.wouldChange ? "dry_run_would_change" : "unchanged";
     return { status, ...result, line: `- ${year}: ${status} (${result.count} KRX holidays).` };
   } catch (error) {
@@ -149,7 +153,10 @@ export async function runCalendarUpdateCli({ today = kstDate(), path = DEFAULT_C
 }
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
-  runCalendarUpdateCli({ dryRun: process.env.KOSPI_CALENDAR_DRY_RUN === "true" }).then((result) => {
+  const LOG = createProgressLog({ label: "휴장일 갱신" });
+  LOG(`시작 · 오늘 ${kstDate()} KST${process.env.KOSPI_CALENDAR_DRY_RUN === "true" ? " · dry run" : ""}`);
+  runCalendarUpdateCli({ dryRun: process.env.KOSPI_CALENDAR_DRY_RUN === "true", log: (line) => (String(line).startsWith("::") ? console.log(line) : LOG(line)) }).then((result) => {
+    LOG(`종료 · ${result.status}`);
     const { exitCode, ...rest } = result;
     console.log(JSON.stringify(rest));
     process.exitCode = exitCode;

@@ -1,3 +1,4 @@
+import { createProgressLog } from "./progress-log.js";
 import {
   createSourceMetadata,
 } from "./provider-adapter.js";
@@ -152,7 +153,19 @@ async function robotsGate(url, context) {
   return policy;
 }
 
+const requestLog = createProgressLog({ label: "Naver 요청" });
+
+// Logs every request's outcome and duration; the request itself is fetchJsonOnce.
 async function fetchJson(url, context) {
+  const started = Date.now(), before = context.metrics.requested;
+  const result = await fetchJsonOnce(url, context);
+  const target = new URL(url);
+  const rows = Array.isArray(result.payload?.datas) ? ` · ${result.payload.datas.length}행` : Array.isArray(result.payload?.stocks) ? ` · ${result.payload.stocks.length}종목` : "";
+  requestLog(`#${context.metrics.requested} ${target.host}${target.pathname.length > 60 ? `${target.pathname.slice(0, 60)}…` : target.pathname} · ${result.ok ? `HTTP ${result.status}` : `실패 ${result.status ?? "-"} ${result.reason}`} · ${Date.now() - started}ms · 시도 ${context.metrics.requested - before}회${rows}`);
+  return result;
+}
+
+async function fetchJsonOnce(url, context) {
   const policy = await robotsGate(url, context);
   if (!policy.ok) {
     context.metrics.failed += 1;

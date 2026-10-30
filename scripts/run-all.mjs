@@ -5,7 +5,8 @@ import { resolveStage } from "./run-context.mjs";
 import { run as runStage } from "./update-results.mjs";
 import { runDailyBaseline } from "./daily-baseline-run.mjs";
 import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
-import { createProgressLog, reconstructDate } from "./reconstruct-day.mjs";
+import { reconstructDate } from "./reconstruct-day.mjs";
+import { createProgressLog } from "../providers/progress-log.js";
 
 async function exists(path) {
   try { await access(path); return true; } catch { return false; }

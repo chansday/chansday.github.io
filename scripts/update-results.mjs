@@ -16,6 +16,8 @@ import { compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, d
 import { withEvaluationScores } from "../providers/evaluation-score.js";
 import { calculateRunContext } from "./run-context.mjs";
 
+import { createProgressLog } from "../providers/progress-log.js";
+
 export const MODES = {
   "update-results": { key: "previousResult", method: "fetchPreviousDay" },
   analysis: { key: "analysis", method: "runAnalysis" },
@@ -348,6 +350,8 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
   if (!options) return { help: true };
   const modeConfig = MODES[options.mode];
   const stageStartedAt = (dependencies.now || (() => new Date()))();
+  const log = createProgressLog({ label: `단계 ${options.mode}` });
+  log(`시작 · 거래일 ${options.runDate} · provider ${options.provider || process.env.KOSPI_PROVIDER || "-"}${options.dryRun ? " · dry run" : ""}`);
   if (!(stageStartedAt instanceof Date) || !Number.isFinite(stageStartedAt.getTime())) throw new Error("Invalid stage collection time");
   const currentRunId = process.env.KOSPI_RUN_ID || null;
   const timely = (recordedAt, sourceSnapshot) => savedOpeningIsTimely(recordedAt, options.runContext.referenceTime, stageStartedAt.toISOString(), Boolean(currentRunId && sourceSnapshot?.meta?.run_id === currentRunId));
@@ -504,7 +508,8 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
       pipeline: { ...nextSnapshot.pipeline, [modeConfig.key]: blockedStep({ attemptedAt, providerId, reason }) },
     };
   } else {
-    const result = await provider[modeConfig.method]({ snapshot: nextSnapshot, env: process.env });
+    log(`입력 스냅샷 ${nextSnapshot.rows?.length ?? 0}행 · 상태 ${nextSnapshot.status} · ${providerId}.${modeConfig.method} 호출`);
+    const result = await log.phase(`수집·계산 (${providerId})`, () => provider[modeConfig.method]({ snapshot: nextSnapshot, env: process.env }), (r) => `· 상태 ${r?.status ?? "-"} · ${Array.isArray(r?.rows) ? r.rows.length : 0}행`);
     nextSnapshot = applyProviderResult(nextSnapshot, result, options.mode, provider, providerId, attemptedAt);
   }
 
@@ -523,6 +528,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     }
     if (!explicitDataFile) wroteRunFile = await writeSnapshot(runPath);
     wroteLatestFile = await writeSnapshot(latestPath);
+    log(`파일 쓰기 · ${(Buffer.byteLength(output) / 1_048_576).toFixed(1)}MB · 단계 파일 ${explicitDataFile ? "해당 없음" : wroteRunFile ? "작성" : "기존 보존"} · latest ${wroteLatestFile ? "작성" : "기존 보존"}`);
   }
   const summary = {
     mode: options.mode,
@@ -540,6 +546,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     wroteLatestFile,
     wroteFile: wroteLatestFile,
   };
+  log(`종료 · 상태 ${summary.status} · ${nextSnapshot.rows?.length ?? 0}행${summary.message ? ` · ${String(summary.message).slice(0, 300)}` : ""}`);
   await appendJobSummary(summary);
   if (process.env.GITHUB_OUTPUT) {
     await appendFile(process.env.GITHUB_OUTPUT, `status=${summary.status}\n`);

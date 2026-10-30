@@ -4,6 +4,7 @@ import { loadNaverDailyHistory } from "../providers/naver-daily-cache.js";
 import { buildEvaluationSummary, deriveExpectedReturn, deriveSessionReturn, deriveEvaluationError } from "../providers/evaluation-contract.js";
 import { mergePostCloseEvaluation } from "../providers/post-close-overlay.js";
 import { priorHistoryEstimate } from "../providers/forecast-basis.js";
+import { createProgressLog } from "../providers/progress-log.js";
 
 const valid = (n) => typeof n === "number" && Number.isFinite(n) && n > 0;
 
@@ -25,7 +26,8 @@ export function buildPostCloseRows(sessions, actualRows, history = {}) {
   });
 }
 
-export async function runPostCloseEvaluation({ runDate, runId, stageFile, outputDir = null, historyFetcher = loadNaverDailyHistory }) {
+export async function runPostCloseEvaluation({ runDate, runId, stageFile, outputDir = null, historyFetcher = loadNaverDailyHistory, log = createProgressLog({ label: `사후 평가 ${runDate}` }) }) {
+  log(`시작 · run ${runId} · 정산 파일 ${stageFile}`);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(runDate) || !/^[A-Za-z0-9._-]+$/.test(runId)) throw new Error("Invalid post-close identity");
   const snapshot = JSON.parse(await readFile(stageFile, "utf8"));
   if (snapshot.status !== "ready" || snapshot.meta?.run_date !== runDate || snapshot.meta?.run_id !== runId || snapshot.meta?.run_stage !== "close-settlement" || !Array.isArray(snapshot.rows) || !snapshot.rows.length) throw new Error("Post-close settlement is missing or does not belong to this run");
@@ -35,11 +37,13 @@ export async function runPostCloseEvaluation({ runDate, runId, stageFile, output
     mergePostCloseEvaluation(snapshot, previous); // validate identity and observation matches
     const evaluated = previous.rows.filter((row) => deriveEvaluationError(row) !== null).length;
     if (!evaluated) throw new Error("Existing retrospective has no evaluated rows");
+    log(`기존 결과 보존 · ${evaluated}/${previous.rows.length}종목 평가됨 · ${path}`);
     return { status: "ready", path, evaluated, total: previous.rows.length, preserved: true };
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
   const history = await historyFetcher({ targetDate: runDate, maxMissingSessions: 0 });
+  log(`직전 이력 ${history.ok ? `${history.sessions?.map((s) => s.date).join(", ")} · ${history.valid_symbols?.length ?? "-"}종목` : `없음 (${history.reason})`}`);
   if (!history.ok) throw new Error(`Prior history unavailable: ${history.reason}`);
   if (history.sessions.length !== 3 || history.sessions.some((s, i) => s.date >= runDate || (i > 0 && s.date >= history.sessions[i - 1].date))) throw new Error("Invalid prior history dates");
   const rows = buildPostCloseRows(history.sessions, snapshot.rows, history);
@@ -48,5 +52,6 @@ export async function runPostCloseEvaluation({ runDate, runId, stageFile, output
   if (evaluation.evaluated_sample_count === 0) throw new Error("No rows have complete prior history and observed prices");
   const record = { schema_version: 1, kind: "post_close_retrospective", run_date: runDate, run_id: runId, created_at: new Date().toISOString(), history_dates: history.sessions.map((s) => s.date), history_urls: history.sessions.map((s) => s.url), history_retrieved_at: history.retrieved_at, robots_url: history.robots_url, robots_checked_at: history.robots_checked_at, model: models.length === 1 ? models[0] : models.join("+") || "none", notice: `Calculated after close; prior source publication and revisions are unverified. Not a forecast made before the open or a measure of live forecast performance.${history.source === "naver-daily" ? ` Naver daily venue and adjustment unconfirmed and may differ from regular-market quotes; ${history.comparison_conflicts} comparison conflicts recorded.` : ""}`, evaluation, rows };
   await writeFile(path, `${JSON.stringify(record, null, 2)}\n`, { encoding: "utf8", flag: "wx" });
+  log(`완료 · ${evaluation.evaluated_sample_count}/${rows.length}종목 평가 · 모델 ${record.model} · MAE ${evaluation.metrics.mean_absolute_error ?? "-"} · rank IC ${evaluation.ranking_metrics?.rank_ic ?? "-"} · ${path}`);
   return { status: "ready", path, evaluated: evaluation.evaluated_sample_count, total: rows.length };
 }

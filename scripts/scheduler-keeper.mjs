@@ -1,5 +1,6 @@
 import { appendFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+import { createProgressLog } from "../providers/progress-log.js";
 import { loadMarketCalendar } from "./market-calendar.mjs";
 import { KEEPER_WORKFLOW, STAGES, catchUpCandidateDates, kstDayStartIso, missingCloseDates, planKeeper } from "./scheduler-plan.mjs";
 
@@ -78,9 +79,10 @@ export async function runKeeper({ client, calendar, ref = "main", now = () => ne
       plan = planKeeper({ now: current, calendar, runsByStage, keeperStartedAt: startedAt, stages, catchUp });
     }
     for (const warning of plan.warnings || []) if (!warnings.has(warning)) { warnings.add(warning); log(`::warning::${warning}`); }
-    log(JSON.stringify({ at: current.toISOString(), action: plan.action, stages: plan.stages.map((s) => `${s.id}:${s.state}`) }));
+    log(`판단 #${loop + 1} · ${plan.action.type}${plan.action.stage ? ` ${plan.action.stage}` : ""}${plan.action.until ? ` (다음 확인 ${plan.action.until})` : ""}${plan.action.reason ? ` · ${plan.action.reason}` : ""} · 단계 상태 ${plan.stages.map((s) => `${s.id}:${s.state}`).join(", ")}`);
     const { action } = plan;
     if (action.type === "dispatch") {
+      log(`실행 요청 · ${action.workflow}${action.inputs ? ` · 입력 ${JSON.stringify(action.inputs)}` : ""}`);
       await client.dispatch(action.workflow, ref, action.inputs || null);
       dispatched.set(action.stage, [...(dispatched.get(action.stage) || []), { status: "queued", conclusion: null, created_at: current.toISOString(), event: "workflow_dispatch", synthetic: true }]);
       events.push({ at: current.toISOString(), type: "dispatch", stage: action.stage, ...(action.inputs ? { inputs: action.inputs } : {}) });
@@ -88,10 +90,12 @@ export async function runKeeper({ client, calendar, ref = "main", now = () => ne
       continue;
     }
     if (action.type === "sleep") {
+      log(`대기 · ${Math.round(Math.max(1_000, Math.min(MAX_SLEEP_MS, Date.parse(action.until) - current.getTime())) / 1000)}초 (최대 ${Math.round(MAX_SLEEP_MS / 1000)}초 단위로 재확인)`);
       await sleep(Math.max(1_000, Math.min(MAX_SLEEP_MS, Date.parse(action.until) - current.getTime())));
       continue;
     }
     if (action.type === "relay") {
+      log(`runner 시간 한도 전 다음 스케줄러로 이어받기 요청 · ${KEEPER_WORKFLOW}`);
       await client.dispatch(KEEPER_WORKFLOW, ref);
       events.push({ at: current.toISOString(), type: "relay" });
       return { result: "relay", events, warnings: [...warnings] };
@@ -106,7 +110,10 @@ if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) 
   const started = new Date();
   (async () => {
     const client = githubClient({ token: process.env.GITHUB_TOKEN, repository: process.env.GITHUB_REPOSITORY });
-    const outcome = await runKeeper({ client, calendar: await loadMarketCalendar(), ref: process.env.GITHUB_REF_NAME || "main", startedAt: started });
+    const LOG = createProgressLog({ label: "스케줄러" });
+    LOG(`시작 · ref ${process.env.GITHUB_REF_NAME || "main"}`);
+    const outcome = await runKeeper({ client, calendar: await loadMarketCalendar(), ref: process.env.GITHUB_REF_NAME || "main", startedAt: started, log: (line) => (String(line).startsWith("::") ? console.log(line) : LOG(line)) });
+    LOG(`종료 · ${outcome.result} · 실행 요청 ${outcome.events.filter((e) => e.type === "dispatch").length}건`);
     const minutes = Math.round((Date.now() - started.getTime()) / 60_000);
     const summary = [`### KOSPI scheduler keeper`, `- result: \`${outcome.result}\``, `- runner minutes: ${minutes}`, ...(outcome.warnings || []).map((w) => `- **warning:** ${w}`), ...outcome.events.map((e) => `- ${e.at}: ${e.type}${e.stage ? ` ${e.stage}` : ""}${e.reason ? ` (${e.reason})` : ""}`)].join("\n");
     console.log(summary);

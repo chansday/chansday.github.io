@@ -16,6 +16,9 @@ import { isSnapshot, validateRankingRows } from "../providers/provider-adapter.j
 import { compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
 import { withEvaluationScores } from "../providers/evaluation-score.js";
 import { dataRoot, repoPath } from "../providers/repo-paths.js";
+import { collectionProgress, createProgressLog } from "../providers/progress-log.js";
+
+export { createProgressLog };
 
 export const RECONSTRUCTION_SOURCE_ID = "naver-daily-candle-reconstruction";
 export const RECONSTRUCTION_CAVEAT = "Reconstructed after the trading day from Naver daily candles: forecasts use only bars before the date, actual values are the date's daily candle. The Naver daily close may include NXT after-hours trading; market venue, adjustment basis, publication time and redistribution rights are unconfirmed. The universe is the current committed list, so symbols delisted since are absent. Source license_status is unconfirmed; preferred shares may be included.";
@@ -30,40 +33,6 @@ export const RECONSTRUCTED_STAGES = Object.freeze([
 // No overall collection deadline: a slow source finishes late rather than
 // failing. Each request still has its own 8 s timeout (naver-daily-rows.js).
 const RECONSTRUCTION_BUDGET_MS = Infinity;
-export const PROGRESS_EVERY = 50;
-
-const duration = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${Math.floor(s / 60)}m${String(s % 60).padStart(2, "0")}s`; };
-
-// Progress lines on stdout, which GitHub Actions streams live while the step
-// runs: UTC time, KST clock time, and elapsed time since the reconstruction began.
-export function createProgressLog({ now = () => new Date(), write = (line) => console.log(line), label = "재현" } = {}) {
-  const t0 = now().getTime();
-  const log = (message) => {
-    const at = now(), kst = new Date(at.getTime() + 9 * 3_600_000).toISOString().slice(11, 19);
-    write(`[${label} ${at.toISOString()} | ${kst} KST | +${duration(at.getTime() - t0)}] ${message}`);
-  };
-  // Times one phase: logs its start, then its end with the phase duration.
-  log.phase = async (name, task, summary = () => "") => {
-    const started = now().getTime();
-    log(`${name} 시작`);
-    const result = await task();
-    log(`${name} 완료 (${duration(now().getTime() - started)}) ${summary(result)}`.trimEnd());
-    return result;
-  };
-  return log;
-}
-
-// Collection progress every PROGRESS_EVERY symbols and on the last one.
-export function collectionProgress(log) {
-  let maxMs = 0;
-  return ({ done, total, symbol, elapsedMs, lastMs, observations, rejected }) => {
-    maxMs = Math.max(maxMs, lastMs ?? 0);
-    if (done % PROGRESS_EVERY && done !== total) return;
-    const perSymbol = elapsedMs / done;
-    log(`수집 ${done}/${total} (${Math.round((done / total) * 100)}%) · 경과 ${duration(elapsedMs)} · 남은 예상 ${duration(perSymbol * (total - done))} · 평균 ${(perSymbol / 1000).toFixed(2)}s/종목 · 마지막 요청 ${lastMs ?? "-"}ms (${symbol}) · 최대 요청 ${maxMs}ms · 일봉 ${observations}행 · 제외 ${rejected}건`);
-  };
-}
-
 async function readJson(path) {
   try { return JSON.parse(await readFile(path, "utf8")); } catch (error) { if (error.code === "ENOENT") return null; throw error; }
 }
@@ -120,7 +89,7 @@ export function buildStageSnapshot({ runDate, runId, producedAt, stageIndex, row
   };
 }
 
-export async function reconstructDate({ runDate, runId, now = () => new Date(), fetchImpl = globalThis.fetch, sleep, universeLoader = loadKospiUniverseCache, evaluator = runPostCloseEvaluation, budgetMs = RECONSTRUCTION_BUDGET_MS, log = createProgressLog({ now }) }) {
+export async function reconstructDate({ runDate, runId, now = () => new Date(), fetchImpl = globalThis.fetch, sleep, universeLoader = loadKospiUniverseCache, evaluator = runPostCloseEvaluation, budgetMs = RECONSTRUCTION_BUDGET_MS, log = createProgressLog({ label: "재현", now }) }) {
   const dir = repoPath(`data/runs/${runDate}`);
   const stop = (result) => { log(`중단: ${result.status} · ${result.reason}`); return result; };
   log(`${runDate} 재현 시작 (run ${runId})`);

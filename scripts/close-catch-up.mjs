@@ -12,6 +12,7 @@ import { copyForecastBundle } from "./update-results.mjs";
 import { buildForecastInputs } from "../providers/forecast-inputs.js";
 import { runPostCloseEvaluation } from "./post-close-evaluation.mjs";
 import { buildDateIndex } from "./generate-date-index.mjs";
+import { collectionProgress, createProgressLog } from "../providers/progress-log.js";
 
 // Missed close-settlement catch-up.
 //
@@ -274,13 +275,16 @@ async function writeNew(path, value) {
   catch (error) { if (error.code === "EEXIST") return false; throw error; }
 }
 
-export async function catchUpDate({ runDate, today, calendar, now = () => new Date(), runId, fetchImpl = globalThis.fetch, allowFetch = true, sleep, dryRun = false, evaluator = runPostCloseEvaluation }) {
+export async function catchUpDate({ runDate, today, calendar, now = () => new Date(), runId, fetchImpl = globalThis.fetch, allowFetch = true, sleep, dryRun = false, evaluator = runPostCloseEvaluation, log = createProgressLog({ label: `마감 보충 ${runDate}`, now }) }) {
+  const skip = (result) => { log(`건너뜀 · ${result.status} · ${result.reason}`); return result; };
+  log(`시작 · 오늘 ${today} KST · run ${runId}${dryRun ? " · dry run" : ""}`);
   const eligibility = catchUpEligibility(runDate, today, calendar);
-  if (!eligibility.eligible) return { runDate, status: "skipped", reason: eligibility.reason, wrote: [] };
+  if (!eligibility.eligible) return skip({ runDate, status: "skipped", reason: eligibility.reason, wrote: [] });
   const stagePath = runFile(runDate, "1530");
-  if (await readJson(stagePath)) return { runDate, status: "not_needed", reason: "existing 1530.json is preserved", wrote: [] };
+  if (await readJson(stagePath)) return skip({ runDate, status: "not_needed", reason: "existing 1530.json is preserved", wrote: [] });
   const base = await loadCatchUpBase(runDate);
-  if (!base) return { runDate, status: "no_data", reason: "no same-date 0900/0820 stage file; nothing to settle", wrote: [] };
+  if (!base) return skip({ runDate, status: "no_data", reason: "no same-date 0900/0820 stage file; nothing to settle", wrote: [] });
+  log(`기준 단계 파일 ${base.label}.json · ${base.snapshot.rows.length}행 · run ${base.snapshot.meta?.run_id ?? "-"}`);
   const symbols = base.snapshot.rows.map((row) => row.symbol).filter(Boolean);
   const cached = await loadCachedCandles({ runDate, today, calendar, now });
   const cachedHistory = await loadNaverDailyHistory({ targetDate: runDate, now });
@@ -288,8 +292,9 @@ export async function catchUpDate({ runDate, today, calendar, now = () => new Da
   const missingSymbols = symbols.filter((symbol) => !cached.candles.has(symbol) && !baseNoTrade.has(symbol));
   let fetched = null;
   const needFetch = missingSymbols.length > 0 || !cachedHistory.ok;
+  log(`커밋된 일봉 캐시 · ${runDate} 봉 ${cached.candles.size}/${symbols.length}종목 (${cached.files.join(", ") || "없음"}) · 직전 이력 캐시 ${cachedHistory.ok ? "있음" : "없음"} · 추가 요청 ${needFetch ? (allowFetch ? `${cachedHistory.ok ? missingSymbols.length : symbols.length}종목` : "필요하지만 비허용") : "불필요"}`);
   if (needFetch && allowFetch) {
-    fetched = await fetchDailyCandles({ runDate, symbols: cachedHistory.ok ? missingSymbols : symbols, fetchImpl, now, sleep });
+    fetched = await log.phase("일봉 차트 요청", () => fetchDailyCandles({ runDate, symbols: cachedHistory.ok ? missingSymbols : symbols, fetchImpl, now, sleep, onProgress: collectionProgress(log) }), (r) => `· 상태 ${r.status}${r.reason ? ` (${r.reason})` : ""} · 요청 ${r.requested} · ${runDate} 봉 ${r.candles.size}종목`);
   }
   const candles = new Map(cached.candles);
   for (const [symbol, row] of fetched?.candles || []) if (!candles.has(symbol)) candles.set(symbol, row);
@@ -300,20 +305,25 @@ export async function catchUpDate({ runDate, today, calendar, now = () => new Da
   const snapshot = buildCatchUpSnapshot({ runDate, base, priorOpenings: await loadPriorOpenings(runDate), candles, zeroVolume, producedAt, runId, candleSource,
     fetchStatus: fetched?.status ?? (needFetch && !allowFetch && missingSymbols.length ? "not_requested" : null), fetchReason: fetched?.reason ?? null,
     cacheFiles: cached.files, retrievedAt: usedFetch ? producedAt : cached.retrievedAt, robots: fetched?.robots?.robots_url ? fetched.robots : cached.robots, fetched: fetched?.requested ?? 0 });
+  log(`정산 스냅샷 생성 · 상태 ${snapshot.status} · 정산 ${snapshot.meta.catch_up.settled_rows}/${snapshot.rows.length} · 일봉 없음 ${snapshot.meta.catch_up.missing_candles} · 거래 없음 ${snapshot.meta.catch_up.no_trade_count} · 출처 ${candleSource}`);
   const summary = { runDate, status: snapshot.status, reason: snapshot.pipeline.closeSettlement.message, base: base.label, rows: snapshot.rows.length,
     settled: snapshot.meta.catch_up.settled_rows, missing: snapshot.meta.catch_up.missing_candles, noTrade: snapshot.meta.catch_up.no_trade_count, evaluable: snapshot.rows.filter((row) => row.error !== null).length,
     candleSource, fetchStatus: fetched?.status ?? null, priorHistory: cachedHistory.ok ? "cache" : fetched?.history ? "chart_request" : "unavailable", wrote: [], retrospective: { status: "not_run" } };
-  if (dryRun || snapshot.status !== "ready") return { ...summary, ...(dryRun ? { dryRun: true, snapshot } : {}) };
-  if (!await writeNew(stagePath, snapshot)) return { ...summary, status: "not_needed", reason: "1530.json appeared concurrently and was preserved" };
+  if (dryRun || snapshot.status !== "ready") { log(`파일을 쓰지 않음 · ${dryRun ? "dry run" : `상태 ${snapshot.status}`}`); return { ...summary, ...(dryRun ? { dryRun: true, snapshot } : {}) }; }
+  if (!await writeNew(stagePath, snapshot)) return skip({ ...summary, status: "not_needed", reason: "1530.json appeared concurrently and was preserved" });
   summary.wrote.push(`data/runs/${runDate}/1530.json`);
+  log(`1530.json 작성 · ${snapshot.rows.length}행`);
   // Same post-close evaluation as the normal settlement; prior history comes
   // from D's committed cache, else from the chart response fetched above.
   const historyFetcher = async ({ targetDate }) => (cachedHistory.ok ? cachedHistory : fetched?.history && targetDate === runDate ? fetched.history : cachedHistory);
-  try {
-    const result = await evaluator({ runDate, runId, stageFile: stagePath, outputDir: repoPath(`data/runs/${runDate}`), historyFetcher });
-    summary.retrospective = { status: result.status, evaluated: result.evaluated, total: result.total };
-    if (result.status === "ready" && !result.preserved) summary.wrote.push(`data/runs/${runDate}/retrospective-${runId}.json`);
-  } catch (error) { summary.retrospective = { status: "failed", reason: error.message }; }
+  await log.phase("사후 평가", async () => {
+    try {
+      const result = await evaluator({ runDate, runId, stageFile: stagePath, outputDir: repoPath(`data/runs/${runDate}`), historyFetcher });
+      summary.retrospective = { status: result.status, evaluated: result.evaluated, total: result.total };
+      if (result.status === "ready" && !result.preserved) summary.wrote.push(`data/runs/${runDate}/retrospective-${runId}.json`);
+    } catch (error) { summary.retrospective = { status: "failed", reason: error.message }; }
+    return summary.retrospective;
+  }, (r) => `· ${r.status}${r.status === "ready" ? ` · ${r.evaluated}/${r.total}종목 평가` : r.reason ? ` · ${r.reason}` : ""}`);
   // The latest snapshot moves to D's settlement only while it still shows D.
   const latestPath = repoPath("data/latest-snapshot.json");
   const latest = await readJson(latestPath);
@@ -323,6 +333,7 @@ export async function catchUpDate({ runDate, today, calendar, now = () => new Da
   }
   await buildDateIndex({ root: dataRoot() });
   summary.wrote.push("data/date-index.json");
+  log(`완료 · ${summary.status} · 기록 ${summary.wrote.join(", ")}`);
   return summary;
 }
 
@@ -343,6 +354,7 @@ export async function runCatchUp({ dates = [], now = () => new Date(), calendar 
   const cal = calendar || await loadMarketCalendar();
   const today = kstDate(now());
   const targets = dates.length ? [...new Set(dates)].sort() : await missingCloseSettlementDates({ today, calendar: cal });
+  createProgressLog({ label: "마감 보충", now })(`대상 날짜 ${targets.join(", ") || "없음"} (${dates.length ? "입력값" : "누락 자동 탐색"}) · 오늘 ${today} KST`);
   const results = [];
   for (const runDate of targets) results.push(await catchUpDate({ runDate, today, calendar: cal, now, ...options }));
   const worst = results.reduce((acc, r) => (STATUS_ORDER.indexOf(r.status) > STATUS_ORDER.indexOf(acc) ? r.status : acc), results.some((r) => r.status === "ready") ? "ready" : "not_needed");
