@@ -28,10 +28,10 @@ test("before 06:10 the keeper sleeps until just after the first stage time, then
 });
 
 test("dispatch order and times follow the KST stage table", () => {
-  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:20"], ["open-settlement", "09:00"], ["close-catch-up", "09:30"], ["close-settlement", "15:30"]]);
+  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:35"], ["open-settlement", "09:00"], ["close-catch-up", "09:30"], ["close-settlement", "15:30"]]);
   const done = (ids) => Object.fromEntries(ids.map((id) => [id, [run(DAY, "06:11")]]));
   assert.equal(plan("07:00", done(["naver-daily-history"]), null, "05").action.stage, "update-results");
-  assert.equal(plan("08:20", done(["naver-daily-history", "update-results", "analysis"]), null, "05").action.stage, "forecast");
+  assert.equal(plan("08:35", done(["naver-daily-history", "update-results", "analysis"]), null, "05").action.stage, "forecast");
   assert.equal(plan("15:30", done(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]), null, "05").action.stage, "close-settlement");
   const all = plan("15:40", done(STAGES.map((s) => s.id)));
   assert.equal(all.action.type, "exit");

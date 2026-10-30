@@ -21,7 +21,9 @@ export const STAGES = Object.freeze([
   { id: "naver-daily-history", workflow: "naver-daily-history.yml", at: "06:10", lastStart: "07:45", kind: "pre-open", retry: { at: "07:10", maxAttempts: 2 } },
   { id: "update-results", workflow: "update-results.yml", at: "07:00", lastStart: "08:50", kind: "pre-open" },
   { id: "analysis", workflow: "analysis.yml", at: "08:00", lastStart: "08:50", kind: "pre-open" },
-  { id: "forecast", workflow: "forecast.yml", at: "08:20", lastStart: "08:50", kind: "pre-open" },
+  // 08:35: inside the 08:30-09:00 pre-open auction, so a fresh pre-open price
+  // can be recorded, and done by about 08:37 (a run takes 30-45 s).
+  { id: "forecast", workflow: "forecast.yml", at: "08:35", lastStart: "08:50", kind: "pre-open" },
   { id: "open-settlement", workflow: "open-settlement.yml", at: "09:00", lastStart: "23:00", kind: "settlement" },
   { id: "close-catch-up", workflow: "close-catch-up.yml", at: "09:30", lastStart: "14:30", kind: "catch-up", after: Object.freeze(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]) },
   { id: "close-settlement", workflow: "close-settlement.yml", at: "15:30", lastStart: "23:00", kind: "settlement" },

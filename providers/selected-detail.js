@@ -30,7 +30,7 @@ const SOURCE_KIND_LABELS = {
   retrospective_history: "장 시작 후 공개 일봉 사후 계산",
 };
 const STAGE_LABELS = {
-  "previous-result": "전일 결과(07:00)", analysis: "기초 분석(08:00)", forecast: "장전 예상(08:20)",
+  "previous-result": "전일 결과(07:00)", analysis: "기초 분석(08:00)", forecast: "장전 예상(08:35)",
   "open-settlement": "시가 정산(09:00)", "close-settlement": "종가 정산(15:30)", "update-results": "결과 갱신",
 };
 const PIPELINE_STATUS_LABELS = { ready: "완료", pending: "대기", blocked: "차단됨", degraded: "품질 저하", partial: "부분 결과", no_data: "데이터 없음" };

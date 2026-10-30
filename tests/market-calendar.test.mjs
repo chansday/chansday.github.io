@@ -84,7 +84,7 @@ test("feature workflows expose input-free buttons and route through the shared g
   const expected = {
     "update-results.yml": ["07:00", "update-results"],
     "analysis.yml": ["08:00", "analysis"],
-    "forecast.yml": ["08:20", "forecast"],
+    "forecast.yml": ["08:35", "forecast"],
     "open-settlement.yml": ["09:00", "open-settlement"],
     "close-settlement.yml": ["15:30", "close-settlement"],
   };
