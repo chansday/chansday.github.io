@@ -1,4 +1,4 @@
-name: KOSPI forecast
+name: "[2 단계] 08:20 forecast"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the

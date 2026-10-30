@@ -6,7 +6,7 @@
 
 평일 운영 provider 기본값과 GitHub Actions provider는 `naver-crawl`입니다. Naver 공개 polling endpoint에서 현재 KOSPI quote를 읽어 장전 예상시가·장중 실제시가·장마감 실제값을 계산하지만, Naver endpoint는 공식 API가 아니고 이용정책/재배포 권한이 확인되지 않았습니다. 따라서 source metadata는 `license_status=unconfirmed`를 유지하고 snapshot/meta/summary에 source warning을 남깁니다. 일봉의 시장·조정 기준과 보통주 분류가 확인되지 않아 Naver 운영 단계는 `partial`로 표시하고 신규 운영 snapshot 게시를 차단합니다. crawl 결과가 지연·빈 응답·차단이면 `no_data`/`degraded`/`blocked`를 기록하고 fixture, demo 또는 이전 snapshot을 대체값으로 사용하지 않습니다.
 
-운영 forecast 및 정산은 별도의 `KOSPI prior daily history`가 06:10 KST(두 번째 시도 07:10 KST)에 시작하는 종목별 Naver 일봉 선행 수집(`api.stock.naver.com/chart/domestic/item/{code}/day`)을 사용합니다. 수집은 08:00 전에 완료되어야 하며, 기존 08:20·09:00·15:30 스케줄은 변경하지 않습니다. KRX 캘린더에서 직전 세 거래일을 확인하고 세 날짜의 유효한 OHLC와 거래량이 모두 있는 종목만 계산합니다. chart 일봉에는 전일 대비값이 없으므로 모든 행의 `comparison`은 `unverified`로 기록하고 원본 OHLC는 변경하지 않습니다. OHLC·거래량이 유효하지 않거나 필요한 날짜가 빠진 종목은 제외합니다. 서버의 403·429·challenge 또는 Retry-After는 수집을 중단하며 재시도나 헤더 교체로 우회하지 않습니다. 500ms 이상의 순차 요청 간격을 사용합니다. 900종목이면 간격만 약 7분 30초이고 Actions 지연·네트워크 시간은 별도입니다. 06:10 시작은 08:00 cutoff까지 약 110분 여유가 있고, 07:10 두 번째 실행은 완전한 파일이 있으면 보존하며 부분 파일만 개선합니다. 그래도 완료를 보장하지는 않습니다. open/close-settlement는 관측 가격만 기록하므로 일봉 이력이 없거나 차단돼도 정산 상태를 degraded/blocked로 바꾸지 않고, `history_status`·`history_reason`과 메시지에만 남깁니다(예상 시가는 저장된 장전 기록이 없으면 null). forecast·analysis 단계는 기존대로 이력 실패를 상태에 반영합니다. 지연 또는 차단으로 선행 파일이 없으면 이력 예측은 degraded/no_data이며 과거 파일을 대체하지 않습니다. 네이버 일봉의 KRX 정규장 구분, 수정 여부, 최초 게시시각과 이용·재배포 권한은 확인되지 않았습니다. 선행 파일에는 수집 원본의 일부가 포함되어 공개 저장소에 기록됩니다. 수동 실행이 08:00 전 또는 선행 수집 실패 후라면 필요한 이력을 사용할 수 없습니다. 이전 CSV 이력 설명은 별도 실험과 명시적 public-csv 경로에 적용됩니다.
+운영 forecast 및 정산은 별도의 `[1 수집] 장전 일봉 선행 수집`가 06:10 KST(두 번째 시도 07:10 KST)에 시작하는 종목별 Naver 일봉 선행 수집(`api.stock.naver.com/chart/domestic/item/{code}/day`)을 사용합니다. 수집은 08:00 전에 완료되어야 하며, 기존 08:20·09:00·15:30 스케줄은 변경하지 않습니다. KRX 캘린더에서 직전 세 거래일을 확인하고 세 날짜의 유효한 OHLC와 거래량이 모두 있는 종목만 계산합니다. chart 일봉에는 전일 대비값이 없으므로 모든 행의 `comparison`은 `unverified`로 기록하고 원본 OHLC는 변경하지 않습니다. OHLC·거래량이 유효하지 않거나 필요한 날짜가 빠진 종목은 제외합니다. 서버의 403·429·challenge 또는 Retry-After는 수집을 중단하며 재시도나 헤더 교체로 우회하지 않습니다. 500ms 이상의 순차 요청 간격을 사용합니다. 900종목이면 간격만 약 7분 30초이고 Actions 지연·네트워크 시간은 별도입니다. 06:10 시작은 08:00 cutoff까지 약 110분 여유가 있고, 07:10 두 번째 실행은 완전한 파일이 있으면 보존하며 부분 파일만 개선합니다. 그래도 완료를 보장하지는 않습니다. open/close-settlement는 관측 가격만 기록하므로 일봉 이력이 없거나 차단돼도 정산 상태를 degraded/blocked로 바꾸지 않고, `history_status`·`history_reason`과 메시지에만 남깁니다(예상 시가는 저장된 장전 기록이 없으면 null). forecast·analysis 단계는 기존대로 이력 실패를 상태에 반영합니다. 지연 또는 차단으로 선행 파일이 없으면 이력 예측은 degraded/no_data이며 과거 파일을 대체하지 않습니다. 네이버 일봉의 KRX 정규장 구분, 수정 여부, 최초 게시시각과 이용·재배포 권한은 확인되지 않았습니다. 선행 파일에는 수집 원본의 일부가 포함되어 공개 저장소에 기록됩니다. 수동 실행이 08:00 전 또는 선행 수집 실패 후라면 필요한 이력을 사용할 수 없습니다. 이전 CSV 이력 설명은 별도 실험과 명시적 public-csv 경로에 적용됩니다.
 
 국내 종목코드는 숫자와 ASCII 대문자로 이뤄진 정확히 6자리만 허용합니다. 예를 들어 `0126Z0`을 수용하며 소문자, 공백, 경로 문자 및 다른 길이는 거부합니다. 이는 코드 형식 검증이며 해당 종목이 보통주 또는 KRX 정규장 데이터라는 확인을 대신하지 않습니다.
 
@@ -62,7 +62,7 @@
 - `api.stock.naver.com`의 KOSPI 목록은 2026-10-28 장전·장마감 후(after-market 진행 중) 모두 `totalCount: 0`, `marketStatus: PREOPEN`을 반환했습니다(같은 경로의 NASDAQ은 정상). 정규장(09:00–15:30) 중 반환 여부는 아직 확인하지 않았으므로 코드는 live list를 먼저 시도합니다.
 - [`data/kospi-universe.json`](../data/kospi-universe.json)은 종목코드·종목명 목록일 뿐 가격 원천이 아닙니다. `candidates_as_of`(후보 기준일), `collected_at`(후보 수집시각), `verified_at`(마지막 quote host 재확인), `source.method`(`live_list` 또는 `candidate_verification`), `candidate_source`, `discovers_new_listings`, host별 robots 확인 결과, `license_status=unconfirmed`를 포함합니다. `candidates_as_of`가 7일(`KOSPI_UNIVERSE_MAX_AGE_DAYS`)보다 오래되면 `universe_stale=true`이며 결과는 `partial`입니다.
 - 초기 파일은 금융위원회 공공데이터포털·한국거래소 원천의 공개 일별 CSV `https://aikstockdata.com/data/public/daily/quotes_20261026.csv`(basDt 2026-10-26, robots.txt `Allow: /data/public/` 확인 후 요청)의 `mrktCtg=KOSPI` 913행 종목코드를 후보로, `polling.finance.naver.com`에서 `stockExchangeType.code === "KS"`를 재확인해 만들었습니다(913/913 확인). 출처 URL·basDt·수집시각·robots 확인 시각은 파일의 `candidate_source`에 기록됩니다. robots 금지 host(`m.stock.naver.com`)에서 목록이 수집된 `data/latest-snapshot.json`과 `data/runs/YYYY-MM-DD/` 운영 파일은 후보로 거부합니다. 후보 검증 방식은 CSV 기준일 이후 신규 상장 종목을 추가할 수 없습니다.
-- 갱신: `npm run universe:update` (dry-run: `npm run universe:dry-run`, 공개 CSV 후보: `node scripts/update-kospi-universe.mjs --candidates-csv YYYY-MM-DD`, 다른 후보 파일: `--candidates <file>`; 옵션이 없으면 기존 목록을 재확인). live list가 행을 반환하면 `live_list`로 교체하고, 아니면 후보를 quote host에서 재확인합니다. 확인 비율이 90% 미만이거나 403/429/challenge이면 파일을 바꾸지 않습니다. `KOSPI prior daily history` workflow가 일봉 수집 전에 `--candidates-csv latest`(최근 3거래일 CSV 중 기존 `candidates_as_of`보다 새로운 것, 없으면 기존 목록 재확인)를 `continue-on-error`로 실행하고 변경 시 함께 커밋합니다. stale 판정은 재확인 시각(`verified_at`)이 아니라 후보 기준일(`candidates_as_of`)로 하며, 재확인은 `candidate_source`·`collected_at`·`candidates_as_of`를 바꾸지 않습니다.
+- 갱신: `npm run universe:update` (dry-run: `npm run universe:dry-run`, 공개 CSV 후보: `node scripts/update-kospi-universe.mjs --candidates-csv YYYY-MM-DD`, 다른 후보 파일: `--candidates <file>`; 옵션이 없으면 기존 목록을 재확인). live list가 행을 반환하면 `live_list`로 교체하고, 아니면 후보를 quote host에서 재확인합니다. 확인 비율이 90% 미만이거나 403/429/challenge이면 파일을 바꾸지 않습니다. `[1 수집] 장전 일봉 선행 수집` workflow가 일봉 수집 전에 `--candidates-csv latest`(최근 3거래일 CSV 중 기존 `candidates_as_of`보다 새로운 것, 없으면 기존 목록 재확인)를 `continue-on-error`로 실행하고 변경 시 함께 커밋합니다. stale 판정은 재확인 시각(`verified_at`)이 아니라 후보 기준일(`candidates_as_of`)로 하며, 재확인은 `candidate_source`·`collected_at`·`candidates_as_of`를 바꾸지 않습니다.
 - 네트워크 dry-run(파일 쓰기 없음): `npm run naver:dry-run` — universe와 앞 3종목의 quote·일봉을 실제로 요청해 행 수와 상태만 출력합니다.
 
 ### 수집 시각·timeout·freshness
@@ -96,18 +96,18 @@ adapter는 단일 HTTPS JSON endpoint만 사용하고, redirect를 거부하며,
 
 ## GitHub Actions 버튼과 실행 시각
 
-stage workflow에는 더 이상 schedule cron이 없습니다. 2026-10-28 실측에서 GitHub schedule 이벤트가 장전 단계는 약 3시간(07:00→10:00, 08:20→11:23), 10-27 마감 정산은 약 6시간(15:30→21:34) 늦게 시작해 장전 단계가 실패했기 때문입니다. 대신 `KOSPI scheduler keeper`([`.github/workflows/scheduler-keeper.yml`](../.github/workflows/scheduler-keeper.yml))가 KST 정시까지 기다렸다가 각 stage를 `workflow_dispatch`로 시작합니다. `GITHUB_TOKEN`으로 보낸 `workflow_dispatch`는 새 run을 만드는 GitHub 예외를 이용하며 PAT·secret·외부 서비스는 쓰지 않습니다.
+stage workflow에는 더 이상 schedule cron이 없습니다. 2026-10-28 실측에서 GitHub schedule 이벤트가 장전 단계는 약 3시간(07:00→10:00, 08:20→11:23), 10-27 마감 정산은 약 6시간(15:30→21:34) 늦게 시작해 장전 단계가 실패했기 때문입니다. 대신 `[5 관리] scheduler keeper`([`.github/workflows/scheduler-keeper.yml`](../.github/workflows/scheduler-keeper.yml))가 KST 정시까지 기다렸다가 각 stage를 `workflow_dispatch`로 시작합니다. `GITHUB_TOKEN`으로 보낸 `workflow_dispatch`는 새 run을 만드는 GitHub 예외를 이용하며 PAT·secret·외부 서비스는 쓰지 않습니다.
 
 | 버튼 / workflow | keeper dispatch (KST, 거래일) | 마지막 시작 허용 | stage / provider |
 | --- | --- | --- | --- |
-| `KOSPI prior daily history` | 06:10 (실패 시 07:10 1회 재시도) | 07:45 | 일봉 선행 수집 |
-| `KOSPI update-results` | 07:00 | 08:50 | `update-results` / `naver-crawl` |
-| `KOSPI analysis` | 08:00 | 08:50 | `analysis` / `naver-crawl` |
-| `KOSPI forecast` | 08:20 | 08:50 | `forecast` / `naver-crawl` |
-| `KOSPI open-settlement` | 09:00 | 23:00 (늦어도 실행) | `open-settlement` / `naver-crawl` |
-| `KOSPI close-settlement catch-up` | 09:30 이후, 앞선 오늘 stage가 모두 끝난 뒤 (누락 날짜가 있을 때만) | 14:30 | 지난 거래일 `1530.json` 보충 / Naver 일봉 |
-| `KOSPI close-settlement` | 15:30 | 23:00 (늦어도 실행) | `close-settlement` / `naver-crawl` |
-| `KOSPI run all now` → **Run workflow** | 수동 | — | 5개 stage 순차 실행 / live 또는 historical crawl |
+| `[1 수집] 장전 일봉 선행 수집` | 06:10 (실패 시 07:10 1회 재시도) | 07:45 | 일봉 선행 수집 |
+| `[2 단계] 07:00 update-results` | 07:00 | 08:50 | `update-results` / `naver-crawl` |
+| `[2 단계] 08:00 analysis` | 08:00 | 08:50 | `analysis` / `naver-crawl` |
+| `[2 단계] 08:20 forecast` | 08:20 | 08:50 | `forecast` / `naver-crawl` |
+| `[2 단계] 09:00 open-settlement` | 09:00 | 23:00 (늦어도 실행) | `open-settlement` / `naver-crawl` |
+| `[3 보충] 누락 마감 정산 catch-up` | 09:30 이후, 앞선 오늘 stage가 모두 끝난 뒤 (누락 날짜가 있을 때만) | 14:30 | 지난 거래일 `1530.json` 보충 / Naver 일봉 |
+| `[2 단계] 15:30 close-settlement` | 15:30 | 23:00 (늦어도 실행) | `close-settlement` / `naver-crawl` |
+| `[4 수동] run all now (전체 단계)` → **Run workflow** | 수동 | — | 5개 stage 순차 실행 / live 또는 historical crawl |
 
 ## Scheduler keeper
 
@@ -119,16 +119,16 @@ stage workflow에는 더 이상 schedule cron이 없습니다. 2026-10-28 실측
 - 중복 방지: dispatch 전에 Actions API에서 해당 stage workflow의 오늘(KST) `workflow_dispatch`/`schedule` run을 조회합니다. queued·실행 중·성공·실패 run이 있으면 다시 시작하지 않습니다. 취소된 run만 최대 3회까지 다시 시작합니다(stage 공용 concurrency 대기열에서 교체·취소된 경우). 일봉 수집만 실패 후 07:10에 1회 재시도합니다.
 - 지난 stage: 장전 stage(일봉·update-results·analysis·forecast)는 마지막 시작 허용 시각이 지나면 `missed`로 건너뜁니다. 장후 실행은 단계 판정상 의미가 없기 때문입니다. 정산 stage는 관측 가격만 기록하므로 같은 KST 날짜 23:00까지는 늦게라도 실행합니다.
 - runner 6시간 한도: job `timeout-minutes: 340`, keeper는 시작 후 325분이 되면 남은 stage가 있을 때 자신을 `workflow_dispatch`로 다시 호출(relay)하고 종료합니다. 마지막 stage(15:30) dispatch 후에는 종료합니다.
-- 누락 마감 정산 보충: 직전 5거래일 중 `data/runs/D/0900.json`(없으면 `0820.json`)은 있는데 `1530.json`이 없는 날짜 D가 있으면, keeper가 contents API(`api.github.com`, 읽기 전용)로 확인한 뒤 `close-catch-up.yml`을 `run_date=D[,D2…]` 입력으로 하루 1회 dispatch합니다. 시각은 09:30 이후이며 일봉·update-results·analysis·forecast·open-settlement가 모두 끝난(done/failed/missed) 뒤에만 시작하고 마지막 시작은 14:30입니다. 장전 stage(마감 08:50)와 09:00 시가 정산을 늦추지 않고, 15:30 마감 정산 전 유휴 구간에서 끝나도록 한 선택입니다. [`scripts/close-catch-up.mjs`](../scripts/close-catch-up.mjs)는 D의 0900/0820 행과 D 당일 기록된 예측 묶음(`FORECAST_BUNDLE`)만 이어받고, 실제 시가·종가·거래량은 커밋된 일봉 캐시(`data/daily-history/T.json`, T는 D 이후 거래일)에서 읽습니다. 캐시에 없는 종목이나 사후 평가용 직전 3거래일 이력이 없을 때만 같은 robots 확인·User-Agent·500ms 간격의 `api.stock.naver.com` 일봉 요청을 사용합니다. 결과에는 `meta.settlement_source: "naver_daily_candle_catch_up"`, `run_stage: "close-settlement"`, 생성 시각·KST 날짜와 "네이버 일봉 종가는 NXT 시간외 거래를 포함할 수 있고 기준이 확인되지 않음" 경고가 기록됩니다. 모든 행에 유효한 일봉이 있고 정상 정산과 같은 행 검증을 통과해야 `ready`이며, `partial`·`blocked`·`no_data`는 파일을 쓰지 않습니다. 기존 `1530.json`이나 다른 날짜 파일은 덮어쓰지 않고, `latest-snapshot.json`은 아직 D의 정산 전 단계를 보여줄 때만 갱신합니다. 이어서 정상 정산과 같은 사후 평가(`retrospective-<run_id>.json`)와 `data/date-index.json`을 생성합니다. 수동 실행: Actions → `KOSPI close-settlement catch-up` → `run_date`(비우면 누락 날짜 자동 탐색).
+- 누락 마감 정산 보충: 직전 5거래일 중 `data/runs/D/0900.json`(없으면 `0820.json`)은 있는데 `1530.json`이 없는 날짜 D가 있으면, keeper가 contents API(`api.github.com`, 읽기 전용)로 확인한 뒤 `close-catch-up.yml`을 `run_date=D[,D2…]` 입력으로 하루 1회 dispatch합니다. 시각은 09:30 이후이며 일봉·update-results·analysis·forecast·open-settlement가 모두 끝난(done/failed/missed) 뒤에만 시작하고 마지막 시작은 14:30입니다. 장전 stage(마감 08:50)와 09:00 시가 정산을 늦추지 않고, 15:30 마감 정산 전 유휴 구간에서 끝나도록 한 선택입니다. [`scripts/close-catch-up.mjs`](../scripts/close-catch-up.mjs)는 D의 0900/0820 행과 D 당일 기록된 예측 묶음(`FORECAST_BUNDLE`)만 이어받고, 실제 시가·종가·거래량은 커밋된 일봉 캐시(`data/daily-history/T.json`, T는 D 이후 거래일)에서 읽습니다. 캐시에 없는 종목이나 사후 평가용 직전 3거래일 이력이 없을 때만 같은 robots 확인·User-Agent·500ms 간격의 `api.stock.naver.com` 일봉 요청을 사용합니다. 결과에는 `meta.settlement_source: "naver_daily_candle_catch_up"`, `run_stage: "close-settlement"`, 생성 시각·KST 날짜와 "네이버 일봉 종가는 NXT 시간외 거래를 포함할 수 있고 기준이 확인되지 않음" 경고가 기록됩니다. 모든 행에 유효한 일봉이 있고 정상 정산과 같은 행 검증을 통과해야 `ready`이며, `partial`·`blocked`·`no_data`는 파일을 쓰지 않습니다. 기존 `1530.json`이나 다른 날짜 파일은 덮어쓰지 않고, `latest-snapshot.json`은 아직 D의 정산 전 단계를 보여줄 때만 갱신합니다. 이어서 정상 정산과 같은 사후 평가(`retrospective-<run_id>.json`)와 `data/date-index.json`을 생성합니다. 수동 실행: Actions → `[3 보충] 누락 마감 정산 catch-up` → `run_date`(비우면 누락 날짜 자동 탐색).
 - 권한은 `actions: write`, `contents: read`뿐입니다. checkout은 `scripts/`와 휴장일 달력만 sparse로 받습니다.
 - 정시 의미: dispatch된 stage도 reusable runner가 runner 시작 시각을 `run-started-at`으로 캡처하고 그 KST 날짜·시각으로 거래일과 stage를 판정합니다. keeper는 경계 시각 3초 뒤에 dispatch하므로 09:00·15:30 경계 전에 시작하지 않습니다.
 - runner 사용량: 거래일에는 첫 keeper 시작(가장 이르면 00:07)부터 15:30까지 대부분 sleep으로 약 9.5~15.5시간(570~925분), 그 외 stage job은 각 수 분입니다. 휴장일·주말은 keeper 1회당 1분 미만입니다. 공개 저장소의 표준 GitHub-hosted runner 기준입니다.
 
-Actions에는 기능별 workflow와 입력 없는 `KOSPI run now` workflow가 표시됩니다. `KOSPI run all now`와 reusable stage runner는 runner 첫 실행 step에서 실제 UTC timestamp를 생성해 `GITHUB_ENV`와 `GITHUB_OUTPUT`에 기록하고, 같은 유효한 ISO timestamp를 stage command의 run-start와 source-attempt 기준으로 전달합니다. 따라서 `github.run_started_at`의 빈 값이나 고정 schedule 시각을 stage 판정에 사용하지 않습니다. `run all now`는 오늘 거래일에 실제 run-start 시각과 관계없이 `forecast`까지 실행하고, 09:00 이후 `open-settlement`, 15:30 이후 `close-settlement`를 추가합니다. `run now`는 reusable runner가 캡처한 실제 run start를 KST로 변환해 단일 `auto_stage`를 선택합니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않으며, `naver-crawl`은 계좌·API 키·Secret 없이 실행됩니다. `run now`의 실제 stage 실패는 job을 실패시키고, `run all now`의 아직 시간이 되지 않은 `pending`은 summary에 남기는 정상 `partial` 결과입니다. 필수 step이 실패·skip되거나 stage/overall status가 비어 있거나 알 수 없으면 최종 gate가 실패합니다.
+Actions에는 기능별 workflow와 입력 없는 `[4 수동] run now (현재 시각 단계)` workflow가 표시됩니다. `[4 수동] run all now (전체 단계)`와 reusable stage runner는 runner 첫 실행 step에서 실제 UTC timestamp를 생성해 `GITHUB_ENV`와 `GITHUB_OUTPUT`에 기록하고, 같은 유효한 ISO timestamp를 stage command의 run-start와 source-attempt 기준으로 전달합니다. 따라서 `github.run_started_at`의 빈 값이나 고정 schedule 시각을 stage 판정에 사용하지 않습니다. `run all now`는 오늘 거래일에 실제 run-start 시각과 관계없이 `forecast`까지 실행하고, 09:00 이후 `open-settlement`, 15:30 이후 `close-settlement`를 추가합니다. `run now`는 reusable runner가 캡처한 실제 run start를 KST로 변환해 단일 `auto_stage`를 선택합니다. 수동 실행도 파일에 저장된 날짜나 고정 `fixture_date`를 사용하지 않으며, `naver-crawl`은 계좌·API 키·Secret 없이 실행됩니다. `run now`의 실제 stage 실패는 job을 실패시키고, `run all now`의 아직 시간이 되지 않은 `pending`은 summary에 남기는 정상 `partial` 결과입니다. 필수 step이 실패·skip되거나 stage/overall status가 비어 있거나 알 수 없으면 최종 gate가 실패합니다.
 
-## KOSPI run all now / 전체 순서 실행
+## [4 수동] run all now (전체 단계) / 전체 순서 실행
 
-특정 거래일의 run-all 계획을 실행하려면 Actions에서 **`KOSPI run all now` → `Run workflow`**를 선택하고 `run_date` 하나만 `YYYY-MM-DD`로 입력합니다. provider나 stage를 선택하는 입력은 없습니다. 계획 순서는 `update-results → analysis → forecast → open-settlement → close-settlement`로 고정되지만, 실제 명령은 실제 run-start KST 시각에 `planned/eligible`인 단계만 호출합니다. 실행하지 않은 단계는 `pending`과 이유를 summary에 남깁니다. 모든 실제 실행 단계는 같은 `run_id`, `run_date`, run-start timestamp를 사용하며, 마지막 eligible 실행 stage 파일만 `data/latest-snapshot.json`과 consistency check로 비교합니다. concurrency 잠금으로 다른 KOSPI 수집과의 data race를 막고, 단계 파일과 `data/latest-snapshot.json`은 마지막에 한 번만 commit합니다. 기존 `KOSPI run now`는 계속 현재 시각에 맞는 단일 `auto_stage` 실행용입니다.
+특정 거래일의 run-all 계획을 실행하려면 Actions에서 **`[4 수동] run all now (전체 단계)` → `Run workflow`**를 선택하고 `run_date` 하나만 `YYYY-MM-DD`로 입력합니다. provider나 stage를 선택하는 입력은 없습니다. 계획 순서는 `update-results → analysis → forecast → open-settlement → close-settlement`로 고정되지만, 실제 명령은 실제 run-start KST 시각에 `planned/eligible`인 단계만 호출합니다. 실행하지 않은 단계는 `pending`과 이유를 summary에 남깁니다. 모든 실제 실행 단계는 같은 `run_id`, `run_date`, run-start timestamp를 사용하며, 마지막 eligible 실행 stage 파일만 `data/latest-snapshot.json`과 consistency check로 비교합니다. concurrency 잠금으로 다른 KOSPI 수집과의 data race를 막고, 단계 파일과 `data/latest-snapshot.json`은 마지막에 한 번만 commit합니다. 기존 `[4 수동] run now (현재 시각 단계)`는 계속 현재 시각에 맞는 단일 `auto_stage` 실행용입니다.
 
 - 현재일: 실제 run-start KST와 관계없이 `update-results`/`analysis`/`forecast`를 호출하며, 09:00 이상이면 `open-settlement`, 15:30 이상이면 `close-settlement`를 각각 추가합니다. 아직 이른 정산 단계는 명령을 호출하지 않고 `pending`으로 기록합니다. 따라서 08:30 KST는 앞의 세 stage만, 12:09 KST는 앞의 네 stage만, 15:30 이후는 다섯 stage 모두 호출합니다.
 - 과거일: 공개 historical daily crawl에서 입력 날짜와 직전 거래일의 실제 값을 확인합니다. 당시 pre-open quote/order-book history가 없으면 `forecast`는 `no_data`/`unsupported`이며 합성·재구성하지 않습니다. 실제 historical open/close가 있으면 `open-settlement`와 `close-settlement`에 반영합니다.
@@ -138,7 +138,7 @@ Summary에는 각 stage의 `planned`, `pending`, `skipped`, 실제 호출 여부
 
 ## Which button should I press? / 어떤 버튼을 누르나요?
 
-현재 `main`의 Actions에는 stage별 workflow와 입력이 없는 `KOSPI run now`가 각각 등록되어 있습니다. 장 시작 전인지, 장중인지, 장 마감 후인지와 관계없이 지금 실행하려면 **`KOSPI run now` → `Run workflow`**를 누르십시오. 입력값은 없습니다. 이 workflow는 [`.github/workflows/run-now.yml`](../.github/workflows/run-now.yml)에서 `auto_stage: true`와 `provider: naver-crawl`을 설정하고, [공용 runner](../.github/workflows/_run-stage.yml)를 호출합니다.
+현재 `main`의 Actions에는 stage별 workflow와 입력이 없는 `[4 수동] run now (현재 시각 단계)`가 각각 등록되어 있습니다. 장 시작 전인지, 장중인지, 장 마감 후인지와 관계없이 지금 실행하려면 **`[4 수동] run now (현재 시각 단계)` → `Run workflow`**를 누르십시오. 입력값은 없습니다. 이 workflow는 [`.github/workflows/run-now.yml`](../.github/workflows/run-now.yml)에서 `auto_stage: true`와 `provider: naver-crawl`을 설정하고, [공용 runner](../.github/workflows/_run-stage.yml)를 호출합니다.
 
 `run now`의 자동 stage는 버튼을 누른 GitHub Actions run의 시작 시각을 KST로 변환해 결정합니다. keeper의 08:20/09:00/15:30 dispatch 시각은 정기 실행 시각일 뿐, 수동 `run now`를 막는 cutoff가 아닙니다.
 
@@ -148,16 +148,16 @@ Summary에는 각 stage의 `planned`, `pending`, `skipped`, 실제 호출 여부
 | 09:00 이상, 15:30 미만 | `open-settlement` | 실제 시가와 장중 실제 수익률 |
 | 15:30 이상 | `close-settlement` | 실제 시가·종가·거래량과 세션 수익률 |
 
-따라서 장전 결과만 다시 확인하려면 `KOSPI forecast`, 현재 장중 시가를 반영하려면 `KOSPI open-settlement`, 마감 결과를 반영하려면 `KOSPI close-settlement`를 직접 선택할 수도 있습니다. 현재 시각에 맞는 단계를 자동으로 고르려면 항상 `KOSPI run now`를 선택하십시오. 주말·KRX 휴장일에는 시간대와 무관하게 market guard가 수집을 건너뜁니다.
+따라서 장전 결과만 다시 확인하려면 `[2 단계] 08:20 forecast`, 현재 장중 시가를 반영하려면 `[2 단계] 09:00 open-settlement`, 마감 결과를 반영하려면 `[2 단계] 15:30 close-settlement`를 직접 선택할 수도 있습니다. 현재 시각에 맞는 단계를 자동으로 고르려면 항상 `[4 수동] run now (현재 시각 단계)`를 선택하십시오. 주말·KRX 휴장일에는 시간대와 무관하게 market guard가 수집을 건너뜁니다.
 
 | 목적 | 한국어 안내 | English instruction |
 | --- | --- | --- |
-| 전일 EOD 결과 | `KOSPI update-results` → **Run workflow** | Choose `KOSPI update-results` → **Run workflow** |
-| 당일 기초 분석 | `KOSPI analysis` → **Run workflow** | Choose `KOSPI analysis` → **Run workflow** |
-| 장전 forecast 상태 | `KOSPI forecast` → **Run workflow** | Choose `KOSPI forecast` → **Run workflow** |
-| 09:00 시가 정산 | `KOSPI open-settlement` → **Run workflow** | Choose `KOSPI open-settlement` → **Run workflow** |
-| 15:30 종가 정산 | `KOSPI close-settlement` → **Run workflow** | Choose `KOSPI close-settlement` → **Run workflow** |
-| 현재 시각 기준 자동 실행 | `KOSPI run now` → **Run workflow** | Choose `KOSPI run now` → **Run workflow** |
+| 전일 EOD 결과 | `[2 단계] 07:00 update-results` → **Run workflow** | Choose `[2 단계] 07:00 update-results` → **Run workflow** |
+| 당일 기초 분석 | `[2 단계] 08:00 analysis` → **Run workflow** | Choose `[2 단계] 08:00 analysis` → **Run workflow** |
+| 장전 forecast 상태 | `[2 단계] 08:20 forecast` → **Run workflow** | Choose `[2 단계] 08:20 forecast` → **Run workflow** |
+| 09:00 시가 정산 | `[2 단계] 09:00 open-settlement` → **Run workflow** | Choose `[2 단계] 09:00 open-settlement` → **Run workflow** |
+| 15:30 종가 정산 | `[2 단계] 15:30 close-settlement` → **Run workflow** | Choose `[2 단계] 15:30 close-settlement` → **Run workflow** |
+| 현재 시각 기준 자동 실행 | `[4 수동] run now (현재 시각 단계)` → **Run workflow** | Choose `[4 수동] run now (현재 시각 단계)` → **Run workflow** |
 
 버튼을 누른 뒤 입력값은 비워 두면 됩니다. 기능별 정기 실행은 scheduler keeper가 dispatch하며, 같은 날 수동으로 먼저 실행한 stage는 keeper가 다시 시작하지 않습니다. `run now`는 실행 시각 기준 stage를 자동 선택해 같은 reusable stage runner를 호출합니다. `validation.yml`은 `push` 전용 검증 workflow이며 snapshot을 수집하거나 commit하지 않습니다.
 
@@ -165,7 +165,7 @@ Summary에는 각 stage의 `planned`, `pending`, `skipped`, 실제 호출 여부
 
 cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴일을 판별할 수 없으므로, workflow는 runner에서 캡처한 실제 시작 시각과 checkout/setup 직후 [`scripts/market-session-guard.mjs`](../scripts/market-session-guard.mjs)를 사용합니다. guard는 runner-captured run-start의 한국시간 날짜를 [`data/krx-market-holidays.json`](../data/krx-market-holidays.json)의 한국거래소(KRX) 휴장일 계약과 대조합니다. 주말·휴장일이면 `should_run=false`로 수집을 차단하고 검증·stage 실행·commit을 모두 건너뛰므로 `data/latest-snapshot.json`과 `data/runs`를 쓰지 않습니다. 공용 stage runner는 이 경우 휴장일 건너뜀으로 정상 종료하며, stage 계산의 성공을 의미하지 않습니다. `workflow_dispatch`도 같은 guard를 통과해야 하므로 수동 실행으로 휴장일 데이터를 만들 수 없습니다.
 
-캘린더는 연도별 체크인 JSON으로 관리합니다. `KOSPI annual market calendar update`는 매년 12월 31일 12:00 KST에 KRX 공식 휴장일 조회에서 다음 연도 목록을 받아 형식·연말 휴장일을 확인한 뒤 기존 연도를 보존하며 저장합니다. Actions에서 수동 실행도 가능하며 항상 현재 KST 기준 다음 연도를 조회합니다. 수동 실행은 기본적으로 dry run이며 실제로 갱신하려면 `dry_run`을 해제합니다. 응답이 불완전하거나 기존 휴장일이 누락되면 저장하지 않고 실패합니다. KRX 공개 일정은 연중 변경될 수 있으므로 임시휴장이나 대체휴일 변경은 별도 확인이 필요하며, 이 연간 작업은 연중 변경을 자동 감지하지 않습니다. 커버리지 밖의 평일은 `calendar_coverage_missing` 오류로 수집을 차단합니다.
+캘린더는 연도별 체크인 JSON으로 관리합니다. `[5 관리] 연간 KRX 휴장일 갱신`는 매년 12월 31일 12:00 KST에 KRX 공식 휴장일 조회에서 다음 연도 목록을 받아 형식·연말 휴장일을 확인한 뒤 기존 연도를 보존하며 저장합니다. Actions에서 수동 실행도 가능하며 항상 현재 KST 기준 다음 연도를 조회합니다. 수동 실행은 기본적으로 dry run이며 실제로 갱신하려면 `dry_run`을 해제합니다. 응답이 불완전하거나 기존 휴장일이 누락되면 저장하지 않고 실패합니다. KRX 공개 일정은 연중 변경될 수 있으므로 임시휴장이나 대체휴일 변경은 별도 확인이 필요하며, 이 연간 작업은 연중 변경을 자동 감지하지 않습니다. 커버리지 밖의 평일은 `calendar_coverage_missing` 오류로 수집을 차단합니다.
 
 각 cron stage는 해당 stage 파일과 현재 `run_date`의 선행 stage 파일만 입력으로 사용합니다. 현재 run의 선행 파일이 없으면 `data/latest-snapshot.json`을 이전 거래일 데이터로 간주해 fallback하지 않고 빈 `no_data`/차단 상태를 기록합니다. 특히 `open-settlement`와 `close-settlement`는 현재 run date와 일치하지 않는 비어 있지 않은 데이터 행을 보존하지 않습니다. 이 규칙은 stage 지연·재실행·독립 실행에서 stale 행이 `partial` snapshot으로 노출되는 것을 막습니다.
 
@@ -175,7 +175,7 @@ cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴�
 
 저장소의 **Settings → Pages**에서 `Deploy from a branch`, branch `main`, folder `/ (root)`를 선택하면 루트 `index.html`이 제공됩니다.
 
-1. Actions에서 목적에 맞는 기능 workflow를 선택하고 **Run workflow**를 누릅니다. 입력은 없습니다. 예를 들어 장전 상태를 확인하려면 `KOSPI forecast`, 09:00 정산을 확인하려면 `KOSPI open-settlement`, 15:30 정산을 확인하려면 `KOSPI close-settlement`를 선택합니다. GitHub CLI도 입력 없이 실행합니다.
+1. Actions에서 목적에 맞는 기능 workflow를 선택하고 **Run workflow**를 누릅니다. 입력은 없습니다. 예를 들어 장전 상태를 확인하려면 `[2 단계] 08:20 forecast`, 09:00 정산을 확인하려면 `[2 단계] 09:00 open-settlement`, 15:30 정산을 확인하려면 `[2 단계] 15:30 close-settlement`를 선택합니다. GitHub CLI도 입력 없이 실행합니다.
 
    `gh workflow run forecast.yml --ref main`
 

@@ -1,4 +1,4 @@
-name: KOSPI close-settlement catch-up
+name: "[3 보충] 누락 마감 정산 catch-up"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at 09:30 KST or later,
@@ -71,18 +71,8 @@ jobs:
             echo "No catch-up changes to commit."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -- data/runs data/date-index.json data/latest-snapshot.json
-          git commit -m "chore(data): record KOSPI close-settlement catch-up"
-          branch="${GITHUB_REF_NAME:-main}"
-          pushed=0
-          for i in 1 2 3; do
-            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((i * 5))
-          done
-          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
+          bash scripts/commit-and-push.sh "chore(data): record KOSPI close-settlement catch-up"
 
       - name: Fail when the catch-up is not ready
         if: always()

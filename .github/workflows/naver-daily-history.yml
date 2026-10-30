@@ -1,4 +1,4 @@
-name: KOSPI prior daily history
+name: "[1 수집] 장전 일봉 선행 수집"
 
 on:
   # Started by scheduler-keeper.yml at 06:10 KST, with one retry at 07:10 KST
@@ -42,14 +42,4 @@ jobs:
           git add -- "data/daily-history/$MARKET_DATE.json"
           if [[ -f data/kospi-universe.json ]]; then git add -- data/kospi-universe.json; fi
           if git diff --cached --quiet; then exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): record prior daily history $MARKET_DATE"
-          branch="${GITHUB_REF_NAME:-main}"
-          pushed=0
-          for i in 1 2 3; do
-            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((i * 5))
-          done
-          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
+          bash scripts/commit-and-push.sh "chore(data): record prior daily history $MARKET_DATE"

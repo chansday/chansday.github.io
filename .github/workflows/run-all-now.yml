@@ -1,4 +1,4 @@
-name: KOSPI run all now
+name: "[4 수동] run all now (전체 단계)"
 
 on:
   workflow_dispatch:
@@ -100,7 +100,7 @@ jobs:
               const market = classifyMarketDate(runDate, calendar);
               const eligibility = market.status === "run" ? catchUpEligibility(runDate, today, calendar) : null;
               if (market.reason === "calendar_coverage_missing") {
-                fail(`run_date ${runDate} is outside the checked-in KRX calendar coverage (${calendar.coverage.start}..${calendar.coverage.end}); run the 'KOSPI annual market calendar update' workflow (update-market-calendar.yml) first.`);
+                fail(`run_date ${runDate} is outside the checked-in KRX calendar coverage (${calendar.coverage.start}..${calendar.coverage.end}); run the '[5 관리] 연간 KRX 휴장일 갱신' workflow (update-market-calendar.yml) first.`);
               } else if (market.status !== "run") {
                 console.log(`::notice::run_date ${runDate} is not a KOSPI trading day (${market.reason}); run-all reports the market-closed result.`);
               } else if (!eligibility.eligible) {
@@ -108,7 +108,7 @@ jobs:
               } else if (!(await loadCatchUpBase(runDate))) {
                 fail(`run_date ${runDate} has no ${settlement} and no same-date 0900/0820 stage file, so there are no recorded forecasts to settle; neither run all now nor close-catch-up.yml can produce a close settlement for this date.`);
               } else {
-                fail(`run_date ${runDate} has no ${settlement}. Run all now only re-evaluates a stored close settlement for past dates; run the 'KOSPI close-settlement catch-up' workflow (close-catch-up.yml) with run_date=${runDate} instead.`);
+                fail(`run_date ${runDate} has no ${settlement}. Run all now only re-evaluates a stored close settlement for past dates; run the '[3 보충] 누락 마감 정산 catch-up' workflow (close-catch-up.yml) with run_date=${runDate} instead.`);
               }
             }
           }
@@ -172,17 +172,7 @@ jobs:
           fi
           bash scripts/stage-daily-experiment.sh
           if git diff --cached --quiet; then echo "No permitted changes to commit."; exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): record KOSPI run all $KOSPI_RUN_DATE"
-          branch="${GITHUB_REF_NAME:-main}"
-          pushed=0
-          for i in 1 2 3; do
-            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((i * 5))
-          done
-          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
+          bash scripts/commit-and-push.sh "chore(data): record KOSPI run all $KOSPI_RUN_DATE"
 
       - name: Fail when the all-stage result is not ready
         # A failed input or historical guard already failed the job with its own error.
@@ -216,13 +206,13 @@ jobs:
               weekend:*|public_holiday:*|substitute_holiday:*|temporary_holiday:*|market_holiday:*)
                 echo "::notice::휴장일이라 실행할 것이 없음 (${OVERALL_REASON%%:*})"
                 {
-                  echo "### KOSPI run all now: market closed"
+                  echo "### [4 수동] run all now (전체 단계): market closed"
                   echo "- 휴장일이라 실행할 것이 없음 (\`${OVERALL_REASON%%:*}\`); no collection or snapshot write was performed."
                 } >> "$GITHUB_STEP_SUMMARY"
                 exit 0
                 ;;
               calendar_coverage_missing:*)
-                echo "::error::The KRX calendar does not cover this run date; run the 'KOSPI annual market calendar update' workflow (update-market-calendar.yml) first."
+                echo "::error::The KRX calendar does not cover this run date; run the '[5 관리] 연간 KRX 휴장일 갱신' workflow (update-market-calendar.yml) first."
                 ;;
             esac
           fi

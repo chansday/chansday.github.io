@@ -1,4 +1,4 @@
-name: KOSPI open-settlement
+name: "[2 단계] 09:00 open-settlement"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the

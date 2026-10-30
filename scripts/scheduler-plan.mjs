@@ -161,7 +161,7 @@ export function calendarWarnings(date, calendar, days = CALENDAR_WARNING_DAYS) {
   const end = calendar?.coverage?.end;
   if (typeof end !== "string") return [];
   const left = Math.round((Date.parse(`${end}T00:00:00Z`) - Date.parse(`${date}T00:00:00Z`)) / 86_400_000);
-  return left >= 0 && left <= days ? [`KRX calendar coverage ends ${end} (${left} days left); run "KOSPI annual market calendar update" or the keeper stops with an error after that date.`] : [];
+  return left >= 0 && left <= days ? [`KRX calendar coverage ends ${end} (${left} days left); run "[5 관리] 연간 KRX 휴장일 갱신" or the keeper stops with an error after that date.`] : [];
 }
 
 // Dry run: node scripts/scheduler-plan.mjs --now 2026-10-29T05:30:00+09:00 [--runs file.json]

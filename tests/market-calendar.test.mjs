@@ -129,7 +129,7 @@ test("feature workflows expose input-free buttons and route through the shared g
   assert.match(shared, /steps\.market-day\.outputs\.should_run == 'true'/);
   assert.match(shared, /steps\.retrospective\.outputs\.status == 'ready'/);
   assert.match(shared, /Market closed; no collection or calculation was performed/);
-  assert.match(shared, /git push/);
+  assert.match(shared, /bash scripts\/commit-and-push\.sh/);
 });
 
 test("a non-ready stage exposes its status and cannot satisfy the snapshot commit gate", async () => {
@@ -163,7 +163,7 @@ test("a non-ready stage exposes its status and cannot satisfy the snapshot commi
 
 test("run all now exposes only run_date and commits the final state once", async () => {
   const workflow = await readFile(new URL("run-all-now.yml", new URL("../.github/workflows/", import.meta.url)), "utf8");
-  assert.match(workflow, /name: KOSPI run all now/);
+  assert.match(workflow, /^name: "\[4 수동\] run all now/m);
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /run_date:/);
   assert.doesNotMatch(workflow, /inputs:\s*\n\s+provider:/);
@@ -188,7 +188,7 @@ test("run all now exposes only run_date and commits the final state once", async
   assert.match(workflow, /only non-executed stages; every executed stage was ready/);
   assert.match(workflow, /group: kospi-signal-board-pipeline/);
   assert.match(workflow, /git add data\/latest-snapshot\.json data\/runs/);
-  assert.equal((workflow.match(/git commit -m/g) || []).length, 1);
+  assert.equal((workflow.match(/commit-and-push\.sh/g) || []).length, 1);
   const runner = await readFile(new URL("../scripts/run-all.mjs", import.meta.url), "utf8");
   assert.match(runner, /const STAGES = Object\.freeze\(\[/);
   assert.match(runner, /"update-results",\s+"analysis",\s+"forecast",\s+"open-settlement",\s+"close-settlement"/s);

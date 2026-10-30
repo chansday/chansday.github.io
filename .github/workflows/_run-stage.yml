@@ -1,4 +1,4 @@
-name: KOSPI shared stage runner
+name: "[내부] 공용 stage 실행기"
 
 on:
   workflow_call:
@@ -193,19 +193,9 @@ jobs:
             echo "No snapshot changes to commit."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           node scripts/generate-date-index.mjs
           git add data/latest-snapshot.json data/runs data/date-index.json
-          git commit -m "chore(data): record KOSPI $RESOLVED_STAGE stage"
-          branch="${GITHUB_REF_NAME:-main}"
-          pushed=0
-          for i in 1 2 3; do
-            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((i * 5))
-          done
-          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
+          bash scripts/commit-and-push.sh "chore(data): record KOSPI $RESOLVED_STAGE stage"
 
       - name: Save isolated daily baseline
         id: save-experiment
@@ -223,17 +213,7 @@ jobs:
           set -euo pipefail
           bash scripts/stage-daily-experiment.sh
           if git diff --cached --quiet; then echo "No experiment changes to commit."; exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): record isolated daily experiment $EXPERIMENT_DATE"
-          branch="${GITHUB_REF_NAME:-main}"
-          pushed=0
-          for i in 1 2 3; do
-            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((i * 5))
-          done
-          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
+          bash scripts/commit-and-push.sh "chore(data): record isolated daily experiment $EXPERIMENT_DATE"
 
       - name: Fail when the stage is not ready
         if: always()

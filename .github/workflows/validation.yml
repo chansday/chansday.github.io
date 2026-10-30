@@ -1,4 +1,4 @@
-name: KOSPI validation
+name: "[6 검증] push·PR validation"
 
 on:
   push:

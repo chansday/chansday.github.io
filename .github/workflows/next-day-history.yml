@@ -1,4 +1,4 @@
-name: KOSPI next-day history and model
+name: "[1 수집] 저녁 일봉·모델 갱신"
 
 on:
   # After the close and after-hours trading (18:00 KST) of a trading day:
@@ -52,14 +52,4 @@ jobs:
           git add -- "data/daily-history/$TARGET_DATE.json"
           if [[ -f data/kospi-universe.json ]]; then git add -- data/kospi-universe.json; fi
           if git diff --cached --quiet; then exit 0; fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(data): record next-day history and model $TARGET_DATE"
-          branch="${GITHUB_REF_NAME:-main}"
-          pushed=0
-          for i in 1 2 3; do
-            if git pull --rebase --autostash origin "$branch" && git push origin "HEAD:$branch"; then pushed=1; break; fi
-            git rebase --abort >/dev/null 2>&1 || true
-            sleep $((i * 5))
-          done
-          if [ "$pushed" != 1 ]; then echo "::error::git push failed after 3 attempts"; exit 1; fi
+          bash scripts/commit-and-push.sh "chore(data): record next-day history and model $TARGET_DATE"

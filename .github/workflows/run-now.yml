@@ -1,4 +1,4 @@
-name: KOSPI run now
+name: "[4 수동] run now (현재 시각 단계)"
 
 on:
   workflow_dispatch:
