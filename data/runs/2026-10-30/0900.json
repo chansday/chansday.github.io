@@ -116660,7 +116660,7 @@
       "rank": 906,
       "symbol": "071950",
       "name": "코아스",
-      "expected_open": 1119.3,
+      "expected_open": 1066,
       "expected_close": null,
       "expected_return": null,
       "actual_open": null,
@@ -116697,7 +116697,7 @@
         ]
       },
       "expected_open_basis": {
-        "model": "prior_3_sessions_open_gap_mean_capped_5pct",
+        "model": "prior_close_open_v1",
         "history_dates": [
           "2026-10-29",
           "2026-10-28",
@@ -116721,10 +116721,7 @@
               "previous_close": 1328,
               "ratio": 0.06024096385542177
             }
-          ],
-          "mean_gap": 0.05436290617013517,
-          "applied_gap": 0.05,
-          "cap": 0.05
+          ]
         }
       },
       "actual_high": null,
@@ -117029,6 +117026,11 @@
       "train_last_date": "2026-10-29",
       "scored_at": "2026-10-30T07:05:30.515Z",
       "backfill": true
+    },
+    "open_policy": {
+      "model": "prior_close_open_v1",
+      "converted_at": "2026-10-30T07:40:57.781Z",
+      "converted_rows": 1
     }
   }
 }

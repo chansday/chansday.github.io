@@ -117911,7 +117911,7 @@
       "rank": 893,
       "symbol": "004415",
       "name": "서울식품우",
-      "expected_open": 310.17,
+      "expected_open": 321,
       "expected_open_source": {
         "kind": "retrospective_history",
         "recorded_at": "2026-10-28T21:18:02.546Z",
@@ -117922,7 +117922,7 @@
         ]
       },
       "expected_open_basis": {
-        "model": "prior_3_sessions_open_gap_mean_capped_5pct",
+        "model": "prior_close_open_v1",
         "history_dates": [
           "2026-10-28",
           "2026-10-27",
@@ -117946,10 +117946,7 @@
               "previous_close": 1233,
               "ratio": -0.0948905109489051
             }
-          ],
-          "mean_gap": -0.033746625337466196,
-          "applied_gap": -0.033746625337466196,
-          "cap": 0.05
+          ]
         }
       },
       "expected_close": null,
@@ -118014,7 +118011,7 @@
       "rank": 895,
       "symbol": "009190",
       "name": "대양금속",
-      "expected_open": 837.22,
+      "expected_open": 818,
       "expected_close": null,
       "expected_return": null,
       "actual_open": null,
@@ -118051,7 +118048,7 @@
         ]
       },
       "expected_open_basis": {
-        "model": "prior_3_sessions_open_gap_mean_capped_5pct",
+        "model": "prior_close_open_v1",
         "history_dates": [
           "2026-10-28",
           "2026-10-27",
@@ -118075,10 +118072,7 @@
               "previous_close": 830,
               "ratio": 0.04216867469879526
             }
-          ],
-          "mean_gap": 0.02349397590361446,
-          "applied_gap": 0.02349397590361446,
-          "cap": 0.05
+          ]
         }
       },
       "expected_return_raw": null,
@@ -118558,7 +118552,7 @@
       "rank": 909,
       "symbol": "118000",
       "name": "메타케어",
-      "expected_open": 1076.63,
+      "expected_open": 1075,
       "expected_close": null,
       "expected_return": null,
       "actual_open": null,
@@ -118595,7 +118589,7 @@
         ]
       },
       "expected_open_basis": {
-        "model": "prior_3_sessions_open_gap_mean_capped_5pct",
+        "model": "prior_close_open_v1",
         "history_dates": [
           "2026-10-28",
           "2026-10-27",
@@ -118619,10 +118613,7 @@
               "previous_close": 1313,
               "ratio": 0
             }
-          ],
-          "mean_gap": 0.001520912547528508,
-          "applied_gap": 0.001520912547528508,
-          "cap": 0.05
+          ]
         }
       },
       "expected_return_raw": null,
@@ -118858,6 +118849,11 @@
       "filled_at": "2026-10-30T07:11:42.533Z",
       "filled": 885,
       "note": "Filled after the fact from the Naver daily candle (venue and adjustment unconfirmed; may include NXT after-hours)."
+    },
+    "open_policy": {
+      "model": "prior_close_open_v1",
+      "converted_at": "2026-10-30T07:40:57.455Z",
+      "converted_rows": 3
     }
   }
 }

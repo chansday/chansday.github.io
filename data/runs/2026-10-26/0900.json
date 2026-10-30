@@ -114741,7 +114741,7 @@
       "rank": 901,
       "symbol": "015260",
       "name": "에이엔피",
-      "expected_open": 169.42,
+      "expected_open": 171,
       "expected_close": null,
       "expected_open_source": {
         "kind": "retrospective_history",
@@ -114753,7 +114753,7 @@
         ]
       },
       "expected_open_basis": {
-        "model": "prior_3_sessions_open_gap_mean_capped_5pct",
+        "model": "prior_close_open_v1",
         "history_dates": [
           "2026-10-23",
           "2026-10-22",
@@ -114777,10 +114777,7 @@
               "previous_close": 232,
               "ratio": 0.02155172413793105
             }
-          ],
-          "mean_gap": -0.009224137931034493,
-          "applied_gap": -0.009224137931034493,
-          "cap": 0.05
+          ]
         }
       },
       "expected_return": null,
@@ -115226,6 +115223,11 @@
       "train_last_date": "2026-10-23",
       "scored_at": "2026-10-30T07:05:28.611Z",
       "backfill": true
+    },
+    "open_policy": {
+      "model": "prior_close_open_v1",
+      "converted_at": "2026-10-30T07:40:57.094Z",
+      "converted_rows": 1
     }
   }
 }
