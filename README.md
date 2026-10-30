@@ -12,7 +12,7 @@
 
 ## 범위와 운영 원칙
 
-장 마감 후 당일 수동 `run-all`은 직전 3거래일의 공개 일봉으로 별도의 사후 평가를 만듭니다. 최근 2개 갭 `(당일 시가 / 전일 종가 - 1)`의 평균을 ±5%로 제한해 직전 종가에 적용하여 예상 시가를 만들고, 최근 3개 일중 수익률 `(종가 / 시가 - 1)`의 평균을 ±5%로 제한해 예상 시가에 적용하여 예상 종가를 만듭니다. 예상 수익률과 실제 시가→종가 수익률 및 오차는 기존 평가 계약을 사용합니다. 당일 실제 시가·종가는 평가에만 사용하며, 입력 이력이나 당일 가격이 없으면 해당 종목을 평가에서 제외합니다. 이 값은 장전 당시 기록된 예측이 아니라 장 마감 후 재현한 기준선입니다. 일봉 최초 공개시각·수정 여부·이용 권리는 확인되지 않았고, 모형의 정확도는 검증되지 않았습니다. 이력 확보가 차단되거나 평가 가능한 종목이 없으면 수동 실행은 실패를 보고합니다.
+장 마감 후 당일 수동 `run-all`은 직전 3거래일의 공개 일봉으로 별도의 사후 평가를 만듭니다. 최근 2개 갭 `(당일 시가 / 전일 종가 - 1)`의 평균을 ±5%로 제한해 직전 종가에 적용하여 예상 시가를 만들고, 예상 종가는 운영 단계와 같은 순위 리지 모델(아래 "예상 종가 모델 선택")로 만듭니다. 순위 모델을 쓸 수 없으면 다른 모델로 대신하지 않으므로 예상 종가가 없고, 평가 가능한 종목이 없으면 사후 평가는 실패로 보고됩니다. 예상 수익률과 실제 시가→종가 수익률 및 오차는 기존 평가 계약을 사용합니다. 당일 실제 시가·종가는 평가에만 사용하며, 입력 이력이나 당일 가격이 없으면 해당 종목을 평가에서 제외합니다. 이 값은 장전 당시 기록된 예측이 아니라 장 마감 후 재현한 기준선입니다. 일봉 최초 공개시각·수정 여부·이용 권리는 확인되지 않았고, 모형의 정확도는 검증되지 않았습니다. 이력 확보가 차단되거나 평가 가능한 종목이 없으면 수동 실행은 실패를 보고합니다.
 
 지난 거래일을 수동 실행할 때는 저장된 해당 날짜의 정상 Naver 마감 정산 스냅샷을 확인한 뒤 사후 평가만 수행합니다. 정산 스냅샷은 덮어쓰지 않으며, 저장된 정산값이 없거나 날짜·출처가 맞지 않으면 실패합니다. 이미 저장된 유효한 사후 평가는 보존합니다.
 
@@ -21,6 +21,9 @@
 + 운영 provider의 보통주·우선주 분류는 미확인이고 우선주가 포함될 수 있습니다. 이번 historical-test는 공개 원본에 security type이 없어 `mrktCtg=KOSPI` 전체 913행을 그대로 저장했으며, 이 예외를 화면과 메타데이터에 명시합니다.
 - 운영 quote의 시장 표기와 일봉의 시장·조정 기준은 독립적으로 확인되지 않았습니다. 관측·계산값은 원본과 출처 경고를 표시하며, 일봉과 정규시장 quote의 시장 범위가 다를 수 있습니다. 통화는 KRW, 시간대는 `Asia/Seoul`입니다.
 - `expected_return = (expected_close / expected_open - 1) × 100`은 예상 시가와 예상 종가가 모두 있을 때만 계산합니다. 예상 종가 모델이 없으면 `expected_return`과 `error`는 `null`/`no_data`입니다. `session_return = (actual_close / actual_open - 1) × 100`은 실제 시가→실제 종가 기준입니다. `intraday_reference_return`은 별도 실행시점 참고값이며 `expected_return`과 구분합니다. 모든 필드는 JSON Schema로 숫자 또는 `null`을 검증합니다.
+- 화면의 `종목 평가` 열(이전 `예상 수익률` 열)은 예상 수익률 자체가 아니라 그 날 snapshot 안에서의 백분위 점수 0–100을 소수 셋째 자리(예: `87.342`)로 표시합니다. 입력은 반올림하지 않은 `expected_return_raw = (expected_close / expected_open - 1) × 100`이고, 값이 있는 종목 수를 N, 자신보다 낮은 종목 수를 L, 자신과 정확히 같은 종목 수(자신 포함)를 E라 할 때 `score = (L + 0.5 × (E - 1)) / (N - 1) × 100`(평균 순위 백분위, `(평균 오름차순 순위 - 1) / (N - 1) × 100`과 같음)입니다. 예상 수익률이 높을수록 점수가 높고, 최고 단독 값은 100, 최저 단독 값은 0, 동률은 차지한 순위의 평균을 나눠 갖습니다. N = 1이면 50입니다. 예상 시가·예상 종가가 없는 종목은 N에서 제외되고 `—`로 표시됩니다. 마우스를 올리면 `885종목 중 113위 · 원래 값 +0.0371%`처럼 내림차순 순위(동률은 `공동`)와 반올림하지 않은 원래 예상 수익률(소수 넷째 자리)을 보여 줍니다. 정렬 키 `expectedReturn`(종목 평가 높은 순)은 같은 원값 순서를 사용합니다.
+- 계산은 `providers/evaluation-score.js` 한 곳에 있으며 파이프라인과 브라우저가 함께 사용합니다. `update-results.mjs`와 `close-catch-up.mjs`는 snapshot을 쓸 때마다 최종 행 전체로 선택 필드 `expected_return_raw`, `evaluation_score`(half-up 소수 셋째 자리 반올림), `evaluation_score_rank`, `evaluation_score_count`를 다시 계산해 저장합니다. 기존 `expected_return`(소수 둘째 자리)과 `error = session_return - expected_return` 평가 계약은 바뀌지 않습니다. 화면은 표시 중인 행(사후 평가 overlay 적용 후 포함)의 `expected_open`/`expected_close`로 같은 함수를 실행해 점수를 그리므로, 이 필드가 없는 과거 snapshot도 같은 방식으로 표시됩니다.
+- 사후 평가 overlay를 적용한 뒤에는 저장된 `evaluation_*`·`expected_return_raw` 필드가 갱신되지 않으며, 화면이 표시 행으로 다시 계산한 점수를 보여 줍니다. 점수는 정수 연산 `round_half_up((2L + E - 1) × 100000 / (2 × (N - 1)))`(0.001 단위)으로 반올림하며, 터치 기기에서도 보이도록 모바일 카드와 상세 패널에 `113위/885 · +0.0371%` 형식의 순위·원래 값을 함께 표시합니다.
 - 예상은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
 - Naver 공개 웹 크롤링은 출처와 비공식·지연 가능성을 화면과 snapshot metadata에 표시하며, 403/429/CAPTCHA·challenge·HTML 응답은 즉시 중단합니다. HTML 우회, rate-limit 우회, 무한 재시도는 하지 않습니다.
@@ -110,7 +113,7 @@
 
 `data/date-index.json`은 [`scripts/generate-date-index.mjs`](scripts/generate-date-index.mjs)가 `data/runs` 및 mode별 fixture/replay/backfill 폴더를 스캔해 생성합니다. 새 run stage를 추가할 때는 이 인덱스를 갱신하고, 브라우저는 mode별 실제 경로를 다시 읽습니다. 달력은 색상뿐 아니라 `결과 있음·조회 중·미수집·휴장일·오류` 텍스트, `aria-selected`, `aria-disabled`, `aria-live`로 상태를 전달합니다. 모바일에서는 860px 이하에서 제목·달력·컨텍스트가 줄바꿈되고 달력 폭은 viewport 안으로 제한됩니다.
 
-화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `예상 수익률`은 예상 시가→예상 종가가 확인된 경우에만 표시하며, `실제 장중 수익률`은 실제 시가→실제 종가로 계산합니다. fallback에서는 실제 run의 필드를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
+화면의 `EXPECTED` 열은 실제 예측값이 아니라 사후 계산한 baseline이고, `ACTUAL` 열은 공개 일봉의 실제 시가·종가·거래량입니다. `종목 평가`(예상 수익률의 당일 백분위 점수)는 예상 시가→예상 종가가 확인된 경우에만 표시하며, `실제 장중 수익률`은 실제 시가→실제 종가로 계산합니다. fallback에서는 실제 run의 필드를 그대로 로드하며 숫자를 합성하지 않습니다. `TEST ONLY · HISTORICAL BASELINE · NOT LIVE` 또는 명시적 모드의 `HISTORICAL-TEST / TEST ONLY` 라벨, 출처 URL, 수집일, 범위, 행 수를 화면에 함께 표시합니다.
 
 historical baseline은 직전 5개 거래일의 공개 일별 종가만 사용합니다. `prior_close`는 화면에서 보이지 않는 기준값으로, 계산 재현과 감사에만 저장합니다. `features`에는 전일 수익률, 최근 3개 수익률 평균(momentum), 최근 4개 수익률의 모집단 표준편차(volatility)를 함께 저장합니다.
 
@@ -226,7 +229,7 @@ npm run historical-test:verify
 
 각 historical-test snapshot에는 화면이 평가 결과를 평면 필드 추측 없이 사용할 수 있도록 top-level `evaluation` 계약도 포함됩니다. `evaluation.target`은 `expected_return`(예측), `session_return`(실제), `error`(오차)의 정규화된 필드 매핑과 `session_return - expected_return` 공식을 선언합니다. 현재 historical 입력에는 expected close가 없어 모든 단계가 `pending`이며, 두 값이 모두 존재하는 별도 snapshot만 `evaluated`가 됩니다. `sample_count`, `evaluated_sample_count`, `missing_sample_count`, `evaluation_range`, MAE/RMSE/평균 오차 집계 및 `test_only=true`, `dataset=historical_test`를 함께 기록합니다.
 
-원본 JSON의 `expected_open`, `expected_close`, `expected_return` 값은 저장 정밀도를 그대로 보존합니다. 화면 표시가 필요할 때만 `evaluation.display_policy`의 `maximum_fraction_digits=0`, `rounding=half_up` 정책을 사용해 소수점 없는 표시값을 만들며, 이 정책은 저장값·실제값·오차 계산을 변경하지 않습니다.
+원본 JSON의 `expected_open`, `expected_close`, `expected_return` 값은 저장 정밀도를 그대로 보존합니다. `evaluation.display_policy`의 `maximum_fraction_digits=0`, `rounding=half_up` 항목은 평가 계약 호환을 위해 그대로 기록하며 저장값·실제값·오차 계산을 변경하지 않습니다. 현재 화면은 예상 시가·예상 종가를 원 단위 정수로, 예상 수익률 열 대신 `종목 평가`를 0–100 백분위 소수 셋째 자리로 표시합니다.
 
 이 평가 메타데이터는 `data/historical-test/`와 `data/runs/historical-test/`에만 생성됩니다. 운영 `data/latest-snapshot.json`에는 historical-test 평가를 병합하지 않으며, historical-test fallback도 원본 `evaluation`을 보존하면서 `meta.historical_fallback`으로만 표시합니다. `providers/provider-adapter.js`는 historical-test snapshot에 test-only 평가 계약이 없거나 표본수가 행 수와 다르면 로드를 거부합니다.
 
@@ -388,7 +391,8 @@ node scripts/update-results.mjs --mode close-settlement --dry-run
 - `expected_open_basis` (`expected_open_source`와 함께만 존재)
   - `naver_preopen_quote_open_v1`: 장전 quote의 시가(`open_price`), `quote_at`, `market_status=PREOPEN`. 계산식 없음.
   - `prior_3_sessions_open_gap_mean_capped_5pct`: 직전 거래일 종가(`prior_close_date`, `prior_close`), 두 시가 갭(`gaps[]`: 날짜·시가·앞 날짜·앞 종가·비율), `mean_gap`, ±5% 제한 후 `applied_gap`, `cap`. 예상 시가 = `prior_close × (1 + applied_gap)` (소수 둘째 자리 반올림).
-- `expected_close_basis` (일봉 기반 예상 시가에만): `prior_3_sessions_gap_and_session_mean_capped_5pct`(장 마감 후 사후 평가와 같은 모델). 세 거래일 장중 수익률(`session_returns[]`: 날짜·시가·종가·비율), `mean_session_return`, ±5% 제한 후 `applied_session_return`. 예상 종가 = `expected_open × (1 + applied_session_return)`. 장전 quote 시가에는 종가 모델이 없어 `expected_close`는 null입니다.
+- `expected_close_basis` (일봉 기반 예상 시가에만): `ridge_rank_11_features_60_sessions_v1`(장 마감 후 사후 평가와 같은 모델). 20거래일 일봉(`candles[]`), 11개 요인(`features`), 당일 전 종목 순위(`ranks`), `predicted_return`, 사용한 모델 계수(`model_params`; 재사용 시 `reused_from` 포함). 예상 종가 = `expected_open × (1 + predicted_return)`. 장전 quote 시가에는 종가 모델이 없어 `expected_close`는 null입니다. 이전 run이 저장한 `ridge_6_features_60_sessions_v1`·`prior_20_sessions_trimmed_shrunk_mean_capped_1pct`·`prior_3_sessions_gap_and_session_mean_capped_5pct` 근거는 기존 파일 검증과 화면 설명을 위해서만 계속 인식하며, 새로 만들지 않습니다.
+- 예상 종가 모델 선택: 예비 모델은 두지 않습니다. 순위 리지 모델 하나만 씁니다. 그날 학습(60거래일·300종목 이상 조건)이 실패했거나, 일봉 캐시에 `rank_forecast`가 없거나, 저장된 예측이 재현 검증에 실패하면 `data/daily-history/*.json` 중 대상일보다 앞선 날짜에서 가장 최근에 학습·재현에 성공한 순위 모델의 계수를 가져와, 그날 최신 20거래일 일봉으로 계산한 요인 순위에 적용합니다(`train_last_date < 대상일` 유지). 이 선택은 캐시를 읽는 단계([`providers/naver-daily-cache.js`](providers/naver-daily-cache.js))에서 하며 캐시 파일은 다시 쓰지 않습니다. 성공한 이전 모델이 없으면 `expected_close`는 null이고 `종목 평가`는 `—`입니다. 실제로 쓴 모델은 `meta.source.metrics.close_model`(`status`: `trained`·`reused`·`unavailable`, `model`, `train_last_date`, `reused_from`, `reason`)과 각 행의 `model_params`에 남고, 재사용이면 화면 모델 이름 옆과 종목 상세에 "직전 모델 재사용 (YYYY-MM-DD 학습)"을 표시합니다.
 - 예상 시가·근거·예상 종가·종가 근거는 한 묶음으로 09:00 open-settlement와 15:30 close-settlement 병합에서 보존되며, 다른 run의 값과 섞이지 않습니다. 장전 근거가 없는 장중 현재가 기준값은 기존대로 제거되고, 그 값에서 파생된 종가 근거도 함께 제거됩니다.
 - 장 마감 후 사후 평가 파일(`data/runs/YYYY-MM-DD/retrospective-*.json`)의 행에도 같은 두 근거 필드가 기록됩니다.
 - 기존 `data/runs` 파일은 다시 쓰지 않으므로 이전 날짜에는 근거 필드가 없습니다.

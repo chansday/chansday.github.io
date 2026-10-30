@@ -2,10 +2,11 @@ import { appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { pathToFileURL } from "node:url";
 import { classifyMarketDate, isValidDate, kstDate, loadMarketCalendar } from "./market-calendar.mjs";
-import { dailyHistoryPath, loadNaverDailyHistory, priorTradingDates } from "../providers/naver-daily-cache.js";
+import { dailyHistoryPath, loadNaverDailyHistory, priorTradingDates, reuseRankForecast } from "../providers/naver-daily-cache.js";
 import { DAILY_CHART_ENDPOINT, collectNaverDailyRows } from "../providers/naver-daily-rows.js";
 import { validateRankingRows } from "../providers/provider-adapter.js";
 import { NO_TRADE_STATUS, compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
+import { withEvaluationScores } from "../providers/evaluation-score.js";
 import { dataRoot, repoPath } from "../providers/repo-paths.js";
 import { copyForecastBundle } from "./update-results.mjs";
 import { buildForecastInputs } from "../providers/forecast-inputs.js";
@@ -168,7 +169,11 @@ export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () 
         robots_url: collected.robots_url ?? null, robots_checked_at: collected.robots_checked_at ?? null, robots_status: collected.robots_status ?? null, fetched_after_close: true };
       // Same engine as the morning collector: bars before D only.
       const inputs = buildForecastInputs({ observations, targetDate: runDate, symbols: valid });
-      Object.assign(history, { return_history: inputs.returnHistory, forecast_model: inputs.forecastModel, rank_forecast: inputs.rankForecast });
+      // A failed rank training reuses the most recent successful rank model, as
+      // the cache loader does; there is no other expected-close model.
+      const reuse = inputs.rankForecast ? null : await reuseRankForecast({ targetDate: runDate, returnHistory: inputs.returnHistory, now, failure: "rank model training failed" });
+      const rankStatus = reuse ? reuse.status : { status: "trained", model: inputs.rankForecast.model.model, train_last_date: inputs.rankForecast.model.train_last_date, reused_from: null, reason: null };
+      Object.assign(history, { return_history: inputs.returnHistory, forecast_model: inputs.forecastModel, rank_forecast: reuse ? reuse.rank_forecast : inputs.rankForecast, rank_forecast_status: rankStatus });
     }
   } catch { history = null; }
   const zeroVolume = new Set((Array.isArray(collected.rejected) ? collected.rejected : []).filter((r) => r?.reason === "zero_volume" && r.date === runDate).map((r) => r.symbol));
@@ -179,7 +184,8 @@ export async function fetchDailyCandles({ runDate, symbols, fetchImpl, now = () 
 function rankByExpectedReturn(rows) {
   rows.sort(compareByExpectedReturn);
   rows.forEach((row, index) => { row.rank = index + 1; });
-  return rows;
+  // 종목 평가 percentile over the settled snapshot's own rows.
+  return withEvaluationScores(rows);
 }
 
 // Pure builder: the 1530 snapshot for D from its base stage file and candles.

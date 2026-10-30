@@ -39,12 +39,17 @@ export function shrunkSessionReturn(ratios) {
   return { trim_count: trim, trimmed_mean: mean, standard_error: se, t_stat: t, shrink_weight: weight, applied_session_return: applied };
 }
 
-// returnHistory: the symbol's prior candles ({ date, open, close }, newest
-// first, first three equal to `sessions`). Without it the 3-session close model
-// is kept (caches collected before the new model, post-close retrospective).
-// rankForecast: the cache's { model, predictions } (verified across the whole
-// cross-section when the cache was loaded); preferred over forecastModel.
-export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, forecastModel = null, rankForecast = null } = {}) {
+// returnHistory: the symbol's prior candles ({ date, open, close, high, low,
+// volume }, newest first, first three equal to `sessions`).
+// rankForecast: { model, predictions } verified across the whole cross-section
+// when the cache was loaded; its model is the day's own rank model or, when the
+// day's training failed, the most recent successfully trained one (reused_from).
+// The rank model is the only expected-close model: without a usable prediction
+// the opening estimate is kept and expected_close is null. The ridge, 20-session
+// and 3-session close models are no longer produced; their validators below are
+// kept so committed snapshots that carry them still validate.
+// forecastModel is accepted for call compatibility and ignored.
+export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, rankForecast = null } = {}) {
   if (!Array.isArray(sessions) || sessions.length !== 3) return null;
   const h = sessions.map((session) => session?.rows?.find((row) => row.symbol === symbol));
   if (h.some((row) => !row || !positive(row.open) || !positive(row.close) || !positive(row.volume))) return null;
@@ -53,58 +58,24 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, f
   const meanGap = (gaps[0].ratio + gaps[1].ratio) / 2;
   const appliedGap = clamp(meanGap);
   const expectedOpen = round(h[0].close * (1 + appliedGap));
-  const sessionReturns = h.map((row, i) => ({ date: dates[i], open: row.open, close: row.close, ratio: row.close / row.open - 1 }));
-  const meanSession = sessionReturns.reduce((sum, item) => sum + item.ratio, 0) / 3;
-  const appliedSession = clamp(meanSession);
-  const candles = Array.isArray(returnHistory) && returnHistory.length >= 3 && returnHistory.length <= RETURN_HISTORY_SESSIONS
-    && returnHistory.every((c, k) => c && DATE.test(c.date) && positive(c.open) && positive(c.close) && (k >= 3 || (c.date === dates[k] && c.open === h[k].open && c.close === h[k].close)) && (k === 0 || c.date < returnHistory[k - 1].date))
+  const openBasis = { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } };
+  const candles = Array.isArray(returnHistory) && returnHistory.length === RANK_FEATURE_SESSIONS
+    && returnHistory.every((c, k) => c && DATE.test(c.date) && positive(c.open) && positive(c.close) && positive(c.high) && positive(c.low) && positive(c.volume) && (k >= 3 || (c.date === dates[k] && c.open === h[k].open && c.close === h[k].close)) && (k === 0 || c.date < returnHistory[k - 1].date))
     ? returnHistory : null;
   const rank = rankForecast?.predictions?.[symbol];
-  if (candles && candles.length === RANK_FEATURE_SESSIONS && rank && isRankModel(rankForecast.model) && rankForecast.model.train_last_date <= dates[0] && candles.every((c) => positive(c.high) && positive(c.low) && positive(c.volume))) {
+  if (candles && rank && isRankModel(rankForecast.model) && rankForecast.model.train_last_date <= dates[0]) {
     const bars = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, high: c.high, low: c.low, volume: c.volume }));
     const predicted = rankPredict(rankForecast.model, rank.ranks);
     return {
       expected_open: expectedOpen,
       expected_close: round(expectedOpen * (1 + predicted)),
-      open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
+      open_basis: openBasis,
       close_basis: { model: RANK_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, candles: bars, features: rank.features, ranks: rank.ranks, predicted_return: predicted, model_params: rankForecast.model } },
     };
   }
-  // The day's model decides the scale of every expected return: a symbol the
-  // rank (or ridge) model cannot score gets no expected close rather than a
-  // value from a differently scaled fallback that would distort the ranking.
-  const openOnly = () => ({ expected_open: expectedOpen, expected_close: null, open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } }, close_basis: null });
-  if (isRankModel(rankForecast?.model)) return openOnly();
-  if (candles && candles.length === FEATURE_SESSIONS && isRidgeModel(forecastModel) && forecastModel.train_last_date <= dates[0]) {
-    const returns = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, ratio: c.close / c.open - 1 }));
-    const features = ridgeFeatures(candles);
-    const { clipped, predicted } = ridgePredict(forecastModel, features);
-    return {
-      expected_open: expectedOpen,
-      expected_close: round(expectedOpen * (1 + predicted)),
-      open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
-      close_basis: { model: RIDGE_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, session_returns: returns, features, clipped_features: clipped, predicted_return: predicted, model_params: forecastModel } },
-    };
-  }
-  if (isRidgeModel(forecastModel)) return openOnly();
-  if (candles) {
-    const returns = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, ratio: c.close / c.open - 1 }));
-    const stats = shrunkSessionReturn(returns.map((r) => r.ratio));
-    const shrunkClose = round(expectedOpen * (1 + stats.applied_session_return));
-    return {
-      expected_open: expectedOpen,
-      expected_close: shrunkClose,
-      open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
-      close_basis: { model: CLOSE_SHRUNK_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, session_returns: returns, ...stats, cap: SHRUNK_CAP } },
-    };
-  }
-  const expectedClose = round(expectedOpen * (1 + appliedSession));
-  return {
-    expected_open: expectedOpen,
-    expected_close: expectedClose,
-    open_basis: { model: OPEN_GAP_MODEL, history_dates: dates, inputs: { prior_close_date: dates[0], prior_close: h[0].close, gaps, mean_gap: meanGap, applied_gap: appliedGap, cap: BASIS_CAP } },
-    close_basis: { model: CLOSE_SESSION_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, session_returns: sessionReturns, mean_session_return: meanSession, applied_session_return: appliedSession, cap: BASIS_CAP } },
-  };
+  // No rank prediction for this symbol (or no rank model at all): no expected
+  // close rather than a value from a differently scaled substitute model.
+  return { expected_open: expectedOpen, expected_close: null, open_basis: openBasis, close_basis: null };
 }
 
 export function preopenQuoteBasis({ openPrice, quoteAt, marketStatus }) {

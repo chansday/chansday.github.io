@@ -156,7 +156,20 @@
             "license_note": { "type": "string" },
             "history_status": { "enum": ["blocked", "degraded", "partial", "ready"] },
             "history_reason": { "type": "string" },
-            "history_source": { "type": "string", "format": "uri" }
+            "history_source": { "type": "string", "format": "uri" },
+            "close_model": {
+              "description": "Optional. Expected-close model actually used. trained: the day's rank model; reused: the day's training failed and the most recent successfully trained rank model (trained for reused_from) was applied to the day's bars; unavailable: no rank model, expected_close is null.",
+              "type": "object",
+              "required": ["status", "model", "train_last_date", "reused_from", "reason"],
+              "properties": {
+                "status": { "enum": ["trained", "reused", "unavailable"] },
+                "model": { "type": ["string", "null"] },
+                "train_last_date": { "type": ["string", "null"], "format": "date" },
+                "reused_from": { "type": ["string", "null"], "format": "date" },
+                "reason": { "type": ["string", "null"] }
+              },
+              "additionalProperties": false
+            }
           },
           "additionalProperties": false
         }
@@ -306,6 +319,10 @@
           "additionalProperties": false
         },
         "expected_return": { "type": ["number", "null"], "description": "Only expected_close / expected_open - 1 × 100; null when expected_close is unavailable. prior_close is never used for this field." },
+        "expected_return_raw": { "type": ["number", "null"], "description": "Optional. Unrounded (expected_close / expected_open - 1) × 100; null when either is unavailable. expected_return (rounded to 2 decimals) is unchanged and remains the evaluation field." },
+        "evaluation_score": { "type": ["number", "null"], "minimum": 0, "maximum": 100, "description": "Optional. 종목 평가: mid-rank percentile of expected_return_raw among rows of this snapshot with a value; (L + 0.5 × (E - 1)) / (N - 1) × 100, 50 when N = 1, rounded half up to 3 decimals. Null without expected_return_raw." },
+        "evaluation_score_rank": { "type": ["integer", "null"], "minimum": 1, "description": "Optional. Descending competition rank of expected_return_raw (ties share the rank)." },
+        "evaluation_score_count": { "type": ["integer", "null"], "minimum": 1, "description": "Optional. N, the number of rows in this snapshot with expected_return_raw." },
         "actual_open": { "type": ["number", "null"] },
         "actual_close": { "type": ["number", "null"] },
         "actual_return": { "type": ["number", "null"] },

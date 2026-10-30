@@ -70,8 +70,12 @@ test("builds a ready 1530 from cached candles, carries the recorded forecast bun
     const before0900 = await readFile(join(root, "data", "runs", D, "0900.json"), "utf8");
     assert.deepEqual(await missingCloseSettlementDates({ today: T, calendar }), [D]);
     const outcome = await runCatchUp({ now: NOW, calendar, runId: "catch.1", fetchImpl: noNetwork });
-    assert.equal(outcome.status, "ready"); assert.equal(outcome.retrospective, "ready");
+    // The fixture caches carry no rank model and there is no earlier successful
+    // one: the settlement is written, but the retrospective has no substitute
+    // close model and reports failure instead of using one.
+    assert.equal(outcome.status, "ready"); assert.equal(outcome.retrospective, "failed");
     const [result] = outcome.results;
+    assert.equal(result.retrospective.status, "failed"); assert.match(result.retrospective.reason, /No rows have complete prior history/);
     assert.equal(result.candleSource, "cache"); assert.equal(result.priorHistory, "cache");
     const settled = await readJson(join(root, "data", "runs", D, "1530.json"));
     assert.equal(settled.status, "ready"); assert.equal(settled.asOfDate, D);
@@ -87,14 +91,11 @@ test("builds a ready 1530 from cached candles, carries the recorded forecast bun
     assert.deepEqual([b.actual_open, b.actual_close], [205, 200]);
     assert.equal(a.quality, "naver_daily_candle_catch_up"); assert.equal(a.quote_at, null);
     assert.deepEqual(settled.rows.map((r) => r.rank), [1, 2]);
-    const retro = await readJson(join(root, "data", "runs", D, "retrospective-catch.1.json"));
-    assert.equal(retro.run_id, "catch.1"); assert.deepEqual(retro.history_dates, ["2026-10-27", "2026-10-26", "2026-10-23"]);
-    assert.ok(retro.evaluation.evaluated_sample_count > 0);
     const index = await readJson(join(root, "data", "date-index.json"));
     assert.deepEqual(index.availableDates.provider, [D]);
     assert.deepEqual(await readJson(join(root, "data", "latest-snapshot.json")), newerLatest, "a newer latest snapshot is not regressed");
     assert.equal(await readFile(join(root, "data", "runs", D, "0900.json"), "utf8"), before0900);
-    assert.deepEqual((await readdir(join(root, "data", "runs", D))).sort(), ["0820.json", "0900.json", "1530.json", "retrospective-catch.1.json"]);
+    assert.deepEqual((await readdir(join(root, "data", "runs", D))).sort(), ["0820.json", "0900.json", "1530.json"]);
     // A second run finds nothing to do and never rewrites the settlement.
     const content = await readFile(join(root, "data", "runs", D, "1530.json"), "utf8");
     assert.equal((await runCatchUp({ now: NOW, calendar, runId: "catch.2", fetchImpl: noNetwork })).status, "not_needed");
@@ -174,7 +175,8 @@ test("without cached candles, the robots-gated chart response settles D and supp
       return { ok: true, status: 200, headers: new Headers({ "content-type": "application/json" }), text: async () => JSON.stringify(body) };
     });
     const outcome = await runCatchUp({ dates: [D], now: NOW, calendar, runId: "catch.1", fetchImpl, sleep: async () => {} });
-    assert.equal(outcome.status, "ready"); assert.equal(outcome.retrospective, "ready");
+    // Five daily bars cannot train the rank model and no earlier model exists.
+    assert.equal(outcome.status, "ready"); assert.equal(outcome.retrospective, "failed");
     assert.equal(outcome.results[0].candleSource, "chart_request"); assert.equal(outcome.results[0].priorHistory, "chart_request");
     assert.equal(urls.length, 2);
     for (const [url, agent] of urls) {

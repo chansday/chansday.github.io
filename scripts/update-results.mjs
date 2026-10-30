@@ -13,6 +13,7 @@ import { createPublicJsonProvider } from "../providers/public-json-provider.js";
 import { createPublicCsvProvider } from "../providers/public-csv-provider.js";
 import { createNaverCrawlProvider, savedOpeningIsTimely } from "../providers/naver-crawl-provider.js";
 import { compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
+import { withEvaluationScores } from "../providers/evaluation-score.js";
 import { calculateRunContext } from "./run-context.mjs";
 
 export const MODES = {
@@ -478,6 +479,9 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     nextSnapshot = applyProviderResult(nextSnapshot, result, options.mode, provider, providerId, attemptedAt);
   }
 
+  // 종목 평가 is a snapshot-wide percentile, so it is recomputed from the final
+  // rows on every write; values carried over from earlier stages are replaced.
+  if (Array.isArray(nextSnapshot.rows)) nextSnapshot = { ...nextSnapshot, rows: withEvaluationScores(nextSnapshot.rows) };
   const output = `${JSON.stringify(nextSnapshot, null, 2)}\n`;
   let wroteRunFile = false;
   let wroteLatestFile = false;

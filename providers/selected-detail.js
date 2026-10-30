@@ -136,6 +136,7 @@ function describeRankCloseBasis(basis, row) {
     `시장 수준 ${ratioPct(m.level)} + 기본값 ${ratioPct(weights[0])} + 요인 기여 합계 → 예상 장중 수익률 ${ratioPct(i.predicted_return)} → 예상 종가 = ${base} × ${multiplierText(multiplier)} = ${formatWon(recomputed)}${tail}.`,
     "요인 값은 그날 전 종목 순위로 바꿔 사용하므로 극단값에 흔들리지 않고, 별도 상한은 두지 않습니다.",
   ];
+  if (typeof m.reused_from === "string") sentences.unshift(`직전 모델 재사용 (${m.reused_from} 학습): 이날 순위 모델 학습에 실패해 가장 최근에 성공한 모델의 계수를 이날 일봉 20거래일로 계산한 요인 순위에 적용했습니다.`);
   if (finite(recomputed) && finite(ec) && Math.abs(recomputed - ec) > 0.011) sentences.push(`저장된 예상 종가(${formatWon(ec)})와 재계산값(${formatWon(recomputed)})이 다릅니다. 화면에는 저장값을 표시합니다.`);
   return { items: [item("예상 종가 모델", RANK_MODEL_ID), item("예상 장중 수익률", ratioPct(i.predicted_return))], sentences };
 }

@@ -11,7 +11,8 @@ const valid = (n) => typeof n === "number" && Number.isFinite(n) && n > 0;
 // Each row records the model inputs actually used (gap and session ratios,
 // prior close and dates) so the retrospective values can be reproduced.
 // history: the loaded daily cache (or chart history); its return_history,
-// forecast_model and rank_forecast select the same model as the live stages.
+// rank_forecast (the day's or a reused earlier rank model) is the same model as the
+// live stages; forecast_model is ignored (retired ridge model).
 export function buildPostCloseRows(sessions, actualRows, history = {}) {
   if (!Array.isArray(sessions) || sessions.length !== 3) throw new Error("Three prior sessions are required");
   return actualRows.map((actual) => {

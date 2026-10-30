@@ -39,26 +39,27 @@ test("training needs 60 full sessions, recovers a positive drift weight and pred
   assert.equal(trainRidgeModel(new Map([...out].map(([s, b]) => [s, b.slice(0, 70)]))), null, "too few sessions");
 });
 
-test("estimate uses the model only with 20 candles, stores a verifiable basis and rejects tampering", () => {
+test("the retired ridge model is never selected; a committed ridge basis still validates and rejects tampering", () => {
   const { out } = history();
   const m = trainRidgeModel(out);
   const bars = out.get("100001");
   const candles = bars.slice(-20).reverse().map((b) => ({ date: b.date, open: b.open, close: b.close }));
   const bar = (b) => ({ symbol: "100001", date: b.date, open: b.open, high: Math.max(b.open, b.close), low: Math.min(b.open, b.close), close: b.close, volume: 10 });
   const sessions = candles.slice(0, 3).map((c) => ({ date: c.date, rows: [bar(c)] }));
+  // Passing a ridge model (as old caches stored it) no longer produces a ridge close.
   const e = priorHistoryEstimate(sessions, "100001", { returnHistory: candles, forecastModel: m });
-  assert.equal(e.close_basis.model, RIDGE_MODEL);
-  const row = { expected_open: e.expected_open, expected_close: e.expected_close, expected_open_basis: e.open_basis, expected_close_basis: e.close_basis };
-  assert.equal(isCloseBasis(e.close_basis, row), true);
-  const i = e.close_basis.inputs;
-  assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...i, predicted_return: i.predicted_return + 1e-4 } }, row), false);
-  assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...i, model_params: { ...m, weights: m.weights.map((w, k) => k ? w : w + 1e-4) } } }, row), false);
-  assert.equal(isCloseBasis({ ...e.close_basis, inputs: { ...i, model_params: { ...m, train_last_date: "2099-01-01" } } }, row), false, "model trained after the inputs");
-  // On a model day a symbol the model cannot score gets no expected close (no
-  // differently scaled fallback); without a model the 20-session shrunk model applies.
-  const unscored = priorHistoryEstimate(sessions, "100001", { returnHistory: candles.slice(0, 19), forecastModel: m });
-  assert.equal(unscored.expected_close, null); assert.equal(unscored.close_basis, null); assert.ok(unscored.expected_open > 0);
-  assert.notEqual(priorHistoryEstimate(sessions, "100001", { returnHistory: candles }).close_basis.model, RIDGE_MODEL);
+  assert.equal(e.expected_close, null); assert.equal(e.close_basis, null); assert.ok(e.expected_open > 0);
+  // A ridge basis as committed by earlier runs.
+  const returns = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, ratio: c.close / c.open - 1 }));
+  const features = ridgeFeatures(candles);
+  const { clipped, predicted } = ridgePredict(m, features);
+  const basis = { model: RIDGE_MODEL, history_dates: e.open_basis.history_dates, inputs: { expected_open: e.expected_open, session_returns: returns, features, clipped_features: clipped, predicted_return: predicted, model_params: m } };
+  const row = { expected_open: e.expected_open, expected_close: Math.round((e.expected_open * (1 + predicted) + Number.EPSILON) * 100) / 100, expected_open_basis: e.open_basis, expected_close_basis: basis };
+  assert.equal(isCloseBasis(basis, row), true);
+  const i = basis.inputs;
+  assert.equal(isCloseBasis({ ...basis, inputs: { ...i, predicted_return: i.predicted_return + 1e-4 } }, row), false);
+  assert.equal(isCloseBasis({ ...basis, inputs: { ...i, model_params: { ...m, weights: m.weights.map((w, k) => k ? w : w + 1e-4) } } }, row), false);
+  assert.equal(isCloseBasis({ ...basis, inputs: { ...i, model_params: { ...m, train_last_date: "2099-01-01" } } }, row), false, "model trained after the inputs");
 });
 
 test("ranking uses the unrounded expected return, then symbol code", async () => {

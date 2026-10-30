@@ -3,12 +3,12 @@ import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, rankingExpectedReturn } from "./providers/evaluation-contract.js";
 import { sortRankingRows } from "./providers/ranking-sort.js";
+import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore } from "./providers/evaluation-score.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
 import { NO_TRADE_LABEL, buildSelectedDetail } from "./providers/selected-detail.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
-const percentFormatter = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const dateFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" });
 const timeFormatter = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
 
@@ -109,9 +109,14 @@ function formatPrice(value) { return finite(value) ? `${numberFormatter.format(n
 function formatPercent(value) { const displayValue = normalizeDisplayZero(value); return finite(displayValue) ? `${displayValue > 0 ? "+" : ""}${numberFormatter.format(displayValue)}%` : "—"; }
 function roundExpectedHalfUp(value) { if (!finite(value)) return value; const magnitude = Math.floor(Math.abs(value) + 0.5); const rounded = value < 0 ? -magnitude : magnitude; return rounded === 0 ? 0 : rounded; }
 function formatExpectedPrice(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(roundExpectedHalfUp(value), 0); return `${integerFormatter.format(displayValue)}원`; }
-// Expected return is shown at the engine precision (2 decimals, half up) so
-// distinct values are not displayed as ties.
-function formatExpectedPercent(value) { if (!finite(value)) return "—"; const displayValue = normalizeDisplayZero(Math.sign(value) * Math.round((Math.abs(value) + Number.EPSILON) * 100) / 100, 2); return `${displayValue > 0 ? "+" : ""}${percentFormatter.format(displayValue)}%`; }
+// 종목 평가: percentile 0–100 (3 decimals) of the unrounded expected return
+// over every row of the displayed snapshot (providers/evaluation-score.js).
+// Computed from the displayed rows so old snapshots without the stored fields
+// and post-close overlays render the same way.
+function attachEvaluationScores(rows) { const entries = computeEvaluationScores(rows.map((row) => row.expectedReturnRaw)); return rows.map((row, index) => ({ ...row, evaluationScore: entries[index]?.score ?? null, evaluationEntry: entries[index] })); }
+function evaluationTitle(row) { return evaluationScoreTooltip(row.evaluationEntry, row.expectedReturnRaw); }
+// Visible (not hover-only) rank and original value for touch layouts.
+function evaluationNote(row) { return evaluationScoreSummary(row.evaluationEntry, row.expectedReturnRaw); }
 function formatNumber(value) { return finite(value) ? integerFormatter.format(value) : "—"; }
 function formatDate(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date).replaceAll(". ", "."); }
 function formatPlainDate(value) { const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); return match ? `${match[1]}.${match[2]}.${match[3]}` : "—"; }
@@ -154,8 +159,11 @@ function forecastModelInfo(data) {
   const generation = id.match(/_v(\d+)$/)?.[1];
   const last = typeof params?.train_last_date === "string" ? params.train_last_date : null;
   return { id, label: MODEL_LABELS[id] || id, version: generation && last ? `v${generation}.${last.replaceAll("-", "")}` : null, trainedAt: params?.trained_at || null,
-    first: params?.train_first_date || null, last, days: params?.train_days ?? null, samples: params?.samples ?? null };
+    first: params?.train_first_date || null, last, days: params?.train_days ?? null, samples: params?.samples ?? null,
+    reusedFrom: typeof params?.reused_from === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.reused_from) ? params.reused_from : null };
 }
+// The day's rank training failed and the most recent successful model was applied.
+function modelReuseText(info) { return info?.reusedFrom ? ` · 직전 모델 재사용 (${info.reusedFrom} 학습)` : ""; }
 
 function modelDisplayName(data) {
   if (data?.meta?.retrospective_evaluation) return data.meta.retrospective_mixed ? "장전 기록과 사후 기준선 혼합" : "직전 3거래일 사후 기준선";
@@ -408,7 +416,7 @@ function renderProvenance(data, source, status) {
   setText(elementIds["source-collection"], data?.meta?.source_collection_date || formatDate(source?.retrieved_at));
   setText(elementIds["source-range"], range);
   const modelInfo = forecastModelInfo(data);
-  setText(elementIds["model-name"], modelInfo && !historical && !data?.meta?.retrospective_evaluation ? `${modelInfo.label}${modelInfo.version ? ` ${modelInfo.version}` : ""}` : model);
+  setText(elementIds["model-name"], modelInfo && !historical && !data?.meta?.retrospective_evaluation ? `${modelInfo.label}${modelInfo.version ? ` ${modelInfo.version}` : ""}${modelReuseText(modelInfo)}` : model);
   if (modelInfo?.last && !historical && !data?.meta?.retrospective_evaluation) setText(elementIds["baseline-input"], `학습 ${modelInfo.first ? `${formatPlainDate(modelInfo.first)}~` : "~"}${formatPlainDate(modelInfo.last)} · ${modelInfo.days ?? "—"}거래일 · ${formatNumber(modelInfo.samples)}개 표본${modelInfo.trainedAt ? ` · 학습 ${formatTime(modelInfo.trainedAt)}` : ""}`);
   else setText(elementIds["baseline-input"], data?.meta?.retrospective_evaluation ? `직전 3거래일 시가·종가: ${data.retrospective_history_dates.join(", ")}` : historical ? `직전 ${baseline.lookback_sessions || 5}개 거래일 종가 기반 · ${baseline.input_through_date || "기준일 미상"}` : "연결된 데이터 기준");
   setText(elementIds["model-note"], data?.meta?.retrospective_mixed ? "장전 기록과 사후 계산이 섞여 있습니다. 종목별 출처를 확인하세요." : data?.meta?.retrospective_evaluation || historical ? "당시 08:20 예측이 아닌 사후 재현 가능한 기준선" : `예상 기준 상태: ${model === "미설정" ? "미설정" : status}`);
@@ -419,7 +427,7 @@ function renderProvenance(data, source, status) {
 }
 function renderHeader(data) {
   const status = normalizeStatus(data?.status);
-  const rows = Array.isArray(data?.rows) ? data.rows.map(normalizeRow) : [];
+  const rows = attachEvaluationScores(Array.isArray(data?.rows) ? data.rows.map(normalizeRow) : []);
   const source = data?.meta?.source || data?.provider?.source || null;
   const test = isTestOnly(data);
   const historical = isHistorical(data);
@@ -438,7 +446,7 @@ function renderHeader(data) {
   setText(elementIds["as-of-date"], formatDate(data?.asOfDate || data?.trade_date));
   setText(elementIds["published-at"], formatTime(data?.publishedAt || data?.meta?.lastAttemptAt));
   const info = forecastModelInfo(data);
-  setText(elementIds["model-version"], info ? `${info.label}${info.version ? ` ${info.version}` : ""}` : "—");
+  setText(elementIds["model-version"], info ? `${info.label}${info.version ? ` ${info.version}` : ""}${modelReuseText(info)}` : "—");
   setText(elementIds["model-trained-at"], info?.trainedAt ? formatTime(info.trainedAt) : info?.last ? `데이터 ~${formatPlainDate(info.last)}` : "—");
   setText(elementIds["row-count"], formatNumber(rows.length));
   setText(elementIds["provider-label"], historical ? "과거 기준 데이터" : providerDisplayName(data));
@@ -457,7 +465,7 @@ function renderHeader(data) {
   renderRows();
   renderSelected();
   renderDateNavigation();
-  setText(document.getElementById("ranking-lede"), data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "예상 시가·예상 종가가 모두 있을 때만 예상 수익률을 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
+  setText(document.getElementById("ranking-lede"), data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
   if (!data?.meta?.retrospective_evaluation) void renderPostClose(data);
 }
 
@@ -608,7 +616,7 @@ function openSourceLabel(source) {
   if (source?.kind === "retrospective_history") return `사후 계산 · 공개 일봉 ${source.history_dates.join(", ")}`;
   return "출처 미확인";
 }
-function rowMetric(label, value, tone = "") { return `<div><span>${label}</span><strong class="${tone}">${value}</strong></div>`; }
+function rowMetric(label, value, tone = "", title = "", note = "") { return `<div><span>${label}</span><strong class="${tone}"${title ? ` title="${escapeText(title)}"` : ""}>${value}</strong>${note ? `<small class="evaluation-note">${escapeText(note)}</small>` : ""}</div>`; }
 function createMobileCard(row) {
   const card = document.createElement("article");
   card.className = "ranking-card";
@@ -617,7 +625,7 @@ function createMobileCard(row) {
   card.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
   card.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
   card.dataset.symbol = row.symbol;
-  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span><strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric(`예상 시가 · ${escapeText(openSourceLabel(row.expectedOpenSource))}`, formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("예상 수익률", formatExpectedPercent(row.expectedReturn), toneClass(row.expectedReturn))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("실제 장중 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("오차", formatPercent(row.error), toneClass(row.error))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
+  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span><strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric(`예상 시가 · ${escapeText(openSourceLabel(row.expectedOpenSource))}`, formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("종목 평가", formatEvaluationScore(row.evaluationScore), toneClass(row.expectedReturn), evaluationTitle(row), evaluationNote(row))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("실제 장중 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("오차", formatPercent(row.error), toneClass(row.error))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
   card.addEventListener("click", () => selectRow(row.symbol, { reveal: true }));
   card.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol, { reveal: true }); } });
   return card;
@@ -679,7 +687,7 @@ function renderRows() {
     tr.setAttribute("role", "button");
     tr.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
     tr.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
-    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시"><span class="cell-num">${formatExpectedPrice(row.expectedOpen)}</span><small class="cell-sub">${escapeText(openSourceLabel(row.expectedOpenSource))}</small></td><td class="${toneClass(row.expectedReturn)}" aria-label="예상 수익률 ${formatExpectedPercent(row.expectedReturn)}. 퍼센트 단위 정수 표시">${formatExpectedPercent(row.expectedReturn)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 장중 수익률">${formatPercent(row.sessionReturn)}</td><td class="${toneClass(row.error)}">${formatPercent(row.error)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
+    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시"><span class="cell-num">${formatExpectedPrice(row.expectedOpen)}</span><small class="cell-sub">${escapeText(openSourceLabel(row.expectedOpenSource))}</small></td><td class="${toneClass(row.expectedReturn)}" title="${escapeText(evaluationTitle(row))}" aria-label="종목 평가 ${formatEvaluationScore(row.evaluationScore)}. 0–100 백분위 점수, 소수 셋째 자리 표시. ${escapeText(evaluationTitle(row))}">${formatEvaluationScore(row.evaluationScore)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 장중 수익률">${formatPercent(row.sessionReturn)}</td><td class="${toneClass(row.error)}">${formatPercent(row.error)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
     tr.addEventListener("click", () => selectRow(row.symbol, { reveal: true }));
     tr.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol, { reveal: true }); } });
     elementIds["ranking-body"].append(tr);
@@ -760,7 +768,9 @@ function renderSelected() {
   setStatusPill(elementIds["selected-status"], row.status, rowStatusLabel(row));
   setText(elementIds["selected-expected-open"], formatExpectedPrice(row.expectedOpen));
   setText(elementIds["selected-expected-close"], formatExpectedPrice(row.expectedClose));
-  setText(elementIds["selected-expected-return"], formatExpectedPercent(row.expectedReturn));
+  setText(elementIds["selected-expected-return"], formatEvaluationScore(row.evaluationScore));
+  elementIds["selected-expected-return"]?.setAttribute("title", evaluationTitle(row));
+  setText(document.getElementById("selected-evaluation-note"), evaluationNote(row));
   setText(elementIds["selected-actual-open"], formatPrice(row.actualOpen));
   setText(elementIds["selected-actual-close"], formatPrice(row.actualClose));
   setText(elementIds["selected-actual-return"], formatPercent(row.sessionReturn));

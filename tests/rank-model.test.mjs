@@ -71,7 +71,8 @@ test("estimate stores a verifiable rank basis; tampering fails; the cache re-ver
   const missing = priorHistoryEstimate(sessions, symbol, { returnHistory: bars, rankForecast: { model: m, predictions: {} } });
   assert.equal(missing.expected_close, null, "an unscored symbol gets no expected close on a rank-model day");
 
-  // Cache: a stored prediction that does not reproduce invalidates the cache.
+  // Cache: a stored prediction that does not reproduce is discarded (the bars
+  // stay valid) and, with no earlier successful model, no rank forecast is used.
   const target = "2026-10-27", dates = await priorTradingDates(target);
   const symbols = [...out.keys()];
   const shift = (b, k) => ({ ...b, date: k < 3 ? dates[k] : new Date(Date.parse(`${dates[2]}T00:00:00Z`) - (k - 2) * 86400e3).toISOString().slice(0, 10) });
@@ -83,15 +84,18 @@ test("estimate stores a verifiable rank basis; tampering fails; the cache re-ver
     return_history: Object.fromEntries(symbols.map((s) => [s, hist[s].map((b) => [b.date, b.open, b.close, b.high, b.low, b.volume])])),
     rank_forecast: { model, predictions } };
   const root = await mkdtemp(join(tmpdir(), "rank-cache-")), path = join(root, "cache.json");
-  const load = () => loadNaverDailyHistory({ targetDate: target, path, now: () => new Date("2026-10-26T23:20:00Z") });
+  const load = () => loadNaverDailyHistory({ targetDate: target, path, historyDir: root, now: () => new Date("2026-10-26T23:20:00Z") });
   try {
     await writeFile(path, JSON.stringify(record));
     const ok = await load();
     assert.equal(ok.ok, true, ok.reason); assert.equal(Object.keys(ok.rank_forecast.predictions).length, symbols.length);
+    assert.deepEqual(ok.rank_forecast_status, { status: "trained", model: RANK_MODEL, train_last_date: dates[0], reused_from: null, reason: null });
     record.rank_forecast.predictions[symbols[0]].predicted += 1e-4; await writeFile(path, JSON.stringify(record));
-    assert.equal((await load()).ok, false, "tampered prediction");
+    const tampered = await load();
+    assert.equal(tampered.ok, true, "the validated bars stay usable"); assert.equal(tampered.rank_forecast, null, "tampered prediction is discarded");
+    assert.equal(tampered.rank_forecast_status.status, "unavailable"); assert.match(tampered.rank_forecast_status.reason, /does not reproduce; no earlier successfully trained rank model/);
     record.rank_forecast.predictions[symbols[0]].predicted -= 1e-4; delete record.rank_forecast.predictions[symbols[1]]; await writeFile(path, JSON.stringify(record));
-    assert.equal((await load()).ok, false, "a dropped symbol changes every rank");
+    assert.equal((await load()).rank_forecast, null, "a dropped symbol changes every rank");
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 

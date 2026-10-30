@@ -1,4 +1,5 @@
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { classifyMarketDate, isValidDate, loadMarketCalendar } from "../scripts/market-calendar.mjs";
 import { isKoreanSymbol } from "./korean-symbol.js";
 import { repoPath } from "./repo-paths.js";
@@ -22,7 +23,37 @@ export async function priorTradingDates(targetDate) {
   return result;
 }
 
-export async function loadNaverDailyHistory({ targetDate, now = () => new Date(), path = null }) {
+// The day's rank forecast when it was trained and reproduces; otherwise the
+// most recent successfully trained rank model (from an earlier daily-history
+// cache whose own rank_forecast reproduced) applied to this day's 20-session
+// bars and cross-section. No other model substitutes for it: without a previous
+// success the status is "unavailable" and expected closes stay null.
+// historyDir: where earlier caches are looked up (default data/daily-history).
+export async function findPreviousRankModel({ targetDate, now = () => new Date(), historyDir = null }) {
+  const dir = historyDir || repoPath("data/daily-history");
+  let names = [];
+  try { names = await readdir(dir); } catch (error) { if (error.code === "ENOENT") return null; throw error; }
+  const dates = names.map((name) => name.match(/^(\d{4}-\d{2}-\d{2})\.json$/)?.[1]).filter((date) => date && date < targetDate).sort().reverse();
+  for (const date of dates) {
+    const previous = await loadNaverDailyHistory({ targetDate: date, now, path: join(dir, `${date}.json`), reuseRankModel: false });
+    const model = previous.ok ? previous.rank_forecast?.model : null;
+    if (model && isRankModel(model) && model.train_last_date < targetDate) return { model, trained_for: date };
+  }
+  return null;
+}
+
+export async function reuseRankForecast({ targetDate, returnHistory, now = () => new Date(), historyDir = null, failure = null }) {
+  const why = failure || "rank_forecast missing";
+  const previous = await findPreviousRankModel({ targetDate, now, historyDir });
+  if (!previous) return { rank_forecast: null, status: { status: "unavailable", model: null, train_last_date: null, reused_from: null, reason: `${why}; no earlier successfully trained rank model` } };
+  const bars = new Map(Object.entries(returnHistory || {}).filter(([, c]) => Array.isArray(c) && c.length === RANK_FEATURE_SESSIONS && c.every((b) => b?.volume !== undefined)));
+  const model = { ...previous.model, reused_from: previous.trained_for };
+  const predictions = bars.size ? predictCrossSection(model, bars) : null;
+  if (!predictions) return { rank_forecast: null, status: { status: "unavailable", model: model.model, train_last_date: model.train_last_date, reused_from: previous.trained_for, reason: `${why}; fewer than the minimum symbols have ${RANK_FEATURE_SESSIONS} sessions of daily bars` } };
+  return { rank_forecast: { model, predictions }, status: { status: "reused", model: model.model, train_last_date: model.train_last_date, reused_from: previous.trained_for, reason: why } };
+}
+
+export async function loadNaverDailyHistory({ targetDate, now = () => new Date(), path = null, reuseRankModel = true, historyDir = null }) {
   try {
     if (!isValidDate(targetDate)) throw new Error("invalid target date");
     const expected = await priorTradingDates(targetDate);
@@ -84,19 +115,27 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
     if (record.forecast_model !== undefined && record.forecast_model !== null && (!isRidgeModel(record.forecast_model) || !(record.forecast_model.train_last_date < targetDate))) throw new Error("invalid forecast model");
     const forecast_model = record.forecast_model ?? null;
     // Optional rank forecast: every stored prediction is recomputed from the
-    // stored bars across the same cross-section; any difference invalidates it.
-    let rank_forecast = null;
+    // stored bars across the same cross-section. A forecast that is malformed or
+    // does not reproduce is discarded (the validated bars stay usable) and,
+    // like a missing one, replaced by the most recent successful rank model.
+    let rank_forecast = null, rankFailure = null;
     if (record.rank_forecast !== undefined && record.rank_forecast !== null) {
       const rf = record.rank_forecast, preds = rf?.predictions;
-      if (!isRankModel(rf?.model) || !(rf.model.train_last_date < targetDate) || !preds || typeof preds !== "object" || !return_history) throw new Error("invalid rank forecast");
-      const symbols = Object.keys(preds);
-      if (symbols.some((s) => !return_history[s] || return_history[s].length !== RANK_FEATURE_SESSIONS || return_history[s][0].volume === undefined)) throw new Error("invalid rank forecast");
-      const again = predictCrossSection(rf.model, new Map(symbols.map((s) => [s, return_history[s]])));
       const same = (a, b) => typeof a === "number" && typeof b === "number" && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
-      if (!again || Object.keys(again).length !== symbols.length || symbols.some((s) => !again[s] || !same(again[s].predicted, preds[s]?.predicted) || !Array.isArray(preds[s].ranks) || !again[s].ranks.every((v, j) => same(v, preds[s].ranks[j])) || !Array.isArray(preds[s].features) || !again[s].features.every((v, j) => same(v, preds[s].features[j])))) throw new Error("rank forecast does not reproduce");
-      rank_forecast = { model: rf.model, predictions: preds };
-    }
+      const symbols = preds && typeof preds === "object" ? Object.keys(preds) : [];
+      if (!isRankModel(rf?.model) || !(rf.model.train_last_date < targetDate) || !preds || typeof preds !== "object" || !return_history) rankFailure = "invalid rank forecast";
+      else if (symbols.some((s) => !return_history[s] || return_history[s].length !== RANK_FEATURE_SESSIONS || return_history[s][0].volume === undefined)) rankFailure = "invalid rank forecast";
+      else {
+        const again = predictCrossSection(rf.model, new Map(symbols.map((s) => [s, return_history[s]])));
+        if (!again || Object.keys(again).length !== symbols.length || symbols.some((s) => !again[s] || !same(again[s].predicted, preds[s]?.predicted) || !Array.isArray(preds[s].ranks) || !again[s].ranks.every((v, j) => same(v, preds[s].ranks[j])) || !Array.isArray(preds[s].features) || !again[s].features.every((v, j) => same(v, preds[s].features[j])))) rankFailure = "rank forecast does not reproduce";
+        else rank_forecast = { model: rf.model, predictions: preds };
+      }
+    } else rankFailure = record.rank_forecast === null ? "rank model training failed (rank_forecast null)" : "rank_forecast missing";
+    let rank_forecast_status = rank_forecast
+      ? { status: "trained", model: rank_forecast.model.model, train_last_date: rank_forecast.model.train_last_date, reused_from: null, reason: null }
+      : { status: "unavailable", model: null, train_last_date: null, reused_from: null, reason: rankFailure };
+    if (!rank_forecast && reuseRankModel) ({ rank_forecast, status: rank_forecast_status } = await reuseRankForecast({ targetDate, returnHistory: return_history, now, historyDir, failure: rankFailure }));
     const comparison_conflicts = sessions.reduce((n, s) => n + s.rows.filter(r => r.comparison === "conflict").length, 0);
-    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, rank_forecast, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
+    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, rank_forecast, rank_forecast_status, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
   } catch (error) { return { ok: false, reason: `Naver daily history unavailable: ${error.message}` }; }
 }

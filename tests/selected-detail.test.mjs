@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { buildSelectedDetail, DETAIL_DISCLAIMER, RETROSPECTIVE_MODEL_ID } from "../providers/selected-detail.js";
 import { mergePostCloseEvaluation } from "../providers/post-close-overlay.js";
+import { withLegacyThreeSessionClose } from "./support/legacy-close-basis.mjs";
+import { PENDING_FORECAST_SNAPSHOT } from "./support/pending-forecast-snapshot.mjs";
 
 const readJson = async (path) => JSON.parse(await readFile(new URL(`../${path}`, import.meta.url), "utf8"));
 const section = (detail, id) => detail.sections.find((entry) => entry.id === id);
@@ -65,13 +67,13 @@ test("operational rows without a stored basis say so and quote the pipeline's ow
   assert.match(body, /현재가\(closePriceRaw\) 기준값이며 장전 예측이 아닙니다/);
   assert.match(body, /실행 시점 참고 수익률\(전일 기준가 대비\) \+0\.58%/);
 
-  const latest = await readJson("data/latest-snapshot.json");
-  const latestRow = latest.rows.find((candidate) => candidate.expected_open === null);
-  if (latestRow && latest.pipeline?.forecast?.status !== "ready") {
-    const latestDetail = buildSelectedDetail(latestRow, contextOf(latest));
-    assert.equal(section(latestDetail, "expected").state, "missing");
-    assert.match(text(section(latestDetail, "expected")), /장전 예상 단계 기록이 포함되지 않았습니다 \(장전 예상 단계 상태: 대기\)/);
-  }
+  // Fixed pre-forecast snapshot (tests/support), not the live data/latest-snapshot.json.
+  const pending = PENDING_FORECAST_SNAPSHOT;
+  const pendingRow = pending.rows.find((candidate) => candidate.expected_open === null);
+  assert.ok(pendingRow); assert.notEqual(pendingRow.trading_status, "no_trade_observed");
+  const pendingDetail = buildSelectedDetail(pendingRow, contextOf(pending));
+  assert.equal(section(pendingDetail, "expected").state, "missing");
+  assert.match(text(section(pendingDetail, "expected")), /장전 예상 단계 기록이 포함되지 않았습니다 \(장전 예상 단계 상태: 대기\)/);
 });
 
 test("expected_open_source history rows describe the gap calculation without inventing missing figures", () => {
@@ -126,9 +128,13 @@ const BASIS_SESSIONS = [
 const historyRow = (estimate, extra = {}) => ({ symbol: "005930", name: "A", expected_open: estimate.expected_open, expected_close: estimate.expected_close, actual_open: null, actual_close: null,
   expected_open_source: { kind: "preopen_history", recorded_at: "2026-10-26T22:55:00Z", history_dates: estimate.open_basis.history_dates }, expected_open_basis: estimate.open_basis, expected_close_basis: estimate.close_basis, ...extra });
 
+// Committed rows still carry the retired 3-session close basis; the fixture
+// rebuilds it because the pipeline no longer produces it.
+const legacyEstimate = (estimate, sessions = BASIS_SESSIONS) => withLegacyThreeSessionClose(estimate, sessions, "005930");
+
 test("stored open/close basis renders as readable sentences with the stored numbers", async () => {
   const { priorHistoryEstimate } = await import("../providers/forecast-basis.js");
-  const estimate = priorHistoryEstimate(BASIS_SESSIONS, "005930");
+  const estimate = legacyEstimate(priorHistoryEstimate(BASIS_SESSIONS, "005930"));
   const expected = section(buildSelectedDetail(historyRow(estimate), {}), "expected");
   const body = text(expected);
   assert.equal(expected.state, "available");
@@ -140,7 +146,8 @@ test("stored open/close basis renders as readable sentences with the stored numb
   assert.doesNotMatch(body, /다릅니다/);
   assert.equal(expected.missing.length, 0);
 
-  const capped = priorHistoryEstimate([{ date: "2026-10-26", rows: [basisBar("2026-10-26", 130, 131)] }, BASIS_SESSIONS[1], BASIS_SESSIONS[2]], "005930");
+  const cappedSessions = [{ date: "2026-10-26", rows: [basisBar("2026-10-26", 130, 131)] }, BASIS_SESSIONS[1], BASIS_SESSIONS[2]];
+  const capped = legacyEstimate(priorHistoryEstimate(cappedSessions, "005930"), cappedSessions);
   assert.match(text(section(buildSelectedDetail(historyRow(capped), {}), "expected")), /평균 \+14\.87% \(±5% 제한 적용 → \+5\.00%\) → 예상 시가 = 131 × 1\.0500 = 137\.55원/);
 });
 
@@ -182,7 +189,7 @@ test("pre-open quote basis says the auction price was used and that no close mod
 
 test("basis that does not reproduce the stored values is flagged; rows without basis keep the missing-basis note", async () => {
   const { priorHistoryEstimate } = await import("../providers/forecast-basis.js");
-  const estimate = priorHistoryEstimate(BASIS_SESSIONS, "005930");
+  const estimate = legacyEstimate(priorHistoryEstimate(BASIS_SESSIONS, "005930"));
   const body = text(section(buildSelectedDetail(historyRow(estimate, { expected_open: 106, expected_close: 106.7 }), {}), "expected"));
   assert.match(body, /저장된 예상 시가\(106원\)와 재계산값\(105\.05원\)이 다릅니다/);
   assert.match(body, /저장된 예상 종가\(106\.7원\)와 재계산값\(105\.74원\)이 다릅니다/);

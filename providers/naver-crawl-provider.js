@@ -759,6 +759,8 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
       source.metrics.history_status = history.partial ? "partial" : "ready";
       source.metrics.history_reason = `${history.excluded_count} symbols excluded; ${history.comparison_conflicts} daily comparison conflicts; Naver daily venue and adjustment unconfirmed and may differ from regular-market quotes; redistribution rights unconfirmed`;
       source.metrics.history_source = DAILY_HISTORY_SOURCE;
+      // Expected-close model actually used: { status: trained | reused | unavailable, model, train_last_date, reused_from, reason }.
+      if (history.rank_forecast_status) source.metrics.close_model = history.rank_forecast_status;
     }
     // Settlement records observed prices, which do not depend on prior history.
     // A history failure there is kept visible in metrics and the message but
