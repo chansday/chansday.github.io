@@ -1,4 +1,4 @@
-import { summarizeDisplayedPerformance } from "./providers/recent-performance.js";
+import { summarizeDisplayedPerformance, isNegativePerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
@@ -879,5 +879,5 @@ async function renderRecentPerformance() {
     if (results.length === 5) break;
   }
   if (!results.length) { container.innerHTML = '<p class="performance-message">확인된 종가 정산 기록이 없습니다.</p>'; return; }
-  container.innerHTML = results.map((result, index) => `<article class="pipeline-step performance-day" role="listitem"><div class="step-index">${String(index + 1).padStart(2, "0")}</div><div class="step-copy"><h3>${formatPlainDate(result.date)}</h3><div class="performance-values"><div><span>상위 10위 수익률</span><strong>${formatPercent(result.top10)}</strong></div><div><span>상위 20위 수익률</span><strong>${formatPercent(result.top20)}</strong></div></div></div></article>`).join("");
+  container.innerHTML = results.map((result, index) => `<article class="pipeline-step performance-day${isNegativePerformance(result.top10) ? " performance-day-negative" : ""}" role="listitem"><div class="step-index">${String(index + 1).padStart(2, "0")}</div><div class="step-copy"><h3>${formatPlainDate(result.date)}</h3><div class="performance-values"><div><span>상위 10위 수익률</span><strong>${formatPercent(result.top10)}</strong></div><div><span>상위 20위 수익률</span><strong>${formatPercent(result.top20)}</strong></div></div></div></article>`).join("");
 }

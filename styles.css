@@ -210,6 +210,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .pipeline-step:last-child { border-right: 0; }
 .pipeline-step::before { position: absolute; top: 0; right: 0; left: 0; height: 2px; background: var(--line); content: ""; }
 .pipeline-step[data-state="ready"]::before, .pipeline-step[data-state="valid"]::before, .performance-day::before { background: var(--green); box-shadow: 0 0 14px rgba(130, 231, 183, .45); }
+.performance-day.performance-day-negative::before { background: var(--yellow); box-shadow: 0 0 14px rgba(255, 210, 123, .45); }
 .step-index { color: var(--dim); font-family: "DM Mono", monospace; font-size: 11px; }
 .step-copy { margin-top: 25px; }
 .step-time { color: var(--blue-strong); font-family: "DM Mono", monospace; font-size: 10px; }

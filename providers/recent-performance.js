@@ -19,3 +19,7 @@ export function summarizePerformance(snapshot, date) {
 export function summarizeDisplayedPerformance(snapshot, date, record = null) {
   return summarizePerformance(record ? mergePostCloseEvaluation(snapshot, record) : snapshot, date);
 }
+
+export function isNegativePerformance(value) {
+  return Number.isFinite(value) && value < 0;
+}
