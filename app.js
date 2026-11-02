@@ -296,6 +296,19 @@ async function loadSnapshot() {
   if (!response.ok) throw new Error(`Snapshot request failed: ${response.status}`);
   const latest = await response.json();
   if (!isSnapshot(latest)) throw new Error("Snapshot shape is invalid");
+  const dateParts = dateFormatter.formatToParts(new Date()).reduce((parts, part) => ({ ...parts, [part.type]: part.value }), {});
+  const statusDate = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(statusDate)) {
+    try {
+      const statusResponse = await fetch(`./data/runs/${statusDate}/previous-result-status.json`, { cache: "no-store" });
+      if (statusResponse.ok) {
+        const status = await statusResponse.json();
+        if (status.runDate === statusDate && ["ready", "partial", "blocked"].includes(status.status) && Number.isFinite(Date.parse(status.attemptedAt))) {
+          latest.pipeline.previousResult = { status: status.status, attemptedAt: status.attemptedAt, provider_id: "naver-crawl", message: status.message };
+        }
+      }
+    } catch { /* The snapshot remains usable if the separate status is unavailable. */ }
+  }
   if (latest.status === "no_data") return (await loadHistoricalFallback(latest)) || latest;
   if (isTestOnly(latest)) return emptySnapshot();
   return latest;
@@ -312,6 +325,11 @@ function renderPipeline(data) {
     const statusNode = step.querySelector("[data-step-status]");
     statusNode.className = `step-status ${statusClass(state)}`;
     statusNode.textContent = stateLabels[state] || state;
+    statusNode.title = steps[step.dataset.step]?.message || "";
+    if (step.dataset.step === "previousResult") {
+      const detail = step.querySelector(".step-copy p");
+      if (detail) detail.textContent = ["blocked", "partial", "degraded"].includes(state) ? (steps.previousResult?.message || "전일 정산 기록을 확인할 수 없습니다.") : "전일 정산값 입력";
+    }
   });
 }
 function evaluationStats(rows) {

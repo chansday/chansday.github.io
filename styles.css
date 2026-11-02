@@ -209,6 +209,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 
 .pipeline { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); overflow: hidden; border-radius: 14px; }
 .pipeline-step { position: relative; min-height: 158px; padding: 20px 18px; border-right: 1px solid var(--line); }
+.pipeline-step[data-step="previousResult"] { padding-bottom: 55px; }
 .pipeline-step:last-child { border-right: 0; }
 .pipeline-step::before { position: absolute; top: 0; right: 0; left: 0; height: 2px; background: var(--line); content: ""; }
 .pipeline-step[data-state="ready"]::before, .pipeline-step[data-state="valid"]::before, .performance-day::before { background: var(--green); box-shadow: 0 0 14px rgba(130, 231, 183, .45); }

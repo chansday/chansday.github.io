@@ -123,7 +123,9 @@ test("feature workflows expose input-free buttons and route through the shared g
   assert.match(shared, /steps\.validate-run-context\.outcome == 'success'/);
   assert.match(shared, /-z "\$run_started_at"/);
   assert.match(shared, /\?\?\?\?-\?\?-\?\?T\?\?:\?\?:\?\?\.\?\?\?Z/);
-  assert.doesNotMatch(shared, /steps\.stage\.outcome == 'failure'/);
+  const snapshotCommit = shared.split("- name: Commit snapshot state when changed")[1].split("- name: Save isolated daily baseline")[0];
+  assert.doesNotMatch(snapshotCommit, /steps\.stage\.outcome == 'failure'/);
+  assert.match(shared, /Save previous-result failure status/);
   assert.match(shared, /steps\.market-day\.outcome.*success/);
   assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("Evaluate post-close retrospective"));
   assert.match(shared, /steps\.market-day\.outputs\.should_run == 'true'/);
@@ -155,7 +157,8 @@ test("a non-ready stage exposes its status and cannot satisfy the snapshot commi
     assert.match(await readFile(outputPath, "utf8"), /^status=no_data\r?$/m);
     assert.match(workflow, /steps\.stage\.outcome == 'success'/);
     assert.match(workflow, /steps\.stage\.outputs\.status == 'ready'/);
-    assert.doesNotMatch(workflow, /steps\.stage\.outcome == 'failure'/);
+    const snapshotCommit = workflow.split("- name: Commit snapshot state when changed")[1].split("- name: Save isolated daily baseline")[0];
+    assert.doesNotMatch(snapshotCommit, /steps\.stage\.outcome == 'failure'/);
   } finally {
     await rm(tempRoot, { recursive: true, force: true });
   }
@@ -188,7 +191,9 @@ test("run all now exposes only run_date and commits the final state once", async
   assert.match(workflow, /only non-executed stages; every executed stage was ready/);
   assert.match(workflow, /group: kospi-signal-board-pipeline/);
   assert.match(workflow, /git add data\/latest-snapshot\.json data\/runs/);
-  assert.equal((workflow.match(/commit-and-push\.sh/g) || []).length, 1);
+  const finalCommit = workflow.split("- name: Commit final run state once")[1].split("- name: Fail when the all-stage result is not ready")[0];
+  assert.equal((finalCommit.match(/commit-and-push\.sh/g) || []).length, 1);
+  assert.match(workflow, /Save previous-result status after a failed run/);
   const runner = await readFile(new URL("../scripts/run-all.mjs", import.meta.url), "utf8");
   assert.match(runner, /const STAGES = Object\.freeze\(\[/);
   assert.match(runner, /"update-results",\s+"analysis",\s+"forecast",\s+"open-settlement",\s+"close-settlement"/s);

@@ -68,7 +68,7 @@
 ### 수집 시각·timeout·freshness
 
 
-- Actions forecast는 scheduler keeper가 08:35 KST(장전 동시호가 08:30~09:00 중)에 dispatch하지만, 수동 `run-all now`는 reusable runner에서 실제 실행 시각을 UTC ISO-8601로 생성해 사용합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:31 이후에만 `close-settlement`를 추가 호출합니다. 수동 run-all은 실행 시작시각과 별도로 collection invocation timestamp를 기록하고, 각 Naver 요청의 실제 수집시각을 source metadata에 기록합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 모든 stage는 같은 crawl runner에서 quote freshness를 검증합니다.
+- Actions forecast는 scheduler keeper가 08:35 KST(장전 동시호가 08:30~09:00 중)에 dispatch하지만, 수동 `run-all now`는 reusable runner에서 실제 실행 시각을 UTC ISO-8601로 생성해 사용합니다. 오늘 거래일의 수동 전체 실행은 시각과 관계없이 `update-results`/`analysis`/`forecast`를 호출하고, KST 09:00 이후에만 `open-settlement`, 15:31 이후에만 `close-settlement`를 추가 호출합니다. 수동 run-all은 실행 시작시각과 별도로 collection invocation timestamp를 기록하고, 각 Naver 요청의 실제 수집시각을 source metadata에 기록합니다. 주말·공휴일·미래 날짜는 수집을 건너뛰며 과거 거래일은 기존 정책을 유지합니다. 전일 결과 단계를 제외한 시세 수집 stage는 crawl runner에서 quote freshness를 검증합니다.
 - source별 timeout(기본 8초), 전체 deadline(기본 120초), 순차 요청 간 최소 간격(기본 250ms), 최대 1회 bounded retry를 적용합니다. 403/429/challenge는 재시도하지 않습니다.
 - deadline 초과·중복·필수 필드 결측·오래된 파일은 `partial`/`degraded`/`no_data`로 기록하고 정상 순위로 표시하지 않습니다. 이전 snapshot을 당일 결과처럼 재사용하지 않습니다.
 - `meta.source`에는 source id, run id, `source_date`, fetched/retrieved 시각, source 상태, raw/유효 행 수, partial 여부와 요청·재시도·경과·예상 소요시간 metrics를 기록하고, snapshot top-level `asOfDate`는 실제 원본 날짜를 가리킵니다. stale/unsupported 결과도 이 날짜를 숨기지 않습니다.
@@ -92,7 +92,7 @@ adapter는 단일 HTTPS JSON endpoint만 사용하고, redirect를 거부하며,
 ### 단계 저장 명령
 
 
-운영 단계 저장은 `node scripts/update-results.mjs --mode <stage> --run-date YYYY-MM-DD`로 수행합니다. 기본 단계 시각은 KST 07:00, 08:00, 08:20, 09:00, 15:30으로 고정되어 동일 입력 재실행 시 JSON 내용이 달라지지 않습니다. 09:00은 `actual_open`만, 15:30은 `actual_close`/`session_return`/`actual_volume`을 이전 단계에 병합하며 expected 필드는 보존합니다. `--dry-run`은 파일을 쓰지 않습니다.
+운영 단계 저장은 `node scripts/update-results.mjs --mode <stage> --run-date YYYY-MM-DD`로 수행합니다. 07:00 전일 결과 단계는 직전 거래일의 저장된 정산을 검증하며 당일 polling 시세의 freshness를 요구하지 않습니다. 날짜·출처·15:31 이후 정산 시각·종목별 관측 및 예측 기록을 검증하고 미확인 항목은 부분 또는 차단으로 표시합니다. 결과는 `data/runs/YYYY-MM-DD/previous-result-status.json`에 별도 저장하며 당일 시세 행이나 `latest-snapshot.json`을 덮어쓰지 않습니다. 실패 상태도 해당 상태 파일만 커밋하고 Actions는 실패로 유지합니다. 동일 날짜의 성공 기록은 이후 실패 재시도로 덮지 않습니다. 다른 단계의 freshness 규칙은 유지합니다. 09:00은 `actual_open`만, 종가 정산은 `actual_close`/`session_return`/`actual_volume`을 이전 단계에 병합하며 expected 필드는 보존합니다. `--dry-run`은 파일을 쓰지 않습니다.
 
 ## GitHub Actions 버튼과 실행 시각
 

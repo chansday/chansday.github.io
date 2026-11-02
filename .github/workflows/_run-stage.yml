@@ -122,6 +122,22 @@ jobs:
           RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
         run: node scripts/update-results.mjs --mode "$RESOLVED_STAGE" --run-started-at "${{ steps.capture-run-context.outputs.run_started_at }}" --attempted-at "${{ steps.capture-run-context.outputs.run_started_at }}"
 
+      - name: Save previous-result failure status
+        if: >-
+          always() && steps.stage.outcome == 'failure' &&
+          (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'update-results' &&
+          steps.validate-run-context.outputs.run_date != ''
+        shell: bash
+        env:
+          RUN_DATE: ${{ steps.validate-run-context.outputs.run_date }}
+        run: |
+          set -euo pipefail
+          file="data/runs/$RUN_DATE/previous-result-status.json"
+          if [ ! -f "$file" ]; then echo "No status was produced."; exit 0; fi
+          git add -- "$file"
+          if git diff --cached --quiet; then exit 0; fi
+          bash scripts/commit-and-push.sh "chore(data): record previous result status"
+
       - name: Collect isolated daily baseline
         id: daily-experiment
         if: >-

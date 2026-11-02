@@ -1,4 +1,4 @@
-import { access, appendFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, appendFile, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
@@ -17,6 +17,7 @@ import { withEvaluationScores } from "../providers/evaluation-score.js";
 import { calculateRunContext } from "./run-context.mjs";
 
 import { createProgressLog } from "../providers/progress-log.js";
+import { evaluatePreviousResult } from "./previous-result.mjs";
 
 export const MODES = {
   "update-results": { key: "previousResult", method: "fetchPreviousDay" },
@@ -451,6 +452,12 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
       const step = prior.pipeline?.[key];
       if (step && step.status && step.status !== "pending" && availableAtReference(step, prior)) snapshot = { ...snapshot, pipeline: { ...snapshot.pipeline, [key]: step } };
     }
+    if (options.mode !== "update-results") {
+      const status = await readIfPresent(resolve("data", "runs", options.runDate, "previous-result-status.json"));
+      if (status?.runDate === options.runDate && ["ready", "partial", "blocked"].includes(status.status)
+        && availableAtReference(status, { meta: { run_id: status.runId } })) snapshot = { ...snapshot, pipeline: { ...snapshot.pipeline,
+        previousResult: { status: status.status, attemptedAt: status.attemptedAt, provider_id: "naver-crawl", message: status.message } } };
+    }
     // Recover the latest genuine pre-open record even if an intermediate run is missing.
     const recovered = new Map();
     for (const [label, stage] of [["0820", "forecast"], ["0800", "analysis"], ["0700", "update-results"]]) {
@@ -493,6 +500,10 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
   }
   const attemptedAt = options.attemptedAt;
   const { provider, providerId } = resolveProvider(process.env, { ...options, ...dependencies });
+  // Previous-day results are separate from today's rows. Never carry yesterday's
+  // prices into today's analysis or require a fresh pre-open live quote.
+  const previousResult = options.mode === "update-results" && providerId === "naver-crawl"
+    ? await evaluatePreviousResult(options.runDate, attemptedAt) : null;
   if (providerId === "naver-crawl") {
     snapshot = { ...snapshot, rows: snapshot.rows.map((row) => {
       if (row.expected_open_source && (recoveredSymbols.has(row.symbol) || timely(row.expected_open_source.recorded_at, snapshot))) return row;
@@ -516,7 +527,12 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     },
   };
 
-  if (!provider) {
+  if (previousResult) {
+    nextSnapshot = { ...nextSnapshot, status: previousResult.status, mode: "provider", asOfDate: options.runDate,
+      rows: [], provider: providerInfo(provider, providerId, previousResult.status),
+      meta: { ...nextSnapshot.meta, blockedReason: previousResult.status === "ready" ? null : previousResult.message },
+      pipeline: { ...nextSnapshot.pipeline, previousResult: { status: previousResult.status, attemptedAt, provider_id: providerId, message: previousResult.message } } };
+  } else if (!provider) {
     const reason = providerId === "none"
       ? "Provider 'none' was explicitly selected. No financial values are generated and this stage is not successful."
       : `Provider '${providerId}' is not registered. Register an adapter before enabling it.`;
@@ -554,6 +570,19 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
   let wroteRunFile = false;
   let wroteLatestFile = false;
   if (!options.dryRun) {
+    if (previousResult && !explicitDataFile) {
+      const statusPath = resolve("data", "runs", options.runDate, "previous-result-status.json");
+      await mkdir(dirname(statusPath), { recursive: true });
+      let prior = null;
+      try { prior = JSON.parse(await readFile(statusPath, "utf8")); } catch (error) { if (error.code !== "ENOENT") throw error; }
+      // Shared Actions concurrency serializes runs; preserve success against a
+      // later failed retry, and never let an older attempt replace a newer one.
+      if (!(prior?.status === "ready" && previousResult.status !== "ready") && !(Date.parse(prior?.attemptedAt) > Date.parse(attemptedAt))) {
+        const temp = `${statusPath}.${process.pid}.tmp`;
+        await writeFile(temp, `${JSON.stringify({ ...previousResult, runDate: options.runDate, attemptedAt, runId: currentRunId }, null, 2)}\n`);
+        await rename(temp, statusPath);
+      }
+    }
     const preserveExisting = ["blocked", "degraded", "partial"].includes(nextSnapshot.status);
     async function writeSnapshot(path) {
       await mkdir(dirname(path), { recursive: true });
@@ -561,7 +590,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
       catch (error) { if (preserveExisting && error.code === "EEXIST") return false; throw error; }
     }
     if (!explicitDataFile) wroteRunFile = await writeSnapshot(runPath);
-    wroteLatestFile = await writeSnapshot(latestPath);
+    if (!previousResult) wroteLatestFile = await writeSnapshot(latestPath);
     log(`파일 쓰기 · ${(Buffer.byteLength(output) / 1_048_576).toFixed(1)}MB · 단계 파일 ${explicitDataFile ? "해당 없음" : wroteRunFile ? "작성" : "기존 보존"} · latest ${wroteLatestFile ? "작성" : "기존 보존"}`);
   }
   const summary = {
