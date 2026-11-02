@@ -383,3 +383,22 @@ export function buildSelectedDetail(row, context = {}) {
   const sections = [expectedSection(row, ctx), actualSection(row, ctx), errorSection(row), sourceSection(row, ctx)];
   return { sections: row.trading_status === "no_trade_observed" ? sections.map((section) => noTradeSection(section, row)) : sections, disclaimer: DETAIL_DISCLAIMER };
 }
+
+// Only confirmed completed sessions up to the selected snapshot date are shown.
+export function recentDailyRows(history, symbol, date, settledRow = null) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return [];
+  const byDate = new Map();
+  if (history?.source === 'naver-daily' && history?.target_date === date && Array.isArray(history.sessions)) {
+    for (const session of history.sessions) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(session?.date || '') || session.date >= date || !Array.isArray(session.rows)) continue;
+      const row = session.rows.find(entry => entry?.symbol === symbol);
+      if (row) byDate.set(session.date, { date: session.date, open: row.open, close: row.close, volume: row.volume, source: '네이버 일봉' });
+    }
+  }
+  if (settledRow && finite(settledRow.actual_close) && settledRow.actual_close > 0) byDate.set(date, { date, open: settledRow.actual_open, close: settledRow.actual_close, volume: settledRow.actual_volume, source: '당일 종가 정산' });
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(row => ({
+    ...row, closeText: row.close > 0 && finite(row.close) ? formatWon(row.close) : '—',
+    returnText: row.open > 0 && row.close > 0 && finite(row.open) && finite(row.close) ? formatPct((row.close / row.open - 1) * 100) : '—',
+    volumeText: finite(row.volume) && row.volume >= 0 ? `${integer.format(row.volume)}주` : '—',
+  }));
+}

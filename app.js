@@ -6,7 +6,7 @@ import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, ranki
 import { sortRankingRows } from "./providers/ranking-sort.js";
 import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore } from "./providers/evaluation-score.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
-import { NO_TRADE_LABEL, buildSelectedDetail } from "./providers/selected-detail.js";
+import { NO_TRADE_LABEL, buildSelectedDetail, recentDailyRows } from "./providers/selected-detail.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
@@ -78,6 +78,8 @@ let currentDataMode = "provider";
 let calendarMonthCursor = null;
 let dateRequestToken = 0;
 let postCloseToken = 0;
+let recentDailyToken = 0;
+let recentDailyCache = new Map();
 
 async function renderPostClose(data) {
   const token = ++postCloseToken;
@@ -760,6 +762,36 @@ function renderEvidence(row) {
   disclaimer.textContent = detail.disclaimer;
   container.append(disclaimer);
 }
+async function renderRecentDaily(row) {
+  const token = ++recentDailyToken, container = document.getElementById("selected-recent-daily");
+  const date = snapshot?.meta?.run_date || snapshot?.asOfDate;
+  container.replaceChildren();
+  const heading = document.createElement("h4"); heading.textContent = "최근 3거래일"; container.append(heading);
+  const message = document.createElement("p"); message.className = "detail-missing"; message.textContent = "일봉 기록을 불러오는 중입니다."; container.append(message);
+  if (!isIsoDate(date) || isTestOnly(snapshot)) { message.textContent = "이 화면에서 사용할 일봉 기록이 없습니다."; return; }
+  let history = null;
+  try {
+    if (!recentDailyCache.has(date)) {
+      const response = await fetch(`./data/daily-history/${date}.json`, { cache: "no-store" });
+      if (!response.ok) throw new Error("history unavailable");
+      recentDailyCache.set(date, await response.json());
+    }
+    history = recentDailyCache.get(date);
+  } catch { /* Missing history is displayed as missing, never replaced with another date. */ }
+  if (token !== recentDailyToken || selectedSymbol !== row.symbol) return;
+  const settled = snapshot?.meta?.run_stage === "close-settlement" && ["ready", "partial"].includes(snapshot?.pipeline?.closeSettlement?.status) ? row.raw : null;
+  const rows = recentDailyRows(history, row.symbol, date, settled);
+  if (!rows.length) { message.textContent = "이 종목의 최근 일봉 기록이 없습니다."; return; }
+  message.remove();
+  const table = document.createElement("table"); table.className = "recent-daily-table";
+  const caption = document.createElement("caption"); caption.textContent = "최근 3거래일 종가, 시가 대비 등락률 및 거래량 (원, %, 주)"; table.append(caption);
+  const head = document.createElement("thead"); const headingRow = document.createElement("tr");
+  for (const label of ["거래일", "종가", "시가 대비", "거래량"]) { const th = document.createElement("th"); th.scope = "col"; th.textContent = label; headingRow.append(th); }
+  head.append(headingRow); table.append(head); const body = document.createElement("tbody");
+  for (const daily of rows) { const tr = document.createElement("tr"); tr.title = daily.source; for (const value of [daily.date, daily.closeText, daily.returnText, daily.volumeText]) { const td = document.createElement("td"); td.textContent = value; tr.append(td); } body.append(tr); }
+  table.append(body); container.append(table);
+  const note = document.createElement("p"); note.className = "detail-missing recent-daily-note"; note.textContent = "시가 대비 = 종가 ÷ 시가 − 1. 직전 거래일은 네이버 일봉(시장·가격 조정 기준 미확인), 당일은 종가 정산 기준입니다. 기록이 부족하면 일부만 표시합니다."; container.append(note);
+}
 function renderSelected() {
   const row = snapshot?.rows?.find((candidate) => candidate.symbol === selectedSymbol);
   if (!row) { elementIds["selected-empty"].hidden = false; elementIds["selected-content"].hidden = true; setText(elementIds["selected-detail-hint"], "종목을 선택하세요"); return; }
@@ -780,6 +812,7 @@ function renderSelected() {
   setText(elementIds["selected-quality"], `품질 ${qualityLabel(row.quality)}`);
   setText(elementIds["selected-reasons"], `상태 사유 ${row.reasons?.length ? row.reasons.join(", ") : "기록 없음"}`);
   renderEvidence(row);
+  renderRecentDaily(row);
 }
 function updateClock() { const now = new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date()); setText(elementIds["top-clock"], `KST ${now}`); }
 async function refresh({ showLoading = false, token = null } = {}) {

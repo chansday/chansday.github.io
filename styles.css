@@ -135,6 +135,7 @@ h1, h2, h3, p { margin-top: 0; }
 h1 { max-width: 680px; margin-bottom: 23px; font-size: clamp(45px, 6vw, 80px); font-weight: 800; letter-spacing: -.1em; line-height: 1.05; word-break: keep-all; }
 h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .hero-lede { max-width: 590px; margin-bottom: 31px; color: var(--muted); font-size: 15px; line-height: 1.9; word-break: keep-all; }
+.hero-schedule { max-width: 590px; margin: -18px 0 24px; color: var(--muted); font-size: 12px; line-height: 1.7; word-break: keep-all; }
 .hero-links { display: flex; align-items: center; gap: 23px; flex-wrap: wrap; }
 .button { display: inline-flex; align-items: center; gap: 13px; min-height: 45px; padding: 11px 17px; border-radius: 9px; font-size: 12px; font-weight: 800; }
 .button-primary { background: var(--blue); color: #07131f; box-shadow: 0 10px 30px rgba(123, 188, 255, .2); }
@@ -467,3 +468,13 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .performance-day .performance-values { display: grid; gap: 8px; margin-top: 12px; }
 .performance-values div { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; }
 .performance-values strong { color: var(--text); }
+
+.recent-daily { margin-top: 12px; overflow-x: auto; }
+.recent-daily h4 { margin: 0 0 9px; color: var(--text); font-size: 12px; }
+.recent-daily-table { width: 100%; min-width: 350px; border-collapse: collapse; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.recent-daily-table caption { padding-bottom: 6px; color: var(--muted); text-align: left; font-size: 11px; white-space: normal; }
+.recent-daily-note { font-size: 11px; line-height: 1.5; }
+.recent-daily-table th, .recent-daily-table td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+.recent-daily-table th:first-child, .recent-daily-table td:first-child { text-align: left; }
+.recent-daily-table th { color: var(--dim); font-size: 11px; }
+.recent-daily-table td { color: var(--text); font-family: "DM Mono", "Noto Sans KR", monospace; }
