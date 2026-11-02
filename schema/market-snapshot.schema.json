@@ -377,6 +377,13 @@
         "quote_at": { "type": ["string", "null"], "format": "date-time" },
         "quote_age_seconds": { "type": ["number", "null"], "minimum": 0 },
         "market_status": { "type": ["string", "null"] },
+        "open_quote_at": { "type": ["string", "null"], "format": "date-time" },
+        "open_quote_age_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "open_market_status": { "type": ["string", "null"] },
+        "close_quote_at": { "type": ["string", "null"], "format": "date-time" },
+        "close_quote_age_seconds": { "type": ["number", "null"], "minimum": 0 },
+        "close_market_status": { "type": ["string", "null"] },
+        "close_basis": { "enum": ["krx_regular", "integrated_nxt", "daily_chart"], "description": "krx_regular: polling close observed 15:30-15:40 KST (or the next session's polling prior close); integrated_nxt: later polling quote including NXT trading; daily_chart: Naver daily candle (integrated)." },
         "trading_status": { "const": "no_trade_observed", "description": "The source itself reported zero trade (volume 0) for the session; actual prices and error stay null and the row is not an evaluation sample." },
         "no_trade_evidence": {
           "type": "object",

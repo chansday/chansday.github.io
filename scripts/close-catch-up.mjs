@@ -210,6 +210,7 @@ export function buildCatchUpSnapshot({ runDate, base, priorOpenings = new Map(),
     row.error = deriveEvaluationError(row);
     row.quality = candle ? "naver_daily_candle_catch_up" : "naver_daily_candle_missing";
     row.quote_at = null; row.quote_age_seconds = null; row.market_status = null;
+    row.close_basis = "daily_chart";
     delete row.trading_status; delete row.no_trade_evidence;
     const evidence = candle ? null : noTradeEvidence(baseRow, runDate, zeroVolume);
     if (evidence) Object.assign(row, { actual_volume: null, session_return: null, error: null, quality: "naver_no_trade_observed", trading_status: NO_TRADE_STATUS, no_trade_evidence: evidence });

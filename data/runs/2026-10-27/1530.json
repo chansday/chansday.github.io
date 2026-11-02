@@ -183,7 +183,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 2,
@@ -314,7 +315,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 3,
@@ -408,7 +410,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 4,
@@ -539,7 +542,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 5,
@@ -670,7 +674,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 6,
@@ -801,7 +806,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 7,
@@ -895,7 +901,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 8,
@@ -1026,7 +1033,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 9,
@@ -1157,7 +1165,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 10,
@@ -1288,7 +1297,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 11,
@@ -1419,7 +1429,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 12,
@@ -1550,7 +1561,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 13,
@@ -1681,7 +1693,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 14,
@@ -1812,7 +1825,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 15,
@@ -1943,7 +1957,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 16,
@@ -2074,7 +2089,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 17,
@@ -2205,7 +2221,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 18,
@@ -2336,7 +2353,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 19,
@@ -2467,7 +2485,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 20,
@@ -2598,7 +2617,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 21,
@@ -2729,7 +2749,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 22,
@@ -2860,7 +2881,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 23,
@@ -2991,7 +3013,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 24,
@@ -3122,7 +3145,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 25,
@@ -3253,7 +3277,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 26,
@@ -3384,7 +3409,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 27,
@@ -3515,7 +3541,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 28,
@@ -3646,7 +3673,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 29,
@@ -3777,7 +3805,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 30,
@@ -3908,7 +3937,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 31,
@@ -4039,7 +4069,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 32,
@@ -4170,7 +4201,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 33,
@@ -4301,7 +4333,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 34,
@@ -4432,7 +4465,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 35,
@@ -4563,7 +4597,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 36,
@@ -4694,7 +4729,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 37,
@@ -4825,7 +4861,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 38,
@@ -4956,7 +4993,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 39,
@@ -5087,7 +5125,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 40,
@@ -5218,7 +5257,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 41,
@@ -5349,7 +5389,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 42,
@@ -5480,7 +5521,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 43,
@@ -5611,7 +5653,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 44,
@@ -5742,7 +5785,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 45,
@@ -5873,7 +5917,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 46,
@@ -6004,7 +6049,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 47,
@@ -6135,7 +6181,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 48,
@@ -6266,7 +6313,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 49,
@@ -6397,7 +6445,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 50,
@@ -6528,7 +6577,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 51,
@@ -6659,7 +6709,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 52,
@@ -6790,7 +6841,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 53,
@@ -6921,7 +6973,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 54,
@@ -7052,7 +7105,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 55,
@@ -7183,7 +7237,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 56,
@@ -7314,7 +7369,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 57,
@@ -7445,7 +7501,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 58,
@@ -7576,7 +7633,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 59,
@@ -7707,7 +7765,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 60,
@@ -7838,7 +7897,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 61,
@@ -7969,7 +8029,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 62,
@@ -8100,7 +8161,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 63,
@@ -8231,7 +8293,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 64,
@@ -8362,7 +8425,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 65,
@@ -8493,7 +8557,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 66,
@@ -8624,7 +8689,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 67,
@@ -8755,7 +8821,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 68,
@@ -8886,7 +8953,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 69,
@@ -9017,7 +9085,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 70,
@@ -9148,7 +9217,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 71,
@@ -9279,7 +9349,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 72,
@@ -9410,7 +9481,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 73,
@@ -9541,7 +9613,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 74,
@@ -9672,7 +9745,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 75,
@@ -9803,7 +9877,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 76,
@@ -9934,7 +10009,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 77,
@@ -10065,7 +10141,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 78,
@@ -10196,7 +10273,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 79,
@@ -10327,7 +10405,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 80,
@@ -10458,7 +10537,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 81,
@@ -10589,7 +10669,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 82,
@@ -10720,7 +10801,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 83,
@@ -10851,7 +10933,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 84,
@@ -10982,7 +11065,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 85,
@@ -11113,7 +11197,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 86,
@@ -11244,7 +11329,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 87,
@@ -11375,7 +11461,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 88,
@@ -11506,7 +11593,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 89,
@@ -11637,7 +11725,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 90,
@@ -11768,7 +11857,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 91,
@@ -11899,7 +11989,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 92,
@@ -12030,7 +12121,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 93,
@@ -12161,7 +12253,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 94,
@@ -12292,7 +12385,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 95,
@@ -12423,7 +12517,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 96,
@@ -12554,7 +12649,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 97,
@@ -12685,7 +12781,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 98,
@@ -12816,7 +12913,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 99,
@@ -12947,7 +13045,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 100,
@@ -13078,7 +13177,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 101,
@@ -13209,7 +13309,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 102,
@@ -13340,7 +13441,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 103,
@@ -13471,7 +13573,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 104,
@@ -13602,7 +13705,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 105,
@@ -13733,7 +13837,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 106,
@@ -13864,7 +13969,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 107,
@@ -13995,7 +14101,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 108,
@@ -14126,7 +14233,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 109,
@@ -14257,7 +14365,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 110,
@@ -14388,7 +14497,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 111,
@@ -14519,7 +14629,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 112,
@@ -14650,7 +14761,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 113,
@@ -14781,7 +14893,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 114,
@@ -14912,7 +15025,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 115,
@@ -15043,7 +15157,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 116,
@@ -15174,7 +15289,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 117,
@@ -15305,7 +15421,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 118,
@@ -15436,7 +15553,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 119,
@@ -15567,7 +15685,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 120,
@@ -15698,7 +15817,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 121,
@@ -15829,7 +15949,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 122,
@@ -15960,7 +16081,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 123,
@@ -16091,7 +16213,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 124,
@@ -16222,7 +16345,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 125,
@@ -16353,7 +16477,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 126,
@@ -16484,7 +16609,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 127,
@@ -16615,7 +16741,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 128,
@@ -16746,7 +16873,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 129,
@@ -16877,7 +17005,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 130,
@@ -17008,7 +17137,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 131,
@@ -17139,7 +17269,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 132,
@@ -17270,7 +17401,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 133,
@@ -17401,7 +17533,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 134,
@@ -17532,7 +17665,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 135,
@@ -17663,7 +17797,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 136,
@@ -17794,7 +17929,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 137,
@@ -17925,7 +18061,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 138,
@@ -18056,7 +18193,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 139,
@@ -18187,7 +18325,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 140,
@@ -18318,7 +18457,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 141,
@@ -18449,7 +18589,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 142,
@@ -18580,7 +18721,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 143,
@@ -18711,7 +18853,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 144,
@@ -18842,7 +18985,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 145,
@@ -18973,7 +19117,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 146,
@@ -19104,7 +19249,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 147,
@@ -19235,7 +19381,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 148,
@@ -19366,7 +19513,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 149,
@@ -19497,7 +19645,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 150,
@@ -19628,7 +19777,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 151,
@@ -19759,7 +19909,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 152,
@@ -19890,7 +20041,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 153,
@@ -20021,7 +20173,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 154,
@@ -20152,7 +20305,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 155,
@@ -20283,7 +20437,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 156,
@@ -20414,7 +20569,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 157,
@@ -20545,7 +20701,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 158,
@@ -20676,7 +20833,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 159,
@@ -20807,7 +20965,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 160,
@@ -20938,7 +21097,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 161,
@@ -21069,7 +21229,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 162,
@@ -21200,7 +21361,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 163,
@@ -21331,7 +21493,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 164,
@@ -21462,7 +21625,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 165,
@@ -21593,7 +21757,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 166,
@@ -21724,7 +21889,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 167,
@@ -21855,7 +22021,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 168,
@@ -21986,7 +22153,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 169,
@@ -22117,7 +22285,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 170,
@@ -22248,7 +22417,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 171,
@@ -22379,7 +22549,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 172,
@@ -22510,7 +22681,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 173,
@@ -22641,7 +22813,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 174,
@@ -22772,7 +22945,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 175,
@@ -22903,7 +23077,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 176,
@@ -23034,7 +23209,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 177,
@@ -23165,7 +23341,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 178,
@@ -23296,7 +23473,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 179,
@@ -23427,7 +23605,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 180,
@@ -23558,7 +23737,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 181,
@@ -23689,7 +23869,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 182,
@@ -23820,7 +24001,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 183,
@@ -23951,7 +24133,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 184,
@@ -24082,7 +24265,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 185,
@@ -24213,7 +24397,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 186,
@@ -24344,7 +24529,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 187,
@@ -24475,7 +24661,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 188,
@@ -24606,7 +24793,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 189,
@@ -24737,7 +24925,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 190,
@@ -24868,7 +25057,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 191,
@@ -24999,7 +25189,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 192,
@@ -25130,7 +25321,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 193,
@@ -25261,7 +25453,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 194,
@@ -25392,7 +25585,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 195,
@@ -25523,7 +25717,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 196,
@@ -25654,7 +25849,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 197,
@@ -25785,7 +25981,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 198,
@@ -25916,7 +26113,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 199,
@@ -26047,7 +26245,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 200,
@@ -26178,7 +26377,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 201,
@@ -26309,7 +26509,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 202,
@@ -26440,7 +26641,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 203,
@@ -26571,7 +26773,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 204,
@@ -26702,7 +26905,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 205,
@@ -26833,7 +27037,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 206,
@@ -26964,7 +27169,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 207,
@@ -27095,7 +27301,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 208,
@@ -27226,7 +27433,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 209,
@@ -27357,7 +27565,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 210,
@@ -27488,7 +27697,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 211,
@@ -27619,7 +27829,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 212,
@@ -27750,7 +27961,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 213,
@@ -27881,7 +28093,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 214,
@@ -28012,7 +28225,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 215,
@@ -28143,7 +28357,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 216,
@@ -28274,7 +28489,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 217,
@@ -28405,7 +28621,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 218,
@@ -28536,7 +28753,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 219,
@@ -28667,7 +28885,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 220,
@@ -28798,7 +29017,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 221,
@@ -28929,7 +29149,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 222,
@@ -29060,7 +29281,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 223,
@@ -29191,7 +29413,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 224,
@@ -29322,7 +29545,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 225,
@@ -29453,7 +29677,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 226,
@@ -29584,7 +29809,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 227,
@@ -29715,7 +29941,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 228,
@@ -29846,7 +30073,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 229,
@@ -29977,7 +30205,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 230,
@@ -30108,7 +30337,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 231,
@@ -30239,7 +30469,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 232,
@@ -30370,7 +30601,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 233,
@@ -30501,7 +30733,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 234,
@@ -30632,7 +30865,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 235,
@@ -30763,7 +30997,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 236,
@@ -30894,7 +31129,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 237,
@@ -31025,7 +31261,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 238,
@@ -31156,7 +31393,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 239,
@@ -31287,7 +31525,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 240,
@@ -31418,7 +31657,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 241,
@@ -31549,7 +31789,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 242,
@@ -31680,7 +31921,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 243,
@@ -31811,7 +32053,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 244,
@@ -31942,7 +32185,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 245,
@@ -32073,7 +32317,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 246,
@@ -32204,7 +32449,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 247,
@@ -32335,7 +32581,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 248,
@@ -32466,7 +32713,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 249,
@@ -32597,7 +32845,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 250,
@@ -32728,7 +32977,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 251,
@@ -32859,7 +33109,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 252,
@@ -32990,7 +33241,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 253,
@@ -33121,7 +33373,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 254,
@@ -33252,7 +33505,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 255,
@@ -33383,7 +33637,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 256,
@@ -33514,7 +33769,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 257,
@@ -33645,7 +33901,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 258,
@@ -33776,7 +34033,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 259,
@@ -33907,7 +34165,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 260,
@@ -34038,7 +34297,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 261,
@@ -34169,7 +34429,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 262,
@@ -34300,7 +34561,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 263,
@@ -34431,7 +34693,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 264,
@@ -34562,7 +34825,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 265,
@@ -34693,7 +34957,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 266,
@@ -34824,7 +35089,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 267,
@@ -34955,7 +35221,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 268,
@@ -35086,7 +35353,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 269,
@@ -35217,7 +35485,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 270,
@@ -35348,7 +35617,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 271,
@@ -35479,7 +35749,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 272,
@@ -35610,7 +35881,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 273,
@@ -35741,7 +36013,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 274,
@@ -35872,7 +36145,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 275,
@@ -36003,7 +36277,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 276,
@@ -36134,7 +36409,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 277,
@@ -36265,7 +36541,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 278,
@@ -36396,7 +36673,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 279,
@@ -36527,7 +36805,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 280,
@@ -36658,7 +36937,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 281,
@@ -36789,7 +37069,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 282,
@@ -36920,7 +37201,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 283,
@@ -37051,7 +37333,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 284,
@@ -37182,7 +37465,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 285,
@@ -37313,7 +37597,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 286,
@@ -37444,7 +37729,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 287,
@@ -37575,7 +37861,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 288,
@@ -37706,7 +37993,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 289,
@@ -37837,7 +38125,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 290,
@@ -37968,7 +38257,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 291,
@@ -38099,7 +38389,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 292,
@@ -38230,7 +38521,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 293,
@@ -38361,7 +38653,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 294,
@@ -38492,7 +38785,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 295,
@@ -38623,7 +38917,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 296,
@@ -38754,7 +39049,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 297,
@@ -38885,7 +39181,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 298,
@@ -39016,7 +39313,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 299,
@@ -39147,7 +39445,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 300,
@@ -39278,7 +39577,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 301,
@@ -39409,7 +39709,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 302,
@@ -39540,7 +39841,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 303,
@@ -39671,7 +39973,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 304,
@@ -39802,7 +40105,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 305,
@@ -39933,7 +40237,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 306,
@@ -40064,7 +40369,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 307,
@@ -40195,7 +40501,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 308,
@@ -40326,7 +40633,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 309,
@@ -40457,7 +40765,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 310,
@@ -40588,7 +40897,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 311,
@@ -40719,7 +41029,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 312,
@@ -40850,7 +41161,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 313,
@@ -40981,7 +41293,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 314,
@@ -41112,7 +41425,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 315,
@@ -41243,7 +41557,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 316,
@@ -41374,7 +41689,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 317,
@@ -41505,7 +41821,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 318,
@@ -41636,7 +41953,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 319,
@@ -41767,7 +42085,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 320,
@@ -41898,7 +42217,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 321,
@@ -42029,7 +42349,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 322,
@@ -42160,7 +42481,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 323,
@@ -42291,7 +42613,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 324,
@@ -42422,7 +42745,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 325,
@@ -42553,7 +42877,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 326,
@@ -42684,7 +43009,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 327,
@@ -42815,7 +43141,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 328,
@@ -42946,7 +43273,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 329,
@@ -43077,7 +43405,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 330,
@@ -43208,7 +43537,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 331,
@@ -43339,7 +43669,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 332,
@@ -43470,7 +43801,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 333,
@@ -43601,7 +43933,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 334,
@@ -43732,7 +44065,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 335,
@@ -43863,7 +44197,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 336,
@@ -43994,7 +44329,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 337,
@@ -44125,7 +44461,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 338,
@@ -44256,7 +44593,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 339,
@@ -44387,7 +44725,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 340,
@@ -44518,7 +44857,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 341,
@@ -44649,7 +44989,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 342,
@@ -44780,7 +45121,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 343,
@@ -44911,7 +45253,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 344,
@@ -45042,7 +45385,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 345,
@@ -45173,7 +45517,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 346,
@@ -45304,7 +45649,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 347,
@@ -45435,7 +45781,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 348,
@@ -45566,7 +45913,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 349,
@@ -45697,7 +46045,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 350,
@@ -45828,7 +46177,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 351,
@@ -45959,7 +46309,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 352,
@@ -46090,7 +46441,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 353,
@@ -46221,7 +46573,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 354,
@@ -46352,7 +46705,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 355,
@@ -46483,7 +46837,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 356,
@@ -46614,7 +46969,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 357,
@@ -46745,7 +47101,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 358,
@@ -46876,7 +47233,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 359,
@@ -47007,7 +47365,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 360,
@@ -47138,7 +47497,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 361,
@@ -47269,7 +47629,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 362,
@@ -47400,7 +47761,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 363,
@@ -47531,7 +47893,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 364,
@@ -47662,7 +48025,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 365,
@@ -47793,7 +48157,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 366,
@@ -47924,7 +48289,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 367,
@@ -48055,7 +48421,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 368,
@@ -48186,7 +48553,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 369,
@@ -48317,7 +48685,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 370,
@@ -48448,7 +48817,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 371,
@@ -48579,7 +48949,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 372,
@@ -48710,7 +49081,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 373,
@@ -48841,7 +49213,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 374,
@@ -48972,7 +49345,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 375,
@@ -49103,7 +49477,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 376,
@@ -49234,7 +49609,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 377,
@@ -49365,7 +49741,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 378,
@@ -49496,7 +49873,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 379,
@@ -49627,7 +50005,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 380,
@@ -49758,7 +50137,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 381,
@@ -49889,7 +50269,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 382,
@@ -50020,7 +50401,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 383,
@@ -50151,7 +50533,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 384,
@@ -50282,7 +50665,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 385,
@@ -50413,7 +50797,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 386,
@@ -50544,7 +50929,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 387,
@@ -50675,7 +51061,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 388,
@@ -50806,7 +51193,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 389,
@@ -50937,7 +51325,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 390,
@@ -51068,7 +51457,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 391,
@@ -51199,7 +51589,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 392,
@@ -51330,7 +51721,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 393,
@@ -51461,7 +51853,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 394,
@@ -51592,7 +51985,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 395,
@@ -51723,7 +52117,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 396,
@@ -51854,7 +52249,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 397,
@@ -51985,7 +52381,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 398,
@@ -52116,7 +52513,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 399,
@@ -52247,7 +52645,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 400,
@@ -52378,7 +52777,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 401,
@@ -52509,7 +52909,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 402,
@@ -52640,7 +53041,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 403,
@@ -52771,7 +53173,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 404,
@@ -52902,7 +53305,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 405,
@@ -53033,7 +53437,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 406,
@@ -53164,7 +53569,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 407,
@@ -53295,7 +53701,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 408,
@@ -53426,7 +53833,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 409,
@@ -53557,7 +53965,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 410,
@@ -53688,7 +54097,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 411,
@@ -53819,7 +54229,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 412,
@@ -53950,7 +54361,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 413,
@@ -54081,7 +54493,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 414,
@@ -54212,7 +54625,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 415,
@@ -54343,7 +54757,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 416,
@@ -54474,7 +54889,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 417,
@@ -54605,7 +55021,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 418,
@@ -54736,7 +55153,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 419,
@@ -54867,7 +55285,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 420,
@@ -54998,7 +55417,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 421,
@@ -55129,7 +55549,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 422,
@@ -55260,7 +55681,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 423,
@@ -55391,7 +55813,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 424,
@@ -55522,7 +55945,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 425,
@@ -55653,7 +56077,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 426,
@@ -55784,7 +56209,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 427,
@@ -55915,7 +56341,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 428,
@@ -56046,7 +56473,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 429,
@@ -56177,7 +56605,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 430,
@@ -56308,7 +56737,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 431,
@@ -56439,7 +56869,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 432,
@@ -56570,7 +57001,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 433,
@@ -56701,7 +57133,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 434,
@@ -56832,7 +57265,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 435,
@@ -56963,7 +57397,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 436,
@@ -57094,7 +57529,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 437,
@@ -57225,7 +57661,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 438,
@@ -57356,7 +57793,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 439,
@@ -57487,7 +57925,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 440,
@@ -57618,7 +58057,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 441,
@@ -57749,7 +58189,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 442,
@@ -57880,7 +58321,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 443,
@@ -58011,7 +58453,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 444,
@@ -58142,7 +58585,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 445,
@@ -58273,7 +58717,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 446,
@@ -58404,7 +58849,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 447,
@@ -58535,7 +58981,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 448,
@@ -58666,7 +59113,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 449,
@@ -58797,7 +59245,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 450,
@@ -58928,7 +59377,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 451,
@@ -59059,7 +59509,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 452,
@@ -59190,7 +59641,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 453,
@@ -59321,7 +59773,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 454,
@@ -59452,7 +59905,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 455,
@@ -59583,7 +60037,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 456,
@@ -59714,7 +60169,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 457,
@@ -59845,7 +60301,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 458,
@@ -59976,7 +60433,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 459,
@@ -60107,7 +60565,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 460,
@@ -60238,7 +60697,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 461,
@@ -60369,7 +60829,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 462,
@@ -60500,7 +60961,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 463,
@@ -60631,7 +61093,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 464,
@@ -60762,7 +61225,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 465,
@@ -60893,7 +61357,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 466,
@@ -61024,7 +61489,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 467,
@@ -61155,7 +61621,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 468,
@@ -61286,7 +61753,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 469,
@@ -61417,7 +61885,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 470,
@@ -61548,7 +62017,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 471,
@@ -61679,7 +62149,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 472,
@@ -61810,7 +62281,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 473,
@@ -61941,7 +62413,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 474,
@@ -62072,7 +62545,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 475,
@@ -62203,7 +62677,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 476,
@@ -62334,7 +62809,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 477,
@@ -62465,7 +62941,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 478,
@@ -62596,7 +63073,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 479,
@@ -62727,7 +63205,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 480,
@@ -62858,7 +63337,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 481,
@@ -62989,7 +63469,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 482,
@@ -63120,7 +63601,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 483,
@@ -63251,7 +63733,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 484,
@@ -63382,7 +63865,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 485,
@@ -63513,7 +63997,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 486,
@@ -63644,7 +64129,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 487,
@@ -63775,7 +64261,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 488,
@@ -63906,7 +64393,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 489,
@@ -64037,7 +64525,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 490,
@@ -64168,7 +64657,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 491,
@@ -64299,7 +64789,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 492,
@@ -64430,7 +64921,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 493,
@@ -64561,7 +65053,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 494,
@@ -64692,7 +65185,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 495,
@@ -64823,7 +65317,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 496,
@@ -64954,7 +65449,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 497,
@@ -65085,7 +65581,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 498,
@@ -65216,7 +65713,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 499,
@@ -65347,7 +65845,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 500,
@@ -65478,7 +65977,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 501,
@@ -65609,7 +66109,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 502,
@@ -65740,7 +66241,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 503,
@@ -65871,7 +66373,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 504,
@@ -66002,7 +66505,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 505,
@@ -66133,7 +66637,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 506,
@@ -66264,7 +66769,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 507,
@@ -66395,7 +66901,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 508,
@@ -66526,7 +67033,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 509,
@@ -66657,7 +67165,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 510,
@@ -66788,7 +67297,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 511,
@@ -66919,7 +67429,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 512,
@@ -67050,7 +67561,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 513,
@@ -67181,7 +67693,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 514,
@@ -67312,7 +67825,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 515,
@@ -67443,7 +67957,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 516,
@@ -67574,7 +68089,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 517,
@@ -67705,7 +68221,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 518,
@@ -67836,7 +68353,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 519,
@@ -67967,7 +68485,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 520,
@@ -68098,7 +68617,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 521,
@@ -68229,7 +68749,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 522,
@@ -68360,7 +68881,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 523,
@@ -68491,7 +69013,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 524,
@@ -68622,7 +69145,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 525,
@@ -68753,7 +69277,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 526,
@@ -68884,7 +69409,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 527,
@@ -69015,7 +69541,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 528,
@@ -69146,7 +69673,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 529,
@@ -69277,7 +69805,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 530,
@@ -69408,7 +69937,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 531,
@@ -69539,7 +70069,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 532,
@@ -69670,7 +70201,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 533,
@@ -69801,7 +70333,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 534,
@@ -69932,7 +70465,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 535,
@@ -70063,7 +70597,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 536,
@@ -70194,7 +70729,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 537,
@@ -70325,7 +70861,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 538,
@@ -70456,7 +70993,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 539,
@@ -70587,7 +71125,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 540,
@@ -70718,7 +71257,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 541,
@@ -70849,7 +71389,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 542,
@@ -70980,7 +71521,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 543,
@@ -71111,7 +71653,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 544,
@@ -71242,7 +71785,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 545,
@@ -71373,7 +71917,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 546,
@@ -71504,7 +72049,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 547,
@@ -71635,7 +72181,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 548,
@@ -71766,7 +72313,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 549,
@@ -71897,7 +72445,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 550,
@@ -72028,7 +72577,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 551,
@@ -72159,7 +72709,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 552,
@@ -72290,7 +72841,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 553,
@@ -72421,7 +72973,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 554,
@@ -72552,7 +73105,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 555,
@@ -72683,7 +73237,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 556,
@@ -72814,7 +73369,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 557,
@@ -72945,7 +73501,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 558,
@@ -73076,7 +73633,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 559,
@@ -73207,7 +73765,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 560,
@@ -73338,7 +73897,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 561,
@@ -73469,7 +74029,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 562,
@@ -73600,7 +74161,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 563,
@@ -73731,7 +74293,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 564,
@@ -73862,7 +74425,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 565,
@@ -73993,7 +74557,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 566,
@@ -74124,7 +74689,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 567,
@@ -74255,7 +74821,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 568,
@@ -74386,7 +74953,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 569,
@@ -74517,7 +75085,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 570,
@@ -74648,7 +75217,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 571,
@@ -74779,7 +75349,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 572,
@@ -74910,7 +75481,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 573,
@@ -75041,7 +75613,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 574,
@@ -75172,7 +75745,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 575,
@@ -75303,7 +75877,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 576,
@@ -75434,7 +76009,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 577,
@@ -75565,7 +76141,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 578,
@@ -75696,7 +76273,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 579,
@@ -75827,7 +76405,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 580,
@@ -75958,7 +76537,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 581,
@@ -76089,7 +76669,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 582,
@@ -76220,7 +76801,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 583,
@@ -76351,7 +76933,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 584,
@@ -76482,7 +77065,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 585,
@@ -76613,7 +77197,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 586,
@@ -76744,7 +77329,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 587,
@@ -76875,7 +77461,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 588,
@@ -77006,7 +77593,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 589,
@@ -77137,7 +77725,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 590,
@@ -77268,7 +77857,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 591,
@@ -77399,7 +77989,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 592,
@@ -77530,7 +78121,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 593,
@@ -77661,7 +78253,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 594,
@@ -77792,7 +78385,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 595,
@@ -77923,7 +78517,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 596,
@@ -78054,7 +78649,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 597,
@@ -78185,7 +78781,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 598,
@@ -78316,7 +78913,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 599,
@@ -78447,7 +79045,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 600,
@@ -78578,7 +79177,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 601,
@@ -78709,7 +79309,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 602,
@@ -78840,7 +79441,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 603,
@@ -78971,7 +79573,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 604,
@@ -79102,7 +79705,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 605,
@@ -79233,7 +79837,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 606,
@@ -79364,7 +79969,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 607,
@@ -79495,7 +80101,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 608,
@@ -79626,7 +80233,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 609,
@@ -79757,7 +80365,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 610,
@@ -79888,7 +80497,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 611,
@@ -80019,7 +80629,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 612,
@@ -80150,7 +80761,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 613,
@@ -80281,7 +80893,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 614,
@@ -80412,7 +81025,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 615,
@@ -80543,7 +81157,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 616,
@@ -80674,7 +81289,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 617,
@@ -80805,7 +81421,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 618,
@@ -80936,7 +81553,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 619,
@@ -81067,7 +81685,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 620,
@@ -81198,7 +81817,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 621,
@@ -81329,7 +81949,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 622,
@@ -81460,7 +82081,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 623,
@@ -81591,7 +82213,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 624,
@@ -81722,7 +82345,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 625,
@@ -81853,7 +82477,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 626,
@@ -81984,7 +82609,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 627,
@@ -82115,7 +82741,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 628,
@@ -82246,7 +82873,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 629,
@@ -82377,7 +83005,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 630,
@@ -82508,7 +83137,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 631,
@@ -82639,7 +83269,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 632,
@@ -82770,7 +83401,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 633,
@@ -82901,7 +83533,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 634,
@@ -83032,7 +83665,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 635,
@@ -83163,7 +83797,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 636,
@@ -83294,7 +83929,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 637,
@@ -83425,7 +84061,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 638,
@@ -83556,7 +84193,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 639,
@@ -83687,7 +84325,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 640,
@@ -83818,7 +84457,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 641,
@@ -83949,7 +84589,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 642,
@@ -84080,7 +84721,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 643,
@@ -84211,7 +84853,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 644,
@@ -84342,7 +84985,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 645,
@@ -84473,7 +85117,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 646,
@@ -84604,7 +85249,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 647,
@@ -84735,7 +85381,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 648,
@@ -84866,7 +85513,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 649,
@@ -84997,7 +85645,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 650,
@@ -85128,7 +85777,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 651,
@@ -85259,7 +85909,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 652,
@@ -85390,7 +86041,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 653,
@@ -85521,7 +86173,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 654,
@@ -85652,7 +86305,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 655,
@@ -85783,7 +86437,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 656,
@@ -85914,7 +86569,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 657,
@@ -86045,7 +86701,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 658,
@@ -86176,7 +86833,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 659,
@@ -86307,7 +86965,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 660,
@@ -86438,7 +87097,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 661,
@@ -86569,7 +87229,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 662,
@@ -86700,7 +87361,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 663,
@@ -86831,7 +87493,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 664,
@@ -86962,7 +87625,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 665,
@@ -87093,7 +87757,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 666,
@@ -87224,7 +87889,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 667,
@@ -87355,7 +88021,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 668,
@@ -87486,7 +88153,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 669,
@@ -87617,7 +88285,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 670,
@@ -87748,7 +88417,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 671,
@@ -87879,7 +88549,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 672,
@@ -88010,7 +88681,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 673,
@@ -88141,7 +88813,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 674,
@@ -88272,7 +88945,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 675,
@@ -88403,7 +89077,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 676,
@@ -88534,7 +89209,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 677,
@@ -88665,7 +89341,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 678,
@@ -88796,7 +89473,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 679,
@@ -88927,7 +89605,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 680,
@@ -89058,7 +89737,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 681,
@@ -89189,7 +89869,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 682,
@@ -89320,7 +90001,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 683,
@@ -89451,7 +90133,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 684,
@@ -89582,7 +90265,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 685,
@@ -89713,7 +90397,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 686,
@@ -89844,7 +90529,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 687,
@@ -89975,7 +90661,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 688,
@@ -90106,7 +90793,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 689,
@@ -90237,7 +90925,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 690,
@@ -90368,7 +91057,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 691,
@@ -90499,7 +91189,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 692,
@@ -90630,7 +91321,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 693,
@@ -90761,7 +91453,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 694,
@@ -90892,7 +91585,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 695,
@@ -91023,7 +91717,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 696,
@@ -91154,7 +91849,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 697,
@@ -91285,7 +91981,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 698,
@@ -91416,7 +92113,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 699,
@@ -91547,7 +92245,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 700,
@@ -91678,7 +92377,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 701,
@@ -91809,7 +92509,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 702,
@@ -91940,7 +92641,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 703,
@@ -92071,7 +92773,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 704,
@@ -92202,7 +92905,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 705,
@@ -92333,7 +93037,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 706,
@@ -92464,7 +93169,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 707,
@@ -92595,7 +93301,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 708,
@@ -92726,7 +93433,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 709,
@@ -92857,7 +93565,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 710,
@@ -92988,7 +93697,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 711,
@@ -93119,7 +93829,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 712,
@@ -93250,7 +93961,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 713,
@@ -93381,7 +94093,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 714,
@@ -93512,7 +94225,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 715,
@@ -93643,7 +94357,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 716,
@@ -93774,7 +94489,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 717,
@@ -93905,7 +94621,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 718,
@@ -94036,7 +94753,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 719,
@@ -94167,7 +94885,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 720,
@@ -94298,7 +95017,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 721,
@@ -94429,7 +95149,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 722,
@@ -94560,7 +95281,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 723,
@@ -94691,7 +95413,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 724,
@@ -94822,7 +95545,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 725,
@@ -94953,7 +95677,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 726,
@@ -95084,7 +95809,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 727,
@@ -95215,7 +95941,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 728,
@@ -95346,7 +96073,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 729,
@@ -95477,7 +96205,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 730,
@@ -95608,7 +96337,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 731,
@@ -95739,7 +96469,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 732,
@@ -95870,7 +96601,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 733,
@@ -96001,7 +96733,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 734,
@@ -96132,7 +96865,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 735,
@@ -96263,7 +96997,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 736,
@@ -96394,7 +97129,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 737,
@@ -96525,7 +97261,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 738,
@@ -96656,7 +97393,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 739,
@@ -96787,7 +97525,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 740,
@@ -96918,7 +97657,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 741,
@@ -97049,7 +97789,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 742,
@@ -97180,7 +97921,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 743,
@@ -97311,7 +98053,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 744,
@@ -97442,7 +98185,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 745,
@@ -97573,7 +98317,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 746,
@@ -97704,7 +98449,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 747,
@@ -97835,7 +98581,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 748,
@@ -97966,7 +98713,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 749,
@@ -98097,7 +98845,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 750,
@@ -98228,7 +98977,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 751,
@@ -98359,7 +99109,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 752,
@@ -98490,7 +99241,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 753,
@@ -98621,7 +99373,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 754,
@@ -98752,7 +99505,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 755,
@@ -98883,7 +99637,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 756,
@@ -99014,7 +99769,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 757,
@@ -99145,7 +99901,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 758,
@@ -99276,7 +100033,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 759,
@@ -99407,7 +100165,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 760,
@@ -99538,7 +100297,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 761,
@@ -99669,7 +100429,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 762,
@@ -99800,7 +100561,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 763,
@@ -99931,7 +100693,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 764,
@@ -100062,7 +100825,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 765,
@@ -100193,7 +100957,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 766,
@@ -100324,7 +101089,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 767,
@@ -100455,7 +101221,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 768,
@@ -100586,7 +101353,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 769,
@@ -100717,7 +101485,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 770,
@@ -100848,7 +101617,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 771,
@@ -100979,7 +101749,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 772,
@@ -101110,7 +101881,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 773,
@@ -101241,7 +102013,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 774,
@@ -101372,7 +102145,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 775,
@@ -101503,7 +102277,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 776,
@@ -101634,7 +102409,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 777,
@@ -101765,7 +102541,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 778,
@@ -101896,7 +102673,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 779,
@@ -102027,7 +102805,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 780,
@@ -102158,7 +102937,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 781,
@@ -102289,7 +103069,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 782,
@@ -102420,7 +103201,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 783,
@@ -102551,7 +103333,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 784,
@@ -102682,7 +103465,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 785,
@@ -102813,7 +103597,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 786,
@@ -102944,7 +103729,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 787,
@@ -103075,7 +103861,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 788,
@@ -103206,7 +103993,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 789,
@@ -103337,7 +104125,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 790,
@@ -103468,7 +104257,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 791,
@@ -103599,7 +104389,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 792,
@@ -103730,7 +104521,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 793,
@@ -103861,7 +104653,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 794,
@@ -103992,7 +104785,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 795,
@@ -104123,7 +104917,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 796,
@@ -104254,7 +105049,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 797,
@@ -104385,7 +105181,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 798,
@@ -104516,7 +105313,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 799,
@@ -104647,7 +105445,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 800,
@@ -104778,7 +105577,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 801,
@@ -104909,7 +105709,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 802,
@@ -105040,7 +105841,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 803,
@@ -105171,7 +105973,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 804,
@@ -105302,7 +106105,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 805,
@@ -105433,7 +106237,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 806,
@@ -105564,7 +106369,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 807,
@@ -105695,7 +106501,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 808,
@@ -105826,7 +106633,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 809,
@@ -105957,7 +106765,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 810,
@@ -106088,7 +106897,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 811,
@@ -106219,7 +107029,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 812,
@@ -106350,7 +107161,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 813,
@@ -106481,7 +107293,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 814,
@@ -106612,7 +107425,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 815,
@@ -106743,7 +107557,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 816,
@@ -106874,7 +107689,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 817,
@@ -107005,7 +107821,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 818,
@@ -107136,7 +107953,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 819,
@@ -107267,7 +108085,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 820,
@@ -107398,7 +108217,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 821,
@@ -107529,7 +108349,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 822,
@@ -107660,7 +108481,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 823,
@@ -107791,7 +108613,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 824,
@@ -107922,7 +108745,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 825,
@@ -108053,7 +108877,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 826,
@@ -108184,7 +109009,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 827,
@@ -108315,7 +109141,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 828,
@@ -108446,7 +109273,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 829,
@@ -108577,7 +109405,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 830,
@@ -108708,7 +109537,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 831,
@@ -108839,7 +109669,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 832,
@@ -108970,7 +109801,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 833,
@@ -109101,7 +109933,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 834,
@@ -109232,7 +110065,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 835,
@@ -109363,7 +110197,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 836,
@@ -109494,7 +110329,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 837,
@@ -109625,7 +110461,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 838,
@@ -109756,7 +110593,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 839,
@@ -109887,7 +110725,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 840,
@@ -110018,7 +110857,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 841,
@@ -110149,7 +110989,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 842,
@@ -110280,7 +111121,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 843,
@@ -110411,7 +111253,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 844,
@@ -110542,7 +111385,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 845,
@@ -110673,7 +111517,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 846,
@@ -110804,7 +111649,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 847,
@@ -110935,7 +111781,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 848,
@@ -111066,7 +111913,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 849,
@@ -111197,7 +112045,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 850,
@@ -111328,7 +112177,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 851,
@@ -111459,7 +112309,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 852,
@@ -111590,7 +112441,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 853,
@@ -111721,7 +112573,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 854,
@@ -111852,7 +112705,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 855,
@@ -111983,7 +112837,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 856,
@@ -112114,7 +112969,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 857,
@@ -112245,7 +113101,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 858,
@@ -112376,7 +113233,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 859,
@@ -112507,7 +113365,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 860,
@@ -112638,7 +113497,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 861,
@@ -112769,7 +113629,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 862,
@@ -112900,7 +113761,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 863,
@@ -113031,7 +113893,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 864,
@@ -113162,7 +114025,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 865,
@@ -113293,7 +114157,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 866,
@@ -113424,7 +114289,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 867,
@@ -113555,7 +114421,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 868,
@@ -113686,7 +114553,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 869,
@@ -113817,7 +114685,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 870,
@@ -113948,7 +114817,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 871,
@@ -114079,7 +114949,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 872,
@@ -114210,7 +115081,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 873,
@@ -114341,7 +115213,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 874,
@@ -114472,7 +115345,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 875,
@@ -114603,7 +115477,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 876,
@@ -114734,7 +115609,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 877,
@@ -114865,7 +115741,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 878,
@@ -114996,7 +115873,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 879,
@@ -115127,7 +116005,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 880,
@@ -115258,7 +116137,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 881,
@@ -115389,7 +116269,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 882,
@@ -115520,7 +116401,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 883,
@@ -115651,7 +116533,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 884,
@@ -115782,7 +116665,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 885,
@@ -115913,7 +116797,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 886,
@@ -116044,7 +116929,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 887,
@@ -116069,7 +116955,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 888,
@@ -116094,7 +116981,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 889,
@@ -116119,7 +117007,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 890,
@@ -116144,7 +117033,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 891,
@@ -116169,7 +117059,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 892,
@@ -116194,7 +117085,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 893,
@@ -116219,7 +117111,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 894,
@@ -116244,7 +117137,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 895,
@@ -116269,7 +117163,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 896,
@@ -116294,7 +117189,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 897,
@@ -116319,7 +117215,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 898,
@@ -116344,7 +117241,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 899,
@@ -116369,7 +117267,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 900,
@@ -116394,7 +117293,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 901,
@@ -116419,7 +117319,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 902,
@@ -116444,7 +117345,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 903,
@@ -116469,7 +117371,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 904,
@@ -116494,7 +117397,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 905,
@@ -116519,7 +117423,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 906,
@@ -116544,7 +117449,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 907,
@@ -116606,7 +117512,8 @@
             }
           ]
         }
-      }
+      },
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 908,
@@ -116631,7 +117538,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 909,
@@ -116656,7 +117564,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 910,
@@ -116681,7 +117590,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 911,
@@ -116706,7 +117616,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 912,
@@ -116731,7 +117642,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     },
     {
       "rank": 913,
@@ -116756,7 +117668,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "integrated_nxt"
     }
   ],
   "meta": {

@@ -81,6 +81,9 @@ function stagePlan(runDate, startedAt) {
 
   const eligibleStages = new Set(["update-results", "analysis", "forecast"]);
   if (time >= "09:00:00") eligibleStages.add("open-settlement");
+  // No upper bound here: a late run may still settle a missing close (it is
+  // labelled close_basis "integrated_nxt"), but mergeRows never replaces a
+  // close already confirmed as "krx_regular" (scripts/update-results.mjs).
   if (time >= "15:30:00") eligibleStages.add("close-settlement");
 
   return STAGES.map((stage) => {

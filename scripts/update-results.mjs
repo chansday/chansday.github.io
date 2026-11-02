@@ -43,6 +43,33 @@ export function copyForecastBundle(target, from) {
 const OPEN_SETTLEMENT_FIELDS = Object.freeze(["actual_open"]);
 const CLOSE_SETTLEMENT_FIELDS = Object.freeze(["actual_close", "actual_high", "actual_low", "session_return", "actual_volume"]);
 
+// KRX regular-session close window: after the 15:30 closing auction and before
+// the NXT after-market (15:40 KST) moves the polling price to an integrated one.
+export const KRX_CLOSE_WINDOW = Object.freeze({ from: "15:30:00", to: "15:40:00" });
+
+function kstClock(ms) {
+  return new Date(ms + 9 * 3_600_000).toISOString().slice(11, 19);
+}
+
+// The settlement stage records the quote it actually observed; the generic
+// quote_* fields are left as inherited from earlier stages.
+export function settlementStamp(incoming, prefix) {
+  const stamp = {};
+  for (const field of ["quote_at", "quote_age_seconds", "market_status"]) {
+    if (Object.hasOwn(incoming, field)) stamp[`${prefix}_${field}`] = incoming[field];
+  }
+  return stamp;
+}
+
+// Observation time = last trade time + its age at fetch time.
+export function closeBasisFor(incoming) {
+  if (Object.hasOwn(incoming, "close_basis")) return incoming.close_basis;
+  const quoteAt = Date.parse(incoming.quote_at);
+  if (!Number.isFinite(quoteAt) || !Number.isFinite(incoming.quote_age_seconds)) return "daily_chart";
+  const observed = kstClock(quoteAt + incoming.quote_age_seconds * 1_000);
+  return observed >= KRX_CLOSE_WINDOW.from && observed < KRX_CLOSE_WINDOW.to ? "krx_regular" : "integrated_nxt";
+}
+
 export { calculateRunContext } from "./run-context.mjs";
 
 function validDate(value) {
@@ -190,6 +217,8 @@ export function mergeRows(existingRows, incomingRows, mode) {
     const existing = incoming.symbol ? bySymbol.get(incoming.symbol) : null;
     if (!existing) {
       const normalized = { ...incoming, expected_return: deriveExpectedReturn(incoming) };
+      if (mode === "open-settlement") Object.assign(normalized, settlementStamp(incoming, "open"));
+      if (mode === "close-settlement") Object.assign(normalized, settlementStamp(incoming, "close"), { close_basis: closeBasisFor(incoming) });
       normalized.error = derivedError(normalized);
       return normalized;
     }
@@ -200,6 +229,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
       for (const field of ["rank", "symbol", "name", "quality", "status", ...OPEN_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
+      Object.assign(merged, settlementStamp(incoming, "open"));
       const expectedReturn = deriveExpectedReturn(merged);
       merged.expected_return = expectedReturn;
       merged.error = derivedError(merged);
@@ -207,11 +237,15 @@ export function mergeRows(existingRows, incomingRows, mode) {
     }
 
     if (mode === "close-settlement") {
+      // A confirmed KRX regular-session close is never replaced by a later
+      // (integrated NXT or daily-chart) observation.
+      if (existing.close_basis === "krx_regular" && closeBasisFor(incoming) !== "krx_regular") return { ...existing };
       const merged = { ...existing };
       if (!(existing.expected_open > 0 && existing.expected_open_source) && incoming.expected_open_source) copyForecastBundle(merged, incoming);
       for (const field of ["rank", "symbol", "name", "quality", "status", ...CLOSE_SETTLEMENT_FIELDS]) {
         if (Object.hasOwn(incoming, field)) merged[field] = incoming[field];
       }
+      Object.assign(merged, settlementStamp(incoming, "close"), { close_basis: closeBasisFor(incoming) });
       const sessionReturn = derivedSessionReturn(merged);
       if (sessionReturn !== null) merged.session_return = sessionReturn;
       merged.expected_return = deriveExpectedReturn(merged);

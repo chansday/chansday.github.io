@@ -185,7 +185,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 2,
@@ -318,7 +319,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 3,
@@ -451,7 +453,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 4,
@@ -584,7 +587,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 5,
@@ -717,7 +721,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 6,
@@ -850,7 +855,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 7,
@@ -983,7 +989,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 8,
@@ -1116,7 +1123,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 9,
@@ -1249,7 +1257,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 10,
@@ -1382,7 +1391,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 11,
@@ -1515,7 +1525,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 12,
@@ -1648,7 +1659,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 13,
@@ -1781,7 +1793,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 14,
@@ -1914,7 +1927,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 15,
@@ -2047,7 +2061,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 16,
@@ -2180,7 +2195,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 17,
@@ -2313,7 +2329,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 18,
@@ -2446,7 +2463,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 19,
@@ -2579,7 +2597,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 20,
@@ -2712,7 +2731,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 21,
@@ -2845,7 +2865,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 22,
@@ -2978,7 +2999,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 23,
@@ -3111,7 +3133,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 24,
@@ -3244,7 +3267,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 25,
@@ -3377,7 +3401,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 26,
@@ -3510,7 +3535,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 27,
@@ -3643,7 +3669,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 28,
@@ -3776,7 +3803,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 29,
@@ -3909,7 +3937,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 30,
@@ -4042,7 +4071,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 31,
@@ -4175,7 +4205,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 32,
@@ -4308,7 +4339,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 33,
@@ -4441,7 +4473,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 34,
@@ -4574,7 +4607,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 35,
@@ -4707,7 +4741,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 36,
@@ -4840,7 +4875,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 37,
@@ -4973,7 +5009,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 38,
@@ -5106,7 +5143,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 39,
@@ -5239,7 +5277,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 40,
@@ -5372,7 +5411,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 41,
@@ -5505,7 +5545,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 42,
@@ -5638,7 +5679,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 43,
@@ -5771,7 +5813,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 44,
@@ -5904,7 +5947,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 45,
@@ -6037,7 +6081,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 46,
@@ -6170,7 +6215,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 47,
@@ -6303,7 +6349,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 48,
@@ -6436,7 +6483,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 49,
@@ -6569,7 +6617,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 50,
@@ -6702,7 +6751,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 51,
@@ -6835,7 +6885,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 52,
@@ -6968,7 +7019,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 53,
@@ -7101,7 +7153,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 54,
@@ -7234,7 +7287,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 55,
@@ -7367,7 +7421,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 56,
@@ -7500,7 +7555,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 57,
@@ -7633,7 +7689,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 58,
@@ -7766,7 +7823,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 59,
@@ -7899,7 +7957,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 60,
@@ -8032,7 +8091,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 61,
@@ -8165,7 +8225,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 62,
@@ -8298,7 +8359,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 63,
@@ -8431,7 +8493,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 64,
@@ -8564,7 +8627,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 65,
@@ -8697,7 +8761,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 66,
@@ -8830,7 +8895,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 67,
@@ -8963,7 +9029,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 68,
@@ -9096,7 +9163,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 69,
@@ -9229,7 +9297,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 70,
@@ -9362,7 +9431,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 71,
@@ -9495,7 +9565,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 72,
@@ -9628,7 +9699,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 73,
@@ -9761,7 +9833,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 74,
@@ -9894,7 +9967,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 75,
@@ -10027,7 +10101,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 76,
@@ -10160,7 +10235,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 77,
@@ -10293,7 +10369,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 78,
@@ -10426,7 +10503,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 79,
@@ -10559,7 +10637,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 80,
@@ -10692,7 +10771,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 81,
@@ -10825,7 +10905,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 82,
@@ -10958,7 +11039,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 83,
@@ -11091,7 +11173,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 84,
@@ -11224,7 +11307,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 85,
@@ -11357,7 +11441,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 86,
@@ -11490,7 +11575,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 87,
@@ -11623,7 +11709,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 88,
@@ -11756,7 +11843,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 89,
@@ -11889,7 +11977,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 90,
@@ -12022,7 +12111,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 91,
@@ -12041,13 +12131,13 @@
       "expected_close": 1611.48,
       "expected_return": -0.09,
       "actual_open": 1556,
-      "actual_close": 1559,
+      "actual_close": 1546,
       "actual_return": null,
-      "session_return": 0.19,
+      "session_return": -0.64,
       "actual_volume": 135600,
       "prior_close": 1600,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": 0.28,
+      "error": -0.55,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -12155,7 +12245,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 92,
@@ -12288,7 +12379,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 93,
@@ -12421,7 +12513,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 94,
@@ -12554,7 +12647,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 95,
@@ -12687,7 +12781,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 96,
@@ -12820,7 +12915,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 97,
@@ -12953,7 +13049,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 98,
@@ -13086,7 +13183,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 99,
@@ -13219,7 +13317,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 100,
@@ -13352,7 +13451,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 101,
@@ -13485,7 +13585,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 102,
@@ -13618,7 +13719,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 103,
@@ -13751,7 +13853,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 104,
@@ -13884,7 +13987,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 105,
@@ -14017,7 +14121,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 106,
@@ -14150,7 +14255,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 107,
@@ -14283,7 +14389,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 108,
@@ -14416,7 +14523,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 109,
@@ -14549,7 +14657,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 110,
@@ -14682,7 +14791,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 111,
@@ -14815,7 +14925,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 112,
@@ -14948,7 +15059,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 113,
@@ -15081,7 +15193,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 114,
@@ -15214,7 +15327,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 115,
@@ -15347,7 +15461,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 116,
@@ -15480,7 +15595,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 117,
@@ -15613,7 +15729,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 118,
@@ -15746,7 +15863,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 119,
@@ -15879,7 +15997,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 120,
@@ -16012,7 +16131,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 121,
@@ -16145,7 +16265,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 122,
@@ -16278,7 +16399,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 123,
@@ -16411,7 +16533,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 124,
@@ -16544,7 +16667,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 125,
@@ -16677,7 +16801,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 126,
@@ -16810,7 +16935,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 127,
@@ -16943,7 +17069,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 128,
@@ -17076,7 +17203,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 129,
@@ -17209,7 +17337,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 130,
@@ -17342,7 +17471,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 131,
@@ -17475,7 +17605,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 132,
@@ -17608,7 +17739,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 133,
@@ -17741,7 +17873,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 134,
@@ -17874,7 +18007,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 135,
@@ -18007,7 +18141,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 136,
@@ -18140,7 +18275,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 137,
@@ -18273,7 +18409,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 138,
@@ -18406,7 +18543,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 139,
@@ -18539,7 +18677,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 140,
@@ -18672,7 +18811,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 141,
@@ -18805,7 +18945,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 142,
@@ -18938,7 +19079,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 143,
@@ -19071,7 +19213,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 144,
@@ -19204,7 +19347,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 145,
@@ -19337,7 +19481,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 146,
@@ -19470,7 +19615,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 147,
@@ -19603,7 +19749,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 148,
@@ -19736,7 +19883,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 149,
@@ -19869,7 +20017,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 150,
@@ -20002,7 +20151,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 151,
@@ -20135,7 +20285,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 152,
@@ -20268,7 +20419,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 153,
@@ -20401,7 +20553,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 154,
@@ -20534,7 +20687,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 155,
@@ -20667,7 +20821,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 156,
@@ -20800,7 +20955,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 157,
@@ -20933,7 +21089,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 158,
@@ -21066,7 +21223,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 159,
@@ -21199,7 +21357,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 160,
@@ -21332,7 +21491,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 161,
@@ -21465,7 +21625,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 162,
@@ -21598,7 +21759,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 163,
@@ -21731,7 +21893,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 164,
@@ -21864,7 +22027,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 165,
@@ -21997,7 +22161,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 166,
@@ -22130,7 +22295,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 167,
@@ -22149,13 +22315,13 @@
       "expected_close": 247554.85,
       "expected_return": -0.18,
       "actual_open": 245000,
-      "actual_close": 239000,
+      "actual_close": 245000,
       "actual_return": null,
-      "session_return": -2.45,
+      "session_return": 0,
       "actual_volume": 41267,
       "prior_close": 248000,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": -2.27,
+      "error": 0.18,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -22263,7 +22429,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 168,
@@ -22396,7 +22563,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 169,
@@ -22529,7 +22697,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 170,
@@ -22662,7 +22831,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 171,
@@ -22795,7 +22965,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 172,
@@ -22928,7 +23099,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 173,
@@ -23061,7 +23233,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 174,
@@ -23194,7 +23367,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 175,
@@ -23327,7 +23501,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 176,
@@ -23460,7 +23635,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 177,
@@ -23593,7 +23769,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 178,
@@ -23726,7 +23903,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 179,
@@ -23859,7 +24037,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 180,
@@ -23992,7 +24171,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 181,
@@ -24125,7 +24305,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 182,
@@ -24258,7 +24439,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 183,
@@ -24391,7 +24573,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 184,
@@ -24524,7 +24707,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 185,
@@ -24657,7 +24841,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 186,
@@ -24790,7 +24975,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 187,
@@ -24923,7 +25109,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 188,
@@ -25056,7 +25243,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 189,
@@ -25189,7 +25377,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 190,
@@ -25322,7 +25511,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 191,
@@ -25455,7 +25645,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 192,
@@ -25588,7 +25779,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 193,
@@ -25721,7 +25913,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 194,
@@ -25854,7 +26047,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 195,
@@ -25987,7 +26181,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 196,
@@ -26120,7 +26315,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 197,
@@ -26253,7 +26449,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 198,
@@ -26386,7 +26583,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 199,
@@ -26519,7 +26717,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 200,
@@ -26652,7 +26851,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 201,
@@ -26785,7 +26985,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 202,
@@ -26918,7 +27119,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 203,
@@ -27051,7 +27253,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 204,
@@ -27184,7 +27387,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 205,
@@ -27317,7 +27521,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 206,
@@ -27450,7 +27655,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 207,
@@ -27583,7 +27789,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 208,
@@ -27716,7 +27923,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 209,
@@ -27849,7 +28057,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 210,
@@ -27982,7 +28191,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 211,
@@ -28115,7 +28325,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 212,
@@ -28248,7 +28459,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 213,
@@ -28381,7 +28593,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 214,
@@ -28514,7 +28727,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 215,
@@ -28647,7 +28861,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 216,
@@ -28780,7 +28995,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 217,
@@ -28913,7 +29129,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 218,
@@ -29046,7 +29263,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 219,
@@ -29179,7 +29397,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 220,
@@ -29312,7 +29531,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 221,
@@ -29445,7 +29665,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 222,
@@ -29578,7 +29799,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 223,
@@ -29711,7 +29933,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 224,
@@ -29844,7 +30067,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 225,
@@ -29977,7 +30201,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 226,
@@ -30110,7 +30335,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 227,
@@ -30243,7 +30469,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 228,
@@ -30376,7 +30603,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 229,
@@ -30509,7 +30737,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 230,
@@ -30642,7 +30871,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 231,
@@ -30775,7 +31005,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 232,
@@ -30908,7 +31139,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 233,
@@ -31041,7 +31273,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 234,
@@ -31174,7 +31407,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 235,
@@ -31307,7 +31541,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 236,
@@ -31440,7 +31675,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 237,
@@ -31573,7 +31809,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 238,
@@ -31706,7 +31943,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 239,
@@ -31839,7 +32077,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 240,
@@ -31972,7 +32211,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 241,
@@ -32105,7 +32345,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 242,
@@ -32238,7 +32479,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 243,
@@ -32371,7 +32613,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 244,
@@ -32504,7 +32747,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 245,
@@ -32637,7 +32881,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 246,
@@ -32770,7 +33015,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 247,
@@ -32903,7 +33149,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 248,
@@ -33036,7 +33283,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 249,
@@ -33169,7 +33417,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 250,
@@ -33302,7 +33551,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 251,
@@ -33435,7 +33685,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 252,
@@ -33568,7 +33819,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 253,
@@ -33701,7 +33953,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 254,
@@ -33834,7 +34087,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 255,
@@ -33967,7 +34221,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 256,
@@ -34100,7 +34355,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 257,
@@ -34233,7 +34489,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 258,
@@ -34366,7 +34623,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 259,
@@ -34499,7 +34757,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 260,
@@ -34632,7 +34891,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 261,
@@ -34765,7 +35025,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 262,
@@ -34898,7 +35159,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 263,
@@ -35031,7 +35293,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 264,
@@ -35164,7 +35427,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 265,
@@ -35297,7 +35561,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 266,
@@ -35430,7 +35695,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 267,
@@ -35563,7 +35829,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 268,
@@ -35696,7 +35963,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 269,
@@ -35829,7 +36097,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 270,
@@ -35962,7 +36231,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 271,
@@ -36095,7 +36365,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 272,
@@ -36228,7 +36499,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 273,
@@ -36361,7 +36633,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 274,
@@ -36494,7 +36767,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 275,
@@ -36627,7 +36901,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 276,
@@ -36760,7 +37035,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 277,
@@ -36893,7 +37169,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 278,
@@ -37026,7 +37303,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 279,
@@ -37159,7 +37437,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 280,
@@ -37292,7 +37571,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 281,
@@ -37425,7 +37705,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 282,
@@ -37558,7 +37839,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 283,
@@ -37691,7 +37973,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 284,
@@ -37824,7 +38107,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 285,
@@ -37957,7 +38241,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 286,
@@ -38090,7 +38375,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 287,
@@ -38223,7 +38509,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 288,
@@ -38356,7 +38643,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 289,
@@ -38489,7 +38777,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 290,
@@ -38622,7 +38911,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 291,
@@ -38755,7 +39045,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 292,
@@ -38888,7 +39179,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 293,
@@ -39021,7 +39313,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 294,
@@ -39154,7 +39447,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 295,
@@ -39287,7 +39581,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 296,
@@ -39420,7 +39715,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 297,
@@ -39553,7 +39849,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 298,
@@ -39686,7 +39983,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 299,
@@ -39819,7 +40117,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 300,
@@ -39952,7 +40251,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 301,
@@ -40085,7 +40385,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 302,
@@ -40218,7 +40519,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 303,
@@ -40351,7 +40653,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 304,
@@ -40484,7 +40787,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 305,
@@ -40617,7 +40921,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 306,
@@ -40750,7 +41055,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 307,
@@ -40883,7 +41189,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 308,
@@ -41016,7 +41323,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 309,
@@ -41149,7 +41457,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 310,
@@ -41282,7 +41591,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 311,
@@ -41415,7 +41725,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 312,
@@ -41548,7 +41859,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 313,
@@ -41681,7 +41993,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 314,
@@ -41814,7 +42127,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 315,
@@ -41947,7 +42261,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 316,
@@ -42080,7 +42395,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 317,
@@ -42213,7 +42529,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 318,
@@ -42346,7 +42663,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 319,
@@ -42479,7 +42797,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 320,
@@ -42612,7 +42931,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 321,
@@ -42745,7 +43065,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 322,
@@ -42878,7 +43199,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 323,
@@ -43011,7 +43333,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 324,
@@ -43144,7 +43467,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 325,
@@ -43277,7 +43601,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 326,
@@ -43410,7 +43735,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 327,
@@ -43543,7 +43869,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 328,
@@ -43676,7 +44003,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 329,
@@ -43809,7 +44137,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 330,
@@ -43942,7 +44271,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 331,
@@ -44075,7 +44405,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 332,
@@ -44208,7 +44539,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 333,
@@ -44341,7 +44673,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 334,
@@ -44474,7 +44807,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 335,
@@ -44607,7 +44941,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 336,
@@ -44740,7 +45075,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 337,
@@ -44873,7 +45209,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 338,
@@ -45006,7 +45343,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 339,
@@ -45139,7 +45477,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 340,
@@ -45272,7 +45611,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 341,
@@ -45405,7 +45745,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 342,
@@ -45538,7 +45879,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 343,
@@ -45671,7 +46013,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 344,
@@ -45804,7 +46147,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 345,
@@ -45937,7 +46281,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 346,
@@ -46070,7 +46415,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 347,
@@ -46203,7 +46549,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 348,
@@ -46336,7 +46683,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 349,
@@ -46469,7 +46817,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 350,
@@ -46602,7 +46951,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 351,
@@ -46735,7 +47085,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 352,
@@ -46868,7 +47219,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 353,
@@ -47001,7 +47353,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 354,
@@ -47134,7 +47487,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 355,
@@ -47267,7 +47621,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 356,
@@ -47400,7 +47755,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 357,
@@ -47533,7 +47889,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 358,
@@ -47666,7 +48023,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 359,
@@ -47799,7 +48157,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 360,
@@ -47932,7 +48291,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 361,
@@ -48065,7 +48425,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 362,
@@ -48198,7 +48559,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 363,
@@ -48331,7 +48693,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 364,
@@ -48464,7 +48827,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 365,
@@ -48597,7 +48961,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 366,
@@ -48730,7 +49095,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 367,
@@ -48863,7 +49229,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 368,
@@ -48996,7 +49363,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 369,
@@ -49129,7 +49497,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 370,
@@ -49262,7 +49631,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 371,
@@ -49395,7 +49765,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 372,
@@ -49528,7 +49899,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 373,
@@ -49661,7 +50033,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 374,
@@ -49794,7 +50167,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 375,
@@ -49927,7 +50301,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 376,
@@ -50060,7 +50435,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 377,
@@ -50193,7 +50569,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 378,
@@ -50326,7 +50703,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 379,
@@ -50459,7 +50837,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 380,
@@ -50592,7 +50971,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 381,
@@ -50725,7 +51105,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 382,
@@ -50858,7 +51239,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 383,
@@ -50991,7 +51373,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 384,
@@ -51124,7 +51507,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 385,
@@ -51257,7 +51641,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 386,
@@ -51390,7 +51775,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 387,
@@ -51523,7 +51909,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 388,
@@ -51656,7 +52043,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 389,
@@ -51789,7 +52177,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 390,
@@ -51922,7 +52311,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 391,
@@ -52055,7 +52445,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 392,
@@ -52188,7 +52579,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 393,
@@ -52321,7 +52713,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 394,
@@ -52454,7 +52847,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 395,
@@ -52587,7 +52981,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 396,
@@ -52720,7 +53115,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 397,
@@ -52853,7 +53249,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 398,
@@ -52986,7 +53383,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 399,
@@ -53119,7 +53517,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 400,
@@ -53252,7 +53651,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 401,
@@ -53385,7 +53785,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 402,
@@ -53518,7 +53919,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 403,
@@ -53651,7 +54053,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 404,
@@ -53784,7 +54187,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 405,
@@ -53917,7 +54321,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 406,
@@ -54050,7 +54455,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 407,
@@ -54183,7 +54589,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 408,
@@ -54316,7 +54723,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 409,
@@ -54449,7 +54857,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 410,
@@ -54582,7 +54991,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 411,
@@ -54715,7 +55125,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 412,
@@ -54848,7 +55259,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 413,
@@ -54981,7 +55393,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 414,
@@ -55114,7 +55527,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 415,
@@ -55247,7 +55661,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 416,
@@ -55380,7 +55795,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 417,
@@ -55513,7 +55929,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 418,
@@ -55646,7 +56063,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 419,
@@ -55779,7 +56197,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 420,
@@ -55912,7 +56331,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 421,
@@ -56045,7 +56465,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 422,
@@ -56178,7 +56599,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 423,
@@ -56311,7 +56733,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 424,
@@ -56444,7 +56867,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 425,
@@ -56577,7 +57001,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 426,
@@ -56710,7 +57135,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 427,
@@ -56843,7 +57269,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 428,
@@ -56976,7 +57403,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 429,
@@ -57109,7 +57537,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 430,
@@ -57242,7 +57671,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 431,
@@ -57375,7 +57805,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 432,
@@ -57508,7 +57939,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 433,
@@ -57641,7 +58073,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 434,
@@ -57774,7 +58207,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 435,
@@ -57907,7 +58341,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 436,
@@ -58040,7 +58475,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 437,
@@ -58173,7 +58609,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 438,
@@ -58306,7 +58743,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 439,
@@ -58439,7 +58877,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 440,
@@ -58572,7 +59011,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 441,
@@ -58705,7 +59145,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 442,
@@ -58838,7 +59279,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 443,
@@ -58971,7 +59413,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 444,
@@ -59104,7 +59547,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 445,
@@ -59237,7 +59681,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 446,
@@ -59370,7 +59815,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 447,
@@ -59503,7 +59949,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 448,
@@ -59636,7 +60083,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 449,
@@ -59769,7 +60217,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 450,
@@ -59902,7 +60351,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 451,
@@ -60035,7 +60485,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 452,
@@ -60168,7 +60619,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 453,
@@ -60301,7 +60753,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 454,
@@ -60434,7 +60887,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 455,
@@ -60567,7 +61021,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 456,
@@ -60700,7 +61155,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 457,
@@ -60833,7 +61289,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 458,
@@ -60966,7 +61423,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 459,
@@ -61099,7 +61557,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 460,
@@ -61232,7 +61691,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 461,
@@ -61365,7 +61825,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 462,
@@ -61498,7 +61959,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 463,
@@ -61631,7 +62093,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 464,
@@ -61764,7 +62227,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 465,
@@ -61897,7 +62361,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 466,
@@ -62030,7 +62495,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 467,
@@ -62163,7 +62629,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 468,
@@ -62296,7 +62763,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 469,
@@ -62429,7 +62897,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 470,
@@ -62562,7 +63031,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 471,
@@ -62695,7 +63165,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 472,
@@ -62828,7 +63299,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 473,
@@ -62961,7 +63433,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 474,
@@ -63094,7 +63567,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 475,
@@ -63227,7 +63701,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 476,
@@ -63360,7 +63835,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 477,
@@ -63493,7 +63969,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 478,
@@ -63626,7 +64103,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 479,
@@ -63759,7 +64237,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 480,
@@ -63892,7 +64371,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 481,
@@ -64025,7 +64505,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 482,
@@ -64158,7 +64639,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 483,
@@ -64291,7 +64773,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 484,
@@ -64424,7 +64907,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 485,
@@ -64557,7 +65041,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 486,
@@ -64690,7 +65175,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 487,
@@ -64823,7 +65309,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 488,
@@ -64956,7 +65443,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 489,
@@ -65089,7 +65577,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 490,
@@ -65222,7 +65711,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 491,
@@ -65355,7 +65845,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 492,
@@ -65488,7 +65979,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 493,
@@ -65621,7 +66113,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 494,
@@ -65754,7 +66247,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 495,
@@ -65887,7 +66381,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 496,
@@ -66020,7 +66515,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 497,
@@ -66153,7 +66649,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 498,
@@ -66286,7 +66783,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 499,
@@ -66419,7 +66917,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 500,
@@ -66552,7 +67051,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 501,
@@ -66685,7 +67185,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 502,
@@ -66818,7 +67319,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 503,
@@ -66951,7 +67453,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 504,
@@ -67084,7 +67587,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 505,
@@ -67217,7 +67721,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 506,
@@ -67350,7 +67855,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 507,
@@ -67483,7 +67989,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 508,
@@ -67616,7 +68123,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 509,
@@ -67749,7 +68257,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 510,
@@ -67882,7 +68391,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 511,
@@ -68015,7 +68525,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 512,
@@ -68148,7 +68659,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 513,
@@ -68281,7 +68793,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 514,
@@ -68414,7 +68927,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 515,
@@ -68547,7 +69061,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 516,
@@ -68680,7 +69195,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 517,
@@ -68813,7 +69329,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 518,
@@ -68946,7 +69463,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 519,
@@ -69079,7 +69597,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 520,
@@ -69212,7 +69731,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 521,
@@ -69345,7 +69865,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 522,
@@ -69478,7 +69999,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 523,
@@ -69611,7 +70133,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 524,
@@ -69744,7 +70267,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 525,
@@ -69877,7 +70401,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 526,
@@ -70010,7 +70535,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 527,
@@ -70143,7 +70669,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 528,
@@ -70276,7 +70803,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 529,
@@ -70409,7 +70937,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 530,
@@ -70542,7 +71071,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 531,
@@ -70561,13 +71091,13 @@
       "expected_close": 7333.7,
       "expected_return": -0.49,
       "actual_open": 7340,
-      "actual_close": 7750,
+      "actual_close": 7500,
       "actual_return": null,
-      "session_return": 5.59,
+      "session_return": 2.18,
       "actual_volume": 41075,
       "prior_close": 7460,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": 6.08,
+      "error": 2.67,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -70675,7 +71205,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 532,
@@ -70808,7 +71339,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 533,
@@ -70941,7 +71473,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 534,
@@ -71074,7 +71607,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 535,
@@ -71207,7 +71741,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 536,
@@ -71340,7 +71875,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 537,
@@ -71359,13 +71895,13 @@
       "expected_close": 3084.62,
       "expected_return": -0.5,
       "actual_open": 3100,
-      "actual_close": 3080,
+      "actual_close": 3255,
       "actual_return": null,
-      "session_return": -0.65,
+      "session_return": 5,
       "actual_volume": 37658,
       "prior_close": 3085,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": -0.15,
+      "error": 5.5,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -71473,7 +72009,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 538,
@@ -71606,7 +72143,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 539,
@@ -71739,7 +72277,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 540,
@@ -71872,7 +72411,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 541,
@@ -72005,7 +72545,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 542,
@@ -72138,7 +72679,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 543,
@@ -72271,7 +72813,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 544,
@@ -72404,7 +72947,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 545,
@@ -72537,7 +73081,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 546,
@@ -72670,7 +73215,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 547,
@@ -72803,7 +73349,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 548,
@@ -72936,7 +73483,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 549,
@@ -73069,7 +73617,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 550,
@@ -73202,7 +73751,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 551,
@@ -73335,7 +73885,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 552,
@@ -73468,7 +74019,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 553,
@@ -73601,7 +74153,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 554,
@@ -73734,7 +74287,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 555,
@@ -73867,7 +74421,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 556,
@@ -74000,7 +74555,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 557,
@@ -74133,7 +74689,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 558,
@@ -74266,7 +74823,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 559,
@@ -74399,7 +74957,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 560,
@@ -74532,7 +75091,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 561,
@@ -74665,7 +75225,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 562,
@@ -74798,7 +75359,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 563,
@@ -74931,7 +75493,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 564,
@@ -75064,7 +75627,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 565,
@@ -75197,7 +75761,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 566,
@@ -75330,7 +75895,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 567,
@@ -75463,7 +76029,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 568,
@@ -75596,7 +76163,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 569,
@@ -75729,7 +76297,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 570,
@@ -75862,7 +76431,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 571,
@@ -75995,7 +76565,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 572,
@@ -76128,7 +76699,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 573,
@@ -76261,7 +76833,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 574,
@@ -76394,7 +76967,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 575,
@@ -76527,7 +77101,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 576,
@@ -76660,7 +77235,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 577,
@@ -76793,7 +77369,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 578,
@@ -76926,7 +77503,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 579,
@@ -77059,7 +77637,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 580,
@@ -77192,7 +77771,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 581,
@@ -77325,7 +77905,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 582,
@@ -77458,7 +78039,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 583,
@@ -77591,7 +78173,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 584,
@@ -77724,7 +78307,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 585,
@@ -77857,7 +78441,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 586,
@@ -77990,7 +78575,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 587,
@@ -78123,7 +78709,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 588,
@@ -78256,7 +78843,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 589,
@@ -78389,7 +78977,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 590,
@@ -78522,7 +79111,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 591,
@@ -78655,7 +79245,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 592,
@@ -78788,7 +79379,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 593,
@@ -78921,7 +79513,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 594,
@@ -79054,7 +79647,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 595,
@@ -79187,7 +79781,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 596,
@@ -79320,7 +79915,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 597,
@@ -79453,7 +80049,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 598,
@@ -79586,7 +80183,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 599,
@@ -79719,7 +80317,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 600,
@@ -79852,7 +80451,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 601,
@@ -79985,7 +80585,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 602,
@@ -80118,7 +80719,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 603,
@@ -80251,7 +80853,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 604,
@@ -80384,7 +80987,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 605,
@@ -80517,7 +81121,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 606,
@@ -80650,7 +81255,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 607,
@@ -80783,7 +81389,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 608,
@@ -80916,7 +81523,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 609,
@@ -81049,7 +81657,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 610,
@@ -81182,7 +81791,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 611,
@@ -81315,7 +81925,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 612,
@@ -81448,7 +82059,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 613,
@@ -81581,7 +82193,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 614,
@@ -81714,7 +82327,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 615,
@@ -81847,7 +82461,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 616,
@@ -81980,7 +82595,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 617,
@@ -82113,7 +82729,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 618,
@@ -82246,7 +82863,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 619,
@@ -82379,7 +82997,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 620,
@@ -82512,7 +83131,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 621,
@@ -82645,7 +83265,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 622,
@@ -82778,7 +83399,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 623,
@@ -82911,7 +83533,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 624,
@@ -83044,7 +83667,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 625,
@@ -83177,7 +83801,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 626,
@@ -83310,7 +83935,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 627,
@@ -83443,7 +84069,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 628,
@@ -83576,7 +84203,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 629,
@@ -83709,7 +84337,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 630,
@@ -83842,7 +84471,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 631,
@@ -83975,7 +84605,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 632,
@@ -84108,7 +84739,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 633,
@@ -84241,7 +84873,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 634,
@@ -84374,7 +85007,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 635,
@@ -84507,7 +85141,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 636,
@@ -84640,7 +85275,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 637,
@@ -84773,7 +85409,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 638,
@@ -84906,7 +85543,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 639,
@@ -85039,7 +85677,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 640,
@@ -85172,7 +85811,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 641,
@@ -85305,7 +85945,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 642,
@@ -85438,7 +86079,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 643,
@@ -85571,7 +86213,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 644,
@@ -85704,7 +86347,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 645,
@@ -85837,7 +86481,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 646,
@@ -85970,7 +86615,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 647,
@@ -86103,7 +86749,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 648,
@@ -86236,7 +86883,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 649,
@@ -86369,7 +87017,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 650,
@@ -86502,7 +87151,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 651,
@@ -86635,7 +87285,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 652,
@@ -86768,7 +87419,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 653,
@@ -86901,7 +87553,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 654,
@@ -87034,7 +87687,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 655,
@@ -87167,7 +87821,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 656,
@@ -87300,7 +87955,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 657,
@@ -87433,7 +88089,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 658,
@@ -87566,7 +88223,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 659,
@@ -87699,7 +88357,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 660,
@@ -87832,7 +88491,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 661,
@@ -87965,7 +88625,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 662,
@@ -88098,7 +88759,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 663,
@@ -88231,7 +88893,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 664,
@@ -88364,7 +89027,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 665,
@@ -88497,7 +89161,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 666,
@@ -88630,7 +89295,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 667,
@@ -88763,7 +89429,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 668,
@@ -88896,7 +89563,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 669,
@@ -89029,7 +89697,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 670,
@@ -89162,7 +89831,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 671,
@@ -89295,7 +89965,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 672,
@@ -89428,7 +90099,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 673,
@@ -89561,7 +90233,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 674,
@@ -89694,7 +90367,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 675,
@@ -89827,7 +90501,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 676,
@@ -89960,7 +90635,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 677,
@@ -90093,7 +90769,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 678,
@@ -90226,7 +90903,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 679,
@@ -90359,7 +91037,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 680,
@@ -90492,7 +91171,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 681,
@@ -90625,7 +91305,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 682,
@@ -90758,7 +91439,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 683,
@@ -90891,7 +91573,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 684,
@@ -91024,7 +91707,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 685,
@@ -91157,7 +91841,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 686,
@@ -91290,7 +91975,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 687,
@@ -91423,7 +92109,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 688,
@@ -91556,7 +92243,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 689,
@@ -91689,7 +92377,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 690,
@@ -91822,7 +92511,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 691,
@@ -91955,7 +92645,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 692,
@@ -92088,7 +92779,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 693,
@@ -92221,7 +92913,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 694,
@@ -92354,7 +93047,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 695,
@@ -92487,7 +93181,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 696,
@@ -92620,7 +93315,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 697,
@@ -92753,7 +93449,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 698,
@@ -92886,7 +93583,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 699,
@@ -93019,7 +93717,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 700,
@@ -93152,7 +93851,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 701,
@@ -93285,7 +93985,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 702,
@@ -93418,7 +94119,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 703,
@@ -93551,7 +94253,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 704,
@@ -93684,7 +94387,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 705,
@@ -93817,7 +94521,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 706,
@@ -93950,7 +94655,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 707,
@@ -94083,7 +94789,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 708,
@@ -94216,7 +94923,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 709,
@@ -94349,7 +95057,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 710,
@@ -94482,7 +95191,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 711,
@@ -94615,7 +95325,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 712,
@@ -94634,13 +95345,13 @@
       "expected_close": 1318.52,
       "expected_return": -0.64,
       "actual_open": 1354,
-      "actual_close": 1386,
+      "actual_close": 1310,
       "actual_return": null,
-      "session_return": 2.36,
+      "session_return": -3.25,
       "actual_volume": 9567,
       "prior_close": 1390,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": 3,
+      "error": -2.61,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -94748,7 +95459,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 713,
@@ -94881,7 +95593,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 714,
@@ -95014,7 +95727,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 715,
@@ -95147,7 +95861,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 716,
@@ -95280,7 +95995,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 717,
@@ -95413,7 +96129,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 718,
@@ -95546,7 +96263,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 719,
@@ -95679,7 +96397,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 720,
@@ -95812,7 +96531,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 721,
@@ -95945,7 +96665,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 722,
@@ -96078,7 +96799,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 723,
@@ -96211,7 +96933,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 724,
@@ -96344,7 +97067,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 725,
@@ -96477,7 +97201,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 726,
@@ -96610,7 +97335,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 727,
@@ -96743,7 +97469,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 728,
@@ -96876,7 +97603,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 729,
@@ -97009,7 +97737,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 730,
@@ -97142,7 +97871,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 731,
@@ -97275,7 +98005,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 732,
@@ -97408,7 +98139,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 733,
@@ -97541,7 +98273,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 734,
@@ -97674,7 +98407,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 735,
@@ -97807,7 +98541,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 736,
@@ -97940,7 +98675,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 737,
@@ -98073,7 +98809,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 738,
@@ -98206,7 +98943,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 739,
@@ -98339,7 +99077,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 740,
@@ -98472,7 +99211,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 741,
@@ -98605,7 +99345,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 742,
@@ -98738,7 +99479,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 743,
@@ -98871,7 +99613,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 744,
@@ -99004,7 +99747,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 745,
@@ -99137,7 +99881,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 746,
@@ -99270,7 +100015,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 747,
@@ -99403,7 +100149,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 748,
@@ -99536,7 +100283,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 749,
@@ -99669,7 +100417,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 750,
@@ -99802,7 +100551,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 751,
@@ -99935,7 +100685,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 752,
@@ -100068,7 +100819,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 753,
@@ -100201,7 +100953,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 754,
@@ -100334,7 +101087,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 755,
@@ -100467,7 +101221,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 756,
@@ -100600,7 +101355,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 757,
@@ -100733,7 +101489,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 758,
@@ -100866,7 +101623,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 759,
@@ -100999,7 +101757,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 760,
@@ -101132,7 +101891,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 761,
@@ -101265,7 +102025,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 762,
@@ -101398,7 +102159,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 763,
@@ -101531,7 +102293,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 764,
@@ -101664,7 +102427,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 765,
@@ -101797,7 +102561,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 766,
@@ -101930,7 +102695,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 767,
@@ -102063,7 +102829,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 768,
@@ -102196,7 +102963,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 769,
@@ -102329,7 +103097,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 770,
@@ -102462,7 +103231,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 771,
@@ -102595,7 +103365,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 772,
@@ -102728,7 +103499,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 773,
@@ -102861,7 +103633,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 774,
@@ -102994,7 +103767,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 775,
@@ -103127,7 +103901,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 776,
@@ -103260,7 +104035,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 777,
@@ -103393,7 +104169,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 778,
@@ -103526,7 +104303,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 779,
@@ -103659,7 +104437,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 780,
@@ -103792,7 +104571,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 781,
@@ -103925,7 +104705,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 782,
@@ -104058,7 +104839,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 783,
@@ -104191,7 +104973,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 784,
@@ -104324,7 +105107,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 785,
@@ -104457,7 +105241,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 786,
@@ -104590,7 +105375,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 787,
@@ -104723,7 +105509,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 788,
@@ -104856,7 +105643,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 789,
@@ -104989,7 +105777,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 790,
@@ -105122,7 +105911,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 791,
@@ -105255,7 +106045,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 792,
@@ -105388,7 +106179,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 793,
@@ -105521,7 +106313,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 794,
@@ -105654,7 +106447,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 795,
@@ -105787,7 +106581,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 796,
@@ -105920,7 +106715,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 797,
@@ -106053,7 +106849,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 798,
@@ -106186,7 +106983,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 799,
@@ -106319,7 +107117,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 800,
@@ -106452,7 +107251,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 801,
@@ -106585,7 +107385,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 802,
@@ -106718,7 +107519,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 803,
@@ -106851,7 +107653,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 804,
@@ -106984,7 +107787,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 805,
@@ -107117,7 +107921,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 806,
@@ -107250,7 +108055,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 807,
@@ -107383,7 +108189,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 808,
@@ -107516,7 +108323,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 809,
@@ -107649,7 +108457,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 810,
@@ -107782,7 +108591,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 811,
@@ -107915,7 +108725,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 812,
@@ -108048,7 +108859,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 813,
@@ -108181,7 +108993,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 814,
@@ -108314,7 +109127,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 815,
@@ -108447,7 +109261,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 816,
@@ -108580,7 +109395,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 817,
@@ -108713,7 +109529,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 818,
@@ -108846,7 +109663,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 819,
@@ -108979,7 +109797,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 820,
@@ -109112,7 +109931,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 821,
@@ -109245,7 +110065,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 822,
@@ -109378,7 +110199,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 823,
@@ -109511,7 +110333,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 824,
@@ -109644,7 +110467,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 825,
@@ -109777,7 +110601,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 826,
@@ -109910,7 +110735,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 827,
@@ -110043,7 +110869,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 828,
@@ -110176,7 +111003,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 829,
@@ -110309,7 +111137,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 830,
@@ -110442,7 +111271,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 831,
@@ -110575,7 +111405,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 832,
@@ -110708,7 +111539,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 833,
@@ -110841,7 +111673,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 834,
@@ -110974,7 +111807,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 835,
@@ -111107,7 +111941,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 836,
@@ -111240,7 +112075,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 837,
@@ -111373,7 +112209,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 838,
@@ -111506,7 +112343,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 839,
@@ -111639,7 +112477,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 840,
@@ -111658,13 +112497,13 @@
       "expected_close": 2430.94,
       "expected_return": -0.78,
       "actual_open": 2460,
-      "actual_close": 3000,
+      "actual_close": 3185,
       "actual_return": null,
-      "session_return": 21.95,
+      "session_return": 29.47,
       "actual_volume": 4844553,
       "prior_close": 2450,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": 22.73,
+      "error": 30.25,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -111772,7 +112611,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 841,
@@ -111905,7 +112745,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 842,
@@ -112038,7 +112879,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 843,
@@ -112171,7 +113013,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 844,
@@ -112304,7 +113147,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 845,
@@ -112437,7 +113281,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 846,
@@ -112570,7 +113415,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 847,
@@ -112703,7 +113549,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 848,
@@ -112836,7 +113683,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 849,
@@ -112855,13 +113703,13 @@
       "expected_close": 1357203.54,
       "expected_return": -0.79,
       "actual_open": 1380000,
-      "actual_close": 1444000,
+      "actual_close": 1487000,
       "actual_return": null,
-      "session_return": 4.64,
+      "session_return": 7.75,
       "actual_volume": 88041,
       "prior_close": 1366000,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": 5.43,
+      "error": 8.54,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -112969,7 +113817,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 850,
@@ -113102,7 +113951,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 851,
@@ -113235,7 +114085,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 852,
@@ -113368,7 +114219,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 853,
@@ -113501,7 +114353,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 854,
@@ -113634,7 +114487,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 855,
@@ -113767,7 +114621,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 856,
@@ -113900,7 +114755,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 857,
@@ -114033,7 +114889,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 858,
@@ -114166,7 +115023,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 859,
@@ -114299,7 +115157,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 860,
@@ -114432,7 +115291,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 861,
@@ -114565,7 +115425,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 862,
@@ -114698,7 +115559,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 863,
@@ -114831,7 +115693,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 864,
@@ -114964,7 +115827,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 865,
@@ -115097,7 +115961,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 866,
@@ -115230,7 +116095,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 867,
@@ -115363,7 +116229,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 868,
@@ -115496,7 +116363,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 869,
@@ -115629,7 +116497,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 870,
@@ -115762,7 +116631,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 871,
@@ -115895,7 +116765,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 872,
@@ -116028,7 +116899,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 873,
@@ -116161,7 +117033,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 874,
@@ -116294,7 +117167,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 875,
@@ -116427,7 +117301,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 876,
@@ -116560,7 +117435,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 877,
@@ -116693,7 +117569,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 878,
@@ -116712,13 +117589,13 @@
       "expected_close": 29295.46,
       "expected_return": -0.86,
       "actual_open": 31000,
-      "actual_close": 29250,
+      "actual_close": 30750,
       "actual_return": null,
-      "session_return": -5.65,
+      "session_return": -0.81,
       "actual_volume": 439,
       "prior_close": 29550,
       "prior_close_source": "naver_polling_close_minus_change",
-      "error": -4.79,
+      "error": 0.05,
       "confidence": null,
       "quality": "naver_live_quote",
       "status": "valid",
@@ -116826,7 +117703,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 879,
@@ -116959,7 +117837,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 880,
@@ -117092,7 +117971,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 881,
@@ -117225,7 +118105,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 882,
@@ -117358,7 +118239,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 883,
@@ -117491,7 +118373,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 884,
@@ -117624,7 +118507,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "krx_regular"
     },
     {
       "rank": 885,
@@ -118564,7 +119448,8 @@
       "evaluation_score_rank": null,
       "evaluation_score_count": null,
       "actual_high": 1075,
-      "actual_low": 960
+      "actual_low": 960,
+      "close_basis": "krx_regular"
     },
     {
       "rank": 909,

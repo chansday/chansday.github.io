@@ -200,7 +200,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 2,
@@ -331,7 +332,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 3,
@@ -462,7 +464,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 4,
@@ -593,7 +596,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 5,
@@ -724,7 +728,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 6,
@@ -855,7 +860,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 7,
@@ -986,7 +992,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 8,
@@ -1117,7 +1124,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 9,
@@ -1248,7 +1256,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 10,
@@ -1379,7 +1388,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 11,
@@ -1510,7 +1520,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 12,
@@ -1641,7 +1652,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 13,
@@ -1772,7 +1784,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 14,
@@ -1903,7 +1916,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 15,
@@ -2034,7 +2048,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 16,
@@ -2165,7 +2180,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 17,
@@ -2296,7 +2312,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 18,
@@ -2427,7 +2444,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 19,
@@ -2558,7 +2576,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 20,
@@ -2689,7 +2708,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 21,
@@ -2820,7 +2840,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 22,
@@ -2951,7 +2972,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 23,
@@ -3082,7 +3104,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 24,
@@ -3213,7 +3236,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 25,
@@ -3344,7 +3368,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 26,
@@ -3475,7 +3500,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 27,
@@ -3606,7 +3632,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 28,
@@ -3737,7 +3764,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 29,
@@ -3868,7 +3896,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 30,
@@ -3999,7 +4028,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 31,
@@ -4130,7 +4160,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 32,
@@ -4261,7 +4292,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 33,
@@ -4392,7 +4424,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 34,
@@ -4523,7 +4556,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 35,
@@ -4654,7 +4688,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 36,
@@ -4785,7 +4820,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 37,
@@ -4916,7 +4952,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 38,
@@ -5047,7 +5084,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 39,
@@ -5178,7 +5216,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 40,
@@ -5309,7 +5348,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 41,
@@ -5440,7 +5480,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 42,
@@ -5571,7 +5612,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 43,
@@ -5702,7 +5744,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 44,
@@ -5833,7 +5876,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 45,
@@ -5964,7 +6008,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 46,
@@ -6095,7 +6140,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 47,
@@ -6226,7 +6272,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 48,
@@ -6357,7 +6404,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 49,
@@ -6488,7 +6536,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 50,
@@ -6619,7 +6668,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 51,
@@ -6750,7 +6800,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 52,
@@ -6881,7 +6932,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 53,
@@ -7012,7 +7064,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 54,
@@ -7143,7 +7196,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 55,
@@ -7274,7 +7328,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 56,
@@ -7405,7 +7460,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 57,
@@ -7536,7 +7592,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 58,
@@ -7667,7 +7724,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 59,
@@ -7798,7 +7856,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 60,
@@ -7929,7 +7988,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 61,
@@ -8060,7 +8120,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 62,
@@ -8191,7 +8252,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 63,
@@ -8322,7 +8384,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 64,
@@ -8453,7 +8516,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 65,
@@ -8584,7 +8648,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 66,
@@ -8715,7 +8780,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 67,
@@ -8846,7 +8912,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 68,
@@ -8977,7 +9044,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 69,
@@ -9108,7 +9176,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 70,
@@ -9239,7 +9308,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 71,
@@ -9370,7 +9440,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 72,
@@ -9501,7 +9572,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 73,
@@ -9632,7 +9704,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 74,
@@ -9763,7 +9836,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 75,
@@ -9894,7 +9968,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 76,
@@ -10025,7 +10100,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 77,
@@ -10156,7 +10232,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 78,
@@ -10287,7 +10364,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 79,
@@ -10418,7 +10496,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 80,
@@ -10549,7 +10628,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 81,
@@ -10680,7 +10760,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 82,
@@ -10811,7 +10892,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 83,
@@ -10942,7 +11024,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 84,
@@ -11073,7 +11156,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 85,
@@ -11204,7 +11288,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 86,
@@ -11335,7 +11420,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 87,
@@ -11466,7 +11552,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 88,
@@ -11597,7 +11684,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 89,
@@ -11728,7 +11816,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 90,
@@ -11859,7 +11948,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 91,
@@ -11990,7 +12080,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 92,
@@ -12121,7 +12212,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 93,
@@ -12252,7 +12344,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 94,
@@ -12383,7 +12476,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 95,
@@ -12514,7 +12608,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 96,
@@ -12645,7 +12740,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 97,
@@ -12776,7 +12872,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 98,
@@ -12907,7 +13004,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 99,
@@ -13038,7 +13136,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 100,
@@ -13169,7 +13268,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 101,
@@ -13300,7 +13400,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 102,
@@ -13431,7 +13532,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 103,
@@ -13562,7 +13664,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 104,
@@ -13693,7 +13796,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 105,
@@ -13824,7 +13928,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 106,
@@ -13955,7 +14060,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 107,
@@ -14086,7 +14192,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 108,
@@ -14217,7 +14324,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 109,
@@ -14348,7 +14456,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 110,
@@ -14479,7 +14588,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 111,
@@ -14610,7 +14720,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 112,
@@ -14741,7 +14852,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 113,
@@ -14872,7 +14984,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 114,
@@ -15003,7 +15116,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 115,
@@ -15134,7 +15248,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 116,
@@ -15265,7 +15380,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 117,
@@ -15396,7 +15512,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 118,
@@ -15527,7 +15644,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 119,
@@ -15658,7 +15776,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 120,
@@ -15789,7 +15908,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 121,
@@ -15920,7 +16040,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 122,
@@ -16051,7 +16172,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 123,
@@ -16182,7 +16304,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 124,
@@ -16313,7 +16436,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 125,
@@ -16444,7 +16568,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 126,
@@ -16575,7 +16700,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 127,
@@ -16706,7 +16832,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 128,
@@ -16837,7 +16964,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 129,
@@ -16968,7 +17096,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 130,
@@ -17099,7 +17228,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 131,
@@ -17230,7 +17360,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 132,
@@ -17361,7 +17492,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 133,
@@ -17492,7 +17624,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 134,
@@ -17623,7 +17756,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 135,
@@ -17754,7 +17888,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 136,
@@ -17885,7 +18020,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 137,
@@ -18016,7 +18152,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 138,
@@ -18147,7 +18284,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 139,
@@ -18278,7 +18416,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 140,
@@ -18409,7 +18548,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 141,
@@ -18540,7 +18680,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 142,
@@ -18671,7 +18812,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 143,
@@ -18802,7 +18944,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 144,
@@ -18933,7 +19076,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 145,
@@ -19064,7 +19208,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 146,
@@ -19195,7 +19340,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 147,
@@ -19326,7 +19472,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 148,
@@ -19457,7 +19604,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 149,
@@ -19588,7 +19736,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 150,
@@ -19719,7 +19868,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 151,
@@ -19850,7 +20000,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 152,
@@ -19981,7 +20132,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 153,
@@ -20112,7 +20264,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 154,
@@ -20243,7 +20396,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 155,
@@ -20374,7 +20528,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 156,
@@ -20505,7 +20660,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 157,
@@ -20636,7 +20792,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 158,
@@ -20767,7 +20924,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 159,
@@ -20898,7 +21056,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 160,
@@ -21029,7 +21188,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 161,
@@ -21160,7 +21320,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 162,
@@ -21291,7 +21452,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 163,
@@ -21422,7 +21584,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 164,
@@ -21553,7 +21716,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 165,
@@ -21684,7 +21848,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 166,
@@ -21815,7 +21980,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 167,
@@ -21946,7 +22112,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 168,
@@ -22077,7 +22244,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 169,
@@ -22208,7 +22376,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 170,
@@ -22339,7 +22508,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 171,
@@ -22470,7 +22640,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 172,
@@ -22601,7 +22772,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 173,
@@ -22732,7 +22904,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 174,
@@ -22863,7 +23036,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 175,
@@ -22994,7 +23168,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 176,
@@ -23125,7 +23300,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 177,
@@ -23256,7 +23432,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 178,
@@ -23387,7 +23564,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 179,
@@ -23518,7 +23696,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 180,
@@ -23649,7 +23828,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 181,
@@ -23780,7 +23960,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 182,
@@ -23911,7 +24092,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 183,
@@ -24042,7 +24224,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 184,
@@ -24173,7 +24356,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 185,
@@ -24304,7 +24488,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 186,
@@ -24435,7 +24620,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 187,
@@ -24566,7 +24752,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 188,
@@ -24697,7 +24884,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 189,
@@ -24828,7 +25016,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 190,
@@ -24959,7 +25148,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 191,
@@ -25090,7 +25280,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 192,
@@ -25221,7 +25412,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 193,
@@ -25352,7 +25544,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 194,
@@ -25483,7 +25676,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 195,
@@ -25614,7 +25808,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 196,
@@ -25745,7 +25940,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 197,
@@ -25876,7 +26072,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 198,
@@ -26007,7 +26204,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 199,
@@ -26138,7 +26336,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 200,
@@ -26269,7 +26468,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 201,
@@ -26400,7 +26600,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 202,
@@ -26531,7 +26732,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 203,
@@ -26662,7 +26864,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 204,
@@ -26793,7 +26996,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 205,
@@ -26924,7 +27128,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 206,
@@ -27055,7 +27260,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 207,
@@ -27186,7 +27392,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 208,
@@ -27317,7 +27524,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 209,
@@ -27448,7 +27656,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 210,
@@ -27579,7 +27788,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 211,
@@ -27710,7 +27920,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 212,
@@ -27841,7 +28052,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 213,
@@ -27972,7 +28184,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 214,
@@ -28103,7 +28316,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 215,
@@ -28234,7 +28448,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 216,
@@ -28365,7 +28580,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 217,
@@ -28496,7 +28712,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 218,
@@ -28627,7 +28844,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 219,
@@ -28758,7 +28976,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 220,
@@ -28889,7 +29108,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 221,
@@ -29020,7 +29240,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 222,
@@ -29151,7 +29372,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 223,
@@ -29282,7 +29504,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 224,
@@ -29413,7 +29636,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 225,
@@ -29544,7 +29768,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 226,
@@ -29675,7 +29900,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 227,
@@ -29806,7 +30032,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 228,
@@ -29937,7 +30164,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 229,
@@ -30068,7 +30296,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 230,
@@ -30199,7 +30428,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 231,
@@ -30330,7 +30560,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 232,
@@ -30461,7 +30692,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 233,
@@ -30592,7 +30824,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 234,
@@ -30723,7 +30956,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 235,
@@ -30854,7 +31088,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 236,
@@ -30985,7 +31220,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 237,
@@ -31116,7 +31352,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 238,
@@ -31247,7 +31484,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 239,
@@ -31378,7 +31616,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 240,
@@ -31509,7 +31748,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 241,
@@ -31640,7 +31880,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 242,
@@ -31771,7 +32012,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 243,
@@ -31902,7 +32144,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 244,
@@ -32033,7 +32276,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 245,
@@ -32164,7 +32408,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 246,
@@ -32295,7 +32540,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 247,
@@ -32426,7 +32672,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 248,
@@ -32557,7 +32804,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 249,
@@ -32688,7 +32936,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 250,
@@ -32819,7 +33068,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 251,
@@ -32950,7 +33200,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 252,
@@ -33081,7 +33332,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 253,
@@ -33212,7 +33464,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 254,
@@ -33343,7 +33596,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 255,
@@ -33474,7 +33728,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 256,
@@ -33605,7 +33860,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 257,
@@ -33736,7 +33992,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 258,
@@ -33867,7 +34124,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 259,
@@ -33998,7 +34256,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 260,
@@ -34129,7 +34388,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 261,
@@ -34260,7 +34520,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 262,
@@ -34391,7 +34652,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 263,
@@ -34522,7 +34784,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 264,
@@ -34653,7 +34916,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 265,
@@ -34784,7 +35048,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 266,
@@ -34915,7 +35180,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 267,
@@ -35046,7 +35312,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 268,
@@ -35177,7 +35444,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 269,
@@ -35308,7 +35576,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 270,
@@ -35439,7 +35708,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 271,
@@ -35570,7 +35840,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 272,
@@ -35701,7 +35972,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 273,
@@ -35832,7 +36104,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 274,
@@ -35963,7 +36236,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 275,
@@ -36094,7 +36368,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 276,
@@ -36225,7 +36500,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 277,
@@ -36356,7 +36632,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 278,
@@ -36487,7 +36764,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 279,
@@ -36618,7 +36896,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 280,
@@ -36749,7 +37028,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 281,
@@ -36880,7 +37160,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 282,
@@ -37011,7 +37292,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 283,
@@ -37142,7 +37424,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 284,
@@ -37273,7 +37556,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 285,
@@ -37404,7 +37688,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 286,
@@ -37535,7 +37820,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 287,
@@ -37666,7 +37952,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 288,
@@ -37797,7 +38084,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 289,
@@ -37928,7 +38216,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 290,
@@ -38059,7 +38348,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 291,
@@ -38190,7 +38480,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 292,
@@ -38321,7 +38612,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 293,
@@ -38452,7 +38744,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 294,
@@ -38583,7 +38876,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 295,
@@ -38714,7 +39008,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 296,
@@ -38845,7 +39140,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 297,
@@ -38976,7 +39272,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 298,
@@ -39107,7 +39404,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 299,
@@ -39238,7 +39536,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 300,
@@ -39369,7 +39668,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 301,
@@ -39500,7 +39800,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 302,
@@ -39631,7 +39932,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 303,
@@ -39762,7 +40064,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 304,
@@ -39893,7 +40196,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 305,
@@ -40024,7 +40328,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 306,
@@ -40155,7 +40460,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 307,
@@ -40286,7 +40592,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 308,
@@ -40417,7 +40724,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 309,
@@ -40548,7 +40856,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 310,
@@ -40679,7 +40988,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 311,
@@ -40810,7 +41120,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 312,
@@ -40941,7 +41252,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 313,
@@ -41072,7 +41384,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 314,
@@ -41203,7 +41516,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 315,
@@ -41334,7 +41648,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 316,
@@ -41465,7 +41780,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 317,
@@ -41596,7 +41912,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 318,
@@ -41727,7 +42044,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 319,
@@ -41858,7 +42176,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 320,
@@ -41989,7 +42308,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 321,
@@ -42120,7 +42440,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 322,
@@ -42251,7 +42572,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 323,
@@ -42382,7 +42704,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 324,
@@ -42513,7 +42836,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 325,
@@ -42644,7 +42968,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 326,
@@ -42775,7 +43100,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 327,
@@ -42906,7 +43232,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 328,
@@ -43037,7 +43364,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 329,
@@ -43168,7 +43496,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 330,
@@ -43299,7 +43628,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 331,
@@ -43430,7 +43760,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 332,
@@ -43561,7 +43892,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 333,
@@ -43692,7 +44024,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 334,
@@ -43823,7 +44156,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 335,
@@ -43954,7 +44288,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 336,
@@ -44085,7 +44420,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 337,
@@ -44216,7 +44552,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 338,
@@ -44347,7 +44684,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 339,
@@ -44478,7 +44816,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 340,
@@ -44609,7 +44948,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 341,
@@ -44740,7 +45080,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 342,
@@ -44871,7 +45212,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 343,
@@ -45002,7 +45344,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 344,
@@ -45133,7 +45476,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 345,
@@ -45264,7 +45608,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 346,
@@ -45395,7 +45740,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 347,
@@ -45526,7 +45872,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 348,
@@ -45657,7 +46004,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 349,
@@ -45788,7 +46136,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 350,
@@ -45919,7 +46268,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 351,
@@ -46050,7 +46400,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 352,
@@ -46181,7 +46532,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 353,
@@ -46312,7 +46664,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 354,
@@ -46443,7 +46796,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 355,
@@ -46574,7 +46928,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 356,
@@ -46705,7 +47060,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 357,
@@ -46836,7 +47192,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 358,
@@ -46967,7 +47324,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 359,
@@ -47098,7 +47456,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 360,
@@ -47229,7 +47588,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 361,
@@ -47360,7 +47720,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 362,
@@ -47491,7 +47852,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 363,
@@ -47622,7 +47984,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 364,
@@ -47753,7 +48116,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 365,
@@ -47884,7 +48248,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 366,
@@ -48015,7 +48380,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 367,
@@ -48146,7 +48512,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 368,
@@ -48277,7 +48644,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 369,
@@ -48408,7 +48776,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 370,
@@ -48539,7 +48908,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 371,
@@ -48670,7 +49040,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 372,
@@ -48801,7 +49172,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 373,
@@ -48932,7 +49304,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 374,
@@ -49063,7 +49436,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 375,
@@ -49194,7 +49568,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 376,
@@ -49325,7 +49700,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 377,
@@ -49456,7 +49832,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 378,
@@ -49587,7 +49964,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 379,
@@ -49718,7 +50096,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 380,
@@ -49849,7 +50228,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 381,
@@ -49980,7 +50360,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 382,
@@ -50111,7 +50492,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 383,
@@ -50242,7 +50624,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 384,
@@ -50373,7 +50756,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 385,
@@ -50504,7 +50888,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 386,
@@ -50635,7 +51020,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 387,
@@ -50766,7 +51152,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 388,
@@ -50897,7 +51284,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 389,
@@ -51028,7 +51416,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 390,
@@ -51159,7 +51548,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 391,
@@ -51290,7 +51680,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 392,
@@ -51421,7 +51812,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 393,
@@ -51552,7 +51944,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 394,
@@ -51683,7 +52076,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 395,
@@ -51814,7 +52208,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 396,
@@ -51945,7 +52340,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 397,
@@ -52076,7 +52472,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 398,
@@ -52207,7 +52604,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 399,
@@ -52338,7 +52736,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 400,
@@ -52469,7 +52868,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 401,
@@ -52600,7 +53000,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 402,
@@ -52731,7 +53132,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 403,
@@ -52862,7 +53264,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 404,
@@ -52993,7 +53396,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 405,
@@ -53124,7 +53528,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 406,
@@ -53255,7 +53660,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 407,
@@ -53386,7 +53792,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 408,
@@ -53517,7 +53924,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 409,
@@ -53648,7 +54056,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 410,
@@ -53779,7 +54188,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 411,
@@ -53910,7 +54320,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 412,
@@ -54041,7 +54452,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 413,
@@ -54172,7 +54584,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 414,
@@ -54303,7 +54716,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 415,
@@ -54434,7 +54848,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 416,
@@ -54565,7 +54980,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 417,
@@ -54696,7 +55112,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 418,
@@ -54827,7 +55244,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 419,
@@ -54958,7 +55376,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 420,
@@ -55089,7 +55508,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 421,
@@ -55220,7 +55640,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 422,
@@ -55351,7 +55772,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 423,
@@ -55482,7 +55904,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 424,
@@ -55613,7 +56036,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 425,
@@ -55744,7 +56168,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 426,
@@ -55875,7 +56300,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 427,
@@ -56006,7 +56432,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 428,
@@ -56137,7 +56564,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 429,
@@ -56268,7 +56696,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 430,
@@ -56399,7 +56828,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 431,
@@ -56530,7 +56960,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 432,
@@ -56661,7 +57092,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 433,
@@ -56792,7 +57224,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 434,
@@ -56923,7 +57356,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 435,
@@ -57054,7 +57488,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 436,
@@ -57185,7 +57620,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 437,
@@ -57316,7 +57752,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 438,
@@ -57447,7 +57884,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 439,
@@ -57578,7 +58016,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 440,
@@ -57709,7 +58148,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 441,
@@ -57840,7 +58280,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 442,
@@ -57971,7 +58412,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 443,
@@ -58102,7 +58544,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 444,
@@ -58233,7 +58676,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 445,
@@ -58364,7 +58808,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 446,
@@ -58495,7 +58940,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 447,
@@ -58626,7 +59072,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 448,
@@ -58757,7 +59204,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 449,
@@ -58888,7 +59336,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 450,
@@ -59019,7 +59468,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 451,
@@ -59150,7 +59600,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 452,
@@ -59281,7 +59732,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 453,
@@ -59412,7 +59864,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 454,
@@ -59543,7 +59996,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 455,
@@ -59674,7 +60128,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 456,
@@ -59805,7 +60260,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 457,
@@ -59936,7 +60392,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 458,
@@ -60067,7 +60524,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 459,
@@ -60198,7 +60656,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 460,
@@ -60329,7 +60788,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 461,
@@ -60460,7 +60920,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 462,
@@ -60591,7 +61052,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 463,
@@ -60722,7 +61184,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 464,
@@ -60853,7 +61316,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 465,
@@ -60984,7 +61448,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 466,
@@ -61115,7 +61580,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 467,
@@ -61246,7 +61712,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 468,
@@ -61377,7 +61844,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 469,
@@ -61508,7 +61976,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 470,
@@ -61639,7 +62108,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 471,
@@ -61770,7 +62240,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 472,
@@ -61901,7 +62372,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 473,
@@ -62032,7 +62504,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 474,
@@ -62163,7 +62636,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 475,
@@ -62294,7 +62768,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 476,
@@ -62425,7 +62900,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 477,
@@ -62556,7 +63032,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 478,
@@ -62687,7 +63164,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 479,
@@ -62818,7 +63296,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 480,
@@ -62949,7 +63428,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 481,
@@ -63080,7 +63560,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 482,
@@ -63211,7 +63692,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 483,
@@ -63342,7 +63824,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 484,
@@ -63473,7 +63956,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 485,
@@ -63604,7 +64088,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 486,
@@ -63735,7 +64220,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 487,
@@ -63866,7 +64352,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 488,
@@ -63997,7 +64484,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 489,
@@ -64128,7 +64616,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 490,
@@ -64259,7 +64748,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 491,
@@ -64390,7 +64880,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 492,
@@ -64521,7 +65012,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 493,
@@ -64652,7 +65144,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 494,
@@ -64783,7 +65276,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 495,
@@ -64914,7 +65408,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 496,
@@ -65045,7 +65540,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 497,
@@ -65176,7 +65672,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 498,
@@ -65307,7 +65804,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 499,
@@ -65438,7 +65936,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 500,
@@ -65569,7 +66068,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 501,
@@ -65700,7 +66200,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 502,
@@ -65831,7 +66332,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 503,
@@ -65962,7 +66464,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 504,
@@ -66093,7 +66596,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 505,
@@ -66224,7 +66728,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 506,
@@ -66355,7 +66860,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 507,
@@ -66486,7 +66992,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 508,
@@ -66617,7 +67124,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 509,
@@ -66748,7 +67256,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 510,
@@ -66879,7 +67388,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 511,
@@ -67010,7 +67520,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 512,
@@ -67141,7 +67652,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 513,
@@ -67272,7 +67784,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 514,
@@ -67403,7 +67916,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 515,
@@ -67534,7 +68048,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 516,
@@ -67665,7 +68180,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 517,
@@ -67796,7 +68312,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 518,
@@ -67927,7 +68444,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 519,
@@ -68058,7 +68576,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 520,
@@ -68189,7 +68708,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 521,
@@ -68320,7 +68840,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 522,
@@ -68451,7 +68972,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 523,
@@ -68582,7 +69104,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 524,
@@ -68713,7 +69236,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 525,
@@ -68844,7 +69368,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 526,
@@ -68975,7 +69500,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 527,
@@ -69106,7 +69632,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 528,
@@ -69237,7 +69764,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 529,
@@ -69368,7 +69896,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 530,
@@ -69499,7 +70028,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 531,
@@ -69630,7 +70160,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 532,
@@ -69761,7 +70292,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 533,
@@ -69892,7 +70424,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 534,
@@ -70023,7 +70556,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 535,
@@ -70154,7 +70688,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 536,
@@ -70285,7 +70820,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 537,
@@ -70416,7 +70952,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 538,
@@ -70547,7 +71084,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 539,
@@ -70678,7 +71216,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 540,
@@ -70809,7 +71348,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 541,
@@ -70940,7 +71480,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 542,
@@ -71071,7 +71612,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 543,
@@ -71202,7 +71744,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 544,
@@ -71333,7 +71876,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 545,
@@ -71464,7 +72008,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 546,
@@ -71595,7 +72140,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 547,
@@ -71726,7 +72272,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 548,
@@ -71857,7 +72404,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 549,
@@ -71988,7 +72536,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 550,
@@ -72119,7 +72668,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 551,
@@ -72250,7 +72800,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 552,
@@ -72381,7 +72932,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 553,
@@ -72512,7 +73064,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 554,
@@ -72643,7 +73196,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 555,
@@ -72774,7 +73328,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 556,
@@ -72905,7 +73460,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 557,
@@ -73036,7 +73592,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 558,
@@ -73167,7 +73724,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 559,
@@ -73298,7 +73856,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 560,
@@ -73429,7 +73988,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 561,
@@ -73560,7 +74120,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 562,
@@ -73691,7 +74252,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 563,
@@ -73822,7 +74384,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 564,
@@ -73953,7 +74516,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 565,
@@ -74084,7 +74648,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 566,
@@ -74215,7 +74780,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 567,
@@ -74346,7 +74912,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 568,
@@ -74477,7 +75044,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 569,
@@ -74608,7 +75176,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 570,
@@ -74739,7 +75308,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 571,
@@ -74870,7 +75440,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 572,
@@ -75001,7 +75572,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 573,
@@ -75132,7 +75704,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 574,
@@ -75263,7 +75836,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 575,
@@ -75394,7 +75968,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 576,
@@ -75525,7 +76100,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 577,
@@ -75656,7 +76232,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 578,
@@ -75787,7 +76364,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 579,
@@ -75918,7 +76496,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 580,
@@ -76049,7 +76628,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 581,
@@ -76180,7 +76760,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 582,
@@ -76311,7 +76892,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 583,
@@ -76442,7 +77024,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 584,
@@ -76573,7 +77156,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 585,
@@ -76704,7 +77288,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 586,
@@ -76835,7 +77420,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 587,
@@ -76966,7 +77552,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 588,
@@ -77097,7 +77684,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 589,
@@ -77228,7 +77816,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 590,
@@ -77359,7 +77948,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 591,
@@ -77490,7 +78080,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 592,
@@ -77621,7 +78212,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 593,
@@ -77752,7 +78344,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 594,
@@ -77883,7 +78476,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 595,
@@ -78014,7 +78608,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 596,
@@ -78145,7 +78740,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 597,
@@ -78276,7 +78872,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 598,
@@ -78407,7 +79004,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 599,
@@ -78538,7 +79136,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 600,
@@ -78669,7 +79268,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 601,
@@ -78800,7 +79400,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 602,
@@ -78931,7 +79532,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 603,
@@ -79062,7 +79664,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 604,
@@ -79193,7 +79796,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 605,
@@ -79324,7 +79928,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 606,
@@ -79455,7 +80060,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 607,
@@ -79586,7 +80192,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 608,
@@ -79717,7 +80324,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 609,
@@ -79848,7 +80456,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 610,
@@ -79979,7 +80588,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 611,
@@ -80110,7 +80720,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 612,
@@ -80241,7 +80852,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 613,
@@ -80372,7 +80984,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 614,
@@ -80503,7 +81116,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 615,
@@ -80634,7 +81248,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 616,
@@ -80765,7 +81380,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 617,
@@ -80896,7 +81512,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 618,
@@ -81027,7 +81644,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 619,
@@ -81158,7 +81776,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 620,
@@ -81289,7 +81908,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 621,
@@ -81420,7 +82040,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 622,
@@ -81551,7 +82172,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 623,
@@ -81682,7 +82304,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 624,
@@ -81813,7 +82436,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 625,
@@ -81944,7 +82568,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 626,
@@ -82075,7 +82700,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 627,
@@ -82206,7 +82832,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 628,
@@ -82337,7 +82964,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 629,
@@ -82468,7 +83096,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 630,
@@ -82599,7 +83228,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 631,
@@ -82730,7 +83360,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 632,
@@ -82861,7 +83492,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 633,
@@ -82992,7 +83624,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 634,
@@ -83123,7 +83756,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 635,
@@ -83254,7 +83888,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 636,
@@ -83385,7 +84020,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 637,
@@ -83516,7 +84152,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 638,
@@ -83647,7 +84284,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 639,
@@ -83778,7 +84416,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 640,
@@ -83909,7 +84548,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 641,
@@ -84040,7 +84680,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 642,
@@ -84171,7 +84812,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 643,
@@ -84302,7 +84944,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 644,
@@ -84433,7 +85076,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 645,
@@ -84564,7 +85208,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 646,
@@ -84695,7 +85340,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 647,
@@ -84826,7 +85472,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 648,
@@ -84957,7 +85604,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 649,
@@ -85088,7 +85736,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 650,
@@ -85219,7 +85868,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 651,
@@ -85350,7 +86000,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 652,
@@ -85481,7 +86132,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 653,
@@ -85612,7 +86264,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 654,
@@ -85743,7 +86396,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 655,
@@ -85874,7 +86528,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 656,
@@ -86005,7 +86660,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 657,
@@ -86136,7 +86792,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 658,
@@ -86267,7 +86924,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 659,
@@ -86398,7 +87056,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 660,
@@ -86529,7 +87188,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 661,
@@ -86660,7 +87320,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 662,
@@ -86791,7 +87452,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 663,
@@ -86922,7 +87584,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 664,
@@ -87053,7 +87716,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 665,
@@ -87184,7 +87848,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 666,
@@ -87315,7 +87980,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 667,
@@ -87446,7 +88112,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 668,
@@ -87577,7 +88244,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 669,
@@ -87708,7 +88376,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 670,
@@ -87839,7 +88508,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 671,
@@ -87970,7 +88640,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 672,
@@ -88101,7 +88772,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 673,
@@ -88232,7 +88904,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 674,
@@ -88363,7 +89036,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 675,
@@ -88494,7 +89168,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 676,
@@ -88625,7 +89300,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 677,
@@ -88756,7 +89432,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 678,
@@ -88887,7 +89564,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 679,
@@ -89018,7 +89696,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 680,
@@ -89149,7 +89828,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 681,
@@ -89280,7 +89960,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 682,
@@ -89411,7 +90092,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 683,
@@ -89542,7 +90224,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 684,
@@ -89673,7 +90356,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 685,
@@ -89804,7 +90488,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 686,
@@ -89935,7 +90620,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 687,
@@ -90066,7 +90752,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 688,
@@ -90197,7 +90884,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 689,
@@ -90328,7 +91016,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 690,
@@ -90459,7 +91148,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 691,
@@ -90590,7 +91280,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 692,
@@ -90721,7 +91412,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 693,
@@ -90852,7 +91544,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 694,
@@ -90983,7 +91676,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 695,
@@ -91114,7 +91808,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 696,
@@ -91245,7 +91940,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 697,
@@ -91376,7 +92072,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 698,
@@ -91507,7 +92204,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 699,
@@ -91638,7 +92336,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 700,
@@ -91769,7 +92468,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 701,
@@ -91900,7 +92600,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 702,
@@ -92031,7 +92732,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 703,
@@ -92162,7 +92864,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 704,
@@ -92293,7 +92996,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 705,
@@ -92424,7 +93128,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 706,
@@ -92555,7 +93260,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 707,
@@ -92686,7 +93392,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 708,
@@ -92817,7 +93524,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 709,
@@ -92948,7 +93656,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 710,
@@ -93079,7 +93788,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 711,
@@ -93210,7 +93920,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 712,
@@ -93341,7 +94052,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 713,
@@ -93472,7 +94184,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 714,
@@ -93603,7 +94316,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 715,
@@ -93734,7 +94448,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 716,
@@ -93865,7 +94580,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 717,
@@ -93996,7 +94712,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 718,
@@ -94127,7 +94844,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 719,
@@ -94258,7 +94976,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 720,
@@ -94389,7 +95108,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 721,
@@ -94520,7 +95240,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 722,
@@ -94651,7 +95372,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 723,
@@ -94782,7 +95504,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 724,
@@ -94913,7 +95636,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 725,
@@ -95044,7 +95768,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 726,
@@ -95175,7 +95900,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 727,
@@ -95306,7 +96032,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 728,
@@ -95437,7 +96164,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 729,
@@ -95568,7 +96296,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 730,
@@ -95699,7 +96428,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 731,
@@ -95830,7 +96560,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 732,
@@ -95961,7 +96692,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 733,
@@ -96092,7 +96824,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 734,
@@ -96223,7 +96956,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 735,
@@ -96354,7 +97088,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 736,
@@ -96485,7 +97220,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 737,
@@ -96616,7 +97352,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 738,
@@ -96747,7 +97484,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 739,
@@ -96878,7 +97616,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 740,
@@ -97009,7 +97748,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 741,
@@ -97140,7 +97880,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 742,
@@ -97271,7 +98012,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 743,
@@ -97402,7 +98144,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 744,
@@ -97533,7 +98276,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 745,
@@ -97664,7 +98408,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 746,
@@ -97795,7 +98540,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 747,
@@ -97926,7 +98672,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 748,
@@ -98057,7 +98804,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 749,
@@ -98188,7 +98936,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 750,
@@ -98319,7 +99068,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 751,
@@ -98450,7 +99200,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 752,
@@ -98581,7 +99332,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 753,
@@ -98712,7 +99464,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 754,
@@ -98843,7 +99596,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 755,
@@ -98974,7 +99728,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 756,
@@ -99105,7 +99860,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 757,
@@ -99236,7 +99992,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 758,
@@ -99367,7 +100124,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 759,
@@ -99498,7 +100256,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 760,
@@ -99629,7 +100388,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 761,
@@ -99760,7 +100520,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 762,
@@ -99891,7 +100652,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 763,
@@ -100022,7 +100784,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 764,
@@ -100153,7 +100916,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 765,
@@ -100284,7 +101048,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 766,
@@ -100415,7 +101180,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 767,
@@ -100546,7 +101312,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 768,
@@ -100677,7 +101444,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 769,
@@ -100808,7 +101576,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 770,
@@ -100939,7 +101708,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 771,
@@ -101070,7 +101840,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 772,
@@ -101201,7 +101972,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 773,
@@ -101332,7 +102104,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 774,
@@ -101463,7 +102236,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 775,
@@ -101594,7 +102368,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 776,
@@ -101725,7 +102500,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 777,
@@ -101856,7 +102632,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 778,
@@ -101987,7 +102764,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 779,
@@ -102118,7 +102896,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 780,
@@ -102249,7 +103028,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 781,
@@ -102380,7 +103160,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 782,
@@ -102511,7 +103292,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 783,
@@ -102642,7 +103424,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 784,
@@ -102773,7 +103556,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 785,
@@ -102904,7 +103688,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 786,
@@ -103035,7 +103820,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 787,
@@ -103166,7 +103952,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 788,
@@ -103297,7 +104084,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 789,
@@ -103428,7 +104216,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 790,
@@ -103559,7 +104348,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 791,
@@ -103690,7 +104480,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 792,
@@ -103821,7 +104612,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 793,
@@ -103952,7 +104744,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 794,
@@ -104083,7 +104876,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 795,
@@ -104214,7 +105008,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 796,
@@ -104345,7 +105140,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 797,
@@ -104476,7 +105272,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 798,
@@ -104607,7 +105404,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 799,
@@ -104738,7 +105536,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 800,
@@ -104869,7 +105668,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 801,
@@ -105000,7 +105800,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 802,
@@ -105131,7 +105932,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 803,
@@ -105262,7 +106064,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 804,
@@ -105393,7 +106196,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 805,
@@ -105524,7 +106328,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 806,
@@ -105655,7 +106460,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 807,
@@ -105786,7 +106592,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 808,
@@ -105917,7 +106724,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 809,
@@ -106048,7 +106856,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 810,
@@ -106179,7 +106988,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 811,
@@ -106310,7 +107120,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 812,
@@ -106441,7 +107252,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 813,
@@ -106572,7 +107384,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 814,
@@ -106703,7 +107516,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 815,
@@ -106834,7 +107648,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 816,
@@ -106965,7 +107780,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 817,
@@ -107096,7 +107912,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 818,
@@ -107227,7 +108044,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 819,
@@ -107358,7 +108176,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 820,
@@ -107489,7 +108308,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 821,
@@ -107620,7 +108440,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 822,
@@ -107751,7 +108572,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 823,
@@ -107882,7 +108704,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 824,
@@ -108013,7 +108836,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 825,
@@ -108144,7 +108968,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 826,
@@ -108275,7 +109100,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 827,
@@ -108406,7 +109232,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 828,
@@ -108537,7 +109364,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 829,
@@ -108668,7 +109496,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 830,
@@ -108799,7 +109628,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 831,
@@ -108930,7 +109760,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 832,
@@ -109061,7 +109892,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 833,
@@ -109192,7 +110024,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 834,
@@ -109323,7 +110156,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 835,
@@ -109454,7 +110288,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 836,
@@ -109585,7 +110420,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 837,
@@ -109716,7 +110552,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 838,
@@ -109847,7 +110684,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 839,
@@ -109978,7 +110816,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 840,
@@ -110109,7 +110948,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 841,
@@ -110240,7 +111080,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 842,
@@ -110371,7 +111212,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 843,
@@ -110502,7 +111344,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 844,
@@ -110633,7 +111476,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 845,
@@ -110764,7 +111608,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 846,
@@ -110895,7 +111740,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 847,
@@ -111026,7 +111872,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 848,
@@ -111157,7 +112004,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 849,
@@ -111288,7 +112136,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 850,
@@ -111419,7 +112268,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 851,
@@ -111550,7 +112400,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 852,
@@ -111681,7 +112532,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 853,
@@ -111812,7 +112664,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 854,
@@ -111943,7 +112796,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 855,
@@ -112074,7 +112928,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 856,
@@ -112205,7 +113060,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 857,
@@ -112336,7 +113192,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 858,
@@ -112467,7 +113324,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 859,
@@ -112598,7 +113456,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 860,
@@ -112729,7 +113588,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 861,
@@ -112860,7 +113720,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 862,
@@ -112991,7 +113852,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 863,
@@ -113122,7 +113984,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 864,
@@ -113253,7 +114116,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 865,
@@ -113384,7 +114248,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 866,
@@ -113515,7 +114380,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 867,
@@ -113646,7 +114512,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 868,
@@ -113777,7 +114644,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 869,
@@ -113908,7 +114776,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 870,
@@ -114039,7 +114908,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 871,
@@ -114170,7 +115040,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 872,
@@ -114301,7 +115172,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 873,
@@ -114432,7 +115304,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 874,
@@ -114563,7 +115436,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 875,
@@ -114694,7 +115568,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 876,
@@ -114825,7 +115700,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 877,
@@ -114956,7 +115832,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 878,
@@ -115087,7 +115964,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 879,
@@ -115218,7 +116096,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 880,
@@ -115349,7 +116228,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 881,
@@ -115480,7 +116360,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 882,
@@ -115611,7 +116492,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 883,
@@ -115742,7 +116624,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 884,
@@ -115873,7 +116756,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 885,
@@ -116004,7 +116888,8 @@
             ]
           }
         }
-      }
+      },
+      "close_basis": "daily_chart"
     },
     {
       "rank": 886,
@@ -116463,7 +117348,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "daily_chart"
     },
     {
       "rank": 899,
@@ -116851,7 +117737,8 @@
       "expected_return_raw": null,
       "evaluation_score": null,
       "evaluation_score_rank": null,
-      "evaluation_score_count": null
+      "evaluation_score_count": null,
+      "close_basis": "daily_chart"
     },
     {
       "rank": 909,

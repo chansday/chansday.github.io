@@ -45,6 +45,15 @@ export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "quote_at",
   "quote_age_seconds",
   "market_status",
+  // Quote metadata observed by the settlement stage itself (the generic
+  // quote_* fields above are inherited from earlier stages).
+  "open_quote_at",
+  "open_quote_age_seconds",
+  "open_market_status",
+  "close_quote_at",
+  "close_quote_age_seconds",
+  "close_market_status",
+  "close_basis",
   "trading_status",
   "no_trade_evidence",
   // 종목 평가 fields (providers/evaluation-score.js); recomputed at write time.
@@ -53,6 +62,11 @@ export const OPTIONAL_ROW_FIELDS = Object.freeze([
   "evaluation_score_rank",
   "evaluation_score_count",
 ]);
+
+// What actual_close represents: the KRX regular-session close (observed in
+// the 15:30-15:40 KST window before the NXT after-market), a later polling
+// quote that includes NXT trading, or the Naver daily candle (integrated).
+export const CLOSE_BASES = Object.freeze(["krx_regular", "integrated_nxt", "daily_chart"]);
 
 export const NO_TRADE_SOURCES = Object.freeze(["naver_polling_quote", "naver_daily_candle", "naver_daily_history"]);
 
@@ -134,6 +148,9 @@ export function isRankingRow(row) {
   if (Object.hasOwn(row, "quote_at") && row.quote_at !== null && typeof row.quote_at !== "string") return false;
   if (Object.hasOwn(row, "quote_age_seconds") && !isFiniteOrNull(row.quote_age_seconds)) return false;
   if (Object.hasOwn(row, "market_status") && row.market_status !== null && typeof row.market_status !== "string") return false;
+  if (["open_quote_at", "close_quote_at", "open_market_status", "close_market_status"].some((field) => Object.hasOwn(row, field) && row[field] !== null && typeof row[field] !== "string")) return false;
+  if (["open_quote_age_seconds", "close_quote_age_seconds"].some((field) => Object.hasOwn(row, field) && !isFiniteOrNull(row[field]))) return false;
+  if (Object.hasOwn(row, "close_basis") && !CLOSE_BASES.includes(row.close_basis)) return false;
   if (Object.hasOwn(row, "features")) {
     if (!row.features || typeof row.features !== "object" || Array.isArray(row.features)) return false;
     const featureFields = ["previous_return", "momentum", "volatility", "lookback_sessions"];

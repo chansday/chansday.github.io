@@ -67,34 +67,34 @@
       }
     },
     "metrics": {
-      "mean_absolute_error": 2.0053,
-      "root_mean_squared_error": 3.1717,
-      "mean_error": -0.853,
+      "mean_absolute_error": 2.0117,
+      "root_mean_squared_error": 3.2413,
+      "mean_error": -0.8375,
       "min_error": -26.41,
       "max_error": 30.24
     },
     "ranking_metrics": {
       "sample_count": 884,
-      "rank_ic": -0.1205,
-      "hit_rate": 0.4569,
-      "calibration_slope": -3.2322,
+      "rank_ic": -0.1222,
+      "hit_rate": 0.4562,
+      "calibration_slope": -3.409,
       "top_k": {
         "k": 20,
         "mean_session_return": -1.0937,
-        "excess_return": -0.2442
+        "excess_return": -0.2597
       },
       "score_buckets": [
         {
           "bucket": 1,
           "count": 88,
           "mean_expected_return": -0.1752,
-          "mean_session_return": -0.8083
+          "mean_session_return": -0.7533
         },
         {
           "bucket": 2,
           "count": 88,
           "mean_expected_return": -0.1172,
-          "mean_session_return": -0.1896
+          "mean_session_return": -0.0688
         },
         {
           "bucket": 3,
@@ -106,7 +106,7 @@
           "bucket": 4,
           "count": 88,
           "mean_expected_return": -0.0424,
-          "mean_session_return": -0.6579
+          "mean_session_return": -0.6966
         },
         {
           "bucket": 5,
@@ -124,19 +124,19 @@
           "bucket": 7,
           "count": 88,
           "mean_expected_return": 0.0503,
-          "mean_session_return": -0.764
+          "mean_session_return": -0.8373
         },
         {
           "bucket": 8,
           "count": 89,
           "mean_expected_return": 0.0869,
-          "mean_session_return": -1.0423
+          "mean_session_return": -0.9789
         },
         {
           "bucket": 9,
           "count": 88,
           "mean_expected_return": 0.1254,
-          "mean_session_return": -1.6321
+          "mean_session_return": -1.6043
         },
         {
           "bucket": 10,
@@ -145,7 +145,7 @@
           "mean_session_return": -1.4624
         }
       ],
-      "bucket_spread": -0.6541
+      "bucket_spread": -0.7091
     },
     "note": "Retrospective calculation using prior daily history, evaluated against observed same-day prices; not a forecast recorded before the open."
   },
@@ -40196,10 +40196,10 @@
       "expected_open": 247083.94,
       "expected_close": 247382.94,
       "actual_open": 245000,
-      "actual_close": 239000,
+      "actual_close": 245000,
       "expected_return": 0.12,
-      "session_return": -2.45,
-      "error": -2.57,
+      "session_return": 0,
+      "error": -0.12,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",
@@ -72676,10 +72676,10 @@
       "expected_open": 3062.95,
       "expected_close": 3065.07,
       "actual_open": 3100,
-      "actual_close": 3080,
+      "actual_close": 3255,
       "expected_return": 0.07,
-      "session_return": -0.65,
-      "error": -0.72,
+      "session_return": 5,
+      "error": 4.93,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",
@@ -78836,10 +78836,10 @@
       "expected_open": 1606.54,
       "expected_close": 1607.54,
       "actual_open": 1556,
-      "actual_close": 1559,
+      "actual_close": 1546,
       "expected_return": 0.06,
-      "session_return": 0.19,
-      "error": 0.13,
+      "session_return": -0.64,
+      "error": -0.7,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",
@@ -85556,10 +85556,10 @@
       "expected_open": 1350.55,
       "expected_close": 1351.24,
       "actual_open": 1354,
-      "actual_close": 1386,
+      "actual_close": 1310,
       "expected_return": 0.05,
-      "session_return": 2.36,
-      "error": 2.31,
+      "session_return": -3.25,
+      "error": -3.3,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",
@@ -167876,10 +167876,10 @@
       "expected_open": 7430.98,
       "expected_close": 7427.22,
       "actual_open": 7340,
-      "actual_close": 7750,
+      "actual_close": 7500,
       "expected_return": -0.05,
-      "session_return": 5.59,
-      "error": 5.64,
+      "session_return": 2.18,
+      "error": 2.23,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",
@@ -210996,10 +210996,10 @@
       "expected_open": 1370006.5,
       "expected_close": 1368406.38,
       "actual_open": 1380000,
-      "actual_close": 1444000,
+      "actual_close": 1487000,
       "expected_return": -0.12,
-      "session_return": 4.64,
-      "error": 4.76,
+      "session_return": 7.75,
+      "error": 7.87,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",
@@ -211556,10 +211556,10 @@
       "expected_open": 2444.29,
       "expected_close": 2441.38,
       "actual_open": 2460,
-      "actual_close": 3000,
+      "actual_close": 3185,
       "expected_return": -0.12,
-      "session_return": 21.95,
-      "error": 22.07,
+      "session_return": 29.47,
+      "error": 29.59,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",
@@ -243196,10 +243196,10 @@
       "expected_open": 30833.69,
       "expected_close": 30772.68,
       "actual_open": 31000,
-      "actual_close": 29250,
+      "actual_close": 30750,
       "expected_return": -0.2,
-      "session_return": -5.65,
-      "error": -5.45,
+      "session_return": -0.81,
+      "error": -0.61,
       "missing_reason": null,
       "expected_open_basis": {
         "model": "prior_3_sessions_open_gap_mean_capped_5pct",

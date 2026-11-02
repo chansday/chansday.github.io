@@ -26,6 +26,8 @@ export const STAGES = Object.freeze([
   { id: "forecast", workflow: "forecast.yml", at: "08:35", lastStart: "08:50", kind: "pre-open" },
   { id: "open-settlement", workflow: "open-settlement.yml", at: "09:00", lastStart: "23:00", kind: "settlement" },
   { id: "close-catch-up", workflow: "close-catch-up.yml", at: "09:30", lastStart: "14:30", kind: "catch-up", after: Object.freeze(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]) },
+  // Late close dispatches are labelled close_basis "integrated_nxt" and cannot
+  // replace a "krx_regular" close (see KRX_CLOSE_WINDOW in update-results.mjs).
   { id: "close-settlement", workflow: "close-settlement.yml", at: "15:30", lastStart: "23:00", kind: "settlement" },
 ].map(Object.freeze));
 

@@ -1,5 +1,6 @@
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "../providers/evaluation-contract.js";
 
 const root = resolve(process.cwd());
@@ -60,6 +61,48 @@ function buildMatrix(latest) {
   ];
 }
 
+// The next session's polling prior close (closePrice - change) is the KRX
+// regular-session close. 08:00 is skipped: the NXT pre-market can move it.
+export const PRIOR_CLOSE_STAGES = Object.freeze(["0700", "0820", "0900"]);
+
+// Explicit, reviewed exceptions: the 15:30 krx_regular close is the real KRX
+// close but the next session's base price (prior_close) was adjusted by an
+// ex-rights / ex-dividend / split / capital-increase event. Key is the close
+// date, value maps symbol -> evidence (e.g. rescaled daily candles).
+// 2026-10-28 and 2026-10-30 were reviewed: every disagreement was a
+// collection error (corrected in the run files), so no entries exist yet.
+export const PRIOR_CLOSE_ADJUSTMENTS = Object.freeze({});
+
+export function crossCheckClose(closeRows, nextRows, adjustedSymbols = []) {
+  const next = new Map(nextRows.filter((row) => row.prior_close > 0 && row.prior_close_source === "naver_polling_close_minus_change").map((row) => [row.symbol, row.prior_close]));
+  const adjusted = new Set(adjustedSymbols);
+  const result = { compared: 0, matched: 0, krx_regular_mismatches: [], prior_close_adjusted: [] };
+  for (const row of closeRows) {
+    const prior = next.get(row.symbol);
+    if (!(row.actual_close > 0) || !prior) continue;
+    result.compared += 1;
+    if (row.actual_close === prior) result.matched += 1;
+    else if (row.close_basis === "krx_regular") (adjusted.has(row.symbol) ? result.prior_close_adjusted : result.krx_regular_mismatches).push(row.symbol);
+  }
+  return result;
+}
+
+async function crossCheckRecentCloses(limit = 5) {
+  const dates = (await readdir(resolve(root, "data/runs"))).filter((name) => /^\d{4}-\d{2}-\d{2}$/.test(name)).sort();
+  const checks = [];
+  for (let index = Math.max(0, dates.length - limit - 1); index < dates.length - 1; index += 1) {
+    const close = await readJson(`data/runs/${dates[index]}/1530.json`).catch(() => null);
+    if (!close) continue;
+    for (const stage of PRIOR_CLOSE_STAGES) {
+      const next = await readJson(`data/runs/${dates[index + 1]}/${stage}.json`).catch(() => null);
+      if (!next?.rows?.some((row) => row.prior_close_source === "naver_polling_close_minus_change")) continue;
+      checks.push({ date: dates[index], next_stage: `${dates[index + 1]}/${stage}`, ...crossCheckClose(close.rows, next.rows, Object.keys(PRIOR_CLOSE_ADJUSTMENTS[dates[index]] ?? {})) });
+      break;
+    }
+  }
+  return checks;
+}
+
 async function main() {
   const latest = await readJson("data/latest-snapshot.json");
   const historical = [];
@@ -72,6 +115,7 @@ async function main() {
     snapshot_mode: latest.mode,
     matrix: buildMatrix(latest),
     historical_snapshots: historical,
+    close_cross_check: await crossCheckRecentCloses(),
     pass: historical.every((item) => item.errors.length === 0),
     limitations: [
       "The default naver-crawl provider uses an unofficial public polling endpoint; quote freshness, blocking, and unconfirmed usage terms remain operational risks.",
@@ -83,7 +127,7 @@ async function main() {
   if (!result.pass) process.exitCode = 1;
 }
 
-main().catch((error) => {
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) main().catch((error) => {
   console.error(error.message);
   process.exitCode = 1;
 });
