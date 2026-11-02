@@ -1,0 +1,8 @@
+{
+  "runDate": "2026-11-02",
+  "targetDate": "2026-10-30",
+  "status": "partial",
+  "attemptedAt": "2026-11-02T15:04:47.000Z",
+  "recovery": "retrospective_review",
+  "message": "10월 30일 기존 정산은 15:31 이전에 수집됐으며 단타 예측은 사후 재계산입니다. 실시간 예측 결과로 확인할 수 없습니다."
+}

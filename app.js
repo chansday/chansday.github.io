@@ -289,7 +289,8 @@ async function loadSnapshot() {
     if (state.status === "holiday") throw new DateNavigationError("holiday", selectedDate, `${selectedDate} is a market holiday`);
     if (state.status === "not_collected") throw new DateNavigationError("not_collected", selectedDate, `${selectedDate} has no collected snapshot`);
     if (mode === "historical-test") return loadHistoricalTestSnapshot(selectedDate);
-    return loadSnapshotForMode(mode, selectedDate);
+    const selected = await loadSnapshotForMode(mode, selectedDate);
+    return mode === "provider" ? applyPreviousResultStatus(selected, selectedDate) : selected;
   }
   const response = await fetch("./data/latest-snapshot.json", { cache: "no-store" });
   if (response.status === 404) return emptySnapshot();
@@ -298,6 +299,13 @@ async function loadSnapshot() {
   if (!isSnapshot(latest)) throw new Error("Snapshot shape is invalid");
   const dateParts = dateFormatter.formatToParts(new Date()).reduce((parts, part) => ({ ...parts, [part.type]: part.value }), {});
   const statusDate = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+  await applyPreviousResultStatus(latest, statusDate);
+  if (latest.status === "no_data") return (await loadHistoricalFallback(latest)) || latest;
+  if (isTestOnly(latest)) return emptySnapshot();
+  return latest;
+}
+
+async function applyPreviousResultStatus(latest, statusDate) {
   if (/^\d{4}-\d{2}-\d{2}$/.test(statusDate)) {
     try {
       const statusResponse = await fetch(`./data/runs/${statusDate}/previous-result-status.json`, { cache: "no-store" });
@@ -309,8 +317,6 @@ async function loadSnapshot() {
       }
     } catch { /* The snapshot remains usable if the separate status is unavailable. */ }
   }
-  if (latest.status === "no_data") return (await loadHistoricalFallback(latest)) || latest;
-  if (isTestOnly(latest)) return emptySnapshot();
   return latest;
 }
 
