@@ -3,7 +3,7 @@ import { pathToFileURL } from "node:url";
 const KST_TIMEZONE = "Asia/Seoul";
 const STAGE_BOUNDARIES = Object.freeze({
   open: "09:00:00",
-  close: "15:30:00",
+  close: "15:31:00",
 });
 
 function kstParts(date) {
@@ -58,6 +58,9 @@ export function runContextFromEnvironment({ requireValue = false } = {}) {
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   try {
     const context = resolveStage(process.env.KOSPI_RUN_STARTED_AT || null);
+    if (process.env.KOSPI_FIXED_STAGE === "close-settlement" && context.phase !== "after-close") {
+      throw new Error("Close settlement requires a runner start at or after 15:31 KST.");
+    }
     if (process.env.GITHUB_OUTPUT) {
       const { appendFileSync } = await import("node:fs");
       appendFileSync(process.env.GITHUB_OUTPUT, [

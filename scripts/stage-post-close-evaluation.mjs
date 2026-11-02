@@ -9,7 +9,7 @@ export async function runStagePostClose({ runDate, runStartedAt, runId, evaluato
   if (market.status === "skip") return { status: "skipped", reason: market.reason };
   if (market.status !== "run") throw new Error(market.message);
   const context = resolveStage(runStartedAt);
-  if (context.runDate !== runDate || context.phase !== "after-close") throw new Error("Post-close evaluation requires the current trading day after 15:30 KST");
+  if (context.runDate !== runDate || context.phase !== "after-close") throw new Error("Post-close evaluation requires the current trading day after 15:31 KST");
   if (!/^[A-Za-z0-9._-]+$/.test(runId || "")) throw new Error("Invalid run ID");
   return evaluator({ runDate, runId, stageFile: `data/runs/${runDate}/1530.json` });
 }

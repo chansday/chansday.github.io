@@ -18,15 +18,16 @@ test("run context derives KST date and current stage from the caller run start",
   assert.equal(resolveStage("2026-10-27T01:00:00Z").phase, "after-open");
   assert.equal(resolveStage("2026-10-27T01:00:00Z").stage, "open-settlement");
   assert.equal(resolveStage("2026-10-27T00:00:00Z").stage, "open-settlement");
-  assert.equal(resolveStage("2026-10-27T06:30:00Z").phase, "after-close");
-  assert.equal(resolveStage("2026-10-27T06:30:00Z").stage, "close-settlement");
+  assert.equal(resolveStage("2026-10-27T06:30:59Z").stage, "open-settlement");
+  assert.equal(resolveStage("2026-10-27T06:31:00Z").phase, "after-close");
+  assert.equal(resolveStage("2026-10-27T06:31:00Z").stage, "close-settlement");
 });
 
 test("auto-stage dry-run uses the supplied run start for before/open/close paths", async () => {
   const cases = [
     ["2026-10-26T23:59:59Z", "forecast"],
     ["2026-10-27T00:00:00Z", "open-settlement"],
-    ["2026-10-27T06:30:00Z", "close-settlement"],
+    ["2026-10-27T06:31:00Z", "close-settlement"],
   ];
   for (const [startedAt, expectedStage] of cases) {
     const { stdout } = await execFileAsync(process.execPath, [
@@ -82,4 +83,14 @@ test("static contract steps do not inherit the live daily-history mode", async (
     assert.ok(step, `${name} has a static contract step`);
     assert.match(step, /env:\s*\n\s*KOSPI_DAILY_HISTORY:\s*""/, `${name} clears KOSPI_DAILY_HISTORY for npm test`);
   }
+});
+
+ test("fixed close workflow rejects a runner start before 15:31 KST", async () => {
+  const runner = await readFile(new URL("../.github/workflows/_run-stage.yml", import.meta.url), "utf8");
+  assert.match(runner, /KOSPI_FIXED_STAGE: \$\{\{ inputs\.stage \}\}/);
+  assert.match(runner, /steps\.validate-run-context\.outcome == 'success'/);
+  const invoke = (time, stage) => execFileAsync(process.execPath, ["scripts/run-context.mjs"], { cwd: PROJECT_ROOT, env: { ...process.env, GITHUB_OUTPUT: "", KOSPI_FIXED_STAGE: stage, KOSPI_RUN_STARTED_AT: time } });
+  await assert.rejects(invoke("2026-10-27T06:30:59Z", "close-settlement"), /15:31 KST/);
+  await invoke("2026-10-27T06:31:00Z", "close-settlement");
+  await invoke("2026-10-27T06:30:59Z", "forecast");
 });

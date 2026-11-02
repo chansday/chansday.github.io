@@ -31,7 +31,7 @@ const SOURCE_KIND_LABELS = {
 };
 const STAGE_LABELS = {
   "previous-result": "전일 결과(07:00)", analysis: "기초 분석(08:00)", forecast: "장전 예상(08:35)",
-  "open-settlement": "시가 정산(09:00)", "close-settlement": "종가 정산(15:30)", "update-results": "결과 갱신",
+  "open-settlement": "시가 정산(09:00)", "close-settlement": "종가 정산(15:31)", "update-results": "결과 갱신",
 };
 const PIPELINE_STATUS_LABELS = { ready: "완료", pending: "대기", blocked: "차단됨", degraded: "품질 저하", partial: "부분 결과", no_data: "데이터 없음" };
 const MARKET_STATUS_LABELS = { OPEN: "장중", CLOSE: "장 마감", PREOPEN: "장전" };
@@ -307,7 +307,7 @@ function actualSection(row, ctx) {
   }
   if (!finite(row.actual_close)) {
     const status = stageStatus(pipeline, "closeSettlement");
-    missing.push({ label: "실제 종가", reason: status && status !== "ready" ? `종가 정산(15:30) 단계가 '${stageStatusLabel(status)}' 상태라 장중 수익률을 계산하지 않았습니다.` : "실제 종가가 기록되지 않았습니다." });
+    missing.push({ label: "실제 종가", reason: status && status !== "ready" ? `종가 정산(15:31) 단계가 '${stageStatusLabel(status)}' 상태라 장중 수익률을 계산하지 않았습니다.` : "실제 종가가 기록되지 않았습니다." });
   }
   if (!finite(row.actual_volume)) missing.push({ label: "거래량", reason: "거래량이 기록되지 않았습니다." });
   else if (ctx.providerId === "naver-crawl") sentences.push("거래량은 시세 시각 기준 누적 거래량입니다.");

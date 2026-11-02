@@ -28,7 +28,7 @@ export const STAGES = Object.freeze([
   { id: "close-catch-up", workflow: "close-catch-up.yml", at: "09:30", lastStart: "14:30", kind: "catch-up", after: Object.freeze(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]) },
   // Late close dispatches are labelled close_basis "integrated_nxt" and cannot
   // replace a "krx_regular" close (see KRX_CLOSE_WINDOW in update-results.mjs).
-  { id: "close-settlement", workflow: "close-settlement.yml", at: "15:30", lastStart: "23:00", kind: "settlement" },
+  { id: "close-settlement", workflow: "close-settlement.yml", at: "15:31", lastStart: "23:00", kind: "settlement" },
 ].map(Object.freeze));
 
 export const CATCH_UP_STAGE_ID = "close-catch-up";
@@ -103,14 +103,19 @@ export function stageState(stage, runs, now, date) {
   const active = today.filter((r) => r.status !== "completed");
   const succeeded = today.filter((r) => r.status === "completed" && r.conclusion === "success");
   const cancelled = today.filter((r) => r.status === "completed" && ["cancelled", "skipped"].includes(r.conclusion));
-  const failed = today.filter((r) => r.status === "completed" && !["success", "cancelled", "skipped"].includes(r.conclusion));
+  // A manually dispatched close run created before the settlement window may
+  // have been rejected by the time guard. It must not consume today's scheduled
+  // attempt. Keep active runs as blockers and preserve successful runs.
+  const failed = today.filter((r) => r.status === "completed" && !["success", "cancelled", "skipped"].includes(r.conclusion)
+    && !(stage.id === "close-settlement" && Date.parse(r.created_at) < at.getTime()));
   const attempts = today.length;
   const activeSince = active.length ? new Date(Math.min(...active.map((r) => Date.parse(r.created_at)))).toISOString() : null;
   const base = { id: stage.id, workflow: stage.workflow, kind: stage.kind, at: at.toISOString(), last_start: last.toISOString(), attempts, ...(activeSince ? { active_since: activeSince } : {}) };
   if (succeeded.length) return { ...base, state: "done" };
   if (active.length) {
     // A retryable stage is watched so a failure can be retried inside its window.
-    const watch = stage.retry && now < last && attempts < stage.retry.maxAttempts;
+    const watch = now < last && ((stage.retry && attempts < stage.retry.maxAttempts)
+      || (stage.id === "close-settlement" && active.some((r) => Date.parse(r.created_at) < at.getTime())));
     return { ...base, state: watch ? "watch" : "running" };
   }
   if (failed.length) {

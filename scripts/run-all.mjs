@@ -84,7 +84,7 @@ function stagePlan(runDate, startedAt) {
   // No upper bound here: a late run may still settle a missing close (it is
   // labelled close_basis "integrated_nxt"), but mergeRows never replaces a
   // close already confirmed as "krx_regular" (scripts/update-results.mjs).
-  if (time >= "15:30:00") eligibleStages.add("close-settlement");
+  if (time >= "15:31:00") eligibleStages.add("close-settlement");
 
   return STAGES.map((stage) => {
     const eligible = eligibleStages.has(stage);
@@ -92,7 +92,7 @@ function stagePlan(runDate, startedAt) {
     if (!eligible && stage === "open-settlement") {
       reason = "open-settlement is pending until 09:00 KST; no value is synthesized before the open.";
     } else if (!eligible && stage === "close-settlement") {
-      reason = "close-settlement is pending until 15:30 KST; no close command is called early.";
+      reason = "close-settlement is pending until 15:31 KST; no close command is called early.";
     }
     return { stage, status: eligible ? "planned" : "pending", eligible, policy: "current", reason };
   });

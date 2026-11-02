@@ -229,14 +229,14 @@ test("run-all experiment gate allows post-close no_data only with a saved empty 
 test("run-all marks only the current post-close run as experiment-not-applicable", async () => {
   const summary = await runAll([
     "--run-date", "2026-10-27",
-    "--run-started-at", "2026-10-27T06:30:00Z",
-    "--attempted-at", "2026-10-27T06:30:00Z",
+    "--run-started-at", "2026-10-27T06:31:00Z",
+    "--attempted-at", "2026-10-27T06:31:00Z",
     "--run-id", "post-close-experiment-gate",
   ], {
     stageRunner: async () => ({ status: "ready", message: "stubbed stage", stageFile: null }),
     consistencyChecker: async () => ({ status: "ready", message: "stubbed consistency" }),
     experimentRunner: async ({ runStartedAt }) => {
-      assert.equal(runStartedAt, "2026-10-27T06:30:00.000Z");
+      assert.equal(runStartedAt, "2026-10-27T06:31:00.000Z");
       return { status: "no_data", reason: "data_unavailable", notApplicable: true, statusSaved: true, candidate: false, candidatePhases: [] };
     },
   });

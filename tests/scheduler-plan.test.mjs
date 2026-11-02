@@ -28,11 +28,11 @@ test("before 06:10 the keeper sleeps until just after the first stage time, then
 });
 
 test("dispatch order and times follow the KST stage table", () => {
-  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:35"], ["open-settlement", "09:00"], ["close-catch-up", "09:30"], ["close-settlement", "15:30"]]);
+  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:35"], ["open-settlement", "09:00"], ["close-catch-up", "09:30"], ["close-settlement", "15:31"]]);
   const done = (ids) => Object.fromEntries(ids.map((id) => [id, [run(DAY, "06:11")]]));
   assert.equal(plan("07:00", done(["naver-daily-history"]), null, "05").action.stage, "update-results");
   assert.equal(plan("08:35", done(["naver-daily-history", "update-results", "analysis"]), null, "05").action.stage, "forecast");
-  assert.equal(plan("15:30", done(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]), null, "05").action.stage, "close-settlement");
+  assert.equal(plan("15:31", done(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]), null, "05").action.stage, "close-settlement");
   const all = plan("15:40", done(STAGES.map((s) => s.id)));
   assert.equal(all.action.type, "exit");
 });
@@ -74,6 +74,19 @@ test("duplicates are prevented: queued, running, successful or failed runs today
   assert.equal(plan("07:05", cancelled(1)).action.stage, "update-results");
   assert.equal(state(plan("07:05", cancelled(3)), "update-results"), "gave_up");
   assert.equal(kstDayStartIso(DAY), "2026-10-28T15:00:00.000Z");
+});
+
+test("an early rejected close run does not suppress scheduled settlement", () => {
+  const prior = Object.fromEntries(STAGES.slice(0, 5).map((s) => [s.id, [run(DAY, s.at)]]));
+  const early = run(DAY, "15:30", "completed", "failure");
+  const runs = { ...prior, "close-settlement": [early] };
+  assert.equal(state(plan("15:30", runs), "close-settlement"), "waiting");
+  assert.equal(plan("15:31", runs, null, "05").action.stage, "close-settlement");
+  const active = plan("15:32", { ...prior, "close-settlement": [run(DAY, "15:30", "in_progress", null)] });
+  assert.equal(state(active, "close-settlement"), "watch");
+  assert.equal(active.action.type, "sleep");
+  assert.equal(state(plan("15:32", { ...prior, "close-settlement": [run(DAY, "15:30")] }), "close-settlement"), "done");
+  assert.equal(state(plan("15:32", { ...prior, "close-settlement": [early, run(DAY, "15:31", "completed", "failure")] }), "close-settlement"), "failed");
 });
 
 test("relay happens before the runner budget; the relayed keeper continues with remaining stages", () => {
@@ -249,7 +262,7 @@ test("catch-up is dispatched with run_date only after 09:30 and after every earl
   assert.equal(state(p("10:00", { ...doneAll(), [CATCH_UP_STAGE_ID]: [run(DAY, "09:31", "queued", null)] }), CATCH_UP_STAGE_ID), "running");
   assert.equal(state(p("14:31", doneAll()), CATCH_UP_STAGE_ID), "missed");
   // A running catch-up blocks the 15:30 close-settlement like any stage run.
-  const blocking = p("15:30", { ...doneAll(), [CATCH_UP_STAGE_ID]: [run(DAY, "15:00", "in_progress", null)] });
+  const blocking = p("15:31", { ...doneAll(), [CATCH_UP_STAGE_ID]: [run(DAY, "15:00", "in_progress", null)] });
   assert.equal(blocking.action.type, "sleep"); assert.match(blocking.action.reason, /close-settlement waits for close-catch-up/);
 });
 

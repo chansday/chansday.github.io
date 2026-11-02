@@ -11,7 +11,8 @@ test("run-all dry-run gates stages by the actual KST run-start time", async () =
     ["08:30", "2026-10-26T23:30:00Z", ["planned", "planned", "planned", "pending", "pending"]],
     ["09:00", "2026-10-27T00:00:00Z", ["planned", "planned", "planned", "planned", "pending"]],
     ["12:09", "2026-10-27T03:09:00Z", ["planned", "planned", "planned", "planned", "pending"]],
-    ["15:30", "2026-10-27T06:30:00Z", ["planned", "planned", "planned", "planned", "planned"]],
+    ["15:30", "2026-10-27T06:30:00Z", ["planned", "planned", "planned", "planned", "pending"]],
+    ["15:31", "2026-10-27T06:31:00Z", ["planned", "planned", "planned", "planned", "planned"]],
     ["16:00", "2026-10-27T07:00:00Z", ["planned", "planned", "planned", "planned", "planned"]],
   ];
   for (const [label, startedAt, expectedStatuses] of cases) {
@@ -71,12 +72,12 @@ test("08:30 KST run calls forecast but not either settlement stage", async () =>
   assert.equal(calls.some((args) => args.includes("close-settlement")), false);
 });
 
-test("15:30 KST run calls all five stages", async () => {
+test("15:31 KST run calls all five stages", async () => {
   const calls = [];
   await runAll([
     "--run-date", "2026-10-27",
-    "--run-started-at", "2026-10-27T06:30:00Z",
-    "--attempted-at", "2026-10-27T06:30:00Z",
+    "--run-started-at", "2026-10-27T06:31:00Z",
+    "--attempted-at", "2026-10-27T06:31:00Z",
     "--run-id", "regression-1530",
   ], {
     stageRunner: async (args) => {
@@ -131,8 +132,8 @@ test("run-all fails closed for every executed non-ready stage outcome", async ()
 
   const readySummary = await runAll([
     "--run-date", "2026-10-27",
-    "--run-started-at", "2026-10-27T06:30:00Z",
-    "--attempted-at", "2026-10-27T06:30:00Z",
+    "--run-started-at", "2026-10-27T06:31:00Z",
+    "--attempted-at", "2026-10-27T06:31:00Z",
     "--run-id", "status-ready",
   ], {
     stageRunner: async () => ({ status: "ready", message: "stubbed ready", stageFile: null }),

@@ -86,7 +86,7 @@ test("feature workflows expose input-free buttons and route through the shared g
     "analysis.yml": ["08:00", "analysis"],
     "forecast.yml": ["08:35", "forecast"],
     "open-settlement.yml": ["09:00", "open-settlement"],
-    "close-settlement.yml": ["15:30", "close-settlement"],
+    "close-settlement.yml": ["15:31", "close-settlement"],
   };
   // Stage times live in scripts/scheduler-plan.mjs; scheduler-keeper.yml dispatches them.
   const { STAGES } = await import("../scripts/scheduler-plan.mjs");

@@ -127,8 +127,8 @@ test("scheduled close evaluation runs only after close on a confirmed trading da
     assert.equal((await runStagePostClose({ runDate, runStartedAt, runId: "1.1", evaluator })).status, "skipped");
   }
   await assert.rejects(runStagePostClose({ runDate: "2099-01-05", runStartedAt: "2099-01-05T07:00:00Z", runId: "1.1", evaluator }), /calendar covers/);
-  await assert.rejects(runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:29:59Z", runId: "1.1", evaluator }), /after 15:30/);
+  await assert.rejects(runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:30:59Z", runId: "1.1", evaluator }), /after 15:31/);
   assert.equal(calls, 0);
-  assert.equal((await runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:30:00Z", runId: "1.1", evaluator })).status, "ready");
+  assert.equal((await runStagePostClose({ runDate: "2026-10-27", runStartedAt: "2026-10-27T06:31:00Z", runId: "1.1", evaluator })).status, "ready");
   assert.equal(calls, 1);
 });

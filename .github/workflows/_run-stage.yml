@@ -82,6 +82,8 @@ jobs:
 
       - name: Validate caller run context
         id: validate-run-context
+        env:
+          KOSPI_FIXED_STAGE: ${{ inputs.stage }}
         run: node scripts/run-context.mjs
 
       - name: Guard KOSPI trading day
