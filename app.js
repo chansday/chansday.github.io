@@ -754,7 +754,10 @@ function renderEvidence(row) {
       for (const sentence of section.sentences) { const li = document.createElement("li"); li.textContent = sentence; steps.append(li); }
       block.append(steps);
     }
-    for (const gap of section.missing) { const node = document.createElement("p"); node.className = "detail-missing"; node.textContent = `근거 데이터 없음 — ${gap.label}: ${gap.reason}`; block.append(node); }
+    for (const gap of section.missing) {
+      if (section.id === "expected" && gap.label === "예상 종가 근거" && gap.reason === "저장된 근거의 모델 식별자를 확인할 수 없어 계산식을 표시하지 않습니다.") continue;
+      const node = document.createElement("p"); node.className = "detail-missing"; node.textContent = `근거 데이터 없음 — ${gap.label}: ${gap.reason}`; block.append(node);
+    }
     container.append(block);
   }
   const disclaimer = document.createElement("p");
@@ -790,7 +793,6 @@ async function renderRecentDaily(row) {
   head.append(headingRow); table.append(head); const body = document.createElement("tbody");
   for (const daily of rows) { const tr = document.createElement("tr"); tr.title = daily.source; for (const value of [daily.date, daily.closeText, daily.returnText, daily.volumeText]) { const td = document.createElement("td"); td.textContent = value; tr.append(td); } body.append(tr); }
   table.append(body); container.append(table);
-  const note = document.createElement("p"); note.className = "detail-missing recent-daily-note"; note.textContent = "시가 대비 = 종가 ÷ 시가 − 1. 직전 거래일은 네이버 일봉(시장·가격 조정 기준 미확인), 당일은 종가 정산 기준입니다. 기록이 부족하면 일부만 표시합니다."; container.append(note);
 }
 function renderSelected() {
   const row = snapshot?.rows?.find((candidate) => candidate.symbol === selectedSymbol);

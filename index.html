@@ -10,10 +10,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261102b">
-    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261102b","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261102b","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261102b","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261102b","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261102b","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261102b","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261102b","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261102b","./providers/rank-model.js":"./providers/rank-model.js?v=20261102b","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261102b","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261102b","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261102b","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261102b","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261102b","./providers/daytrade-model.js":"./providers/daytrade-model.js?v=20261102b","./providers/recent-performance.js":"./providers/recent-performance.js?v=20261102b"}}</script>
-    <script type="module" src="./app.js?v=20261102b"></script>
-    <script type="module" src="./providers/daily-experiment-view.js?v=20261102b"></script>
+    <link rel="stylesheet" href="./styles.css?v=20261102c">
+    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261102c","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261102c","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261102c","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261102c","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261102c","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261102c","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261102c","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261102c","./providers/rank-model.js":"./providers/rank-model.js?v=20261102c","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261102c","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261102c","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261102c","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261102c","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261102c","./providers/daytrade-model.js":"./providers/daytrade-model.js?v=20261102c","./providers/recent-performance.js":"./providers/recent-performance.js?v=20261102c"}}</script>
+    <script type="module" src="./app.js?v=20261102c"></script>
+    <script type="module" src="./providers/daily-experiment-view.js?v=20261102c"></script>
   </head>
   <body>
     <a class="skip-link" href="#main-content" onclick="event.preventDefault(); const target = document.getElementById('main-content'); if (target) { target.focus({ preventScroll: true }); target.scrollIntoView(); }">본문으로 바로가기</a>
@@ -48,7 +48,7 @@
           <div class="hero-copy">
             <p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> 오늘 장을 앞두고 확인하는 예상 흐름</p>
             <h1 id="page-title">장 시작 전, 오늘 <em>주목할 종목을 살펴보세요</em></h1>
-            <p class="hero-lede">매 거래일 오전 8시 45분 무렵, 강세가 예상되는 KOSPI 종목과 예상 수익률을 확인할 수 있습니다.</p>
+            <p class="hero-lede">매 거래일 오전 8시 45분 무렵, 강세가 예상되는 KOSPI 종목과 예상 수익률을 확인할 <span>수 있습니다.</span></p>
             <p class="hero-schedule">장전 예측은 오전 8시 35분부터 준비됩니다. 데이터 수집 상황에 따라 표시가 늦어지거나 제공되지 않을 수 있습니다.</p>
             <p class="hero-status-message" role="note"><strong>데이터 기준 안내:</strong> 예측 이력은 네이버 종목별 일봉을 사용합니다. 거래시장 및 수정주가 기준은 확인되지 않아 정규장 시가·종가와 다를 수 있으며, 종목 분류 미확인으로 우선주가 포함될 수 있습니다.</p>
             <div class="hero-links">

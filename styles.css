@@ -135,6 +135,7 @@ h1, h2, h3, p { margin-top: 0; }
 h1 { max-width: 680px; margin-bottom: 23px; font-size: clamp(45px, 6vw, 80px); font-weight: 800; letter-spacing: -.1em; line-height: 1.05; word-break: keep-all; }
 h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .hero-lede { max-width: 590px; margin-bottom: 31px; color: var(--muted); font-size: 15px; line-height: 1.9; word-break: keep-all; }
+.hero-lede span { white-space: nowrap; }
 .hero-schedule { max-width: 590px; margin: -18px 0 24px; color: var(--muted); font-size: 12px; line-height: 1.7; word-break: keep-all; }
 .hero-links { display: flex; align-items: center; gap: 23px; flex-wrap: wrap; }
 .button { display: inline-flex; align-items: center; gap: 13px; min-height: 45px; padding: 11px 17px; border-radius: 9px; font-size: 12px; font-weight: 800; }
