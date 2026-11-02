@@ -65,7 +65,7 @@ const elementIds = [
   "mode-badge", "data-purpose", "global-status", "status-message", "as-of-date", "published-at", "model-version", "model-trained-at", "row-count", "provider-label", "top-clock", "refresh-button",
   "quality-ribbon", "quality-ribbon-label", "quality-ribbon-text", "truth-label", "truth-note-text", "evaluation-status", "evaluation-headline", "evaluation-description", "summary-status", "summary-status-detail", "summary-samples", "summary-samples-detail", "summary-range", "summary-range-detail", "summary-rmse", "summary-rmse-detail", "summary-expected", "summary-expected-detail", "summary-actual", "summary-actual-detail", "summary-error", "summary-error-detail", "summary-scope", "summary-scope-detail",
   "kpi-market", "kpi-market-note", "kpi-market-bar", "kpi-universe", "kpi-valid", "kpi-accuracy", "kpi-accuracy-note", "kpi-model", "kpi-model-note", "kpi-model-time", "kpi-model-quality", "table-state", "table-count", "ranking-table", "ranking-body", "ranking-cards", "empty-state", "empty-state-note", "search-input", "status-filter", "sort-select", "ranking-date-picker", "ranking-date-button", "ranking-date-label", "ranking-date-popover", "calendar-month", "calendar-grid", "calendar-status", "calendar-prev", "calendar-next",
-  "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-close", "selected-expected-return", "selected-actual-open", "selected-actual-close", "selected-actual-return", "selected-error", "selected-confidence", "selected-quality", "selected-reasons", "selected-evidence",
+  "selected-empty", "selected-content", "selected-detail-hint", "selected-symbol", "selected-name", "selected-status", "selected-expected-open", "selected-expected-close", "selected-expected-return", "selected-actual-open", "selected-actual-close", "selected-actual-return", "selected-quality", "selected-reasons", "selected-evidence",
   "source-name", "source-url", "source-license", "evaluation-scope", "data-timestamp", "snapshot-date", "source-collection", "source-range", "model-name", "baseline-input", "model-note", "limit-title", "quality-summary", "quality-source", "data-notice", "notice-title", "notice-detail", "footer-status",
 ].reduce((result, id) => ({ ...result, [id]: document.getElementById(id) }), {});
 
@@ -707,6 +707,7 @@ function selectRow(symbol, { reveal = false } = {}) {
   const panelTop = panel?.getBoundingClientRect().top;
   if (panel && (window.matchMedia?.("(max-width: 1120px)").matches || panelTop < 0 || panelTop > window.innerHeight - 160)) panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
+const DETAIL_HIDDEN_SECTIONS = new Set(["error"]);
 function renderEvidence(row) {
   const container = elementIds["selected-evidence"];
   if (!container) return;
@@ -718,7 +719,8 @@ function renderEvidence(row) {
   container.replaceChildren();
   if (!detail) return;
   const stateText = { available: "근거 있음", partial: "일부 기록", missing: "근거 데이터 없음", no_trade: NO_TRADE_LABEL };
-  for (const section of detail.sections) {
+  // The error (오차) section is hidden only in the selected-detail panel; buildSelectedDetail still returns it.
+  for (const section of detail.sections.filter((entry) => !DETAIL_HIDDEN_SECTIONS.has(entry.id))) {
     const block = document.createElement("section");
     block.className = "detail-section";
     block.dataset.section = section.id;
@@ -775,8 +777,6 @@ function renderSelected() {
   setText(elementIds["selected-actual-open"], formatPrice(row.actualOpen));
   setText(elementIds["selected-actual-close"], formatPrice(row.actualClose));
   setText(elementIds["selected-actual-return"], formatPercent(row.sessionReturn));
-  setText(elementIds["selected-error"], formatPercent(row.error));
-  setText(elementIds["selected-confidence"], finite(row.confidence) ? numberFormatter.format(row.confidence) : "—");
   setText(elementIds["selected-quality"], `품질 ${qualityLabel(row.quality)}`);
   setText(elementIds["selected-reasons"], `상태 사유 ${row.reasons?.length ? row.reasons.join(", ") : "기록 없음"}`);
   renderEvidence(row);

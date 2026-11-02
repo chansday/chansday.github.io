@@ -255,3 +255,14 @@ test("hidden attribute always wins over author display rules (test ribbon on ope
     if (shows) assert.match(css, /\[hidden\][^{]*\{\s*display:\s*none\s*!important/, `.${name} sets display but is hidden in markup`);
   }
 });
+
+test("selected detail panel no longer shows the 오차 or 신뢰도 items", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+  const panel = html.slice(html.indexOf('<aside class="detail-panel'), html.indexOf("</aside>", html.indexOf('<aside class="detail-panel')));
+  assert.ok(panel.includes("선택한 종목의 상세"));
+  assert.doesNotMatch(panel, /오차|신뢰도|selected-error|selected-confidence/);
+  assert.doesNotMatch(app, /selected-error|selected-confidence/);
+  assert.match(app, /const DETAIL_HIDDEN_SECTIONS = new Set\(\["error"\]\);/);
+  assert.match(app, /detail\.sections\.filter\(\(entry\) => !DETAIL_HIDDEN_SECTIONS\.has\(entry\.id\)\)/);
+});
