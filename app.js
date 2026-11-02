@@ -707,7 +707,7 @@ function selectRow(symbol, { reveal = false } = {}) {
   const panelTop = panel?.getBoundingClientRect().top;
   if (panel && (window.matchMedia?.("(max-width: 1120px)").matches || panelTop < 0 || panelTop > window.innerHeight - 160)) panel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-const DETAIL_HIDDEN_SECTIONS = new Set(["error"]);
+const DETAIL_HIDDEN_SECTIONS = new Set(["error", "source"]);
 function renderEvidence(row) {
   const container = elementIds["selected-evidence"];
   if (!container) return;
@@ -719,7 +719,7 @@ function renderEvidence(row) {
   container.replaceChildren();
   if (!detail) return;
   const stateText = { available: "근거 있음", partial: "일부 기록", missing: "근거 데이터 없음", no_trade: NO_TRADE_LABEL };
-  // The error (오차) section is hidden only in the selected-detail panel; buildSelectedDetail still returns it.
+  // The error (오차) and source (출처·신뢰 정보) sections are hidden only in the selected-detail panel; buildSelectedDetail still returns them.
   for (const section of detail.sections.filter((entry) => !DETAIL_HIDDEN_SECTIONS.has(entry.id))) {
     const block = document.createElement("section");
     block.className = "detail-section";

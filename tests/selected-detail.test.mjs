@@ -263,6 +263,19 @@ test("selected detail panel no longer shows the 오차 or 신뢰도 items", asyn
   assert.ok(panel.includes("선택한 종목의 상세"));
   assert.doesNotMatch(panel, /오차|신뢰도|selected-error|selected-confidence/);
   assert.doesNotMatch(app, /selected-error|selected-confidence/);
-  assert.match(app, /const DETAIL_HIDDEN_SECTIONS = new Set\(\["error"\]\);/);
+  assert.match(app, /const DETAIL_HIDDEN_SECTIONS = new Set\(\["error", "source"\]\);/);
   assert.match(app, /detail\.sections\.filter\(\(entry\) => !DETAIL_HIDDEN_SECTIONS\.has\(entry\.id\)\)/);
+});
+
+test("selected detail panel hides the 출처·신뢰 정보 card and drops 출처 from its empty-state and aria copy", async () => {
+  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const panel = html.slice(html.indexOf('<aside class="detail-panel'), html.indexOf("</aside>", html.indexOf('<aside class="detail-panel')));
+  assert.match(panel, /예상값 근거·실제값을 확인할 수 있습니다\./);
+  assert.match(panel, /aria-label="선택한 종목의 예상 근거·실제값"/);
+  assert.doesNotMatch(panel, /출처/);
+  // buildSelectedDetail still returns the hidden sections; only the panel filters them.
+  const ids = buildSelectedDetail({ symbol: "000001", name: "테스트", expected_open: 100, expected_close: 101, actual_open: 100, actual_close: 102 }, {}).sections.map((entry) => entry.id);
+  assert.deepEqual(ids, ["expected", "actual", "error", "source"]);
+  const hidden = new Set(["error", "source"]);
+  assert.deepEqual(ids.filter((id) => !hidden.has(id)), ["expected", "actual"]);
 });
