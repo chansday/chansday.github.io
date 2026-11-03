@@ -1,8 +1,16 @@
 {
-  "status": "blocked",
+  "status": "partial",
   "targetDate": "2026-11-02",
-  "message": "2026-11-02 정산의 날짜·출처·상태 또는 15:31 이후 수집을 확인할 수 없습니다.",
+  "message": "11월 2일 네이버 일봉으로 사후 보충: 883종목 비교, 예상값 미확인 2종목, 거래 없음 27종목. 정규장·수정주가 기준은 미확인입니다.",
   "runDate": "2026-11-03",
   "attemptedAt": "2026-11-02T23:05:06.288Z",
-  "runId": "41542560161.1"
+  "runId": "41542560161.1",
+  "recovery": "naver_daily_review",
+  "recovery_file": "data/runs/2026-11-03/previous-result-daily-recovery.json",
+  "recovered_at": "2026-11-03T01:57:00.643Z",
+  "original_status": "blocked",
+  "original_message": "2026-11-02 정산의 날짜·출처·상태 또는 15:31 이후 수집을 확인할 수 없습니다.",
+  "compared": 883,
+  "missing": 2,
+  "excluded": 27
 }
