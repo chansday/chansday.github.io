@@ -389,6 +389,14 @@ export function recentDailyRows(history, symbol, date, settledRow = null) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date || '')) return [];
   const byDate = new Map();
   if (history?.source === 'naver-daily' && history?.target_date === date && Array.isArray(history.sessions)) {
+    // The three session records support the forecast; return_history retains
+    // older daily bars too. Session rows take precedence when dates overlap.
+    const bars = history.return_history?.[symbol];
+    if (Array.isArray(bars)) for (const bar of bars) {
+      if (!Array.isArray(bar) || !/^\d{4}-\d{2}-\d{2}$/.test(bar[0] || '') || bar[0] >= date) continue;
+      const [day, open, close, , , volume] = bar;
+      byDate.set(day, { date: day, open, close, volume, source: '네이버 일봉' });
+    }
     for (const session of history.sessions) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(session?.date || '') || session.date >= date || !Array.isArray(session.rows)) continue;
       const row = session.rows.find(entry => entry?.symbol === symbol);
@@ -396,9 +404,10 @@ export function recentDailyRows(history, symbol, date, settledRow = null) {
     }
   }
   if (settledRow && finite(settledRow.actual_close) && settledRow.actual_close > 0) byDate.set(date, { date, open: settledRow.actual_open, close: settledRow.actual_close, volume: settledRow.actual_volume, source: '당일 종가 정산' });
-  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3).map(row => ({
+  return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(row => ({
     ...row, closeText: row.close > 0 && finite(row.close) ? formatWon(row.close) : '—',
     returnText: row.open > 0 && row.close > 0 && finite(row.open) && finite(row.close) ? formatPct((row.close / row.open - 1) * 100) : '—',
     volumeText: finite(row.volume) && row.volume >= 0 ? `${integer.format(row.volume)}주` : '—',
   }));
 }
+

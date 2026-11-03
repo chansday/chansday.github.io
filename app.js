@@ -793,7 +793,7 @@ async function renderRecentDaily(row) {
   const token = ++recentDailyToken, container = document.getElementById("selected-recent-daily");
   const date = snapshot?.meta?.run_date || snapshot?.asOfDate;
   container.replaceChildren();
-  const heading = document.createElement("h4"); heading.textContent = "최근 3거래일"; container.append(heading);
+  const heading = document.createElement("h4"); heading.textContent = "최근 거래 5일"; container.append(heading);
   const message = document.createElement("p"); message.className = "detail-missing"; message.textContent = "일봉 기록을 불러오는 중입니다."; container.append(message);
   if (!isIsoDate(date) || isTestOnly(snapshot)) { message.textContent = "이 화면에서 사용할 일봉 기록이 없습니다."; return; }
   let history = null;
@@ -811,7 +811,7 @@ async function renderRecentDaily(row) {
   if (!rows.length) { message.textContent = "이 종목의 최근 일봉 기록이 없습니다."; return; }
   message.remove();
   const table = document.createElement("table"); table.className = "recent-daily-table";
-  const caption = document.createElement("caption"); caption.textContent = "최근 3거래일 종가, 시가 대비 등락률 및 거래량 (원, %, 주)"; table.append(caption);
+  const caption = document.createElement("caption"); caption.textContent = "최근 거래 5일 종가, 시가 대비 등락률 및 거래량 (원, %, 주)"; table.append(caption);
   const head = document.createElement("thead"); const headingRow = document.createElement("tr");
   for (const label of ["거래일", "종가", "시가 대비", "거래량"]) { const th = document.createElement("th"); th.scope = "col"; th.textContent = label; headingRow.append(th); }
   head.append(headingRow); table.append(head); const body = document.createElement("tbody");
@@ -940,3 +940,4 @@ async function renderRecentPerformance() {
   if (!results.length) { container.innerHTML = '<p class="performance-message">확인된 종가 정산 기록이 없습니다.</p>'; return; }
   container.innerHTML = results.map((result, index) => `<article class="pipeline-step performance-day${isNegativePerformance(result.top10) ? " performance-day-negative" : ""}" role="listitem"><div class="step-index">${String(index + 1).padStart(2, "0")}</div><div class="step-copy"><h3>${formatPlainDate(result.date)}</h3><div class="performance-values"><div><span>상위 10위 수익률</span><strong>${formatPercent(result.top10)}</strong></div><div><span>상위 20위 수익률</span><strong>${formatPercent(result.top20)}</strong></div></div></div></article>`).join("");
 }
+
