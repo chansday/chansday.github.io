@@ -195,6 +195,8 @@ cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴�
 - 당일 값: 종가 정산 직후 아직 네이버에 당일 데이터가 없을 수 있다. 없는 값을 이전 날짜의 값으로 대체하지 않고 부분 결과로 기록하며, 저녁 실행 때 다시 확인한다.
 - 제한: 종목당 최소 1초 간격, HTTP 429의 `Retry-After`를 최대 120초까지 한 번만 준수한다. 403/반복 429, 로그인·차단 화면, 예상 밖 형식 또는 오류가 발생하면 즉시 중단한다. User-Agent는 고정하며 헤더를 바꿔 차단을 우회하지 않는다.
 - 저장: `data/investor-flow/YYYY-MM-DD.json`에 종목별 외국인·개인·기관 순매수 주식 수를 저장하며 GitHub Pages에서 직접 읽는다. 이용자는 별도 키 없이 볼 수 있고 공개 저장소 방문자도 값을 볼 수 있다. 누락된 수치는 기존 값을 지우지 않으며, 없는 값은 `-`로 표시한다. 초기 암호화 수집 파일(`data/private-investor/`)은 내용을 평문으로 공개한 뒤 삭제했다.
+- 과거 수집: Actions → `[개인] 매매동향 과거 수집`([`scripts/backfill-investor-flow.mjs`](../scripts/backfill-investor-flow.mjs)). 같은 `m.stock.naver.com` trend 주소·User-Agent·1초 간격으로 `pageSize=60&bizdate=YYYYMMDD`(그 날짜 이전 60거래일)를 전 종목에 한 바퀴씩 요청하고, 바퀴가 끝날 때마다 날짜 파일을 저장·커밋한다. 실패한 바퀴는 저장하지 않으며, 다시 실행하면 저장된 가장 오래된 날짜에서 이어 간다. 현재 `data/kospi-universe.json` 종목만 수집하므로 상장폐지 종목은 빠진다. 2026-11-03 점검에서 2021-09까지 이어지는 것을 확인했다.
+- robots: `m.stock.naver.com`은 robots.txt `Disallow: /`이지만, 매매동향 수집(일일·과거)은 소유자 결정으로 이 주소를 사용한다. 다른 수집기의 robots 정책은 그대로다.
 - 개별 테스트: `npm run investor:collect -- --symbol 011420 --date 2026-11-02`; 기간은 `--from 2026-10-26 --to 2026-11-02`. 전체 종목은 `--all`. 요청이 많으므로 전체 실행은 시간이 걸린다.
 
 ### GitHub Actions 로그
