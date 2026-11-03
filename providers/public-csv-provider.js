@@ -1,3 +1,4 @@
+import { createProgressLog } from "./progress-log.js";
 import {
   createSourceMetadata,
   isProviderResult,
@@ -120,6 +121,7 @@ function sleep(ms) {
 }
 
 async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics, forecastPolicy }) {
+  const retryLog = createProgressLog({ label: "공개 CSV" });
   let attempt = 0;
   while (attempt <= config.maxRetries) {
     const remaining = deadlineAt - Date.now();
@@ -154,6 +156,7 @@ async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics, for
         metrics.deadlineHit = true;
         return { ok: false, reason: "overall deadline exceeded during retry backoff" };
       }
+      retryLog(`HTTP ${response.status} · ${delay}ms 후 재시도 ${attempt + 1}/${config.maxRetries}`);
       await sleep(delay);
     } catch (error) {
       if (error.name === "AbortError") {
@@ -170,6 +173,7 @@ async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics, for
         metrics.deadlineHit = true;
         return { ok: false, reason: "overall deadline exceeded during retry backoff" };
       }
+      retryLog(`요청 오류 (${error.name}) · ${delay}ms 후 재시도 ${attempt + 1}/${config.maxRetries}`);
       await sleep(delay);
     } finally {
       clearTimeout(timer);
@@ -478,3 +482,4 @@ export function createPublicCsvProvider({
   if (!config.enabled) provider.getSourceMetadata = () => null;
   return provider;
 }
+

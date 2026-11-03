@@ -30,18 +30,24 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
+        id: log_step_01
       - uses: actions/setup-node@v7
+        id: log_step_02
         with:
           node-version: 22
       - name: Validate current contract
+        id: log_step_03
         run: npm test && npm run check && npm run check:experiment
       - name: Refresh holidays from KRX
+        id: log_step_04
         env:
           KOSPI_CALENDAR_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
         run: node scripts/update-market-calendar.mjs
       - name: Verify updated calendar
+        id: log_step_05
         run: npm test && npm run check
       - name: Commit verified calendar
+        id: log_step_06
         shell: bash
         run: |
           set -euo pipefail
@@ -51,3 +57,31 @@ jobs:
           fi
           git add -- data/krx-market-holidays.json
           bash scripts/commit-and-push.sh "chore(data): update KRX market calendar"
+
+      - name: 작업 단계 결과 요약
+        if: always()
+        env:
+          STEP_RESULT_01: ${{ steps.log_step_01.outcome }}|${{ steps.log_step_01.conclusion }}
+          STEP_RESULT_02: ${{ steps.log_step_02.outcome }}|${{ steps.log_step_02.conclusion }}
+          STEP_RESULT_03: ${{ steps.log_step_03.outcome }}|${{ steps.log_step_03.conclusion }}
+          STEP_RESULT_04: ${{ steps.log_step_04.outcome }}|${{ steps.log_step_04.conclusion }}
+          STEP_RESULT_05: ${{ steps.log_step_05.outcome }}|${{ steps.log_step_05.conclusion }}
+          STEP_RESULT_06: ${{ steps.log_step_06.outcome }}|${{ steps.log_step_06.conclusion }}
+          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6ICJhY3Rpb25zL2NoZWNrb3V0QHY3IiwgImxvZ19zdGVwXzAyIjogImFjdGlvbnMvc2V0dXAtbm9kZUB2NyIsICJsb2dfc3RlcF8wMyI6ICJWYWxpZGF0ZSBjdXJyZW50IGNvbnRyYWN0IiwgImxvZ19zdGVwXzA0IjogIlJlZnJlc2ggaG9saWRheXMgZnJvbSBLUlgiLCAibG9nX3N0ZXBfMDUiOiAiVmVyaWZ5IHVwZGF0ZWQgY2FsZW5kYXIiLCAibG9nX3N0ZXBfMDYiOiAiQ29tbWl0IHZlcmlmaWVkIGNhbGVuZGFyIn0=
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          python3 - <<'PYLOG'
+          import base64, json, os
+          from datetime import datetime, timezone, timedelta
+          labels = json.loads(base64.b64decode(os.environ['STEP_LABELS_BASE64']))
+          now = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%d %H:%M:%S KST')
+          lines = ['### 작업 단계 결과', f"- 작업: `{os.environ.get('GITHUB_JOB', '')}` · 실행: `{os.environ.get('GITHUB_RUN_ID', '')}` · 시도: `{os.environ.get('GITHUB_RUN_ATTEMPT', '')}`", f"- 작업 상태: `{os.environ.get('CURRENT_JOB_STATUS', '')}` · 기록 시각: {now}", '', '| 단계 | 실제 결과 | 최종 판정 |', '| --- | --- | --- |']
+          for i, (key, label) in enumerate(labels.items(), 1):
+              outcome, conclusion = (os.environ.get(f'STEP_RESULT_{i:02}', '|') + '|').split('|')[:2]
+              safe_label = label.replace('|', '/').replace('\n', ' ')
+              lines.append(f"| {safe_label} | {outcome or 'skipped'} | {conclusion or 'skipped'} |")
+          report = '\n'.join(lines) + '\n'
+          print(report)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as output: output.write(report)
+          PYLOG

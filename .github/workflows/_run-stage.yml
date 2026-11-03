@@ -123,6 +123,7 @@ jobs:
         run: node scripts/update-results.mjs --mode "$RESOLVED_STAGE" --run-started-at "${{ steps.capture-run-context.outputs.run_started_at }}" --attempted-at "${{ steps.capture-run-context.outputs.run_started_at }}"
 
       - name: Save previous-result failure status
+        id: log_step_09
         if: >-
           always() && steps.stage.outcome == 'failure' &&
           (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'update-results' &&
@@ -139,6 +140,7 @@ jobs:
           bash scripts/commit-and-push.sh "chore(data): record previous result status"
 
       - name: Freeze recorded pre-open ranking
+        id: log_step_10
         if: >-
           steps.stage.outcome == 'success' && steps.stage.outputs.status == 'ready' &&
           (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'forecast'
@@ -182,6 +184,7 @@ jobs:
         run: node scripts/daytrade-signal.mjs "$([ "$RESOLVED_STAGE" = open-settlement ] && echo open || echo close)" --date "$KOSPI_RUN_DATE"
 
       - name: Write workflow summary
+        id: log_step_14
         if: always()
         shell: bash
         env:
@@ -258,6 +261,7 @@ jobs:
           bash scripts/commit-and-push.sh "chore(data): record isolated daily experiment $EXPERIMENT_DATE"
 
       - name: Fail when the stage is not ready
+        id: log_step_17
         if: always()
         shell: bash
         env:
@@ -316,6 +320,7 @@ jobs:
           fi
 
       - name: Fail when the isolated experiment failed
+        id: log_step_18
         if: always() && (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'forecast' && steps.static-contract.outcome == 'success'
         shell: bash
         run: |
@@ -324,3 +329,42 @@ jobs:
             exit 1
           fi
 
+      - name: 작업 단계 결과 요약
+        if: always()
+        env:
+          STEP_RESULT_01: ${{ steps.capture-run-context.outcome }}|${{ steps.capture-run-context.conclusion }}
+          STEP_RESULT_02: ${{ steps.checkout.outcome }}|${{ steps.checkout.conclusion }}
+          STEP_RESULT_03: ${{ steps.setup-node.outcome }}|${{ steps.setup-node.conclusion }}
+          STEP_RESULT_04: ${{ steps.validate-run-context.outcome }}|${{ steps.validate-run-context.conclusion }}
+          STEP_RESULT_05: ${{ steps.market-day.outcome }}|${{ steps.market-day.conclusion }}
+          STEP_RESULT_06: ${{ steps.auto_stage.outcome }}|${{ steps.auto_stage.conclusion }}
+          STEP_RESULT_07: ${{ steps.static-contract.outcome }}|${{ steps.static-contract.conclusion }}
+          STEP_RESULT_08: ${{ steps.stage.outcome }}|${{ steps.stage.conclusion }}
+          STEP_RESULT_09: ${{ steps.log_step_09.outcome }}|${{ steps.log_step_09.conclusion }}
+          STEP_RESULT_10: ${{ steps.log_step_10.outcome }}|${{ steps.log_step_10.conclusion }}
+          STEP_RESULT_11: ${{ steps.daily-experiment.outcome }}|${{ steps.daily-experiment.conclusion }}
+          STEP_RESULT_12: ${{ steps.retrospective.outcome }}|${{ steps.retrospective.conclusion }}
+          STEP_RESULT_13: ${{ steps.daytrade.outcome }}|${{ steps.daytrade.conclusion }}
+          STEP_RESULT_14: ${{ steps.log_step_14.outcome }}|${{ steps.log_step_14.conclusion }}
+          STEP_RESULT_15: ${{ steps.commit.outcome }}|${{ steps.commit.conclusion }}
+          STEP_RESULT_16: ${{ steps.save-experiment.outcome }}|${{ steps.save-experiment.conclusion }}
+          STEP_RESULT_17: ${{ steps.log_step_17.outcome }}|${{ steps.log_step_17.conclusion }}
+          STEP_RESULT_18: ${{ steps.log_step_18.outcome }}|${{ steps.log_step_18.conclusion }}
+          STEP_LABELS_BASE64: eyJjYXB0dXJlLXJ1bi1jb250ZXh0IjogIkNhcHR1cmUgYWN0dWFsIHJ1bm5lciBzdGFydCB0aW1lc3RhbXAiLCAiY2hlY2tvdXQiOiAiQ2hlY2sgb3V0IHJlcG9zaXRvcnkiLCAic2V0dXAtbm9kZSI6ICJTZXQgdXAgTm9kZS5qcyIsICJ2YWxpZGF0ZS1ydW4tY29udGV4dCI6ICJWYWxpZGF0ZSBjYWxsZXIgcnVuIGNvbnRleHQiLCAibWFya2V0LWRheSI6ICJHdWFyZCBLT1NQSSB0cmFkaW5nIGRheSIsICJhdXRvX3N0YWdlIjogIlJlc29sdmUgY3VycmVudCBLU1Qgc3RhZ2UiLCAic3RhdGljLWNvbnRyYWN0IjogIlZhbGlkYXRlIHRoZSBzdGF0aWMgY29udHJhY3QiLCAic3RhZ2UiOiAiUnVuIHJlc29sdmVkIEtPU1BJIHN0YWdlIiwgImxvZ19zdGVwXzA5IjogIlNhdmUgcHJldmlvdXMtcmVzdWx0IGZhaWx1cmUgc3RhdHVzIiwgImxvZ19zdGVwXzEwIjogIkZyZWV6ZSByZWNvcmRlZCBwcmUtb3BlbiByYW5raW5nIiwgImRhaWx5LWV4cGVyaW1lbnQiOiAiQ29sbGVjdCBpc29sYXRlZCBkYWlseSBiYXNlbGluZSIsICJyZXRyb3NwZWN0aXZlIjogIkV2YWx1YXRlIHBvc3QtY2xvc2UgcmV0cm9zcGVjdGl2ZSIsICJkYXl0cmFkZSI6ICJTY29yZSBkYXktdHJhZGUgcGlja3MiLCAibG9nX3N0ZXBfMTQiOiAiV3JpdGUgd29ya2Zsb3cgc3VtbWFyeSIsICJjb21taXQiOiAiQ29tbWl0IHNuYXBzaG90IHN0YXRlIHdoZW4gY2hhbmdlZCIsICJzYXZlLWV4cGVyaW1lbnQiOiAiU2F2ZSBpc29sYXRlZCBkYWlseSBiYXNlbGluZSIsICJsb2dfc3RlcF8xNyI6ICJGYWlsIHdoZW4gdGhlIHN0YWdlIGlzIG5vdCByZWFkeSIsICJsb2dfc3RlcF8xOCI6ICJGYWlsIHdoZW4gdGhlIGlzb2xhdGVkIGV4cGVyaW1lbnQgZmFpbGVkIn0=
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          python3 - <<'PYLOG'
+          import base64, json, os
+          from datetime import datetime, timezone, timedelta
+          labels = json.loads(base64.b64decode(os.environ['STEP_LABELS_BASE64']))
+          now = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%d %H:%M:%S KST')
+          lines = ['### 작업 단계 결과', f"- 작업: `{os.environ.get('GITHUB_JOB', '')}` · 실행: `{os.environ.get('GITHUB_RUN_ID', '')}` · 시도: `{os.environ.get('GITHUB_RUN_ATTEMPT', '')}`", f"- 작업 상태: `{os.environ.get('CURRENT_JOB_STATUS', '')}` · 기록 시각: {now}", '', '| 단계 | 실제 결과 | 최종 판정 |', '| --- | --- | --- |']
+          for i, (key, label) in enumerate(labels.items(), 1):
+              outcome, conclusion = (os.environ.get(f'STEP_RESULT_{i:02}', '|') + '|').split('|')[:2]
+              safe_label = label.replace('|', '/').replace('\n', ' ')
+              lines.append(f"| {safe_label} | {outcome or 'skipped'} | {conclusion or 'skipped'} |")
+          report = '\n'.join(lines) + '\n'
+          print(report)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as output: output.write(report)
+          PYLOG

@@ -1,3 +1,4 @@
+import { createProgressLog } from "./progress-log.js";
 import {
   createSourceMetadata,
   isProviderResult,
@@ -106,6 +107,7 @@ function normalizePayload(payload, source, stage, now, maxAgeHours) {
 }
 
 async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics }) {
+  const retryLog = createProgressLog({ label: "공개 JSON" });
   for (let attempt = 0; attempt <= config.maxRetries; attempt += 1) {
     const remaining = deadlineAt - Date.now();
     if (remaining <= 0) return { ok: false, reason: "overall deadline exceeded" };
@@ -122,12 +124,14 @@ async function fetchWithRetry(url, { config, fetchImpl, deadlineAt, metrics }) {
       const retryAfter = Number(response.headers?.get("retry-after") || 0);
       const delay = Math.min(3000, retryAfter > 0 ? retryAfter * 1000 : config.retryBaseMs * (2 ** attempt));
       if (Date.now() + delay >= deadlineAt) return { ok: false, reason: "overall deadline exceeded during retry backoff" };
+      retryLog(`HTTP ${response.status} · ${delay}ms 후 재시도 ${attempt + 1}/${config.maxRetries}`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     } catch (error) {
       if (attempt >= config.maxRetries) return { ok: false, reason: error.name === "AbortError" ? "source timeout or overall deadline exceeded" : `request failed: ${error.message}` };
       metrics.retries += 1;
       const delay = Math.min(3000, config.retryBaseMs * (2 ** attempt));
       if (Date.now() + delay >= deadlineAt) return { ok: false, reason: "overall deadline exceeded during retry backoff" };
+      retryLog(`요청 오류 (${error.name}) · ${delay}ms 후 재시도 ${attempt + 1}/${config.maxRetries}`);
       await new Promise((resolve) => setTimeout(resolve, delay));
     } finally {
       if (timer !== null) clearTimeout(timer);
@@ -203,3 +207,4 @@ export function createPublicJsonProvider({ env = globalThis.process?.env || {}, 
 
   return provider;
 }
+

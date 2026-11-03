@@ -34,3 +34,9 @@ test('long Retry-After stops without early retry',async()=>{
 test('historical date range includes only covered trading days',async()=>{
  const calendar=await loadMarketCalendar();assert.deepEqual(tradingDates('2026-10-26','2026-11-02',calendar),['2026-10-26','2026-10-27','2026-10-28','2026-10-29','2026-10-30','2026-11-02']);assert.throws(()=>tradingDates('2026-10-31','2026-11-01',calendar));
 });
+test('collection logs retry, progress and denial without recording response data',async()=>{
+ let calls=0;const lines=[];
+ await collectInvestorFlow(['011420'],{...options,log:line=>lines.push(line),fetchImpl:async()=>++calls===1?response(429,{}, {'retry-after':'7'}):response(200),sleep:async()=>{}});
+ assert.match(lines.join('\n'),/HTTP 429.*7초.*재시도/);assert.match(lines.join('\n'),/진행 1\/1/);assert.doesNotMatch(lines.join('\n'),/1,702|1,734/);
+ const denied=[];await collectInvestorFlow(['011420'],{...options,log:line=>denied.push(line),fetchImpl:async()=>response(403),sleep:async()=>{}});assert.match(denied.join('\n'),/HTTP 403.*추가 요청 없음/);
+});

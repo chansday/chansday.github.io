@@ -37,20 +37,24 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Check out repository
+        id: log_step_01
         uses: actions/checkout@v7
 
       - name: Set up Node.js
+        id: log_step_02
         uses: actions/setup-node@v7
         with:
           node-version: 22
 
       - name: Run static validation only
+        id: log_step_03
         run: npm test && npm run check && npm run collection:audit
 
       # Stage jobs run npm test before collecting; repeat it with their
       # environment and on later dates so a date- or data-dependent test fails
       # here at push time instead of blocking a trading-day stage.
       - name: Run tests as a stage job and on future clocks
+        id: log_step_04
         env:
           KOSPI_PROVIDER: naver-crawl
           KOSPI_STABLE_SNAPSHOT: "1"
@@ -58,5 +62,33 @@ jobs:
         run: npm test && npm run test:future-clock
 
       - name: Confirm that validation did not collect snapshots
+        id: log_step_05
         shell: bash
         run: git diff --exit-code -- data/latest-snapshot.json data/runs
+
+      - name: 작업 단계 결과 요약
+        if: always()
+        env:
+          STEP_RESULT_01: ${{ steps.log_step_01.outcome }}|${{ steps.log_step_01.conclusion }}
+          STEP_RESULT_02: ${{ steps.log_step_02.outcome }}|${{ steps.log_step_02.conclusion }}
+          STEP_RESULT_03: ${{ steps.log_step_03.outcome }}|${{ steps.log_step_03.conclusion }}
+          STEP_RESULT_04: ${{ steps.log_step_04.outcome }}|${{ steps.log_step_04.conclusion }}
+          STEP_RESULT_05: ${{ steps.log_step_05.outcome }}|${{ steps.log_step_05.conclusion }}
+          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6ICJDaGVjayBvdXQgcmVwb3NpdG9yeSIsICJsb2dfc3RlcF8wMiI6ICJTZXQgdXAgTm9kZS5qcyIsICJsb2dfc3RlcF8wMyI6ICJSdW4gc3RhdGljIHZhbGlkYXRpb24gb25seSIsICJsb2dfc3RlcF8wNCI6ICJSdW4gdGVzdHMgYXMgYSBzdGFnZSBqb2IgYW5kIG9uIGZ1dHVyZSBjbG9ja3MiLCAibG9nX3N0ZXBfMDUiOiAiQ29uZmlybSB0aGF0IHZhbGlkYXRpb24gZGlkIG5vdCBjb2xsZWN0IHNuYXBzaG90cyJ9
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          python3 - <<'PYLOG'
+          import base64, json, os
+          from datetime import datetime, timezone, timedelta
+          labels = json.loads(base64.b64decode(os.environ['STEP_LABELS_BASE64']))
+          now = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%d %H:%M:%S KST')
+          lines = ['### 작업 단계 결과', f"- 작업: `{os.environ.get('GITHUB_JOB', '')}` · 실행: `{os.environ.get('GITHUB_RUN_ID', '')}` · 시도: `{os.environ.get('GITHUB_RUN_ATTEMPT', '')}`", f"- 작업 상태: `{os.environ.get('CURRENT_JOB_STATUS', '')}` · 기록 시각: {now}", '', '| 단계 | 실제 결과 | 최종 판정 |', '| --- | --- | --- |']
+          for i, (key, label) in enumerate(labels.items(), 1):
+              outcome, conclusion = (os.environ.get(f'STEP_RESULT_{i:02}', '|') + '|').split('|')[:2]
+              safe_label = label.replace('|', '/').replace('\n', ' ')
+              lines.append(f"| {safe_label} | {outcome or 'skipped'} | {conclusion or 'skipped'} |")
+          report = '\n'.join(lines) + '\n'
+          print(report)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as output: output.write(report)
+          PYLOG

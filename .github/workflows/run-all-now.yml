@@ -136,6 +136,7 @@ jobs:
         run: node scripts/run-all.mjs --run-date "$KOSPI_RUN_DATE" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.collection-context.outputs.collection_started_at }}" --run-id "$KOSPI_RUN_ID"
 
       - name: Save previous-result status after a failed run
+        id: log_step_09
         if: always() && steps.run-all.outcome == 'failure' && steps.static-contract.outcome == 'success'
         shell: bash
         run: |
@@ -148,6 +149,7 @@ jobs:
           bash scripts/commit-and-push.sh "chore(data): record previous result status"
 
       - name: Freeze recorded pre-open ranking
+        id: log_step_10
         if: steps.run-all.outcome == 'success' && steps.run-all.outputs.commit_allowed == 'true'
         continue-on-error: true
         run: node scripts/freeze-preopen-ranking.mjs "$KOSPI_RUN_DATE"
@@ -191,6 +193,7 @@ jobs:
           bash scripts/commit-and-push.sh "chore(data): record KOSPI run all $KOSPI_RUN_DATE"
 
       - name: Fail when the all-stage result is not ready
+        id: log_step_12
         # A failed input or historical guard already failed the job with its own error.
         if: always() && steps.validate-input.outcome != 'failure' && steps.historical-guard.outcome != 'failure'
         shell: bash
@@ -274,6 +277,7 @@ jobs:
           esac
 
       - name: Fail when the isolated experiment failed
+        id: log_step_13
         # run-all.mjs reports experiment_status=not_run only on its early-return
         # paths (future date, market closed, historical re-evaluation); the
         # current-day path always runs the experiment and reports its status.
@@ -296,3 +300,37 @@ jobs:
             exit 1
           fi
 
+      - name: 작업 단계 결과 요약
+        if: always()
+        env:
+          STEP_RESULT_01: ${{ steps.validate-input.outcome }}|${{ steps.validate-input.conclusion }}
+          STEP_RESULT_02: ${{ steps.run-context.outcome }}|${{ steps.run-context.conclusion }}
+          STEP_RESULT_03: ${{ steps.checkout.outcome }}|${{ steps.checkout.conclusion }}
+          STEP_RESULT_04: ${{ steps.setup-node.outcome }}|${{ steps.setup-node.conclusion }}
+          STEP_RESULT_05: ${{ steps.historical-guard.outcome }}|${{ steps.historical-guard.conclusion }}
+          STEP_RESULT_06: ${{ steps.static-contract.outcome }}|${{ steps.static-contract.conclusion }}
+          STEP_RESULT_07: ${{ steps.collection-context.outcome }}|${{ steps.collection-context.conclusion }}
+          STEP_RESULT_08: ${{ steps.run-all.outcome }}|${{ steps.run-all.conclusion }}
+          STEP_RESULT_09: ${{ steps.log_step_09.outcome }}|${{ steps.log_step_09.conclusion }}
+          STEP_RESULT_10: ${{ steps.log_step_10.outcome }}|${{ steps.log_step_10.conclusion }}
+          STEP_RESULT_11: ${{ steps.commit.outcome }}|${{ steps.commit.conclusion }}
+          STEP_RESULT_12: ${{ steps.log_step_12.outcome }}|${{ steps.log_step_12.conclusion }}
+          STEP_RESULT_13: ${{ steps.log_step_13.outcome }}|${{ steps.log_step_13.conclusion }}
+          STEP_LABELS_BASE64: eyJ2YWxpZGF0ZS1pbnB1dCI6ICJWYWxpZGF0ZSBydW4gZGF0ZSBpbnB1dCIsICJydW4tY29udGV4dCI6ICJDYXB0dXJlIGFjdHVhbCBydW4gc3RhcnQgdGltZXN0YW1wIiwgImNoZWNrb3V0IjogIkNoZWNrIG91dCByZXBvc2l0b3J5IiwgInNldHVwLW5vZGUiOiAiU2V0IHVwIE5vZGUuanMiLCAiaGlzdG9yaWNhbC1ndWFyZCI6ICJDaGVjayBwYXN0IHJ1biBkYXRlcyIsICJzdGF0aWMtY29udHJhY3QiOiAiVmFsaWRhdGUgdGhlIHN0YXRpYyBjb250cmFjdCIsICJjb2xsZWN0aW9uLWNvbnRleHQiOiAiQ2FwdHVyZSBjb2xsZWN0aW9uIGludm9jYXRpb24gdGltZXN0YW1wIiwgInJ1bi1hbGwiOiAiUnVuIGFsbCBLT1NQSSBzdGFnZXMgc2VxdWVudGlhbGx5IiwgImxvZ19zdGVwXzA5IjogIlNhdmUgcHJldmlvdXMtcmVzdWx0IHN0YXR1cyBhZnRlciBhIGZhaWxlZCBydW4iLCAibG9nX3N0ZXBfMTAiOiAiRnJlZXplIHJlY29yZGVkIHByZS1vcGVuIHJhbmtpbmciLCAiY29tbWl0IjogIkNvbW1pdCBmaW5hbCBydW4gc3RhdGUgb25jZSIsICJsb2dfc3RlcF8xMiI6ICJGYWlsIHdoZW4gdGhlIGFsbC1zdGFnZSByZXN1bHQgaXMgbm90IHJlYWR5IiwgImxvZ19zdGVwXzEzIjogIkZhaWwgd2hlbiB0aGUgaXNvbGF0ZWQgZXhwZXJpbWVudCBmYWlsZWQifQ==
+          CURRENT_JOB_STATUS: ${{ job.status }}
+        shell: bash
+        run: |
+          python3 - <<'PYLOG'
+          import base64, json, os
+          from datetime import datetime, timezone, timedelta
+          labels = json.loads(base64.b64decode(os.environ['STEP_LABELS_BASE64']))
+          now = datetime.now(timezone(timedelta(hours=9))).strftime('%Y-%m-%d %H:%M:%S KST')
+          lines = ['### 작업 단계 결과', f"- 작업: `{os.environ.get('GITHUB_JOB', '')}` · 실행: `{os.environ.get('GITHUB_RUN_ID', '')}` · 시도: `{os.environ.get('GITHUB_RUN_ATTEMPT', '')}`", f"- 작업 상태: `{os.environ.get('CURRENT_JOB_STATUS', '')}` · 기록 시각: {now}", '', '| 단계 | 실제 결과 | 최종 판정 |', '| --- | --- | --- |']
+          for i, (key, label) in enumerate(labels.items(), 1):
+              outcome, conclusion = (os.environ.get(f'STEP_RESULT_{i:02}', '|') + '|').split('|')[:2]
+              safe_label = label.replace('|', '/').replace('\n', ' ')
+              lines.append(f"| {safe_label} | {outcome or 'skipped'} | {conclusion or 'skipped'} |")
+          report = '\n'.join(lines) + '\n'
+          print(report)
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as output: output.write(report)
+          PYLOG

@@ -166,6 +166,7 @@ async function fetchJson(url, context) {
 }
 
 async function fetchJsonOnce(url, context) {
+  const retryLog = createProgressLog({ label: "네이버 요청" });
   const policy = await robotsGate(url, context);
   if (!policy.ok) {
     context.metrics.failed += 1;
@@ -195,6 +196,7 @@ async function fetchJsonOnce(url, context) {
       // 429 or any parseable Retry-After stops immediately: no wait, no retry.
       const notBefore = retryNotBefore(retryAfter);
       if (response.status === 429 || notBefore) {
+        retryLog(`요청 제한 HTTP ${response.status} · 즉시 중단${notBefore ? ` · 재확인 가능 시각 ${notBefore}` : ""}`);
         context.metrics.failed += 1;
         return { ok: false, status: response.status, blocked: true, retryNotBefore: notBefore, reason: `rate limit or Retry-After; collection stopped${notBefore ? ` (retry not before ${notBefore})` : ""}` };
       }
@@ -222,6 +224,7 @@ async function fetchJsonOnce(url, context) {
         context.metrics.deadline_hit = true;
         return { ok: false, status: response.status, reason: "overall deadline exceeded during retry backoff" };
       }
+      retryLog(`HTTP ${response.status} · ${delay}ms 후 재시도 ${attempt + 1}/${context.config.maxRetries}`);
       await sleep(delay);
     } catch (error) {
       if (attempt >= context.config.maxRetries) {
@@ -229,7 +232,9 @@ async function fetchJsonOnce(url, context) {
         return { ok: false, status: null, reason: error.name === "AbortError" ? "source timeout or overall deadline exceeded" : `request failed: ${error.message}` };
       }
       context.metrics.retries += 1;
-      await sleep(Math.min(3_000, context.config.retryBaseMs * (2 ** attempt)));
+      const delay = Math.min(3_000, context.config.retryBaseMs * (2 ** attempt));
+      retryLog(`요청 오류 (${error.name}) · ${delay}ms 후 재시도 ${attempt + 1}/${context.config.maxRetries}`);
+      await sleep(delay);
     } finally {
       clearTimeout(timer);
     }
@@ -842,3 +847,4 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     : wrap(() => collect(provider, "close-settlement", "after-close"));
   return provider;
 }
+
