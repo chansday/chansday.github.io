@@ -40,7 +40,7 @@ concurrency:
 
 jobs:
   run-stage:
-    if: contains(fromJSON('["kospi-signal/kospi-signal.github.io", "chansday/chansday.github.io"]'), github.repository)
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:

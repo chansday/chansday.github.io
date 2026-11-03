@@ -32,7 +32,7 @@ concurrency:
 jobs:
   collect:
     if: >-
-      contains(fromJSON('["kospi-signal/kospi-signal.github.io", "chansday/chansday.github.io"]'), github.repository) &&
+      github.repository == 'kospi-signal/kospi-signal.github.io' &&
       (github.event_name != 'workflow_run' ||
        (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
     runs-on: ubuntu-24.04
