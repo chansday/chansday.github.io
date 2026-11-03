@@ -24,11 +24,11 @@ test('missing daily return stops only its own cumulative series', () => {
   assert.ok(Math.abs(rows[2].top20 - 6.1106) < 1e-9);
 });
 
-test('returns at most the last 10 values without resetting the starting amount', () => {
+test('returns at most the last 30 values without resetting the starting amount', () => {
   const rows = Array.from({length: 35}, (_, i) => ({date:new Date(Date.UTC(2026, 9, 26 + i)).toISOString().slice(0,10), top10:1, top20:0}));
   const result = compoundPerformance(rows);
-  assert.equal(result.length, 10);
-  assert.equal(result[0].date, rows[25].date);
+  assert.equal(result.length, 30);
+  assert.equal(result[0].date, rows[5].date);
   assert.ok(Math.abs(result.at(-1).top10 - (1.01 ** 35 - 1) * 100) < 1e-9);
 });
 
