@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readFile, readdir } from "node:fs/promises";
 import { loadMarketCalendar } from "../scripts/market-calendar.mjs";
 import { CATCH_UP_STAGE_ID, KEEPER_WORKFLOW, STAGES, catchUpCandidateDates, kstDayStartIso, kstInstant, missingCloseDates, planKeeper, runsForDay } from "../scripts/scheduler-plan.mjs";
-import { githubClient, runKeeper } from "../scripts/scheduler-keeper.mjs";
+import { githubClient, nextKstDayWake, runKeeper } from "../scripts/scheduler-keeper.mjs";
 
 const calendar = await loadMarketCalendar();
 const kst = (date, hhmm, sec = "00") => new Date(`${date}T${hhmm}:${sec}+09:00`);
@@ -136,6 +136,37 @@ test("runKeeper on a holiday exits without calling the API", async () => {
   const client = { listRuns: async () => { throw new Error("must not call"); }, dispatch: async () => { throw new Error("must not call"); } };
   const result = await runKeeper({ client, calendar, now: () => kst("2026-12-25", "05:00"), sleep: async () => {}, log: () => {} });
   assert.equal(result.result, "exit");
+});
+
+test("stayAlive: a holiday keeper does not exit, never calls the run API, and relays at the budget", async () => {
+  let clock = kst("2026-12-25", "05:00").getTime();
+  const dispatches = [];
+  const client = { listRuns: async () => { throw new Error("must not call"); }, dispatch: async (w) => { dispatches.push([w, clock]); } };
+  const result = await runKeeper({ client, calendar, stayAlive: true, startedAt: new Date(clock), now: () => new Date(clock), sleep: async (ms) => { clock += ms; }, log: () => {} });
+  assert.equal(result.result, "relay");
+  assert.deepEqual(dispatches.map(([w]) => w), [KEEPER_WORKFLOW]);
+  const elapsed = dispatches[0][1] - kst("2026-12-25", "05:00").getTime();
+  assert.ok(elapsed >= 325 * 60_000 && elapsed < 341 * 60_000, `relayed after ${elapsed} ms`);
+  assert.ok(result.events.some((e) => e.type === "hold"));
+});
+
+test("stayAlive: after the last stage the keeper waits into the next trading day and dispatches its first stage", async () => {
+  const NEXT = "2026-10-30"; // Friday
+  let clock = kst(DAY, "22:00").getTime();
+  const runs = new Map(STAGES.map((s) => [s.workflow, []]));
+  for (const s of STAGES) if (s.kind !== "catch-up") runs.get(s.workflow).push({ created_at: kst(DAY, s.at).toISOString(), event: "workflow_dispatch", status: "completed", conclusion: "success" });
+  const dispatches = [];
+  const client = {
+    async listRuns(workflow, since) { return runs.get(workflow).filter((r) => r.created_at >= since); },
+    async dispatch(workflow) { dispatches.push([workflow, new Date(clock).toISOString()]); if (runs.has(workflow)) runs.get(workflow).push({ created_at: new Date(clock).toISOString(), event: "workflow_dispatch", status: "completed", conclusion: "success" }); },
+  };
+  // Budget long enough to reach 06:10 of the next day within one keeper.
+  const result = await runKeeper({ client, calendar, stayAlive: true, budgetMinutes: 9 * 60, startedAt: new Date(clock), now: () => new Date(clock), sleep: async (ms) => { clock += ms; }, log: () => {} });
+  const first = dispatches.find(([w]) => w === "naver-daily-history.yml");
+  assert.ok(first, `next day's first stage dispatched (${JSON.stringify(dispatches)}, ${result.result})`);
+  const delay = Date.parse(first[1]) - kst(NEXT, "06:10").getTime();
+  assert.ok(delay >= 3000 && delay < 60_000, `dispatched ${delay} ms after 06:10`);
+  assert.equal(nextKstDayWake(kst(DAY, "22:00")).toISOString(), kst(NEXT, "00:05").toISOString());
 });
 
 test("workflows: keeper has minimal permissions and bounded runtime; stages are dispatch-only; actions are current majors", async () => {
