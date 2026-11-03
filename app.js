@@ -851,7 +851,7 @@ function renderSelectedName(node, row) {
   if (!url) { node.textContent = name; return; }
   const link = document.createElement("a");
   link.className = "naver-link"; link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
-  link.title = "네이버 금융에서 보기 (새 창)"; link.setAttribute("aria-label", `${name} 네이버 금융에서 보기 (새 창)`);
+  link.title = "네이버 증권 종목 페이지 (새 창)"; link.setAttribute("aria-label", `${name} 네이버 증권 종목 페이지 (새 창)`);
   link.textContent = name;
   const icon = document.createElement("span"); icon.className = "naver-link-icon"; icon.setAttribute("aria-hidden", "true"); icon.textContent = "↗";
   link.append(icon);

@@ -283,7 +283,7 @@ test("selected detail panel hides the 출처·신뢰 정보 card and drops 출�
 
 test("naverFinanceUrl links only validated KRX codes to the Naver Finance stock page", async () => {
   const { naverFinanceUrl } = await import("../providers/selected-detail.js");
-  assert.equal(naverFinanceUrl("005930"), "https://finance.naver.com/item/main.naver?code=005930");
-  assert.equal(naverFinanceUrl("0009K0"), "https://finance.naver.com/item/main.naver?code=0009K0");
+  assert.equal(naverFinanceUrl("005930"), "https://m.stock.naver.com/domestic/stock/005930/total");
+  assert.equal(naverFinanceUrl("0009K0"), "https://m.stock.naver.com/domestic/stock/0009K0/total");
   for (const bad of ["", "5930", "005930&x=1", "../a/b", "00593a", null, undefined, 5930]) assert.equal(naverFinanceUrl(bad), null);
 });
