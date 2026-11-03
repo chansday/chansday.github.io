@@ -48,7 +48,9 @@ test("a failed request stops without saving the incomplete round and keeps exist
   let n = 0;
   const ok = fakeSource({ "005930": "2020-01-01", "000660": "2020-01-01" });
   const summary = await backfillInvestorFlow(["005930", "000660"], opts(dir, { before: "2026-10-26", fetchImpl: async (u, i) => (++n >= 4 ? json({}, 403) : ok(u, i)) }));
-  assert.deepEqual(summary.stopped, { symbol: "000660", reason: "HTTP_403" });
+  assert.equal(summary.stopped.symbol, "000660");
+  assert.equal(summary.stopped.reason, "HTTP_403");
+  assert.match(summary.stopped.from, /^\d{4}-\d{2}-\d{2}$/);
   assert.equal(summary.rounds.length, 1);
   assert.equal(n, 3 + INVESTOR_USER_AGENTS.length);
   assert.ok((await readdir(dir)).includes("2026-10-26.json"));
