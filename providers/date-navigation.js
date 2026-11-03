@@ -29,7 +29,8 @@ export function normalizeDateIndex(index) {
     if (!Object.hasOwn(CALENDAR_MODES, mode) || !stages || typeof stages !== "object") continue;
     latestStages[mode] = Object.fromEntries(Object.entries(stages).filter(([date, stage]) => isIsoDate(date) && /^\d{4}$/.test(String(stage))));
   }
-  return { schemaVersion: index?.schemaVersion || "1.0.0", availableDates, latestStages };
+  const previewDates = [...new Set((Array.isArray(index?.previewDates) ? index.previewDates : []).filter(isIsoDate))].sort();
+  return { schemaVersion: index?.schemaVersion || "1.0.0", availableDates, latestStages, previewDates };
 }
 
 export function snapshotPath(mode, date, stage = null) {
@@ -54,9 +55,13 @@ export function classifyDate(date, mode, index, calendar) {
   const holiday = holidayForDate(date, calendar);
   if (holiday) return { date, mode: normalizedMode, status: "holiday", label: "휴장일", reason: holiday.name, holiday };
   const available = normalizeDateIndex(index).availableDates[normalizedMode].includes(date);
-  return { date, mode: normalizedMode, status: available ? "available" : "not_collected", label: available ? "결과 있음" : "미수집" };
+  const normalizedIndex = normalizeDateIndex(index);
+  const stage = normalizedIndex.latestStages?.provider?.[date];
+  const preview = normalizedMode === "provider" && normalizedIndex.previewDates.includes(date) && (!available || (stage && stage < "0820"));
+  return { date, mode: normalizedMode, status: preview ? "preview" : available ? "available" : "not_collected", label: preview ? "전일 예상" : available ? "결과 있음" : "미수집" };
 }
 
 export function statusLabel(status) {
-  return ({ available: "결과 있음", loading: "조회 중", not_collected: "미수집", holiday: "휴장일", error: "오류" })[status] || "상태 확인 필요";
+  return ({ available: "결과 있음", preview: "전일 예상", loading: "조회 중", not_collected: "미수집", holiday: "휴장일", error: "오류" })[status] || "상태 확인 필요";
 }
+

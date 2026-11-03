@@ -1,3 +1,4 @@
+import { previewToSnapshot } from "./providers/preview-snapshot.js";
 import { loadInvestorDays, formatInvestorShares } from "./providers/investor-view.js";
 import { rankChanges } from "./providers/rank-change.js";
 import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance, compoundPerformance } from "./providers/recent-performance.js";
@@ -263,6 +264,11 @@ async function loadDateMetadata() {
     ]);
     dateIndex = normalizeDateIndex(index);
     marketCalendar = calendar;
+    try {
+      const preview = await fetchSnapshot("./data/next-preview/latest.json", "Preview unavailable");
+      previewToSnapshot(preview, preview.target_date);
+      if (preview.target_date >= todayKst() && preview.source_date <= todayKst()) dateIndex.previewDates = [preview.target_date];
+    } catch { /* No usable preview date yet. */ }
   } catch (error) {
     console.warn(error.message);
     dateIndex = normalizeDateIndex(null);
@@ -293,6 +299,10 @@ async function loadSnapshot() {
     const mode = dateModeForRoute(requestedMode);
     const state = dateState(selectedDate, mode);
     if (state.status === "holiday") throw new DateNavigationError("holiday", selectedDate, `${selectedDate} is a market holiday`);
+    if (state.status === "preview" && mode === "provider") {
+      const preview = await fetchSnapshot(`./data/next-preview/${selectedDate}.json`, "Preview request failed");
+      return previewToSnapshot(preview, selectedDate);
+    }
     if (state.status === "not_collected") throw new DateNavigationError("not_collected", selectedDate, `${selectedDate} has no collected snapshot`);
     if (mode === "historical-test") return loadHistoricalTestSnapshot(selectedDate);
     const selected = await loadSnapshotForMode(mode, selectedDate);
@@ -463,7 +473,7 @@ function renderHeader(data) {
   const historical = isHistorical(data);
   const fallback = data?.meta?.historical_fallback === true;
   const route = requestedRoute();
-  const statusText = fallback ? "과거 공개 데이터" : historical ? "과거 시험 데이터" : stateLabels[status] || status;
+  const statusText = data?.meta?.preview ? "전일 예상" : fallback ? "과거 공개 데이터" : historical ? "과거 시험 데이터" : stateLabels[status] || status;
   document.documentElement.dataset.status = status;
   snapshot = { ...data, rows };
   currentDataMode = dateModeForRoute(route.rawMode || (historical || fallback ? "historical-test" : "provider"));
@@ -480,7 +490,7 @@ function renderHeader(data) {
   setText(elementIds["model-trained-at"], info?.trainedAt ? formatTime(info.trainedAt) : info?.last ? `데이터 ~${formatPlainDate(info.last)}` : "—");
   setText(elementIds["row-count"], formatNumber(rows.length));
   setText(elementIds["provider-label"], historical ? "과거 기준 데이터" : providerDisplayName(data));
-  setText(elementIds["table-state"], test ? "과거 시험 데이터" : stateLabels[status] || status);
+  setText(elementIds["table-state"], data?.meta?.preview ? "전일 예상" : test ? "과거 시험 데이터" : stateLabels[status] || status);
   setText(elementIds["table-count"], `${formatNumber(rows.length)}개 종목`);
   setText(elementIds["footer-status"], `${statusText} · 한국시간`);
   renderEvaluationSummary(data, rows, status);
@@ -495,7 +505,7 @@ function renderHeader(data) {
   renderRows();
   renderSelected();
   renderDateNavigation();
-  setText(document.getElementById("ranking-lede"), data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
+  setText(document.getElementById("ranking-lede"), data?.meta?.preview ? "전일 저녁 일봉 기준 예상 순위 · 장전 시세와 실제 시가·종가 미반영" : data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
   // A table already scored by the day-trade model keeps its own expected values.
   if (usesRetrospectiveOverlay(data)) void renderPostClose(data);
 }
@@ -642,6 +652,7 @@ function moveCalendarMonth(delta) {
 function toneClass(value) { return finite(value) ? value >= 0 ? "positive" : "negative" : ""; }
 function sortRows(rows, sortKey = "expectedReturn") { return sortRankingRows(rows, sortKey); }
 function openSourceLabel(source) {
+  if (snapshot?.meta?.preview) return "전일 일봉 예상";
   if (source?.kind === "preopen_quote") return "장전 호가 기록";
   if (source?.kind === "preopen_history") return "장전 공개 일봉 계산";
   if (source?.kind === "retrospective_history") return `사후 계산 · 공개 일봉 ${source.history_dates.join(", ")}`;
@@ -863,9 +874,6 @@ async function refresh({ showLoading = false, token = null } = {}) {
     const nextSnapshot = await loadSnapshot();
     if (token !== null && token !== dateRequestToken) return;
     currentChanges = {};
-    const routeDate = requestedRoute().date;
-    const routeMode = requestedRoute().rawMode;
-    document.getElementById("next-preview").hidden = Boolean(routeDate && routeDate !== todayKst()) || Boolean(routeMode && dateModeForRoute(routeMode) !== "provider");
     renderHeader(nextSnapshot);
     loadComparison(nextSnapshot);
   } catch (error) {
@@ -1011,19 +1019,13 @@ function todayKst() {
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 async function refreshNextPreview() {
-  const container = document.getElementById("next-preview-content");
   try { const response = await fetch("./data/next-preview/status.json", {cache:"no-store"}); previewState = response.ok ? await response.json() : null; } catch { previewState = null; }
   try {
-    const response = await fetch("./data/next-preview/latest.json", {cache:"no-store"});
-    if (!response.ok) throw new Error("preview unavailable");
-    const preview = await response.json();
-    const today = todayKst();
-    if (preview.kind !== "next_preview" || !isIsoDate(preview.target_date) || !isIsoDate(preview.source_date) || preview.target_date < today || preview.source_date > today || !Array.isArray(preview.rows)) throw new Error("preview unavailable");
+    const preview = await fetchSnapshot("./data/next-preview/latest.json", "Preview unavailable");
+    previewToSnapshot(preview, preview.target_date);
+    if (preview.target_date < todayKst() || preview.source_date > todayKst()) throw new Error("Preview out of date");
     latestPreview = preview;
-    const showRows = rows => rows.map(row => `<div><span>${escapeText(row.rank)}</span><strong>${escapeText(row.name)}</strong><small>${escapeText(row.symbol)}</small><b>${formatPercent(rankingExpectedReturn(row))}</b></div>`).join("");
-    const more = preview.rows.length > 20 ? `<details class="next-preview-more"><summary>전체 순위 보기</summary><div class="next-preview-list">${showRows(preview.rows.slice(20))}</div></details>` : "";
-    container.innerHTML = `<p class="next-preview-meta">${escapeText(preview.target_date)} · ${escapeText(formatTime(preview.generated_at))} 생성</p><div class="next-preview-list">${showRows(preview.rows.slice(0, 20))}</div>${more}`;
-  } catch { latestPreview = null; container.innerHTML = '<p class="performance-message">미리보기를 기다리는 중입니다.</p>'; }
+  } catch { latestPreview = null; }
   if (snapshot) renderPipeline(snapshot);
 }
 async function loadComparison(data) {
