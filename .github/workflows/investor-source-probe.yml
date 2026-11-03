@@ -1,0 +1,30 @@
+name: "[점검] 매매동향 출처·기간 확인"
+
+# Manual, read-only probe: re-checks robots.txt and looks for a robots-permitted
+# per-date investor-flow source and its oldest available date. Commits nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      symbol:
+        description: '점검 종목코드'
+        type: string
+        default: '005930'
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Probe investor-flow sources
+        env:
+          SYMBOL: ${{ inputs.symbol }}
+        run: node scripts/probe-investor-sources.mjs --symbol "${SYMBOL:-005930}"
