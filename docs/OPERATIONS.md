@@ -49,7 +49,7 @@
 
 ### robots.txt 정책
 
-- [`providers/robots-policy.js`](../providers/robots-policy.js)가 모든 Naver 요청(universe·quote·일봉) 직전에 요청 URL의 경로+query를 해당 origin의 robots.txt와 대조합니다. robots.txt는 수집 1회당 origin별 한 번 읽고 결과를 source metadata(`robots`)와 일봉 파일(`robots_url`, `robots_status`, `robots_checked_at`)에 남깁니다.
+- [`providers/robots-policy.js`](../providers/robots-policy.js)가 기존 운영 Naver 요청(universe·quote·일봉) 직전에 요청 URL의 경로+query를 해당 origin의 robots.txt와 대조합니다. robots.txt는 수집 1회당 origin별 한 번 읽고 결과를 source metadata(`robots`)와 일봉 파일(`robots_url`, `robots_status`, `robots_checked_at`)에 남깁니다.
 - 금지 경로이거나 robots.txt를 확인할 수 없으면(5xx, 401/403/406/429, 네트워크 오류, timeout, redirect, HTML 200) `blocked`로 중단하고 데이터 요청을 보내지 않습니다.
 - robots.txt 자체가 HTTP 404/410이면 RFC 9309 §2.3.1.3에 따라 "robots.txt 없음(제한 없음)"으로 처리합니다. 이 예외는 Naver crawl 경로에서만 `allowMissing` 옵션으로 켜며, public-csv 등 다른 경로는 기존대로 fail-closed입니다.
 - 429 또는 Retry-After 응답은 기다리거나 재시도하지 않고 즉시 `blocked`로 중단하며 `retry not before` 시각만 기록합니다. 정상적으로 파싱되는 JSON 응답은 본문 단어(예: 종목명 "Doosan Robotics")로 challenge 판정하지 않고, HTML 또는 비JSON 본문에만 challenge 문구 검사를 적용합니다.
@@ -183,3 +183,17 @@ cron의 요일 표현만으로는 한국 공휴일·대체휴일·임시공휴�
 3. `forecast`/`open-settlement`/`close-settlement`은 Naver 공개 crawl의 실제 quote와 `localTradedAt` freshness를 함께 확인합니다. 시장 기준과 종목 분류가 확인되기 전에는 신선한 quote도 operational `partial`이며 신규 운영 snapshot commit을 차단합니다. 이는 라이선스를 `confirmed`로 표시하지 않으면서 무설정 Actions 실행을 허용하기 위한 정책입니다.
 4. `fixture`/`demo`는 UI·계약 확인용 로컬 dry-run에서만 사용하고 운영 데이터로 해석하지 않습니다. 기능 workflow는 provider 선택을 노출하지 않습니다.
 5. 문제가 있으면 해당 기능 workflow의 summary와 `data/latest-snapshot.json`의 stage 상태를 확인합니다. provider를 바꾸거나 `none`으로 우회하는 설정은 workflow에 포함하지 않습니다.
+
+
+
+### 별도 개인용 투자자별 매매동향 수집
+
+저장소 소유자의 요청에 따라 기존 운영 시세·일봉 수집과 분리된 개인용 수집이다. 기존 운영 수집의 robots 확인은 바꾸지 않는다. 네이버 모바일 증권은 현재 robots.txt에서 자동 수집을 허용하지 않으며, 출처 페이지는 무단 배포를 금지한다. 이 기능의 원본은 공개 사이트에 게시하지 않는다. 접근 거부·인증·HTML 응답·반복 요청 제한에 대한 우회는 수행하지 않는다.
+
+- 워크플로: `.github/workflows/personal-investor-flow.yml`. 종가 정산 워크플로가 성공한 후 별도 실행하며, 20:15 KST에 해당 거래일을 다시 확인한다. 최초 코드 배포 시 2026-10-26~2026-11-02 보충 수집을 한 번 실행한다. 수동 실행에서는 시작일·종료일과 종목코드를 지정할 수 있다.
+- 대상: 커밋된 KOSPI 종목 목록. 네이버 모바일 비공식 `trend` 응답에서 해당 날짜의 외국인·기관·개인 순매수 수량(주)과 외국인 보유율을 기록한다. 이 경로는 한 요청에 최근 약 10거래일만 제공하며, 요청 범위 밖 또는 제공되지 않은 날짜는 누락으로 표시한다. 시장 구분과 조정 기준은 미확인이다.
+- 당일 값: 종가 정산 직후 아직 네이버에 당일 데이터가 없을 수 있다. 없는 값을 이전 날짜의 값으로 대체하지 않고 부분 결과로 기록하며, 저녁 실행 때 다시 확인한다.
+- 제한: 종목당 최소 1초 간격, HTTP 429의 `Retry-After`를 최대 120초까지 한 번만 준수한다. 403/반복 429, 로그인·차단 화면, 예상 밖 형식 또는 오류가 발생하면 즉시 중단한다. User-Agent는 고정하며 헤더를 바꿔 차단을 우회하지 않는다.
+- 저장: `config/investor-public-key.pem`으로 임의의 AES-256-GCM 키를 RSA-OAEP-SHA256 암호화해 `data/private-investor/YYYY-MM-DD/*.json.enc`에 저장한다. GitHub에는 암호문만 커밋한다. 날짜·파일 크기 등 메타데이터는 공개될 수 있다. 개인 복호화 키는 저장소에 넣지 않으며, 이를 잃으면 기존 수집 파일을 복호화할 수 없다.
+- 복호화: 개인 환경에서 `npm run investor:decrypt -- data/private-investor/YYYY-MM-DD/<파일명>.json.enc <개인키.pem>`을 실행한다. 결과는 Git에서 제외된 `.private-data/investor/`에 생성된다. 원본은 공개 사이트나 기존 예측에 자동으로 사용하지 않는다.
+- 개별 테스트: `npm run investor:collect -- --symbol 011420 --date 2026-11-02`; 기간은 `--from 2026-10-26 --to 2026-11-02`. 전체 종목은 `--all`. 요청이 많으므로 전체 실행은 시간이 걸린다.

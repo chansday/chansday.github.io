@@ -1,0 +1,106 @@
+name: "[개인] 투자자별 매매동향 수집"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/personal-investor-flow.yml'
+  workflow_run:
+    workflows: ['[2 단계] 15:31 종가 정산']
+    types: [completed]
+  schedule:
+    - cron: '15 11 * * 1-5' # 20:15 KST, source may publish late
+  workflow_dispatch:
+    inputs:
+      from_date:
+        description: '시작 거래일 YYYY-MM-DD (비우면 오늘)'
+        type: string
+        required: false
+      to_date:
+        description: '마지막 거래일 YYYY-MM-DD (비우면 오늘)'
+        type: string
+        required: false
+      symbol:
+        description: '종목코드 (비우면 전체 KOSPI)'
+        type: string
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: personal-investor-flow
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    if: >-
+      github.repository == 'chansday/chansday.github.io' &&
+      (github.event_name != 'workflow_run' ||
+       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - id: market
+        run: node scripts/market-session-guard.mjs
+      - name: Collect investor flows in memory and encrypt
+        id: collect
+        if: >-
+          github.event_name == 'push' || github.event_name == 'workflow_dispatch' ||
+          steps.market.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          EVENT_TYPE: ${{ github.event_name }}
+          INPUT_FROM: ${{ inputs.from_date }}
+          INPUT_TO: ${{ inputs.to_date }}
+          INPUT_SYMBOL: ${{ inputs.symbol }}
+          CLOSE_STARTED: ${{ github.event.workflow_run.created_at }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--all)
+          if [[ -n "$INPUT_SYMBOL" ]]; then args=(--symbol "$INPUT_SYMBOL"); fi
+          if [[ "$EVENT_TYPE" == push ]]; then
+            args+=(--from 2026-10-26 --to 2026-11-02)
+          elif [[ "$EVENT_TYPE" == workflow_dispatch && ( -n "$INPUT_FROM" || -n "$INPUT_TO" ) ]]; then
+            [[ -n "$INPUT_FROM" && -n "$INPUT_TO" ]] || { echo 'Both dates are required.' >&2; exit 1; }
+            args+=(--from "$INPUT_FROM" --to "$INPUT_TO")
+          elif [[ "$EVENT_TYPE" == workflow_run ]]; then
+            close_date="$(node --input-type=module -e 'import { kstDate } from "./scripts/market-calendar.mjs"; const d=new Date(process.env.CLOSE_STARTED); if (Number.isNaN(d.getTime()) || kstDate(d)!==kstDate()) process.exit(1); console.log(kstDate(d));')"
+            args+=(--date "$close_date")
+          fi
+          node scripts/collect-investor-flow.mjs "${args[@]}"
+      - name: Save encrypted output
+        id: save
+        if: always() && steps.collect.outputs.path != ''
+        env:
+          INVESTOR_PATH: ${{ steps.collect.outputs.path }}
+        run: |
+          set -euo pipefail
+          [[ "$INVESTOR_PATH" =~ ^data/private-investor/[0-9]{4}-[0-9]{2}-[0-9]{2}/[A-Za-z0-9.-]+\.json\.enc$ ]]
+          git add -- "$INVESTOR_PATH"
+          if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): save encrypted investor flow"; fi
+      - name: Summarize source coverage
+        if: always() && steps.collect.outputs.path != ''
+        env:
+          COLLECTION_STATUS: ${{ steps.collect.outputs.status }}
+          COLLECTED: ${{ steps.collect.outputs.count }}
+          REQUESTED: ${{ steps.collect.outputs.requested }}
+          INCOMPLETE: ${{ steps.collect.outputs.incomplete }}
+        run: |
+          {
+            echo "### 개인 투자자별 매매동향 수집"
+            echo "- 상태: $COLLECTION_STATUS"
+            echo "- 수집 종목: $COLLECTED / $REQUESTED"
+            echo "- 요청 날짜 또는 주체별 값이 부족한 종목: $INCOMPLETE"
+            echo "- 결과는 공개키로 암호화되어 저장됩니다."
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Report incomplete collection
+        if: always() && steps.collect.outcome == 'failure'
+        run: |
+          echo "Collection did not complete; any collected portion was encrypted and preserved when available." >&2
+          exit 1

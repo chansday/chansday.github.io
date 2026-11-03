@@ -1,0 +1,2 @@
+# Personal plaintext data must never be committed.
+.private-data/
