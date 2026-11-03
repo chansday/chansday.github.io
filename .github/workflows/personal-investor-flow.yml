@@ -1,10 +1,14 @@
 name: "[개인] 투자자별 매매동향 수집"
 
 on:
-  workflow_run:
-    # '[ ]' is a glob character class in workflow_run filters, so match by suffix.
-    workflows: ['*15:31 종가 정산']
-    types: [completed]
+  # Called by close-settlement.yml right after a successful close settlement
+  # (chained: true). The source may publish late, so 20:15 KST re-collects.
+  workflow_call:
+    inputs:
+      chained:
+        description: 'Called by the close settlement'
+        type: boolean
+        default: false
   schedule:
     - cron: '15 11 * * 1-5' # 20:15 KST, source may publish late
   workflow_dispatch:
@@ -31,10 +35,7 @@ concurrency:
 
 jobs:
   collect:
-    if: >-
-      github.repository == 'kospi-signal/kospi-signal.github.io' &&
-      (github.event_name != 'workflow_run' ||
-       (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'))
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     steps:
@@ -49,7 +50,7 @@ jobs:
       - name: Collect investor flows
         id: collect
         if: >-
-          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'workflow_dispatch' && inputs.chained != true) ||
           steps.market.outputs.should_run == 'true'
         continue-on-error: true
         env:
@@ -57,7 +58,6 @@ jobs:
           INPUT_FROM: ${{ inputs.from_date }}
           INPUT_TO: ${{ inputs.to_date }}
           INPUT_SYMBOL: ${{ inputs.symbol }}
-          CLOSE_STARTED: ${{ github.event.workflow_run.created_at }}
         shell: bash
         run: |
           set -euo pipefail
@@ -66,9 +66,6 @@ jobs:
           if [[ "$EVENT_TYPE" == workflow_dispatch && ( -n "$INPUT_FROM" || -n "$INPUT_TO" ) ]]; then
             [[ -n "$INPUT_FROM" && -n "$INPUT_TO" ]] || { echo 'Both dates are required.' >&2; exit 1; }
             args+=(--from "$INPUT_FROM" --to "$INPUT_TO")
-          elif [[ "$EVENT_TYPE" == workflow_run ]]; then
-            close_date="$(node --input-type=module -e 'import { kstDate } from "./scripts/market-calendar.mjs"; const d=new Date(process.env.CLOSE_STARTED); if (Number.isNaN(d.getTime()) || kstDate(d)!==kstDate()) process.exit(1); console.log(kstDate(d));')"
-            args+=(--date "$close_date")
           fi
           node scripts/collect-investor-flow.mjs "${args[@]}"
       - name: Save investor output
@@ -96,7 +93,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Report incomplete collection
         id: log_step_07
-        if: always() && steps.collect.outcome == 'failure'
+        # A chained run right after the close often finds the source not yet
+        # published; it must not fail the close settlement. 20:15 re-collects.
+        if: always() && steps.collect.outcome == 'failure' && inputs.chained != true
         run: |
           echo "Collection did not complete; any collected portion was preserved when available." >&2
           exit 1

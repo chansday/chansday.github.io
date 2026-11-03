@@ -1,5 +1,10 @@
 name: "[5 관리] 단계 정시 실행 스케줄러"
 
+# The keeper stays alive between trading days (scripts/scheduler-keeper.mjs,
+# stayAlive) and relays itself before the runner limit, so the schedule does
+# not depend on GitHub cron starts; the crons below only restart it if the
+# relay chain breaks (they queue behind a running keeper).
+
 # Dispatches the stage workflows at their KST times (06:10 history, 07:00
 # update-results, 08:00 analysis, 08:35 forecast, 09:00 open-settlement,
 # 15:31 close-settlement; 09:30+ close-catch-up only when a recent past trading
