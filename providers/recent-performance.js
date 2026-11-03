@@ -32,7 +32,7 @@ export function isNegativePerformance(value) {
 
 // Each series compounds independently. A missing daily result makes subsequent
 // cumulative values unknown rather than treating the missing day as zero.
-export function compoundPerformance(results, startDate = '2026-10-26', limit = 30) {
+export function compoundPerformance(results, startDate = '2026-10-26', limit = 10) {
   const factors = { top10: 1, top20: 1 };
   const rows = results.filter(row => row.date >= startDate).sort((a, b) => a.date.localeCompare(b.date)).map(row => {
     const output = { date: row.date };
@@ -45,4 +45,5 @@ export function compoundPerformance(results, startDate = '2026-10-26', limit = 3
   });
   return rows.slice(-limit);
 }
+
 
