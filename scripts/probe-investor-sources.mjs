@@ -66,17 +66,25 @@ export function describePayload(payload) {
   return tables;
 }
 
-export async function probe({ symbol = "005930", fetchImpl = globalThis.fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), now = () => new Date(), log = console.log } = {}) {
+// The owner's existing collector endpoint (scripts/collect-investor-flow.mjs).
+// The owner chose to use it regardless of its robots.txt, so it is requested
+// directly with the collector's User-Agent, at the same 1 s pace.
+export const COLLECTOR_TREND = (symbol) => `https://m.stock.naver.com/api/stock/${symbol}/trend`;
+export const COLLECTOR_USER_AGENT = "kospi-signal-personal-investor-collector/1.0";
+
+export async function probe({ symbol = "005930", collectorEndpoint = false, fetchImpl = globalThis.fetch, sleep = (ms) => new Promise((r) => setTimeout(r, ms)), now = () => new Date(), log = console.log } = {}) {
   if (!isKoreanSymbol(symbol)) throw new Error("Invalid symbol");
   const context = { fetchImpl, now }, report = { symbol, started_at: now().toISOString(), robots: [], requests: [], best: null, depth: null };
   let count = 0;
   const get = async (url) => {
     if (count >= MAX_REQUESTS) return { url, skipped: "request_cap" };
-    const policy = await checkRobotsUrl(context, url, USER_AGENT, { allowMissing: true });
-    if (!policy.ok) return { url, skipped: `robots: ${policy.reason}` };
+    if (!collectorEndpoint) {
+      const policy = await checkRobotsUrl(context, url, USER_AGENT, { allowMissing: true });
+      if (!policy.ok) return { url, skipped: `robots: ${policy.reason}` };
+    }
     if (count++) await sleep(1000);
     try {
-      const r = await fetchImpl(url, { headers: { "User-Agent": USER_AGENT, Accept: "application/json" }, redirect: "error", signal: AbortSignal.timeout(12000) });
+      const r = await fetchImpl(url, { headers: { "User-Agent": collectorEndpoint ? COLLECTOR_USER_AGENT : USER_AGENT, Accept: "application/json", "Accept-Language": "ko-KR,ko;q=0.9" }, redirect: "error", signal: AbortSignal.timeout(12000) });
       const type = r.headers.get("content-type") || "";
       const out = { url, status: r.status, content_type: type };
       if (r.ok && /json/i.test(type)) { const text = await r.text(); if (text.length <= 5_000_000) { out.payload = JSON.parse(text); out.tables = describePayload(out.payload); } }
@@ -84,8 +92,15 @@ export async function probe({ symbol = "005930", fetchImpl = globalThis.fetch, s
     } catch (error) { return { url, error: error.name || "error" }; }
   };
 
+  if (collectorEndpoint) {
+    const url = COLLECTOR_TREND(symbol), r = await get(url), tables = r.tables || [];
+    report.requests.push({ url, status: r.status ?? null, skipped: null, error: r.error || null, content_type: r.content_type || null, tables });
+    log(`${url} · ${r.error || `HTTP ${r.status}`} · ${tables.map((t) => `${t.rows ?? "obj"}행 ${t.first_date ?? ""}~${t.last_date ?? ""}`).join("; ")}`);
+    const hit = tables.find((t) => t.rows && t.date_key && t.investor_keys.length);
+    if (hit) report.best = { url, table: hit };
+  }
   // 1) Re-read robots.txt of the documented hosts (no data request to m.stock).
-  for (const origin of ["https://m.stock.naver.com", "https://api.stock.naver.com", "https://polling.finance.naver.com"]) {
+  for (const origin of collectorEndpoint ? [] : ["https://m.stock.naver.com", "https://api.stock.naver.com", "https://polling.finance.naver.com"]) {
     const path = `/api/stock/${symbol}/trend`;
     const policy = await checkRobotsUrl(context, `${origin}${path}`, USER_AGENT, { allowMissing: true });
     const cached = await context.robotsCache.get(origin);
@@ -94,7 +109,7 @@ export async function probe({ symbol = "005930", fetchImpl = globalThis.fetch, s
   }
 
   // 2) Candidate endpoints on permitted hosts.
-  for (const url of candidateUrls(symbol)) {
+  for (const url of collectorEndpoint ? [] : candidateUrls(symbol)) {
     const r = await get(url);
     const tables = r.tables || [];
     report.requests.push({ url: r.url, status: r.status ?? null, skipped: r.skipped || null, error: r.error || null, content_type: r.content_type || null, tables });
@@ -107,7 +122,7 @@ export async function probe({ symbol = "005930", fetchImpl = globalThis.fetch, s
   if (report.best) {
     const base = report.best.url.split("?")[0];
     const variants = [];
-    for (const size of [60, 100, 200, 500]) variants.push(`${base}?pageSize=${size}`);
+    for (const size of [20, 60, 100, 200, 500]) variants.push(`${base}?pageSize=${size}`);
     const results = [];
     for (const url of variants) {
       const r = await get(url), t = (r.tables || []).find((x) => x.date_key && x.investor_keys.length);
@@ -147,7 +162,7 @@ function summaryMarkdown(report) {
 
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) {
   const args = process.argv.slice(2), i = args.indexOf("--symbol"), symbol = i >= 0 ? args[i + 1] : "005930";
-  const report = await probe({ symbol, log: (m) => console.log(`[수급 출처 점검 ${new Date().toISOString()}] ${m}`) });
+  const report = await probe({ symbol, collectorEndpoint: args.includes("--collector-endpoint"), log: (m) => console.log(`[수급 출처 점검 ${new Date().toISOString()}] ${m}`) });
   for (const q of report.requests) delete q.payload;
   console.log(JSON.stringify(report, null, 2));
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, summaryMarkdown(report));

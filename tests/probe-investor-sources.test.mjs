@@ -38,3 +38,20 @@ test("probe never requests data from m.stock.naver.com and honours robots", asyn
   assert.ok(report.depth.oldest_date < "2026-06-01");
   assert.ok(report.requests_sent <= MAX_REQUESTS);
 });
+
+test("collector-endpoint mode measures the owner's trend endpoint depth with its User-Agent", async () => {
+  const calls = [];
+  const fetchImpl = async (url, init) => {
+    calls.push({ url, ua: init?.headers?.["User-Agent"] });
+    const u = new URL(url);
+    if (u.host !== "m.stock.naver.com" || !u.pathname.endsWith("/trend")) return json({}, 404);
+    const size = Number(u.searchParams.get("pageSize") || 10), biz = u.searchParams.get("bizdate");
+    const start = biz ? new Date(Date.UTC(+biz.slice(0, 4), +biz.slice(4, 6) - 1, +biz.slice(6, 8) - 1)).toISOString().slice(0, 10) : "2026-11-02";
+    return start < "2026-03-01" ? json([]) : json(rows(start, Math.min(size, 60)));
+  };
+  const report = await probe({ collectorEndpoint: true, fetchImpl, sleep: async () => {}, log: () => {} });
+  assert.ok(calls.every((c) => c.url.startsWith("https://m.stock.naver.com/api/stock/005930/trend")));
+  assert.ok(calls.every((c) => c.ua === "kospi-signal-personal-investor-collector/1.0"));
+  assert.equal(report.depth.page_size, 60);
+  assert.ok(report.depth.oldest_date < "2026-04-01");
+});

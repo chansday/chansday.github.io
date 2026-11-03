@@ -10,6 +10,10 @@ on:
         type: string
         default: '005930'
         required: false
+      collector_endpoint:
+        description: '기존 수집기 주소(m.stock.naver.com trend)의 과거 기간 측정'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -27,4 +31,5 @@ jobs:
       - name: Probe investor-flow sources
         env:
           SYMBOL: ${{ inputs.symbol }}
-        run: node scripts/probe-investor-sources.mjs --symbol "${SYMBOL:-005930}"
+          COLLECTOR: ${{ inputs.collector_endpoint }}
+        run: node scripts/probe-investor-sources.mjs --symbol "${SYMBOL:-005930}" $([[ "$COLLECTOR" == true ]] && echo --collector-endpoint)
