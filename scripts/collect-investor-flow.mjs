@@ -3,8 +3,9 @@ import {pathToFileURL} from 'node:url';
 import {isKoreanSymbol} from '../providers/korean-symbol.js';
 import {createProgressLog,formatDuration} from '../providers/progress-log.js';
 import {parseInvestorFlow} from '../providers/investor-flow.js';
+import {createInvestorRequester,INVESTOR_USER_AGENTS} from '../providers/investor-request.js';
 import {kstDate,isValidDate,loadMarketCalendar,classifyMarketDate} from './market-calendar.mjs';
-const BASE='https://m.stock.naver.com/api/stock/',USER_AGENT='kospi-signal-personal-investor-collector/1.0';
+const BASE='https://m.stock.naver.com/api/stock/',USER_AGENT=INVESTOR_USER_AGENTS[0];
 export function tradingDates(start,end,calendar){
   if(!isValidDate(start)||!isValidDate(end)||start>end)throw new Error('Invalid date range');
   const d=new Date(`${start}T00:00:00Z`),last=new Date(`${end}T00:00:00Z`),days=[];
@@ -16,14 +17,14 @@ export async function collectInvestorFlow(symbols,{startDate,endDate,expectedDat
   if(!Array.isArray(symbols)||!symbols.length||symbols.some(s=>!isKoreanSymbol(s))||new Set(symbols).size!==symbols.length)throw new Error('Invalid or duplicate stock codes');
   const asOfDate=kstDate(now());if(!isValidDate(startDate)||!isValidDate(endDate)||startDate>endDate||endDate>asOfDate||!Array.isArray(expectedDates)||!expectedDates.length)throw new Error('Invalid date range');
   if(delayMs<1000)throw new Error('Request interval must be at least one second');
-  const startedAt=now().toISOString(),collected=[],failures=[],incomplete=[];
+  const startedAt=now().toISOString(),collected=[],failures=[],incomplete=[],request=createInvestorRequester({fetchImpl,sleep,log});
   log(`시작 · 기간 ${startDate}~${endDate} · 대상 ${symbols.length}종목 · 요청 간격 ${delayMs}ms`);
   for(let i=0;i<symbols.length;i++){
     const symbol=symbols[i];if(i)await sleep(delayMs);
     try{
-      const url=`${BASE}${symbol}/trend`,request=()=>fetchImpl(url,{headers:{'User-Agent':USER_AGENT,Accept:'application/json','Accept-Language':'ko-KR,ko;q=0.9'},redirect:'error',signal:AbortSignal.timeout(12000)});
-      let response=await request();
-      if(response.status===429){const header=response.headers.get('retry-after'),seconds=header&&/^\d+$/.test(header)?Number(header):60;if(Number.isSafeInteger(seconds)&&seconds<=120){log(`HTTP 429 · ${symbol} · ${Math.max(seconds,1)}초 대기 후 1회 재시도`);await sleep(Math.max(seconds,1)*1000);response=await request();}else log(`HTTP 429 · ${symbol} · 대기 시간이 허용 범위를 벗어나 수집 중단`);}
+      const result=await request(`${BASE}${symbol}/trend`,symbol);
+      if(result.error)throw result.error;
+      const response=result.response;
       if(!response.ok){log(`수집 중단 · ${symbol} · HTTP ${response.status} · 추가 요청 없음`);failures.push({symbol,reason:`HTTP_${response.status}`});break;}
       if(!/application\/(?:[a-z.+-]*\+)?json/i.test(response.headers.get('content-type')||'')){log(`수집 중단 · ${symbol} · 예상과 다른 응답 형식`);failures.push({symbol,reason:'unexpected_content_type'});break;}
       const text=await response.text();if(text.length>2_000_000){failures.push({symbol,reason:'response_too_large'});break;}
