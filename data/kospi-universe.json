@@ -5,7 +5,7 @@
   "license_status": "unconfirmed",
   "candidates_as_of": "2026-11-02",
   "collected_at": "2026-11-03T09:53:54.975Z",
-  "verified_at": "2026-11-03T20:11:53.191Z",
+  "verified_at": "2026-11-03T21:11:00.793Z",
   "source": {
     "method": "candidate_verification",
     "url": "https://polling.finance.naver.com/api/realtime/domestic/stock/",
@@ -14,13 +14,13 @@
       "https://api.stock.naver.com": {
         "robots_url": "https://api.stock.naver.com/robots.txt",
         "robots_status": 404,
-        "checked_at": "2026-11-03T20:11:45.790Z",
+        "checked_at": "2026-11-03T21:10:53.701Z",
         "allowed": true
       },
       "https://polling.finance.naver.com": {
         "robots_url": "https://polling.finance.naver.com/robots.txt",
         "robots_status": 404,
-        "checked_at": "2026-11-03T20:11:48.240Z",
+        "checked_at": "2026-11-03T21:10:55.860Z",
         "allowed": true
       }
     }
@@ -38,10 +38,12 @@
   },
   "discovers_new_listings": false,
   "excluded": {
-    "missing": [],
+    "missing": [
+      "011155"
+    ],
     "other": []
   },
-  "count": 912,
+  "count": 911,
   "symbols": [
     {
       "symbol": "000020",
@@ -1650,10 +1652,6 @@
     {
       "symbol": "011150",
       "name": "CJ씨푸드"
-    },
-    {
-      "symbol": "011155",
-      "name": "CJ씨푸드1우"
     },
     {
       "symbol": "011170",
