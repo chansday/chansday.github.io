@@ -23,7 +23,7 @@ import { displayPath, repoPath } from "../providers/repo-paths.js";
 export const MIN_RETAINED_RATIO = 0.9;
 export const CSV_SOURCE_ROOT = "https://aikstockdata.com/data/public/daily";
 export const CSV_LICENSE_URL = "https://aikstockdata.com/licenses/aiksd-public-1.1.txt";
-const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
+const USER_AGENT = "kospi-signal-board/1.0 (+https://kospi-signal.github.io/)";
 
 export function isRefusedCandidatePath(path) {
   const normalized = String(path).replaceAll("\\", "/");

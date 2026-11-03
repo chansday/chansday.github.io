@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   catch-up:
-    if: github.repository == 'chansday/chansday.github.io'
+    if: contains(fromJSON('["kospi-signal/kospi-signal.github.io", "chansday/chansday.github.io"]'), github.repository)
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     env:

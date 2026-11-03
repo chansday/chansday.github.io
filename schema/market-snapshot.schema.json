@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://chansday.github.io/schema/market-snapshot.schema.json",
+  "$id": "https://kospi-signal.github.io/schema/market-snapshot.schema.json",
   "title": "KOSPI signal board snapshot",
   "description": "Static snapshot contract for expected and actual KOSPI observation values.",
   "type": "object",

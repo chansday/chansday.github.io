@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   run-now:
-    if: github.repository == 'chansday/chansday.github.io'
+    if: contains(fromJSON('["kospi-signal/kospi-signal.github.io", "chansday/chansday.github.io"]'), github.repository)
     uses: ./.github/workflows/_run-stage.yml
     with:
       auto_stage: true

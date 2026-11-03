@@ -42,7 +42,7 @@ test("rate limiting stops at once without waiting, rotating headers or requestin
     sleep: async ms => { sleeps.push(ms); time += ms; }, fetchImpl: naverRobotsFetch(async (url, init) => { calls.push([url, init.headers["User-Agent"]]); return { status: 429, headers: new Headers({ "retry-after": "2" }), text: async () => "" }; }) });
   assert.equal(result.status, "blocked"); assert.equal(calls.length, 1); assert.deepEqual(sleeps, []);
   assert.equal(result.retry_not_before, new Date(2000).toISOString());
-  assert.equal(calls[0][1], "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)");
+  assert.equal(calls[0][1], "kospi-signal-board/1.0 (+https://kospi-signal.github.io/)");
 });
 
 test("successful requests are at least 500 ms apart, robots is fetched once and malformed rows stay partial", async () => {

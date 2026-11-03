@@ -68,13 +68,13 @@ error = round(session_return - expected_return, 2) when both returns exist
 최종 commit `2ccdedf` 배포 후 다음 경로를 실제 HTTP GET으로 확인했다. 모두 `200 OK`였다.
 
 ```text
-https://chansday.github.io/
-https://chansday.github.io/?mode=historical-test&date=2026-10-22
-https://chansday.github.io/?mode=historical-test&date=2026-10-23
-https://chansday.github.io/data/latest-snapshot.json
-https://chansday.github.io/data/runs/historical-test/2026-10-22/0700.json
-https://chansday.github.io/data/runs/historical-test/2026-10-23/1530.json
-https://chansday.github.io/data/runs/historical-test-verification/verification-report.json
+https://kospi-signal.github.io/
+https://kospi-signal.github.io/?mode=historical-test&date=2026-10-22
+https://kospi-signal.github.io/?mode=historical-test&date=2026-10-23
+https://kospi-signal.github.io/data/latest-snapshot.json
+https://kospi-signal.github.io/data/runs/historical-test/2026-10-22/0700.json
+https://kospi-signal.github.io/data/runs/historical-test/2026-10-23/1530.json
+https://kospi-signal.github.io/data/runs/historical-test-verification/verification-report.json
 ```
 
 페이지 기본 snapshot은 `status=no_data`, `rows=[]`이며, 테스트 데이터는 `mode=historical-test` 쿼리 또는 명시적 테스트 파일 경로에서만 접근한다.

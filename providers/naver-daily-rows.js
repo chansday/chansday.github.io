@@ -5,7 +5,7 @@ import { checkRobotsUrl } from "./robots-policy.js";
 // Daily bars come from api.stock.naver.com (robots.txt: HTTP 404, no rules).
 // m.stock.naver.com disallows all paths and is not requested.
 export const DAILY_CHART_ENDPOINT = "https://api.stock.naver.com/chart/domestic/item/";
-const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
+const USER_AGENT = "kospi-signal-board/1.0 (+https://kospi-signal.github.io/)";
 // 150 calendar days cover the 60 training sessions plus 20 feature sessions
 // of the ridge model (ridge-model.js) with room for holidays.
 const LOOKBACK_DAYS = 150;
