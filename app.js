@@ -966,12 +966,17 @@ function renderCumulativePerformance(rows) {
   let min = Math.min(0, ...values), max = Math.max(0, ...values);
   if (max - min < 1) { min -= 0.5; max += 0.5; }
   const padding = (max - min) * 0.12; min -= padding; max += padding;
-  const x = i => rows.length === 1 ? 365 : 65 + i * 600 / (rows.length - 1);
-  const y = v => 210 - (v - min) / (max - min) * 175;
+  const x = i => rows.length === 1 ? 214 : 54 + i * 320 / (rows.length - 1);
+  const y = v => 200 - (v - min) / (max - min) * 165;
   const line = key => rows.map((row, i) => Number.isFinite(row[key]) ? `${x(i).toFixed(1)},${y(row[key]).toFixed(1)}` : null).filter(Boolean).join(' ');
   const dots = key => rows.map((row, i) => Number.isFinite(row[key]) ? `<circle cx="${x(i).toFixed(1)}" cy="${y(row[key]).toFixed(1)}" r="3" class="cumulative-${key}"><title>${row.date} ${key === 'top10' ? '상위 10위' : '상위 20위'} ${formatPercent(row[key])}</title></circle>` : '').join('');
-  const ticks = [max, (max + min) / 2, min].map(value => `<line x1="65" x2="665" y1="${y(value)}" y2="${y(value)}" class="cumulative-grid"/><text x="57" y="${y(value) + 4}" text-anchor="end">${formatPercent(value)}</text>`).join('');
-  const zero = `<line x1="65" x2="665" y1="${y(0)}" y2="${y(0)}" class="cumulative-zero"/>`;
+  const ticks = [max, (max + min) / 2, min].map(value => `<line x1="54" x2="374" y1="${y(value)}" y2="${y(value)}" class="cumulative-grid"/><text x="49" y="${y(value) + 4}" text-anchor="end">${formatPercent(value)}</text>`).join('');
+  const zero = `<line x1="54" x2="374" y1="${y(0)}" y2="${y(0)}" class="cumulative-zero"/>`;
+  // Label up to five evenly spaced actual sessions, always including the ends.
+  const labelCount = Math.min(5, rows.length);
+  const labelIndexes = labelCount === 1 ? [0] : Array.from({length: labelCount}, (_, i) => Math.round(i * (rows.length - 1) / (labelCount - 1)));
+  const dates = labelIndexes.map(i => `<text x="${x(i)}" y="224" text-anchor="middle">${rows[i].date.slice(5).replace('-', '.')}</text>`).join('');
   const table = [...rows].reverse().map(row => `<tr><th scope="row">${row.date}</th><td>${formatPercent(row.top10)}</td><td>${formatPercent(row.top20)}</td></tr>`).join('');
-  container.innerHTML = `<div class="cumulative-summary"><div><span class="cumulative-key cumulative-key-10">상위 10위</span><strong>${formatPercent(latest.top10)}</strong></div><div><span class="cumulative-key cumulative-key-20">상위 20위</span><strong>${formatPercent(latest.top20)}</strong></div><small>기준일 ${latest.date} · ${rows.length}거래일 표시</small></div><div class="cumulative-chart-wrap"><svg class="cumulative-chart" viewBox="0 0 700 250" role="img" aria-label="10월 26일부터 복리로 계산한 상위 10위와 20위의 누적 수익률 추이. 상세 값은 아래 표에서 확인할 수 있습니다.">${ticks}${zero}<polyline points="${line('top10')}" class="cumulative-line cumulative-top10"/><polyline points="${line('top20')}" class="cumulative-line cumulative-top20"/>${dots('top10')}${dots('top20')}<text x="65" y="235">${rows[0].date}</text><text x="665" y="235" text-anchor="end">${latest.date}</text></svg></div><details class="cumulative-details"><summary>날짜별 누적 수익률 보기</summary><div class="cumulative-table-wrap"><table><caption class="sr-only">날짜별 누적 수익률</caption><thead><tr><th scope="col">거래일</th><th scope="col">상위 10위</th><th scope="col">상위 20위</th></tr></thead><tbody>${table}</tbody></table></div></details>`;
+  container.innerHTML = `<div class="cumulative-summary"><div><span class="cumulative-key cumulative-key-10">상위 10위</span><strong>${formatPercent(latest.top10)}</strong></div><div><span class="cumulative-key cumulative-key-20">상위 20위</span><strong>${formatPercent(latest.top20)}</strong></div><small>기준일 ${latest.date} · ${rows.length}거래일 표시</small></div><div class="cumulative-chart-wrap"><svg class="cumulative-chart" viewBox="0 0 400 240" role="img" aria-label="10월 26일부터 복리로 계산한 상위 10위와 20위의 누적 수익률 추이. 상세 값은 아래 표에서 확인할 수 있습니다.">${ticks}${zero}<polyline points="${line('top10')}" class="cumulative-line cumulative-top10"/><polyline points="${line('top20')}" class="cumulative-line cumulative-top20"/>${dots('top10')}${dots('top20')}${dates}</svg><p class="cumulative-axis-note">날짜별 수치는 아래 표에서 확인할 수 있습니다.</p></div><details class="cumulative-details"><summary>날짜별 누적 수익률 보기</summary><div class="cumulative-table-wrap"><table><caption class="sr-only">날짜별 누적 수익률</caption><thead><tr><th scope="col">거래일</th><th scope="col">상위 10위</th><th scope="col">상위 20위</th></tr></thead><tbody>${table}</tbody></table></div></details>`;
 }
+

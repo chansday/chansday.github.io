@@ -489,9 +489,10 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .cumulative-summary strong { margin-top: 6px; color: var(--text); font-size: 23px; font-family: "DM Mono", monospace; }
 .cumulative-key::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 7px; border-radius: 50%; background: #82e7b7; }
 .cumulative-key-20::before { background: #f6c77b; }
-.cumulative-chart-wrap { overflow-x: auto; margin-top: 12px; }
-.cumulative-chart { display: block; width: 100%; min-width: 430px; height: auto; }
+.cumulative-chart-wrap { min-width: 0; max-width: 760px; margin: 12px auto 0; }
+.cumulative-chart { display: block; width: 100%; height: auto; overflow: visible; }
 .cumulative-chart text { fill: var(--muted); font-size: 11px; font-family: "DM Mono", monospace; }
+.cumulative-axis-note { margin: 0; color: var(--muted); font-size: 11px; text-align: right; }
 .cumulative-grid { stroke: rgba(180,194,211,.14); }
 .cumulative-zero { stroke: rgba(230,240,250,.48); stroke-dasharray: 4 4; }
 .cumulative-line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
@@ -507,3 +508,4 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .cumulative-details th:first-child { text-align: left; }
 .cumulative-note { margin-top: 14px; }
 @media (max-width: 600px) { .cumulative-panel { padding: 16px; } }
+
