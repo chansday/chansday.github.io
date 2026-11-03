@@ -1,3 +1,4 @@
+import { importInvestorKey, loadInvestorData, formatInvestorShares } from "./providers/investor-view.js";
 import { rankChanges } from "./providers/rank-change.js";
 import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance, compoundPerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
@@ -83,6 +84,8 @@ let currentDataMode = "provider";
 let calendarMonthCursor = null;
 let dateRequestToken = 0;
 let postCloseToken = 0;
+let investorData = null;
+let investorLoading = false;
 let recentDailyToken = 0;
 let recentDailyCache = new Map();
 
@@ -805,6 +808,16 @@ async function renderRecentDaily(row) {
   const date = snapshot?.meta?.run_date || snapshot?.asOfDate;
   container.replaceChildren();
   const heading = document.createElement("h4"); heading.textContent = "최근 거래 5일"; container.append(heading);
+  const unlock = document.createElement("label"); unlock.className = "investor-unlock"; unlock.textContent = investorLoading ? "투자자 정보 불러오는 중" : investorData ? "투자자 정보 열림" : "투자자 정보 열기";
+  const input = document.createElement("input"); input.type = "file"; input.accept = ".pem"; input.hidden = true; input.disabled = investorLoading;
+  input.addEventListener("change", async () => {
+    if (!input.files?.[0]) return;
+    investorLoading = true; unlock.firstChild.textContent = "투자자 정보 불러오는 중";
+    try { const key = await importInvestorKey(await input.files[0].text()); investorData = await loadInvestorData(key); }
+    catch (error) { investorData = null; alert(`투자자 정보를 열 수 없습니다: ${error.message}`); }
+    finally { investorLoading = false; renderSelected(); }
+  });
+  unlock.append(input); container.append(unlock);
   const message = document.createElement("p"); message.className = "detail-missing"; message.textContent = "일봉 기록을 불러오는 중입니다."; container.append(message);
   if (!isIsoDate(date) || isTestOnly(snapshot)) { message.textContent = "이 화면에서 사용할 일봉 기록이 없습니다."; return; }
   let history = null;
@@ -822,11 +835,11 @@ async function renderRecentDaily(row) {
   if (!rows.length) { message.textContent = "이 종목의 최근 일봉 기록이 없습니다."; return; }
   message.remove();
   const table = document.createElement("table"); table.className = "recent-daily-table";
-  const caption = document.createElement("caption"); caption.textContent = "최근 거래 5일 시가, 종가, 시가 대비 등락률 및 거래량 (원, %, 주)"; table.append(caption);
+  const caption = document.createElement("caption"); caption.textContent = "최근 거래 5일 시가, 종가, 시가 대비 등락률, 투자자별 순매수 및 거래량 (원, %, 주)"; table.append(caption);
   const head = document.createElement("thead"); const headingRow = document.createElement("tr");
-  for (const label of ["거래일", "시가", "종가", "시가 대비", "거래량"]) { const th = document.createElement("th"); th.scope = "col"; th.textContent = label; headingRow.append(th); }
+  for (const label of ["거래일", "시가", "종가", "시가 대비", "외국인", "개인", "기관", "거래량"]) { const th = document.createElement("th"); th.scope = "col"; th.textContent = label; headingRow.append(th); }
   head.append(headingRow); table.append(head); const body = document.createElement("tbody");
-  for (const daily of rows) { const tr = document.createElement("tr"); tr.title = daily.source; for (const value of [daily.date, daily.openText, daily.closeText, daily.returnText, daily.volumeText]) { const td = document.createElement("td"); td.textContent = value; tr.append(td); } body.append(tr); }
+  for (const daily of rows) { const tr = document.createElement("tr"); tr.title = daily.source; const investor = investorData?.get(`${row.symbol}:${daily.date}`); for (const value of [daily.date, daily.openText, daily.closeText, daily.returnText, formatInvestorShares(investor?.foreign_net_shares), formatInvestorShares(investor?.individual_net_shares), formatInvestorShares(investor?.institution_net_shares), daily.volumeText]) { const td = document.createElement("td"); td.textContent = value; tr.append(td); } body.append(tr); }
   table.append(body); container.append(table);
 }
 function renderSelected() {

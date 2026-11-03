@@ -475,7 +475,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 
 .recent-daily { margin-top: 12px; overflow-x: auto; }
 .recent-daily h4 { margin: 0 0 9px; color: var(--text); font-size: 12px; }
-.recent-daily-table { width: 100%; min-width: 350px; border-collapse: collapse; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.recent-daily-table { width: 100%; min-width: 630px; border-collapse: collapse; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .recent-daily-table caption { padding-bottom: 6px; color: var(--muted); text-align: left; font-size: 11px; white-space: normal; }
 .recent-daily-note { font-size: 11px; line-height: 1.5; }
 .recent-daily-table th, .recent-daily-table td { padding: 6px 4px; text-align: right; border-bottom: 1px solid var(--line); }
@@ -529,3 +529,5 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 
 .next-preview-more { margin-top: 14px; color: var(--muted); font-size: 12px; }
 .next-preview-more summary { cursor: pointer; padding: 8px 0; }
+
+.investor-unlock { display: inline-block; margin: 0 0 8px; padding: 5px 8px; color: var(--text); border: 1px solid var(--line); border-radius: 5px; font-size: 11px; cursor: pointer; }
