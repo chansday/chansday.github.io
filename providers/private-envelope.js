@@ -1,5 +1,5 @@
 import { randomBytes, publicEncrypt, privateDecrypt, constants, createCipheriv, createDecipheriv } from 'node:crypto';
-const AAD = Buffer.from('chansday-investor-flow-v2');
+const AAD = Buffer.from('kospi-signal-investor-flow-v2');
 export function encryptInvestorData(data, publicKey) {
   const key=randomBytes(32), iv=randomBytes(12);
   const wrapped=publicEncrypt({key:publicKey,oaepHash:'sha256',padding:constants.RSA_PKCS1_OAEP_PADDING},key);
