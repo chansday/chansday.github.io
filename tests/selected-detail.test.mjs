@@ -109,7 +109,7 @@ test("ranking list has no inner scroll container, switches to cards when narrow,
   assert.match(wrapRule, /container-type:\s*inline-size/);
   assert.match(css, /@container ranking \(max-width: 719px\)\s*\{\s*\.ranking-table-wrap table\s*\{\s*display:\s*none;\s*\}\s*\.ranking-cards\s*\{\s*display:\s*grid;/s);
   assert.match(css, /\.ranking-table-wrap th\s*\{[^}]*white-space:\s*normal/s);
-  assert.match(css, /\.ranking-table-wrap td:nth-child\(2\)\s*\{[^}]*white-space:\s*normal/s);
+  assert.match(css, /\.ranking-table-wrap td:nth-child\(3\)\s*\{[^}]*white-space:\s*normal/s);
   assert.doesNotMatch(css, /\.ranking-card-name\s*\{[^}]*text-overflow/s);
   assert.doesNotMatch(html, /table-scroll-hint/);
   assert.match(html, /<nav id="ranking-pager" class="ranking-pager"[^>]*hidden>/);
@@ -279,3 +279,4 @@ test("selected detail panel hides the 출처·신뢰 정보 card and drops 출�
   const hidden = new Set(["error", "source"]);
   assert.deepEqual(ids.filter((id) => !hidden.has(id)), ["expected", "actual"]);
 });
+

@@ -1,3 +1,4 @@
+import { rankChanges } from "./providers/rank-change.js";
 import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance, compoundPerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
@@ -70,6 +71,10 @@ const elementIds = [
 ].reduce((result, id) => ({ ...result, [id]: document.getElementById(id) }), {});
 
 let snapshot = null;
+let latestPreview = null;
+let previewState = null;
+let currentChanges = {};
+let comparisonToken = 0;
 let selectedSymbol = null;
 let dateIndex = normalizeDateIndex(null);
 let marketCalendar = null;
@@ -324,18 +329,16 @@ function setStatusPill(node, status, text = stateLabels[normalizeStatus(status)]
 function rowStatusLabel(row) { if (row.raw?.trading_status === "no_trade_observed") return NO_TRADE_LABEL; if (isHistorical(snapshot)) return row.status === "valid" ? "정상 확인" : (rowStateLabels[row.status] || row.status); return rowStateLabels[row.status] || qualityLabel(row.quality); }
 function renderPipeline(data) {
   const pipeline = data?.pipeline || {};
-  const steps = { previousResult: pipeline.previousResult, analysis: pipeline.analysis, forecast: pipeline.forecast, openSettlement: pipeline.openSettlement, closeSettlement: pipeline.closeSettlement };
+  const showTodayPreview = !requestedRoute().date || requestedRoute().date === todayKst();
+  const steps = { nextPreview: showTodayPreview && latestPreview?.source_date === todayKst() ? {status: latestPreview.status} : showTodayPreview && previewState?.source_date === todayKst() ? previewState : null, analysis: pipeline.analysis, forecast: pipeline.forecast, openSettlement: pipeline.openSettlement, closeSettlement: pipeline.closeSettlement };
   document.querySelectorAll(".pipeline-step[data-step]").forEach((step) => {
-    const state = normalizeStatus(steps[step.dataset.step]?.status || (data?.status === "no_data" ? "no_data" : "pending"));
+    const state = normalizeStatus(steps[step.dataset.step]?.status || (step.dataset.step === "nextPreview" ? "pending" : data?.status === "no_data" ? "no_data" : "pending"));
     step.dataset.state = state;
     const statusNode = step.querySelector("[data-step-status]");
     statusNode.className = `step-status ${statusClass(state)}`;
     statusNode.textContent = stateLabels[state] || state;
     statusNode.title = steps[step.dataset.step]?.message || "";
-    if (step.dataset.step === "previousResult") {
-      const detail = step.querySelector(".step-copy p");
-      if (detail) detail.textContent = ["blocked", "partial", "degraded"].includes(state) ? (steps.previousResult?.message || "전일 정산 기록을 확인할 수 없습니다.") : "전일 정산값 입력";
-    }
+
   });
 }
 function evaluationStats(rows) {
@@ -644,6 +647,14 @@ function openSourceLabel(source) {
   return "출처 미확인";
 }
 function rowMetric(label, value, tone = "", title = "", note = "") { return `<div><span>${label}</span><strong class="${tone}"${title ? ` title="${escapeText(title)}"` : ""}>${value}</strong>${note ? `<small class="evaluation-note">${escapeText(note)}</small>` : ""}</div>`; }
+function changeMarkup(symbol) {
+  const entry = currentChanges[symbol];
+  if (!entry || entry.kind === "unknown") return '<span class="rank-change rank-change-muted">X</span>';
+  if (entry.kind === "new") return '<span class="rank-change rank-change-new">NEW</span>';
+  if (entry.value > 0) return `<span class="rank-change rank-change-up">▲ ${entry.value}</span>`;
+  if (entry.value < 0) return `<span class="rank-change rank-change-down">▼ ${Math.abs(entry.value)}</span>`;
+  return '<span class="rank-change rank-change-muted">—</span>';
+}
 function createMobileCard(row) {
   const card = document.createElement("article");
   card.className = "ranking-card";
@@ -652,7 +663,7 @@ function createMobileCard(row) {
   card.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
   card.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
   card.dataset.symbol = row.symbol;
-  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span><strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric(`예상 시가 · ${escapeText(openSourceLabel(row.expectedOpenSource))}`, formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("종목 평가", formatEvaluationScore(row.evaluationScore), toneClass(row.expectedReturn), evaluationTitle(row), evaluationNote(row))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("실제 최고가", formatHigh(row.actualHigh))}${rowMetric("실제 장중 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
+  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span>${changeMarkup(row.symbol)}<strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric(`예상 시가 · ${escapeText(openSourceLabel(row.expectedOpenSource))}`, formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("종목 평가", formatEvaluationScore(row.evaluationScore), toneClass(row.expectedReturn), evaluationTitle(row), evaluationNote(row))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("실제 최고가", formatHigh(row.actualHigh))}${rowMetric("실제 장중 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
   card.addEventListener("click", () => selectRow(row.symbol, { reveal: true }));
   card.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol, { reveal: true }); } });
   return card;
@@ -714,7 +725,7 @@ function renderRows() {
     tr.setAttribute("role", "button");
     tr.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
     tr.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
-    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시"><span class="cell-num">${formatExpectedPrice(row.expectedOpen)}</span><small class="cell-sub">${escapeText(openSourceLabel(row.expectedOpenSource))}</small></td><td class="${toneClass(row.expectedReturn)}" title="${escapeText(evaluationTitle(row))}" aria-label="종목 평가 ${formatEvaluationScore(row.evaluationScore)}. 0–100 백분위 점수, 소수 셋째 자리 표시. ${escapeText(evaluationTitle(row))}">${formatEvaluationScore(row.evaluationScore)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td>${formatHigh(row.actualHigh)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 장중 수익률">${formatPercent(row.sessionReturn)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
+    tr.innerHTML = `<td>${escapeText(row.rank)}</td><td>${changeMarkup(row.symbol)}</td><td><strong class="instrument-name">${escapeText(row.name)}</strong><span class="instrument-code">${escapeText(row.symbol)}</span></td><td aria-label="예상 시가 ${formatExpectedPrice(row.expectedOpen)}. 원 단위 정수 표시"><span class="cell-num">${formatExpectedPrice(row.expectedOpen)}</span><small class="cell-sub">${escapeText(openSourceLabel(row.expectedOpenSource))}</small></td><td class="${toneClass(row.expectedReturn)}" title="${escapeText(evaluationTitle(row))}" aria-label="종목 평가 ${formatEvaluationScore(row.evaluationScore)}. 0–100 백분위 점수, 소수 셋째 자리 표시. ${escapeText(evaluationTitle(row))}">${formatEvaluationScore(row.evaluationScore)}</td><td>${formatPrice(row.actualOpen)}</td><td>${formatPrice(row.actualClose)}</td><td>${formatHigh(row.actualHigh)}</td><td class="${toneClass(row.sessionReturn)}" aria-label="실제 시가 대비 실제 종가 장중 수익률">${formatPercent(row.sessionReturn)}</td><td>${formatNumber(row.actualVolume)}</td><td><span class="row-status ${escapeText(row.status)}">${escapeText(rowStatusLabel(row))}</span></td>`;
     tr.addEventListener("click", () => selectRow(row.symbol, { reveal: true }));
     tr.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol, { reveal: true }); } });
     elementIds["ranking-body"].append(tr);
@@ -848,7 +859,12 @@ async function refresh({ showLoading = false, token = null } = {}) {
   try {
     const nextSnapshot = await loadSnapshot();
     if (token !== null && token !== dateRequestToken) return;
+    currentChanges = {};
+    const routeDate = requestedRoute().date;
+    const routeMode = requestedRoute().rawMode;
+    document.getElementById("next-preview").hidden = Boolean(routeDate && routeDate !== todayKst()) || Boolean(routeMode && dateModeForRoute(routeMode) !== "provider");
     renderHeader(nextSnapshot);
+    loadComparison(nextSnapshot);
   } catch (error) {
     if (token !== null && token !== dateRequestToken) return;
     console.error(error);
@@ -883,7 +899,7 @@ initSkipLink();
 elementIds["search-input"].addEventListener("input", renderRows);
 elementIds["status-filter"].addEventListener("change", renderRows);
 elementIds["sort-select"].addEventListener("change", renderRows);
-elementIds["refresh-button"].addEventListener("click", async () => { await loadDateMetadata(); renderRecentPerformance(); refresh(); });
+elementIds["refresh-button"].addEventListener("click", async () => { await loadDateMetadata(); renderRecentPerformance(); refreshNextPreview(); refresh(); });
 elementIds["ranking-date-button"].addEventListener("click", () => {
   const expanded = elementIds["ranking-date-button"].getAttribute("aria-expanded") === "true";
   if (expanded) closeDatePopover(); else openDatePopover();
@@ -911,6 +927,7 @@ setInterval(updateClock, 1000);
 (async () => {
   await loadDateMetadata();
   renderRecentPerformance();
+  refreshNextPreview();
   refresh();
 })();
 
@@ -984,3 +1001,40 @@ function renderCumulativePerformance(rows) {
 
 
 
+
+
+function todayKst() {
+  const parts = dateFormatter.formatToParts(new Date()).reduce((o, p) => (o[p.type] = p.value, o), {});
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+async function refreshNextPreview() {
+  const container = document.getElementById("next-preview-content");
+  try { const response = await fetch("./data/next-preview/status.json", {cache:"no-store"}); previewState = response.ok ? await response.json() : null; } catch { previewState = null; }
+  try {
+    const response = await fetch("./data/next-preview/latest.json", {cache:"no-store"});
+    if (!response.ok) throw new Error("preview unavailable");
+    const preview = await response.json();
+    const today = todayKst();
+    if (preview.kind !== "next_preview" || !isIsoDate(preview.target_date) || !isIsoDate(preview.source_date) || preview.target_date < today || preview.source_date > today || !Array.isArray(preview.rows)) throw new Error("preview unavailable");
+    latestPreview = preview;
+    const showRows = rows => rows.map(row => `<div><span>${escapeText(row.rank)}</span><strong>${escapeText(row.name)}</strong><small>${escapeText(row.symbol)}</small><b>${formatPercent(rankingExpectedReturn(row))}</b></div>`).join("");
+    const more = preview.rows.length > 20 ? `<details class="next-preview-more"><summary>전체 순위 보기</summary><div class="next-preview-list">${showRows(preview.rows.slice(20))}</div></details>` : "";
+    container.innerHTML = `<p class="next-preview-meta">${escapeText(preview.target_date)} · ${escapeText(formatTime(preview.generated_at))} 생성</p><div class="next-preview-list">${showRows(preview.rows.slice(0, 20))}</div>${more}`;
+  } catch { latestPreview = null; container.innerHTML = '<p class="performance-message">미리보기를 기다리는 중입니다.</p>'; }
+  if (snapshot) renderPipeline(snapshot);
+}
+async function loadComparison(data) {
+  const token = ++comparisonToken;
+  currentChanges = {};
+  const date = data?.meta?.run_date;
+  if (data?.mode !== "provider" || data?.meta?.run_stage !== "forecast" || !isIsoDate(date) || data?.meta?.test_only || data?.meta?.retrospective_evaluation) { if (snapshot) renderRows(); return; }
+  try {
+    const [a, b] = await Promise.all([fetch(`./data/next-preview/${date}.json`, {cache:"no-store"}), fetch(`./data/preopen-ranking/${date}.json`, {cache:"no-store"})]);
+    if (!a.ok || !b.ok) throw new Error("ranking unavailable");
+    const [preview, preopen] = await Promise.all([a.json(), b.json()]);
+    if (!/^[A-Za-z0-9._-]+$/.test(preopen.run_id || "") || preopen.run_id !== data.meta.run_id || preview.kind !== "next_preview" || preopen.kind !== "preopen_ranking") throw new Error("ranking identity mismatch");
+    if (token !== comparisonToken) return;
+    currentChanges = rankChanges(preview, preopen, date);
+    if (snapshot) renderRows();
+  } catch { if (token === comparisonToken && snapshot) renderRows(); }
+}

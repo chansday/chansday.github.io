@@ -138,6 +138,15 @@ jobs:
           if git diff --cached --quiet; then exit 0; fi
           bash scripts/commit-and-push.sh "chore(data): record previous result status"
 
+      - name: Freeze recorded pre-open ranking
+        if: >-
+          steps.stage.outcome == 'success' && steps.stage.outputs.status == 'ready' &&
+          (inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage) == 'forecast'
+        continue-on-error: true
+        env:
+          RANK_DATE: ${{ steps.validate-run-context.outputs.run_date }}
+        run: node scripts/freeze-preopen-ranking.mjs "$RANK_DATE"
+
       - name: Collect isolated daily baseline
         id: daily-experiment
         if: >-
@@ -219,7 +228,7 @@ jobs:
           RESOLVED_STAGE: ${{ inputs.auto_stage && steps.auto_stage.outputs.stage || inputs.stage }}
         run: |
           set -euo pipefail
-          changes="$(git status --short -- data/latest-snapshot.json data/runs data/daytrade)"
+          changes="$(git status --short -- data/latest-snapshot.json data/runs data/daytrade data/preopen-ranking)"
           if [ -z "$changes" ]; then
             echo "No snapshot changes to commit."
             exit 0
@@ -227,6 +236,7 @@ jobs:
           node scripts/generate-date-index.mjs
           git add data/latest-snapshot.json data/runs data/date-index.json
           if [ -d data/daytrade ]; then git add -- data/daytrade; fi
+          if [ -d data/preopen-ranking ]; then git add -- data/preopen-ranking; fi
           bash scripts/commit-and-push.sh "chore(data): record KOSPI $RESOLVED_STAGE stage"
 
       - name: Save isolated daily baseline
@@ -313,3 +323,4 @@ jobs:
             echo "Isolated experiment failed, was not recorded, or could not be saved." >&2
             exit 1
           fi
+

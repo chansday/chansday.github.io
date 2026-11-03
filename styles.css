@@ -273,7 +273,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .ranking-table-wrap thead th:first-child { border-top-left-radius: 14px; }
 .ranking-table-wrap thead th:last-child { border-top-right-radius: 14px; }
 .ranking-table-wrap th { padding: 11px 8px; border-bottom: 1px solid var(--line-strong); color: var(--dim); font-size: 10px; font-weight: 600; line-height: 1.35; text-align: right; white-space: normal; word-break: keep-all; }
-.ranking-table-wrap th:first-child, .ranking-table-wrap th:nth-child(2) { text-align: left; }
+.ranking-table-wrap th:first-child, .ranking-table-wrap th:nth-child(3) { text-align: left; }
 .ranking-table-wrap td { padding: 10px 8px; border-bottom: 1px solid rgba(164, 191, 221, .1); color: var(--muted); font-family: "DM Mono", monospace; font-size: 11px; letter-spacing: -.03em; text-align: right; vertical-align: top; white-space: nowrap; }
 .ranking-table-wrap th:first-child, .ranking-table-wrap td:first-child { padding-left: 14px; }
 .ranking-table-wrap th:last-child, .ranking-table-wrap td:last-child { padding-right: 14px; }
@@ -282,8 +282,8 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .ranking-table-wrap tbody tr[aria-selected="true"] td:first-child { box-shadow: inset 2px 0 var(--blue); }
 .ranking-table-wrap tbody tr:focus-visible { outline-offset: -3px; }
 .ranking-table-wrap td:first-child { color: var(--blue-strong); font-weight: 500; text-align: left; }
-.ranking-table-wrap td:nth-child(2) { min-width: 6.5rem; text-align: left; white-space: normal; overflow-wrap: anywhere; }
-.ranking-table-wrap td:nth-child(3) { white-space: normal; }
+.ranking-table-wrap td:nth-child(3) { min-width: 6.5rem; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+.ranking-table-wrap td:nth-child(4) { white-space: normal; }
 .ranking-table-wrap .cell-num { display: block; white-space: nowrap; }
 .ranking-table-wrap .cell-sub { display: block; max-width: 8.5rem; margin-left: auto; margin-top: 2px; color: var(--dim); font-family: "Noto Sans KR", sans-serif; font-size: 9px; letter-spacing: 0; line-height: 1.35; white-space: normal; word-break: keep-all; overflow-wrap: anywhere; }
 .ranking-table-wrap th:last-child, .ranking-table-wrap td:last-child { width: 5.5rem; min-width: 5.5rem; }
@@ -300,7 +300,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .ranking-card { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 10px; background: rgba(8, 17, 32, .5); cursor: pointer; }
 .ranking-card:hover, .ranking-card[aria-selected="true"] { border-color: var(--blue); box-shadow: 0 0 0 1px rgba(123, 188, 255, .25); }
 .ranking-card:focus-visible { outline-offset: 2px; }
-.ranking-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
+.ranking-card-head { display: grid; grid-template-columns: auto auto minmax(0, 1fr) auto; gap: 8px; align-items: baseline; }
 .ranking-card-rank { color: var(--blue-strong); font-family: "DM Mono", monospace; font-size: 10px; }
 .ranking-card-name { min-width: 0; color: var(--text); font-size: 12px; font-weight: 800; line-height: 1.4; word-break: keep-all; overflow-wrap: anywhere; }
 .ranking-card-code { color: var(--dim); font-family: "DM Mono", monospace; font-size: 9px; }
@@ -513,3 +513,19 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 
 
 
+
+.rank-change { white-space: nowrap; font-family: "DM Mono", monospace; font-size: 11px; font-weight: 700; }
+.rank-change-up { color: var(--red); }
+.rank-change-down { color: var(--blue); }
+.rank-change-muted { color: var(--dim); }
+.rank-change-new { color: var(--yellow); }
+.next-preview-panel { padding: 22px; }
+.next-preview-meta { color: var(--muted); font-size: 12px; }
+.next-preview-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 24px; }
+.next-preview-list > div { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; gap: 9px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+.next-preview-list span, .next-preview-list small { color: var(--muted); }
+.next-preview-list b { color: var(--green); font-family: "DM Mono", monospace; }
+@media (max-width: 600px) { .next-preview-list { grid-template-columns: 1fr; } .next-preview-panel { padding: 16px; } }
+
+.next-preview-more { margin-top: 14px; color: var(--muted); font-size: 12px; }
+.next-preview-more summary { cursor: pointer; padding: 8px 0; }
