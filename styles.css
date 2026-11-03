@@ -343,6 +343,10 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .selected-title { padding: 23px 0 18px; }
 .selected-title .mono { display: block; color: var(--blue-strong); font-size: 11px; }
 .selected-title h3 { display: inline-block; max-width: 100%; margin: 4px 0 10px; overflow-wrap: anywhere; font-size: 20px; letter-spacing: -.06em; }
+.selected-title .naver-link { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; transition: color .15s, border-color .15s; }
+.selected-title .naver-link:hover, .selected-title .naver-link:focus-visible { color: var(--blue-strong); border-bottom-color: currentColor; }
+.selected-title .naver-link:focus-visible { outline: 2px solid var(--blue-strong); outline-offset: 3px; border-radius: 4px; }
+.naver-link-icon { margin-left: 5px; font-size: .7em; vertical-align: super; color: var(--dim); }
 .selected-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; padding: 16px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .selected-grid strong { font-family: "DM Mono", monospace; font-size: 12px; }
 .selected-policy { margin: 14px 0 0; color: var(--dim); font-size: 10px; line-height: 1.65; word-break: keep-all; }
