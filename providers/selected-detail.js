@@ -4,10 +4,10 @@
 // snapshot records one, shows the pipeline's own reason.
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 
-// Naver Finance stock page for a validated 6-character KRX code; null otherwise
+// Naver stock page (m.stock.naver.com, opens the stock itself on desktop and mobile) for a validated 6-character KRX code; null otherwise
 // so an unvalidated value is never placed in a link.
 export function naverFinanceUrl(symbol) {
-  return typeof symbol === "string" && /^[0-9A-Z]{6}$/.test(symbol) ? `https://finance.naver.com/item/main.naver?code=${symbol}` : null;
+  return typeof symbol === "string" && /^[0-9A-Z]{6}$/.test(symbol) ? `https://m.stock.naver.com/domestic/stock/${symbol}/total` : null;
 }
 
 export const DETAIL_DISCLAIMER = "예상은 기록·비교용이며 수익을 보장하지 않습니다. 투자 조언이 아닙니다.";
