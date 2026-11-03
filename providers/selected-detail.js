@@ -405,9 +405,11 @@ export function recentDailyRows(history, symbol, date, settledRow = null) {
   }
   if (settledRow && finite(settledRow.actual_close) && settledRow.actual_close > 0) byDate.set(date, { date, open: settledRow.actual_open, close: settledRow.actual_close, volume: settledRow.actual_volume, source: '당일 종가 정산' });
   return [...byDate.values()].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 5).map(row => ({
-    ...row, closeText: row.close > 0 && finite(row.close) ? formatWon(row.close) : '—',
+    ...row, openText: row.open > 0 && finite(row.open) ? formatWon(row.open) : '—',
+    closeText: row.close > 0 && finite(row.close) ? formatWon(row.close) : '—',
     returnText: row.open > 0 && row.close > 0 && finite(row.open) && finite(row.close) ? formatPct((row.close / row.open - 1) * 100) : '—',
     volumeText: finite(row.volume) && row.volume >= 0 ? `${integer.format(row.volume)}주` : '—',
   }));
 }
+
 

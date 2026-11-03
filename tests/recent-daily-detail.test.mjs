@@ -13,13 +13,16 @@ const history = { source:'naver-daily', target_date:'2026-11-02', return_history
 test('recent daily sorts, limits, calculates and keeps missing values', () => {
  const rows=recentDailyRows(history,'A','2026-11-02');
  assert.deepEqual(rows.map(r=>r.date), ['2026-10-30','2026-10-29','2026-10-28','2026-10-27','2026-10-26']);
+ assert.equal(rows[0].openText,'100원'); assert.equal(rows[1].openText,'—'); assert.equal(rows[3].openText,'100원');
  assert.equal(rows[0].returnText,'+10.00%'); assert.equal(rows[0].volumeText,'1,234주');
  assert.equal(rows[1].returnText,'—'); assert.equal(rows[1].volumeText,'—'); assert.equal(rows[2].volumeText,'0주');
 });
 test('settled current day appears first, wrong date history never reused', () => {
  const rows=recentDailyRows(history,'A','2026-11-02',{actual_open:100,actual_close:95,actual_volume:10});
+ assert.equal(rows[0].openText,'100원');
  assert.equal(rows[0].returnText,'-5.00%'); assert.equal(rows.length,5);
  assert.deepEqual(recentDailyRows(history,'A','2026-11-03'), []);
  assert.deepEqual(recentDailyRows(history,'B','2026-11-02'), []);
 });
+
 

@@ -811,11 +811,11 @@ async function renderRecentDaily(row) {
   if (!rows.length) { message.textContent = "이 종목의 최근 일봉 기록이 없습니다."; return; }
   message.remove();
   const table = document.createElement("table"); table.className = "recent-daily-table";
-  const caption = document.createElement("caption"); caption.textContent = "최근 거래 5일 종가, 시가 대비 등락률 및 거래량 (원, %, 주)"; table.append(caption);
+  const caption = document.createElement("caption"); caption.textContent = "최근 거래 5일 시가, 종가, 시가 대비 등락률 및 거래량 (원, %, 주)"; table.append(caption);
   const head = document.createElement("thead"); const headingRow = document.createElement("tr");
-  for (const label of ["거래일", "종가", "시가 대비", "거래량"]) { const th = document.createElement("th"); th.scope = "col"; th.textContent = label; headingRow.append(th); }
+  for (const label of ["거래일", "시가", "종가", "시가 대비", "거래량"]) { const th = document.createElement("th"); th.scope = "col"; th.textContent = label; headingRow.append(th); }
   head.append(headingRow); table.append(head); const body = document.createElement("tbody");
-  for (const daily of rows) { const tr = document.createElement("tr"); tr.title = daily.source; for (const value of [daily.date, daily.closeText, daily.returnText, daily.volumeText]) { const td = document.createElement("td"); td.textContent = value; tr.append(td); } body.append(tr); }
+  for (const daily of rows) { const tr = document.createElement("tr"); tr.title = daily.source; for (const value of [daily.date, daily.openText, daily.closeText, daily.returnText, daily.volumeText]) { const td = document.createElement("td"); td.textContent = value; tr.append(td); } body.append(tr); }
   table.append(body); container.append(table);
 }
 function renderSelected() {
@@ -940,4 +940,5 @@ async function renderRecentPerformance() {
   if (!results.length) { container.innerHTML = '<p class="performance-message">확인된 종가 정산 기록이 없습니다.</p>'; return; }
   container.innerHTML = results.map((result, index) => `<article class="pipeline-step performance-day${isNegativePerformance(result.top10) ? " performance-day-negative" : ""}" role="listitem"><div class="step-index">${String(index + 1).padStart(2, "0")}</div><div class="step-copy"><h3>${formatPlainDate(result.date)}</h3><div class="performance-values"><div><span>상위 10위 수익률</span><strong>${formatPercent(result.top10)}</strong></div><div><span>상위 20위 수익률</span><strong>${formatPercent(result.top20)}</strong></div></div></div></article>`).join("");
 }
+
 
