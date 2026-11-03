@@ -10,9 +10,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles.css?v=20261103a">
-    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261103a","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261103a","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261103a","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261103a","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261103a","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261103a","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261103a","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261103a","./providers/rank-model.js":"./providers/rank-model.js?v=20261103a","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261103a","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261103a","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261103a","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261103a","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261103a","./providers/daytrade-model.js":"./providers/daytrade-model.js?v=20261103a","./providers/recent-performance.js":"./providers/recent-performance.js?v=20261103a"}}</script>
-    <script type="module" src="./app.js?v=20261103a"></script>
+    <link rel="stylesheet" href="./styles.css?v=20261103b">
+    <script type="importmap">{"imports":{"./providers/daily-experiment-contract.js":"./providers/daily-experiment-contract.js?v=20261103a","./providers/daily-experiment-view.js":"./providers/daily-experiment-view.js?v=20261103a","./providers/date-navigation.js":"./providers/date-navigation.js?v=20261103a","./providers/demo-provider.js":"./providers/demo-provider.js?v=20261103a","./providers/evaluation-contract.js":"./providers/evaluation-contract.js?v=20261103a","./providers/evaluation-score.js":"./providers/evaluation-score.js?v=20261103a","./providers/forecast-basis.js":"./providers/forecast-basis.js?v=20261103a","./providers/ridge-model.js":"./providers/ridge-model.js?v=20261103a","./providers/rank-model.js":"./providers/rank-model.js?v=20261103a","./providers/korean-symbol.js":"./providers/korean-symbol.js?v=20261103a","./providers/post-close-overlay.js":"./providers/post-close-overlay.js?v=20261103a","./providers/provider-adapter.js":"./providers/provider-adapter.js?v=20261103a","./providers/ranking-sort.js":"./providers/ranking-sort.js?v=20261103a","./providers/selected-detail.js":"./providers/selected-detail.js?v=20261103a","./providers/daytrade-model.js":"./providers/daytrade-model.js?v=20261103a","./providers/recent-performance.js":"./providers/recent-performance.js?v=20261103b"}}</script>
+    <script type="module" src="./app.js?v=20261103b"></script>
     <script type="module" src="./providers/daily-experiment-view.js?v=20261103a"></script>
   </head>
   <body>
@@ -69,6 +69,12 @@
               <div><span>모델 학습</span><strong id="model-trained-at">—</strong></div>
             </div>
           </aside>
+        </section>
+
+        <section id="cumulative-performance" class="section page-width" aria-labelledby="cumulative-performance-title">
+          <div class="section-heading"><div><p class="eyebrow"><span class="eyebrow-line" aria-hidden="true"></span> 성과 추이</p><h2 id="cumulative-performance-title">누적 수익률</h2></div><p class="section-note">2026.10.26부터 복리 계산 · 최근 최대 30거래일 표시</p></div>
+          <div id="cumulative-performance-chart" class="glass-panel cumulative-panel" aria-live="polite"><p class="performance-message">종가 정산 기록을 확인 중입니다.</p></div>
+          <p class="ranking-lede cumulative-note">매일 상위 종목의 동일 비중 평균 수익률을 전액 재투자한다고 가정한 가상 성과입니다. 사후 재구성된 예측이 포함될 수 있으며 거래 비용은 반영하지 않습니다. 일별 값이 확인되지 않으면 해당 순위의 이후 누적 수익률은 표시하지 않습니다.</p>
         </section>
 
         <section id="recent-performance" class="section page-width" aria-labelledby="recent-performance-title">
@@ -129,4 +135,5 @@
     </div>
   </body>
 </html>
+
 

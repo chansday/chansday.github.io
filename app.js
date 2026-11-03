@@ -1,4 +1,4 @@
-import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance } from "./providers/recent-performance.js";
+import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance, compoundPerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
@@ -914,11 +914,17 @@ setInterval(updateClock, 1000);
   refresh();
 })();
 
+let performanceRenderToken = 0;
 async function renderRecentPerformance() {
+  const token = ++performanceRenderToken;
   const container = document.getElementById("recent-performance-list");
   const dates = [...(dateIndex.availableDates.provider || [])].filter(date => dateIndex.latestStages?.provider?.[date] === "1530" && classifyDate(date, "provider", dateIndex, marketCalendar).status !== "holiday").sort().reverse();
-  const results = [];
-  for (const date of dates) {
+  const eligibleDates = dates.filter(date => date >= "2026-10-26");
+  const results = new Array(eligibleDates.length);
+  let next = 0;
+  async function loadPerformance() {
+    while (next < eligibleDates.length) {
+      const index = next++, date = eligibleDates[index];
     try {
       const data = await fetchSnapshot(`./data/runs/${date}/1530.json`, "Close settlement request failed");
       let result;
@@ -933,12 +939,39 @@ async function renderRecentPerformance() {
           result = { date, top10: null, top20: null };
         }
       } else result = summarizeDisplayedPerformance(data, date);
-      if (result) results.push(result);
-    } catch { /* A missing or invalid settlement is never substituted. */ }
-    if (results.length === 5) break;
+      results[index] = result || { date, top10: null, top20: null };
+    } catch { results[index] = { date, top10: null, top20: null }; }
+    }
   }
-  if (!results.length) { container.innerHTML = '<p class="performance-message">확인된 종가 정산 기록이 없습니다.</p>'; return; }
-  container.innerHTML = results.map((result, index) => `<article class="pipeline-step performance-day${isNegativePerformance(result.top10) ? " performance-day-negative" : ""}" role="listitem"><div class="step-index">${String(index + 1).padStart(2, "0")}</div><div class="step-copy"><h3>${formatPlainDate(result.date)}</h3><div class="performance-values"><div><span>상위 10위 수익률</span><strong>${formatPercent(result.top10)}</strong></div><div><span>상위 20위 수익률</span><strong>${formatPercent(result.top20)}</strong></div></div></div></article>`).join("");
+  await Promise.all(Array.from({ length: Math.min(3, eligibleDates.length) }, loadPerformance));
+  if (token !== performanceRenderToken) return;
+  const latestCloseDate = eligibleDates[0];
+  const incompleteDates = (dateIndex.availableDates.provider || []).filter(date => date >= "2026-10-26" && date <= latestCloseDate && dateIndex.latestStages?.provider?.[date] !== "1530" && classifyDate(date, "provider", dateIndex, marketCalendar).status !== "holiday");
+  if (latestCloseDate && !eligibleDates.includes("2026-10-26") && !incompleteDates.includes("2026-10-26")) incompleteDates.push("2026-10-26");
+  renderCumulativePerformance(compoundPerformance([...results, ...incompleteDates.map(date => ({ date, top10: null, top20: null }))]));
+  const recent = results.slice(0, 5);
+  if (!recent.length) { container.innerHTML = '<p class="performance-message">확인된 종가 정산 기록이 없습니다.</p>'; return; }
+  container.innerHTML = recent.map((result, index) => `<article class="pipeline-step performance-day${isNegativePerformance(result.top10) ? " performance-day-negative" : ""}" role="listitem"><div class="step-index">${String(index + 1).padStart(2, "0")}</div><div class="step-copy"><h3>${formatPlainDate(result.date)}</h3><div class="performance-values"><div><span>상위 10위 수익률</span><strong>${formatPercent(result.top10)}</strong></div><div><span>상위 20위 수익률</span><strong>${formatPercent(result.top20)}</strong></div></div></div></article>`).join("");
 }
 
 
+
+
+function renderCumulativePerformance(rows) {
+  const container = document.getElementById("cumulative-performance-chart");
+  if (!rows.length) { container.innerHTML = '<p class="performance-message">확인된 종가 정산 기록이 없습니다.</p>'; return; }
+  const values = rows.flatMap(row => [row.top10, row.top20]).filter(Number.isFinite);
+  const latest = rows[rows.length - 1];
+  if (!values.length) { container.innerHTML = '<p class="performance-message">누적 수익률을 계산할 수 있는 기록이 없습니다.</p>'; return; }
+  let min = Math.min(0, ...values), max = Math.max(0, ...values);
+  if (max - min < 1) { min -= 0.5; max += 0.5; }
+  const padding = (max - min) * 0.12; min -= padding; max += padding;
+  const x = i => rows.length === 1 ? 365 : 65 + i * 600 / (rows.length - 1);
+  const y = v => 210 - (v - min) / (max - min) * 175;
+  const line = key => rows.map((row, i) => Number.isFinite(row[key]) ? `${x(i).toFixed(1)},${y(row[key]).toFixed(1)}` : null).filter(Boolean).join(' ');
+  const dots = key => rows.map((row, i) => Number.isFinite(row[key]) ? `<circle cx="${x(i).toFixed(1)}" cy="${y(row[key]).toFixed(1)}" r="3" class="cumulative-${key}"><title>${row.date} ${key === 'top10' ? '상위 10위' : '상위 20위'} ${formatPercent(row[key])}</title></circle>` : '').join('');
+  const ticks = [max, (max + min) / 2, min].map(value => `<line x1="65" x2="665" y1="${y(value)}" y2="${y(value)}" class="cumulative-grid"/><text x="57" y="${y(value) + 4}" text-anchor="end">${formatPercent(value)}</text>`).join('');
+  const zero = `<line x1="65" x2="665" y1="${y(0)}" y2="${y(0)}" class="cumulative-zero"/>`;
+  const table = [...rows].reverse().map(row => `<tr><th scope="row">${row.date}</th><td>${formatPercent(row.top10)}</td><td>${formatPercent(row.top20)}</td></tr>`).join('');
+  container.innerHTML = `<div class="cumulative-summary"><div><span class="cumulative-key cumulative-key-10">상위 10위</span><strong>${formatPercent(latest.top10)}</strong></div><div><span class="cumulative-key cumulative-key-20">상위 20위</span><strong>${formatPercent(latest.top20)}</strong></div><small>기준일 ${latest.date} · ${rows.length}거래일 표시</small></div><div class="cumulative-chart-wrap"><svg class="cumulative-chart" viewBox="0 0 700 250" role="img" aria-label="10월 26일부터 복리로 계산한 상위 10위와 20위의 누적 수익률 추이. 상세 값은 아래 표에서 확인할 수 있습니다.">${ticks}${zero}<polyline points="${line('top10')}" class="cumulative-line cumulative-top10"/><polyline points="${line('top20')}" class="cumulative-line cumulative-top20"/>${dots('top10')}${dots('top20')}<text x="65" y="235">${rows[0].date}</text><text x="665" y="235" text-anchor="end">${latest.date}</text></svg></div><details class="cumulative-details"><summary>날짜별 누적 수익률 보기</summary><div class="cumulative-table-wrap"><table><caption class="sr-only">날짜별 누적 수익률</caption><thead><tr><th scope="col">거래일</th><th scope="col">상위 10위</th><th scope="col">상위 20위</th></tr></thead><tbody>${table}</tbody></table></div></details>`;
+}
