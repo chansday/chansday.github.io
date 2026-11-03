@@ -19,7 +19,7 @@ const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_BASE_MS = 250;
 const DEFAULT_MAX_AGE_HOURS = 72;
 const DEFAULT_MAX_CONCURRENCY = 2;
-const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
+const USER_AGENT = "kospi-signal-board/1.0 (+https://kospi-signal.github.io/)";
 
 function numberEnv(env, key, fallback, minimum = 0) {
   const value = Number(env[key]);

@@ -8,7 +8,7 @@ import { collectNaverUniverse, createNaverCrawlProvider, UNIVERSE_ENDPOINT, QUOT
 import { loadKospiUniverseCache } from "../providers/kospi-universe-cache.js";
 import { buildUniverseRecord, candidateSymbols, fetchCsvCandidates, isRefusedCandidatePath, updateUniverse } from "../scripts/update-kospi-universe.mjs";
 
-const UA = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
+const UA = "kospi-signal-board/1.0 (+https://kospi-signal.github.io/)";
 const time = new Date("2026-10-26T23:20:00Z");
 const json = (payload, status = 200) => ({ ok: status >= 200 && status < 300, status, headers: new Headers({ "content-type": "application/json" }), text: async () => JSON.stringify(payload) });
 const text = (body, status = 200, type = "text/plain") => ({ ok: status >= 200 && status < 300, status, headers: new Headers({ "content-type": type }), text: async () => body });

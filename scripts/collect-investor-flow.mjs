@@ -4,7 +4,7 @@ import {isKoreanSymbol} from '../providers/korean-symbol.js';
 import {createProgressLog,formatDuration} from '../providers/progress-log.js';
 import {parseInvestorFlow} from '../providers/investor-flow.js';
 import {kstDate,isValidDate,loadMarketCalendar,classifyMarketDate} from './market-calendar.mjs';
-const BASE='https://m.stock.naver.com/api/stock/',USER_AGENT='chansday-personal-investor-collector/1.0';
+const BASE='https://m.stock.naver.com/api/stock/',USER_AGENT='kospi-signal-personal-investor-collector/1.0';
 export function tradingDates(start,end,calendar){
   if(!isValidDate(start)||!isValidDate(end)||start>end)throw new Error('Invalid date range');
   const d=new Date(`${start}T00:00:00Z`),last=new Date(`${end}T00:00:00Z`),days=[];

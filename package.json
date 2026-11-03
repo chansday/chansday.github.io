@@ -1,5 +1,5 @@
 {
-  "name": "chansday-kospi-signal-board",
+  "name": "kospi-signal-board",
   "private": true,
   "version": "1.0.0",
   "description": "Static KOSPI pre-market ranking board for GitHub Pages.",

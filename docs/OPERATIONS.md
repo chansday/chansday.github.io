@@ -54,7 +54,7 @@
 - robots.txt 자체가 HTTP 404/410이면 RFC 9309 §2.3.1.3에 따라 "robots.txt 없음(제한 없음)"으로 처리합니다. 이 예외는 Naver crawl 경로에서만 `allowMissing` 옵션으로 켜며, public-csv 등 다른 경로는 기존대로 fail-closed입니다.
 - 429 또는 Retry-After 응답은 기다리거나 재시도하지 않고 즉시 `blocked`로 중단하며 `retry not before` 시각만 기록합니다. 정상적으로 파싱되는 JSON 응답은 본문 단어(예: 종목명 "Doosan Robotics")로 challenge 판정하지 않고, HTML 또는 비JSON 본문에만 challenge 문구 검사를 적용합니다.
 - `data/kospi-universe.json`과 `data/daily-history/`는 작업 디렉터리가 아니라 저장소 루트(`providers/repo-paths.js`, `import.meta.url` 기준)에서 해석합니다. `KOSPI_DATA_ROOT`로 다른 루트를 지정할 수 있습니다(테스트 격리용).
-- User-Agent는 `chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)`로 고정이며 교체·위장하지 않습니다. robots 요청의 `Accept`는 `text/plain, */*;q=0.1`입니다(일부 host가 `text/plain` 단독에는 실제 404 대신 406을 반환함).
+- User-Agent는 `kospi-signal-board/1.0 (+https://kospi-signal.github.io/)`로 고정이며 교체·위장하지 않습니다. robots 요청의 `Accept`는 `text/plain, */*;q=0.1`입니다(일부 host가 `text/plain` 단독에는 실제 404 대신 406을 반환함).
 - 2026-10-28 확인 결과: `m.stock.naver.com`, `finance.naver.com`, `fchart.stock.naver.com`은 `User-agent: * / Disallow: /`이므로 요청하지 않습니다. `api.stock.naver.com`, `polling.finance.naver.com`은 robots.txt 404입니다. `data.krx.co.kr`은 robots.txt 404이지만 종목 목록 JSON endpoint가 키 없는 요청에 HTTP 403을 반환해 사용하지 않습니다(우회 시도 없음).
 
 ### KOSPI universe 목록 파일

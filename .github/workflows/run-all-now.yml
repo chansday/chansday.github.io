@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   run-all:
-    if: github.repository == 'chansday/chansday.github.io'
+    if: contains(fromJSON('["kospi-signal/kospi-signal.github.io", "chansday/chansday.github.io"]'), github.repository)
     runs-on: ubuntu-24.04
     # No timeout-minutes: a past-date reconstruction requests every symbol's
     # daily chart one by one and is allowed to finish late (GitHub's 6 h job

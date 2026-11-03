@@ -11,7 +11,7 @@ const DEFAULT_MAX_RETRIES = 2;
 const DEFAULT_RETRY_BASE_MS = 250;
 const DEFAULT_MAX_AGE_HOURS = 72;
 const CONFIRMED_LICENSE = "confirmed";
-const USER_AGENT = "chansday-kospi-signal-board/1.0 (+https://chansday.github.io/)";
+const USER_AGENT = "kospi-signal-board/1.0 (+https://kospi-signal.github.io/)";
 
 function readConfig(env) {
   const rawUrl = (env.KOSPI_PUBLIC_SOURCE_URL || "").trim();

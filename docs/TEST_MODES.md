@@ -6,8 +6,8 @@
 
 기본 화면은 최신 운영 스냅샷을 표시합니다. live provider가 정확히 `no_data`일 때만 `data/runs/historical-test/YYYY-MM-DD/1530.json`을 읽어 표시하며, `partial`·`degraded`·stale 상태에서는 운영 상태를 그대로 유지합니다. fallback 화면의 최상단 라벨은 정확히 `TEST ONLY · HISTORICAL BASELINE · NOT LIVE`입니다. historical-test 날짜별 화면은 다음 주소로 별도 확인할 수 있습니다.
 
-- `https://chansday.github.io/?mode=historical-test&date=2026-10-22`
-- `https://chansday.github.io/?mode=historical-test&date=2026-10-23`
+- `https://kospi-signal.github.io/?mode=historical-test&date=2026-10-22`
+- `https://kospi-signal.github.io/?mode=historical-test&date=2026-10-23`
 
 ## 날짜별 조회 달력
 
@@ -54,8 +54,8 @@ npm run historical-test:collect
 
 브라우저에서 다음 주소로 확인할 수 있습니다.
 
-- `https://chansday.github.io/?mode=replay&date=2026-10-22`
-- `https://chansday.github.io/?mode=replay&date=2026-10-23`
+- `https://kospi-signal.github.io/?mode=replay&date=2026-10-22`
+- `https://kospi-signal.github.io/?mode=replay&date=2026-10-23`
 
 로컬 검증 명령은 다음과 같습니다.
 
@@ -68,8 +68,8 @@ npm run replay:dry-run -- --date 2026-10-23
 
 2026-10-26의 backfill 테스트는 운영 data/latest-snapshot.json, 실제 provider 설정, 평일 Actions cron과 엄격히 분리되어 있습니다. 다음 주소는 기존 합성 replay의 expected_open/close/return 및 actual_open/close/error 숫자 흐름을 테스트 입력으로 채운 화면을 엽니다.
 
-- https://chansday.github.io/?mode=backfill-test&date=2026-10-22
-- https://chansday.github.io/?mode=backfill-test&date=2026-10-23
+- https://kospi-signal.github.io/?mode=backfill-test&date=2026-10-22
+- https://kospi-signal.github.io/?mode=backfill-test&date=2026-10-23
 
 스냅샷은 mode=backfill_test, provider.id=backfill-test, meta.isDemo=true, meta.backfill=true를 사용하며 화면에 TEST ONLY / BACKFILL 라벨을 표시합니다. 08:20 KST 실제 원천 스냅샷이 없으므로 과거 08:20 예측을 재구성하지 않았고, 미래 데이터 누수를 막기 위해 날짜를 두 테스트 날짜로만 제한합니다. 숫자는 실제 금융 데이터·실적·예측 성과가 아닙니다.
 

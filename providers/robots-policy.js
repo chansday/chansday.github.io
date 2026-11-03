@@ -1,4 +1,4 @@
-export function robotsAllowsPath(text, path, agent = "chansday-kospi-signal-board") {
+export function robotsAllowsPath(text, path, agent = "kospi-signal-board") {
   const groups = []; let agents = [], rules = [], seenRule = false;
   const flush = () => { if (agents.length) groups.push({ agents, rules }); agents = []; rules = []; seenRule = false; };
   for (const line of String(text || "").split(/\r?\n/)) {

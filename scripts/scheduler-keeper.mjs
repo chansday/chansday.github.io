@@ -9,7 +9,7 @@ import { KEEPER_WORKFLOW, STAGES, catchUpCandidateDates, kstDayStartIso, missing
 // (workflow_dispatch from GITHUB_TOKEN creates runs). No external service,
 // PAT or secret. Uses only api.github.com.
 const API = "https://api.github.com";
-const USER_AGENT = "chansday-kospi-scheduler-keeper";
+const USER_AGENT = "kospi-scheduler-keeper";
 const MAX_SLEEP_MS = 15 * 60_000; // re-poll at least every 15 minutes
 const MAX_LOOPS = 400;
 
