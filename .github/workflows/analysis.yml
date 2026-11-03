@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   analysis:
-    if: contains(fromJSON('["kospi-signal/kospi-signal.github.io", "chansday/chansday.github.io"]'), github.repository)
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
     uses: ./.github/workflows/_run-stage.yml
     with:
       stage: analysis
