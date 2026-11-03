@@ -13,12 +13,18 @@ export function tradingDates(start,end,calendar){
   while(d<=last){const date=d.toISOString().slice(0,10),state=classifyMarketDate(date,calendar);if(state.status==='error')throw new Error(state.message);if(state.status==='run')days.push(date);d.setUTCDate(d.getUTCDate()+1);}
   if(!days.length)throw new Error('Date range has no trading days');return days;
 }
-export async function collectInvestorFlow(symbols,{startDate,endDate,expectedDates,fetchImpl=globalThis.fetch,now=()=>new Date(),sleep=ms=>new Promise(r=>setTimeout(r,ms)),delayMs=1000,log=createProgressLog({label:'투자자 수집',now})}={}){
+// Publication probe: with several symbols, PROBE_SYMBOL (traded every session)
+// is requested first; if the source has no row for endDate yet, collection
+// stops after that one request with status 'not_published' (not a failure).
+export const PROBE_SYMBOL='005930';
+export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,startDate,endDate,expectedDates,fetchImpl=globalThis.fetch,now=()=>new Date(),sleep=ms=>new Promise(r=>setTimeout(r,ms)),delayMs=1000,log=createProgressLog({label:'투자자 수집',now})}={}){
   if(!Array.isArray(symbols)||!symbols.length||symbols.some(s=>!isKoreanSymbol(s))||new Set(symbols).size!==symbols.length)throw new Error('Invalid or duplicate stock codes');
   const asOfDate=kstDate(now());if(!isValidDate(startDate)||!isValidDate(endDate)||startDate>endDate||endDate>asOfDate||!Array.isArray(expectedDates)||!expectedDates.length)throw new Error('Invalid date range');
   if(delayMs<1000)throw new Error('Request interval must be at least one second');
   const startedAt=now().toISOString(),collected=[],failures=[],incomplete=[],request=createInvestorRequester({fetchImpl,sleep,log});
   log(`시작 · 기간 ${startDate}~${endDate} · 대상 ${symbols.length}종목 · 요청 간격 ${delayMs}ms · 주소 ${BASE}{종목}/trend · User-Agent ${INVESTOR_USER_AGENTS.length}종 순환(403 시)`);
+  if(symbols.length>1&&symbols.includes(probeSymbol))symbols=[probeSymbol,...symbols.filter(s=>s!==probeSymbol)];
+  let notPublished=false;
   for(let i=0;i<symbols.length;i++){
     const symbol=symbols[i];if(i)await sleep(delayMs);
     try{
@@ -31,6 +37,7 @@ export async function collectInvestorFlow(symbols,{startDate,endDate,expectedDat
       const item=parseInvestorFlow(JSON.parse(text),symbol,startDate,endDate,asOfDate),available=new Set(item.rows.map(r=>r.date));
       item.missing_dates=expectedDates.filter(date=>!available.has(date));
       if(item.missing_dates.length||item.rows.some(r=>r.foreign_net_shares===null||r.institution_net_shares===null||r.individual_net_shares===null))incomplete.push(symbol);
+      if(i===0&&symbols.length>1&&symbol===probeSymbol&&!available.has(endDate)){notPublished=true;log(`게시 전 · 확인 종목 ${symbol}에 ${endDate} 행이 없음(최신 ${item.rows[0]?.date??'-'}) · 소스가 아직 게시하지 않은 것으로 보고 나머지 ${symbols.length-1}종목은 요청하지 않음`);break;}
       collected.push(item);
       if((i+1)%25===0||i+1===symbols.length){const elapsed=Math.max(0,now().getTime()-Date.parse(startedAt)),st=request.stats();log(`진행 ${i+1}/${symbols.length} (${Math.round((i+1)*100/symbols.length)}%) · 경과 ${formatDuration(elapsed)} · 남은 예상 ${formatDuration(elapsed/(i+1)*(symbols.length-i-1))} · 누락 ${incomplete.length}종목 · 요청 ${st.requests} · UA 전환 ${st.ua_switches} · 재시도 ${st.rate_limit_waits+st.transient_retries} · ${st.current_user_agent}`);}
     }catch(error){log(`수집 중단 · ${symbol} · ${error.name==='TimeoutError'?'시간 초과':'요청 또는 응답 오류'} (${error.name}: ${String(error.message||'').slice(0,120)}) · 추가 요청 없음`);failures.push({symbol,reason:error.name==='TimeoutError'?'timeout':'request_or_response_error'});break;}
@@ -39,7 +46,7 @@ export async function collectInvestorFlow(symbols,{startDate,endDate,expectedDat
   log(`종료 · 수집 ${collected.length}/${symbols.length}종목 · 누락 ${incomplete.length} · 오류 ${failures.length}${failures.length?` (${failures.map(f=>`${f.symbol} ${f.reason}`).join(', ')})`:''}`);
   log(`요청 통계 · ${formatRequestStats(requestStats)}`);
   if(incomplete.length)log(`누락 종목 ${incomplete.length}개 · ${incomplete.slice(0,30).join(', ')}${incomplete.length>30?' …':''}`);
-  return {schema_version:1,kind:'personal_investor_flow',status:failures.length||incomplete.length?'partial':'ready',started_at:startedAt,completed_at:now().toISOString(),collection_date:asOfDate,start_date:startDate,end_date:endDate,expected_dates:expectedDates,source:'naver-mobile-trend',unit:'shares',exchange_basis:'unconfirmed',request_stats:requestStats,requested:symbols.length,collected:collected.length,incomplete_symbols:incomplete,failures,stocks:collected};
+  return {schema_version:1,kind:'personal_investor_flow',status:notPublished?'not_published':failures.length||incomplete.length?'partial':'ready',started_at:startedAt,completed_at:now().toISOString(),collection_date:asOfDate,start_date:startDate,end_date:endDate,expected_dates:expectedDates,source:'naver-mobile-trend',unit:'shares',exchange_basis:'unconfirmed',request_stats:requestStats,requested:symbols.length,collected:collected.length,incomplete_symbols:incomplete,failures,stocks:collected};
 }
 export async function saveInvestorDays(result, directory='data/investor-flow') {
   const days=new Map();
@@ -70,9 +77,10 @@ export async function main(argv=process.argv.slice(2)){
   const expectedDates=tradingDates(startDate,endDate,await loadMarketCalendar());
   const universe=mode==='all'?JSON.parse(await readFile('data/kospi-universe.json','utf8')):null,symbols=mode==='all'?universe.symbols.map(x=>x.symbol):[symbol];
   const result=await collectInvestorFlow(symbols,{startDate,endDate,expectedDates});
-  await saveInvestorDays(result);
-  if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`saved=true\nstatus=${result.status}\ncount=${result.collected}\nrequested=${result.requested}\nincomplete=${result.incomplete_symbols.length}\n`);
-  console.log(`Collection ${result.status}: ${result.collected}/${result.requested}; saved public daily investor flow`);
+  const saved=result.status!=='not_published';
+  if(saved)await saveInvestorDays(result);
+  if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`saved=${saved}\nstatus=${result.status}\ncount=${result.collected}\nrequested=${result.requested}\nincomplete=${result.incomplete_symbols.length}\n`);
+  console.log(saved?`Collection ${result.status}: ${result.collected}/${result.requested}; saved public daily investor flow`:`Collection not_published: the source has no ${endDate} row yet; nothing saved`);
   if(process.env.GITHUB_STEP_SUMMARY){const st=result.request_stats,lines=['### 매매동향 수집 요청 통계',`- 기간: ${startDate}~${endDate} · 수집 ${result.collected}/${result.requested} · 상태 ${result.status}`,`- ${formatRequestStats(st)}`,`- 실패: ${result.failures.map(f=>`${f.symbol} ${f.reason}`).join(', ')||'없음'}`,'','| User-Agent | 성공 |','| --- | --- |',...Object.entries(st.ua_success).map(([k,v])=>`| ${k} | ${v} |`)];await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n');}
   if(result.failures.length)process.exitCode=2;
 }

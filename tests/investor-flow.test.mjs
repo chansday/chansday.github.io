@@ -41,3 +41,15 @@ test('collection logs retry, progress and denial without recording response data
  assert.match(lines.join('\n'),/HTTP 429.*7초.*재시도/);assert.match(lines.join('\n'),/진행 1\/1/);assert.doesNotMatch(lines.join('\n'),/1,702|1,734/);
  const denied=[];await collectInvestorFlow(['011420'],{...options,log:line=>denied.push(line),fetchImpl:async()=>response(403),sleep:async()=>{}});assert.match(denied.join('\n'),/HTTP 403.*추가 요청 없음/);
 });
+
+test('stops after the probe symbol when the source has not published the end date yet',async()=>{
+ const urls=[];const rows=(code,date)=>[{itemCode:code,bizdate:date,foreignerPureBuyQuant:'+1',organPureBuyQuant:'-1',individualPureBuyQuant:'0',foreignerHoldRatio:'1.00%'}];
+ const fetchImpl=async(url)=>{urls.push(url);const code=url.split('/').at(-2);return response(200,rows(code,'20261030'))};
+ const result=await collectInvestorFlow(['011420','005930','000660'],{...options,fetchImpl,sleep:async()=>{}});
+ assert.equal(result.status,'not_published');assert.equal(urls.length,1);assert.match(urls[0],/005930\/trend$/);assert.equal(result.collected,0);
+});
+test('continues with every symbol once the probe symbol has the end date',async()=>{
+ const urls=[];const fetchImpl=async(url)=>{urls.push(url);const code=url.split('/').at(-2);return response(200,[{itemCode:code,bizdate:'20261102',foreignerPureBuyQuant:'+1',organPureBuyQuant:'-1',individualPureBuyQuant:'0',foreignerHoldRatio:'1.00%'},{itemCode:code,bizdate:'20261030',foreignerPureBuyQuant:'+1',organPureBuyQuant:'-1',individualPureBuyQuant:'0',foreignerHoldRatio:'1.00%'}])};
+ const result=await collectInvestorFlow(['011420','005930','000660'],{...options,fetchImpl,sleep:async()=>{}});
+ assert.equal(urls.length,3);assert.match(urls[0],/005930\/trend$/);assert.equal(result.collected,3);assert.equal(result.status,'ready');
+});
