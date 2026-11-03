@@ -1,9 +1,7 @@
 import {readFile,writeFile,mkdir,appendFile} from 'node:fs/promises';
 import {pathToFileURL} from 'node:url';
-import {randomUUID} from 'node:crypto';
 import {isKoreanSymbol} from '../providers/korean-symbol.js';
 import {parseInvestorFlow} from '../providers/investor-flow.js';
-import {encryptInvestorData} from '../providers/private-envelope.js';
 import {kstDate,isValidDate,loadMarketCalendar,classifyMarketDate} from './market-calendar.mjs';
 const BASE='https://m.stock.naver.com/api/stock/',USER_AGENT='chansday-personal-investor-collector/1.0';
 export function tradingDates(start,end,calendar){
@@ -35,6 +33,27 @@ export async function collectInvestorFlow(symbols,{startDate,endDate,expectedDat
   }
   return {schema_version:1,kind:'personal_investor_flow',status:failures.length||incomplete.length?'partial':'ready',started_at:startedAt,completed_at:now().toISOString(),collection_date:asOfDate,start_date:startDate,end_date:endDate,expected_dates:expectedDates,source:'naver-mobile-trend',unit:'shares',exchange_basis:'unconfirmed',requested:symbols.length,collected:collected.length,incomplete_symbols:incomplete,failures,stocks:collected};
 }
+export async function saveInvestorDays(result, directory='data/investor-flow') {
+  const days=new Map();
+  for (const stock of result.stocks) for (const row of stock.rows) {
+    if (!isValidDate(row.date) || !isKoreanSymbol(stock.symbol)) throw new Error('Invalid investor row');
+    if (!days.has(row.date)) days.set(row.date,{});
+    days.get(row.date)[stock.symbol]={foreign_net_shares:row.foreign_net_shares,individual_net_shares:row.individual_net_shares,institution_net_shares:row.institution_net_shares};
+  }
+  await mkdir(directory,{recursive:true});
+  for (const [date, incoming] of days) {
+    const path=`${directory}/${date}.json`;
+    let existing={};
+    try { const previous=JSON.parse(await readFile(path,'utf8')); if(previous.date!==date || !previous.stocks || typeof previous.stocks!=='object') throw new Error('Invalid previous daily data'); existing=previous.stocks; }
+    catch(error) { if(error.code!=='ENOENT')throw error; }
+    for(const [symbol,row] of Object.entries(incoming)) {
+      const prior=existing[symbol] || {};
+      for(const field of ['foreign_net_shares','individual_net_shares','institution_net_shares']) if(Number.isSafeInteger(row[field])) prior[field]=row[field];
+      existing[symbol]=prior;
+    }
+    await writeFile(path,JSON.stringify({date,unit:'shares',source:'naver-mobile-trend',stocks:existing})+'\n');
+  }
+}
 export async function main(argv=process.argv.slice(2)){
   let mode=null,symbol=null,startDate=null,endDate=null;
   for(let i=0;i<argv.length;i++){const a=argv[i];if(a==='--all')mode='all';else if(a==='--symbol'){mode='symbol';symbol=argv[++i]?.toUpperCase();}else if(a==='--date'){startDate=endDate=argv[++i];}else if(a==='--from')startDate=argv[++i];else if(a==='--to')endDate=argv[++i];else throw new Error(`Unknown argument: ${a}`);}
@@ -42,12 +61,10 @@ export async function main(argv=process.argv.slice(2)){
   if(!startDate&&!endDate)startDate=endDate=kstDate();if(!startDate||!endDate)throw new Error('Specify both --from and --to');
   const expectedDates=tradingDates(startDate,endDate,await loadMarketCalendar());
   const universe=mode==='all'?JSON.parse(await readFile('data/kospi-universe.json','utf8')):null,symbols=mode==='all'?universe.symbols.map(x=>x.symbol):[symbol];
-  const publicKey=await readFile('config/investor-public-key.pem','utf8');
   const result=await collectInvestorFlow(symbols,{startDate,endDate,expectedDates});
-  const stamp=result.started_at.replace(/[-:.]/g,''),path=`data/private-investor/${result.collection_date}/${stamp}-${randomUUID()}.json.enc`;
-  await mkdir(`data/private-investor/${result.collection_date}`,{recursive:true,mode:0o700});await writeFile(path,encryptInvestorData(result,publicKey),{encoding:'utf8',flag:'wx',mode:0o600});
-  if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`path=${path}\nstatus=${result.status}\ncount=${result.collected}\nrequested=${result.requested}\nincomplete=${result.incomplete_symbols.length}\n`);
-  console.log(`Collection ${result.status}: ${result.collected}/${result.requested}; encrypted output ${path}`);
+  await saveInvestorDays(result);
+  if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`saved=true\nstatus=${result.status}\ncount=${result.collected}\nrequested=${result.requested}\nincomplete=${result.incomplete_symbols.length}\n`);
+  console.log(`Collection ${result.status}: ${result.collected}/${result.requested}; saved public daily investor flow`);
   if(result.failures.length)process.exitCode=2;
 }
 if(process.argv[1]&&pathToFileURL(process.argv[1]).href===import.meta.url)main().catch(error=>{console.error(error.message);process.exitCode=1;});

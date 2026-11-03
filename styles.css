@@ -530,4 +530,3 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .next-preview-more { margin-top: 14px; color: var(--muted); font-size: 12px; }
 .next-preview-more summary { cursor: pointer; padding: 8px 0; }
 
-.investor-unlock { display: inline-block; margin: 0 0 8px; padding: 5px 8px; color: var(--text); border: 1px solid var(--line); border-radius: 5px; font-size: 11px; cursor: pointer; }
