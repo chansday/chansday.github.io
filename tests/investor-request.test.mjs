@@ -47,3 +47,24 @@ test("5xx and network errors retry with 5/15/45 s waits", async () => {
   assert.ok(down.error);
   assert.equal(down.requests, TRANSIENT_WAITS_MS.length + 1);
 });
+
+test("logs every retry, switch, recovery and final refusal, and keeps counters", async () => {
+  const lines = [];
+  let calls = 0;
+  const request = createInvestorRequester({ log: (l) => lines.push(l), sleep: async () => {}, fetchImpl: async () => { calls++; return calls === 1 ? res(403) : calls === 2 ? res(503) : calls === 3 ? res(200) : res(404); } });
+  await request(URL_, "005930");
+  await request(URL_, "000660");
+  const text = lines.join("\n");
+  assert.match(text, /005930 · \/api\/stock\/005930\/trend · HTTP 403 · UA 1\/5\(수집기\) · 시도 1 .*UA 2\/5\(PC 크롬\)로 바꿔 30초 후 재시도/);
+  assert.match(text, /HTTP 503 · UA 2\/5\(PC 크롬\) · 시도 2 .*5초 후 재시도 1\/3/);
+  assert.match(text, /HTTP 200 · UA 2\/5\(PC 크롬\) · 시도 3에서 성공/);
+  assert.match(text, /000660 .*HTTP 404 .*재시도 대상 아님, 중단/);
+  const s = request.stats();
+  assert.equal(s.requests, 4);
+  assert.deepEqual(s.by_status, { 200: 1, 403: 1, 404: 1, 503: 1 });
+  assert.equal(s.ua_switches, 1);
+  assert.equal(s.transient_retries, 1);
+  assert.equal(s.recovered, 1);
+  assert.equal(s.wait_ms, 35_000);
+  assert.equal(s.ua_success["UA 2/5(PC 크롬)"], 1);
+});
