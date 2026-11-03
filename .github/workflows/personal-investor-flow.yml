@@ -2,7 +2,8 @@ name: "[개인] 투자자별 매매동향 수집"
 
 on:
   workflow_run:
-    workflows: ['[2 단계] 15:31 종가 정산']
+    # '[ ]' is a glob character class in workflow_run filters, so match by suffix.
+    workflows: ['*15:31 종가 정산']
     types: [completed]
   schedule:
     - cron: '15 11 * * 1-5' # 20:15 KST, source may publish late
