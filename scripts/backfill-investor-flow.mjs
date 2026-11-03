@@ -1,7 +1,7 @@
 // Backfills daily investor flows (data/investor-flow/YYYY-MM-DD.json) as far
 // back as the existing collector endpoint serves them.
-// - Endpoint, User-Agent, 1 s pacing and 429/403 handling are those of the
-//   owner's collector (scripts/collect-investor-flow.mjs). The endpoint pages
+// - Endpoint, 1 s pacing and the retry / User-Agent policy
+//   (providers/investor-request.js) are those of the daily collector. The endpoint pages
 //   60 sessions per request (pageSize > 60 is HTTP 400) and `bizdate=YYYYMMDD`
 //   returns the sessions strictly before that date.
 // - Rounds are date-major: one request per symbol moves every symbol 60
@@ -19,9 +19,10 @@ import { createProgressLog, formatDuration } from "../providers/progress-log.js"
 import { parseInvestorFlow } from "../providers/investor-flow.js";
 import { kstDate, isValidDate } from "./market-calendar.mjs";
 import { saveInvestorDays } from "./collect-investor-flow.mjs";
+import { createInvestorRequester, INVESTOR_USER_AGENTS } from "../providers/investor-request.js";
 
 export const TREND_BASE = "https://m.stock.naver.com/api/stock/";
-export const USER_AGENT = "kospi-signal-personal-investor-collector/1.0";
+export const USER_AGENT = INVESTOR_USER_AGENTS[0];
 export const PAGE_SIZE = 60;
 const compact = (iso) => iso.replaceAll("-", "");
 
@@ -46,6 +47,7 @@ export async function backfillInvestorFlow(symbols, {
   const asOfDate = kstDate(now()), startedAt = now().getTime();
   const cursor = new Map(symbols.map((s) => [s, before]));
   const summary = { before, rounds: [], requests: 0, stopped: null, oldest_date: null };
+  const request = createInvestorRequester({ fetchImpl, sleep, log });
   let roundMs = symbols.length * (delayMs + 300);
   log(`시작 · ${before} 이전부터 · ${symbols.length}종목 · 한 번에 ${PAGE_SIZE}거래일 · 예산 ${formatDuration(budgetMs)}`);
   for (let round = 1; round <= maxRounds && cursor.size; round++) {
@@ -56,17 +58,12 @@ export async function backfillInvestorFlow(symbols, {
     log(`바퀴 ${round} 시작 · 남은 종목 ${cursor.size}`);
     let i = 0;
     for (const [symbol, from] of [...cursor]) {
-      if (summary.requests++) await sleep(delayMs);
-      const url = trendPageUrl(symbol, from);
-      const request = () => fetchImpl(url, { headers: { "User-Agent": USER_AGENT, Accept: "application/json", "Accept-Language": "ko-KR,ko;q=0.9" }, redirect: "error", signal: AbortSignal.timeout(12000) });
+      if (summary.requests) await sleep(delayMs);
       try {
-        let response = await request();
-        if (response.status === 429) {
-          const header = response.headers.get("retry-after"), seconds = header && /^\d+$/.test(header) ? Number(header) : 60;
-          if (seconds > 120) { failure = { symbol, reason: "HTTP_429" }; break; }
-          log(`HTTP 429 · ${symbol} · ${Math.max(seconds, 1)}초 대기 후 1회 재시도`);
-          await sleep(Math.max(seconds, 1) * 1000); response = await request(); summary.requests++;
-        }
+        const result = await request(trendPageUrl(symbol, from), symbol);
+        summary.requests += result.requests;
+        if (result.error) throw result.error;
+        const response = result.response;
         if (!response.ok) { failure = { symbol, reason: `HTTP_${response.status}` }; break; }
         if (!/json/i.test(response.headers.get("content-type") || "")) { failure = { symbol, reason: "unexpected_content_type" }; break; }
         const text = await response.text();

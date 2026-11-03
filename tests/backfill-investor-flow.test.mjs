@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { INVESTOR_USER_AGENTS } from "../providers/investor-request.js";
 import { backfillInvestorFlow, oldestSavedDate, trendPageUrl } from "../scripts/backfill-investor-flow.mjs";
 
 const json = (body, status = 200) => ({ status, ok: status >= 200 && status < 300, headers: new Headers({ "content-type": "application/json" }), text: async () => JSON.stringify(body) });
@@ -46,10 +47,10 @@ test("a failed request stops without saving the incomplete round and keeps exist
   await writeFile(join(dir, "2026-10-26.json"), JSON.stringify({ date: "2026-10-26", unit: "shares", source: "naver-mobile-trend", stocks: { "005930": { foreign_net_shares: 1 } } }) + "\n");
   let n = 0;
   const ok = fakeSource({ "005930": "2020-01-01", "000660": "2020-01-01" });
-  const summary = await backfillInvestorFlow(["005930", "000660"], opts(dir, { before: "2026-10-26", fetchImpl: async (u, i) => (++n === 4 ? json({}, 403) : ok(u, i)) }));
+  const summary = await backfillInvestorFlow(["005930", "000660"], opts(dir, { before: "2026-10-26", fetchImpl: async (u, i) => (++n >= 4 ? json({}, 403) : ok(u, i)) }));
   assert.deepEqual(summary.stopped, { symbol: "000660", reason: "HTTP_403" });
   assert.equal(summary.rounds.length, 1);
-  assert.equal(n, 4);
+  assert.equal(n, 3 + INVESTOR_USER_AGENTS.length);
   assert.ok((await readdir(dir)).includes("2026-10-26.json"));
 });
 
