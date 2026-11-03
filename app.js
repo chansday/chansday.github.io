@@ -9,7 +9,7 @@ import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, ranki
 import { sortRankingRows } from "./providers/ranking-sort.js";
 import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore } from "./providers/evaluation-score.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
-import { NO_TRADE_LABEL, buildSelectedDetail, recentDailyRows } from "./providers/selected-detail.js";
+import { NO_TRADE_LABEL, buildSelectedDetail, naverFinanceUrl, recentDailyRows } from "./providers/selected-detail.js";
 
 const numberFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 2 });
 const integerFormatter = new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 0 });
@@ -843,6 +843,20 @@ async function renderRecentDaily(row) {
   for (const daily of rows) { const tr = document.createElement("tr"); tr.title = daily.source; const investor = investorData?.get(`${row.symbol}:${daily.date}`); for (const value of [daily.date, daily.openText, daily.closeText, daily.returnText, formatInvestorShares(investor?.foreign_net_shares), formatInvestorShares(investor?.individual_net_shares), formatInvestorShares(investor?.institution_net_shares), daily.volumeText]) { const td = document.createElement("td"); td.textContent = value; tr.append(td); } body.append(tr); }
   table.append(body); container.append(table);
 }
+// Stock name as a link to its Naver Finance page (new tab); plain text when
+// the code is not a valid KRX code.
+function renderSelectedName(node, row) {
+  if (!node) return;
+  const url = naverFinanceUrl(row.symbol), name = row.name || row.symbol || "—";
+  if (!url) { node.textContent = name; return; }
+  const link = document.createElement("a");
+  link.className = "naver-link"; link.href = url; link.target = "_blank"; link.rel = "noopener noreferrer";
+  link.title = "네이버 금융에서 보기 (새 창)"; link.setAttribute("aria-label", `${name} 네이버 금융에서 보기 (새 창)`);
+  link.textContent = name;
+  const icon = document.createElement("span"); icon.className = "naver-link-icon"; icon.setAttribute("aria-hidden", "true"); icon.textContent = "↗";
+  link.append(icon);
+  node.replaceChildren(link);
+}
 function renderSelected() {
   const row = snapshot?.rows?.find((candidate) => candidate.symbol === selectedSymbol);
   if (!row) { elementIds["selected-empty"].hidden = false; elementIds["selected-content"].hidden = true; setText(elementIds["selected-detail-hint"], "종목을 선택하세요"); return; }
@@ -850,7 +864,7 @@ function renderSelected() {
   elementIds["selected-content"].hidden = false;
   setText(elementIds["selected-detail-hint"], `${row.symbol} · 선택됨`);
   setText(elementIds["selected-symbol"], row.symbol);
-  setText(elementIds["selected-name"], row.name);
+  renderSelectedName(elementIds["selected-name"], row);
   setStatusPill(elementIds["selected-status"], row.status, rowStatusLabel(row));
   setText(elementIds["selected-expected-open"], formatExpectedPrice(row.expectedOpen));
   setText(elementIds["selected-expected-close"], formatExpectedPrice(row.expectedClose));

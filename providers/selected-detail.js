@@ -4,6 +4,12 @@
 // snapshot records one, shows the pipeline's own reason.
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
 
+// Naver Finance stock page for a validated 6-character KRX code; null otherwise
+// so an unvalidated value is never placed in a link.
+export function naverFinanceUrl(symbol) {
+  return typeof symbol === "string" && /^[0-9A-Z]{6}$/.test(symbol) ? `https://finance.naver.com/item/main.naver?code=${symbol}` : null;
+}
+
 export const DETAIL_DISCLAIMER = "예상은 기록·비교용이며 수익을 보장하지 않습니다. 투자 조언이 아닙니다.";
 export const RETROSPECTIVE_MODEL_ID = "prior_3_sessions_gap_and_session_mean_capped_5pct";
 export const HISTORICAL_BASELINE_MODEL_ID = "public_daily_momentum_volatility_v1";

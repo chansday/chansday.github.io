@@ -280,3 +280,10 @@ test("selected detail panel hides the 출처·신뢰 정보 card and drops 출�
   assert.deepEqual(ids.filter((id) => !hidden.has(id)), ["expected", "actual"]);
 });
 
+
+test("naverFinanceUrl links only validated KRX codes to the Naver Finance stock page", async () => {
+  const { naverFinanceUrl } = await import("../providers/selected-detail.js");
+  assert.equal(naverFinanceUrl("005930"), "https://finance.naver.com/item/main.naver?code=005930");
+  assert.equal(naverFinanceUrl("0009K0"), "https://finance.naver.com/item/main.naver?code=0009K0");
+  for (const bad of ["", "5930", "005930&x=1", "../a/b", "00593a", null, undefined, 5930]) assert.equal(naverFinanceUrl(bad), null);
+});
