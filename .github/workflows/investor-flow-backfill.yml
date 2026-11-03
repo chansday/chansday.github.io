@@ -1,0 +1,46 @@
+name: "[개인] 매매동향 과거 수집"
+
+# Manual backfill of data/investor-flow/YYYY-MM-DD.json as far back as the
+# collector endpoint serves (60 sessions per request). Each complete round is
+# committed; re-run to continue from the oldest saved date.
+on:
+  workflow_dispatch:
+    inputs:
+      before_date:
+        description: '이 날짜 이전부터 수집 YYYY-MM-DD (비우면 저장된 가장 오래된 날짜)'
+        type: string
+        required: false
+      budget_minutes:
+        description: '수집 시간 예산(분, 최대 330)'
+        type: string
+        default: '330'
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investor-flow-backfill
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Backfill investor flows
+        env:
+          BEFORE: ${{ inputs.before_date }}
+          BUDGET: ${{ inputs.budget_minutes }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$BUDGET" =~ ^[0-9]+$ ]] && (( BUDGET >= 1 && BUDGET <= 330 )) || { echo 'budget_minutes must be 1-330' >&2; exit 1; }
+          args=(--budget-minutes "$BUDGET" --commit)
+          if [[ -n "$BEFORE" ]]; then args+=(--before "$BEFORE"); fi
+          node scripts/backfill-investor-flow.mjs "${args[@]}"
