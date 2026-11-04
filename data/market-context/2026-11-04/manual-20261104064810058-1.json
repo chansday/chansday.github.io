@@ -1,0 +1,618 @@
+{
+  "schema_version": 1,
+  "started_at": "2026-11-04T06:48:10.058Z",
+  "completed_at": "2026-11-04T06:48:10.264Z",
+  "duration_ms": 206,
+  "status": "complete",
+  "source": "naver-unofficial",
+  "license_status": "unconfirmed",
+  "sources": {
+    "us_indices": {
+      "status": "ok",
+      "url": "https://api.stock.naver.com/index/nation/USA",
+      "requested_at": "2026-11-04T06:48:10.062Z",
+      "received_at": "2026-11-04T06:48:10.128Z",
+      "duration_ms": 66,
+      "http_status": 200,
+      "content_type": "application/json;charset=UTF-8",
+      "observations": [
+        {
+          "code": ".IXIC",
+          "observed_at": "2026-11-03T17:15:59-05:00",
+          "delay_minutes": 0
+        },
+        {
+          "code": ".INX",
+          "observed_at": "2026-11-03T16:30:13-05:00",
+          "delay_minutes": 0
+        },
+        {
+          "code": ".SOX",
+          "observed_at": "2026-11-03T17:15:59-05:00",
+          "delay_minutes": 0
+        },
+        {
+          "code": ".VIX",
+          "observed_at": "2026-11-03T16:15:01-05:00",
+          "delay_minutes": 15
+        }
+      ],
+      "data": [
+        {
+          "stockEndType": "index",
+          "nationType": "USA",
+          "stockExchangeType": {
+            "code": "NSQ",
+            "zoneId": "EST5EDT",
+            "nationType": "USA",
+            "delayTime": 0,
+            "startTime": "0930",
+            "endTime": "1600",
+            "closePriceSendTime": "2031",
+            "nameKor": "나스닥 증권거래소",
+            "nameEng": "NASDAQ Stock Exchange",
+            "nationCode": "USA",
+            "nationName": "미국",
+            "stockType": "worldstock",
+            "name": "NASDAQ"
+          },
+          "reutersCode": ".IXIC",
+          "worldIndexSymbol": null,
+          "indexName": "나스닥 종합",
+          "indexNameEng": "NASDAQ Composite",
+          "localTradedAt": "2026-11-03T17:15:59-05:00",
+          "compareToPreviousPrice": {
+            "code": "2",
+            "text": "상승",
+            "name": "RISING"
+          },
+          "closePrice": "25,372.01",
+          "compareToPreviousClosePrice": "207.65",
+          "fluctuationsRatio": "0.83",
+          "lastClosePrice": 25164.36,
+          "openPrice": 25246.64,
+          "highPrice": 25474.46,
+          "lowPrice": 25246.64,
+          "accumulatedTradingVolume": 1591609,
+          "highPriceOf52Weeks": 27722.75,
+          "lowPriceOf52Weeks": 20690.25,
+          "indexType": {
+            "stockExchangeType": {
+              "code": "NSQ",
+              "zoneId": "EST5EDT",
+              "nationType": "USA",
+              "delayTime": 0,
+              "startTime": "0930",
+              "endTime": "1600",
+              "closePriceSendTime": "2031",
+              "nameKor": "나스닥 증권거래소",
+              "nameEng": "NASDAQ Stock Exchange",
+              "nationCode": "USA",
+              "nationName": "미국",
+              "stockType": "worldstock",
+              "name": "NASDAQ"
+            },
+            "reutersCode": ".IXIC",
+            "worldSymbol": "",
+            "name": "나스닥 종합",
+            "fullName": "나스닥 종합",
+            "description": "나스닥 시장의 종합주가지수. 주로 구글, 애플, 아마존닷컴 등 첨단기술과 인터넷 기업이 상장돼 있음.",
+            "continentType": {
+              "name": "북미",
+              "nameEng": "north america",
+              "code": "na"
+            },
+            "symbolCode": "IXIC",
+            "currencyType": null,
+            "korIndexType": false,
+            "indexTypeByDollar": false,
+            "indexTypeByTransport": false,
+            "transportIndexType": false
+          },
+          "endUrl": "https://m.stock.naver.com/worldstock/index/.IXIC",
+          "newPcUrl": "https://stock.naver.com/worldstock/index/.IXIC",
+          "chartIqEndUrl": null,
+          "marketStatus": "CLOSE",
+          "delayTime": 0,
+          "delayTimeName": "실시간",
+          "exchangeOperatingTime": false,
+          "imageCharts": {
+            "mini": "https://financial-vn.pstatic.net/chart/mobile/world/mini/.IXIC_home_open.png"
+          },
+          "zoneId": "EST5EDT",
+          "indexEndUrl": "https://m.stock.naver.com/worldstock/index/.IXIC"
+        },
+        {
+          "stockEndType": "index",
+          "nationType": "USA",
+          "stockExchangeType": {
+            "code": "NYS",
+            "zoneId": "EST5EDT",
+            "nationType": "USA",
+            "delayTime": 0,
+            "startTime": "0930",
+            "endTime": "1600",
+            "closePriceSendTime": "2031",
+            "nameKor": "뉴욕 거래소",
+            "nameEng": "New York Stock Exchange",
+            "nationCode": "USA",
+            "nationName": "미국",
+            "stockType": "worldstock",
+            "name": "NYSE"
+          },
+          "reutersCode": ".INX",
+          "worldIndexSymbol": null,
+          "indexName": "S&P 500",
+          "indexNameEng": "S&P 500",
+          "localTradedAt": "2026-11-03T16:30:13-05:00",
+          "compareToPreviousPrice": {
+            "code": "2",
+            "text": "상승",
+            "name": "RISING"
+          },
+          "closePrice": "7,568.92",
+          "compareToPreviousClosePrice": "27.52",
+          "fluctuationsRatio": "0.36",
+          "lastClosePrice": 7541.4,
+          "openPrice": 7552.92,
+          "highPrice": 7594.61,
+          "lowPrice": 7545.39,
+          "accumulatedTradingVolume": 3106804,
+          "highPriceOf52Weeks": 7844.52,
+          "lowPriceOf52Weeks": 6316.91,
+          "indexType": {
+            "stockExchangeType": {
+              "code": "NYS",
+              "zoneId": "EST5EDT",
+              "nationType": "USA",
+              "delayTime": 0,
+              "startTime": "0930",
+              "endTime": "1600",
+              "closePriceSendTime": "2031",
+              "nameKor": "뉴욕 거래소",
+              "nameEng": "New York Stock Exchange",
+              "nationCode": "USA",
+              "nationName": "미국",
+              "stockType": "worldstock",
+              "name": "NYSE"
+            },
+            "reutersCode": ".INX",
+            "worldSymbol": "",
+            "name": "S&P 500",
+            "fullName": "S&P 500",
+            "description": "미국의 스탠더드 앤드 푸어사가 기업규모·유동성·산업대표성을 감안하여 선정한 보통주 500종목을 대상으로 작성해 발표하는 주가지수",
+            "continentType": {
+              "name": "북미",
+              "nameEng": "north america",
+              "code": "na"
+            },
+            "symbolCode": "SPX",
+            "currencyType": null,
+            "korIndexType": false,
+            "indexTypeByDollar": false,
+            "indexTypeByTransport": false,
+            "transportIndexType": false
+          },
+          "endUrl": "https://m.stock.naver.com/worldstock/index/.INX",
+          "newPcUrl": "https://stock.naver.com/worldstock/index/.INX",
+          "chartIqEndUrl": null,
+          "marketStatus": "CLOSE",
+          "delayTime": 0,
+          "delayTimeName": "실시간",
+          "exchangeOperatingTime": false,
+          "imageCharts": {
+            "mini": "https://financial-vn.pstatic.net/chart/mobile/world/mini/.INX_home_open.png"
+          },
+          "zoneId": "EST5EDT",
+          "indexEndUrl": "https://m.stock.naver.com/worldstock/index/.INX"
+        },
+        {
+          "stockEndType": "index",
+          "nationType": "USA",
+          "stockExchangeType": {
+            "code": "NSQ",
+            "zoneId": "EST5EDT",
+            "nationType": "USA",
+            "delayTime": 0,
+            "startTime": "0930",
+            "endTime": "1600",
+            "closePriceSendTime": "2031",
+            "nameKor": "나스닥 증권거래소",
+            "nameEng": "NASDAQ Stock Exchange",
+            "nationCode": "USA",
+            "nationName": "미국",
+            "stockType": "worldstock",
+            "name": "NASDAQ"
+          },
+          "reutersCode": ".SOX",
+          "worldIndexSymbol": null,
+          "indexName": "필라델피아 반도체",
+          "indexNameEng": "PHLX SEMICONDUCTOR S",
+          "localTradedAt": "2026-11-03T17:15:59-05:00",
+          "compareToPreviousPrice": {
+            "code": "2",
+            "text": "상승",
+            "name": "RISING"
+          },
+          "closePrice": "10,600.40",
+          "compareToPreviousClosePrice": "272.07",
+          "fluctuationsRatio": "2.63",
+          "lastClosePrice": 10328.33,
+          "openPrice": 10574.1,
+          "highPrice": 10761.85,
+          "lowPrice": 10530.68,
+          "accumulatedTradingVolume": 0,
+          "highPriceOf52Weeks": 14655.29,
+          "lowPriceOf52Weeks": 6160.05,
+          "indexType": {
+            "stockExchangeType": {
+              "code": "NSQ",
+              "zoneId": "EST5EDT",
+              "nationType": "USA",
+              "delayTime": 0,
+              "startTime": "0930",
+              "endTime": "1600",
+              "closePriceSendTime": "2031",
+              "nameKor": "나스닥 증권거래소",
+              "nameEng": "NASDAQ Stock Exchange",
+              "nationCode": "USA",
+              "nationName": "미국",
+              "stockType": "worldstock",
+              "name": "NASDAQ"
+            },
+            "reutersCode": ".SOX",
+            "worldSymbol": "",
+            "name": "필라델피아 반도체",
+            "fullName": "필라델피아 반도체",
+            "description": "미국 필라델피아 증권거래소가 반도체 관련 종목을 대상으로 산정, 발표해온 반도체업종지수(SOX). 나스닥과 뉴욕증시에 상장된 반도체 설계ㆍ제조ㆍ유통업 관련 미국 반도체회사의 주가를 포함하고 있음.",
+            "continentType": {
+              "name": "북미",
+              "nameEng": "north america",
+              "code": "na"
+            },
+            "symbolCode": "SOX",
+            "currencyType": null,
+            "korIndexType": false,
+            "indexTypeByDollar": false,
+            "indexTypeByTransport": false,
+            "transportIndexType": false
+          },
+          "endUrl": "https://m.stock.naver.com/worldstock/index/.SOX",
+          "newPcUrl": "https://stock.naver.com/worldstock/index/.SOX",
+          "chartIqEndUrl": null,
+          "marketStatus": "CLOSE",
+          "delayTime": 0,
+          "delayTimeName": "실시간",
+          "exchangeOperatingTime": false,
+          "imageCharts": {
+            "mini": "https://financial-vn.pstatic.net/chart/mobile/world/mini/.SOX_home_open.png"
+          },
+          "zoneId": "EST5EDT",
+          "indexEndUrl": "https://m.stock.naver.com/worldstock/index/.SOX"
+        },
+        {
+          "stockEndType": "index",
+          "nationType": "USA",
+          "stockExchangeType": {
+            "code": "WCB",
+            "zoneId": "EST5EDT",
+            "nationType": "USA",
+            "delayTime": 15,
+            "startTime": "",
+            "endTime": "",
+            "closePriceSendTime": "",
+            "nameKor": "시카고옵션거래소",
+            "nameEng": "CBOE",
+            "nationCode": "USA",
+            "nationName": "미국",
+            "stockType": "worldstock",
+            "name": "CBOE"
+          },
+          "reutersCode": ".VIX",
+          "worldIndexSymbol": null,
+          "indexName": "VIX",
+          "indexNameEng": "CBOE VIX Index",
+          "localTradedAt": "2026-11-03T16:15:01-05:00",
+          "compareToPreviousPrice": {
+            "code": "5",
+            "text": "하락",
+            "name": "FALLING"
+          },
+          "closePrice": "20.83",
+          "compareToPreviousClosePrice": "-0.32",
+          "fluctuationsRatio": "-1.51",
+          "lastClosePrice": 21.15,
+          "openPrice": 21.66,
+          "highPrice": 21.91,
+          "lowPrice": 20.29,
+          "accumulatedTradingVolume": 0,
+          "highPriceOf52Weeks": 35.3,
+          "lowPriceOf52Weeks": 13.38,
+          "indexType": {
+            "stockExchangeType": {
+              "code": "WCB",
+              "zoneId": "EST5EDT",
+              "nationType": "USA",
+              "delayTime": 15,
+              "startTime": "",
+              "endTime": "",
+              "closePriceSendTime": "",
+              "nameKor": "시카고옵션거래소",
+              "nameEng": "CBOE",
+              "nationCode": "USA",
+              "nationName": "미국",
+              "stockType": "worldstock",
+              "name": "CBOE"
+            },
+            "reutersCode": ".VIX",
+            "worldSymbol": "",
+            "name": "VIX",
+            "fullName": "VIX: 변동성 지수",
+            "description": "시카고옵션거래소(CBOE)에 상장된 S&P 500 지수 옵션의 향후 30일간의 변동성에 대한 시장의 기대를 나타내는 지수, VIX 지수의 상승은 S&P 500 지수 옵션의 변동성 확대에 대한 기대가 높아졌음을 의미하고, 이에 따라 투자자들의 불안 심리가 커져 주가가 하락 추세에 접어들 수 있음을 의미함",
+            "continentType": {
+              "name": "북미",
+              "nameEng": "north america",
+              "code": "na"
+            },
+            "symbolCode": "VIX",
+            "currencyType": null,
+            "korIndexType": false,
+            "indexTypeByDollar": false,
+            "indexTypeByTransport": false,
+            "transportIndexType": false
+          },
+          "endUrl": "https://m.stock.naver.com/worldstock/index/.VIX",
+          "newPcUrl": "https://stock.naver.com/worldstock/index/.VIX",
+          "chartIqEndUrl": null,
+          "marketStatus": "CLOSE",
+          "delayTime": 15,
+          "delayTimeName": "15분 지연",
+          "exchangeOperatingTime": false,
+          "imageCharts": {
+            "mini": "https://financial-vn.pstatic.net/chart/mobile/world/mini/.VIX_home_open.png"
+          },
+          "zoneId": "EST5EDT",
+          "indexEndUrl": "https://m.stock.naver.com/worldstock/index/.VIX"
+        }
+      ]
+    },
+    "usd_krw": {
+      "status": "ok",
+      "url": "https://api.stock.naver.com/marketindex/exchange/FX_USDKRW",
+      "requested_at": "2026-11-04T06:48:10.128Z",
+      "received_at": "2026-11-04T06:48:10.139Z",
+      "duration_ms": 11,
+      "http_status": 200,
+      "content_type": "application/json;charset=UTF-8",
+      "observations": [
+        {
+          "code": "FX_USDKRW",
+          "observed_at": "2026-11-04T15:44:23+09:00",
+          "delay_minutes": null
+        }
+      ],
+      "data": {
+        "stockExchangeType": {
+          "code": "HANA",
+          "zoneId": "Asia/Seoul",
+          "nationType": "KOR",
+          "delayTime": 0,
+          "startTime": "",
+          "endTime": "",
+          "closePriceSendTime": "",
+          "nameKor": "하나은행",
+          "nameEng": "Hana Bank",
+          "nationName": "대한민국",
+          "stockType": "domestic",
+          "nationCode": "KOR",
+          "name": "HANA"
+        },
+        "categoryType": "exchange",
+        "reutersCode": "FX_USDKRW",
+        "symbolCode": "USD",
+        "exchangeCode": "USD",
+        "name": "미국 USD",
+        "fullName": null,
+        "description": "하나은행 고시회차",
+        "localTradedAt": "2026-11-04T15:44:23+09:00",
+        "closePrice": "1,341.20",
+        "fluctuations": "-4.80",
+        "fluctuationsRatio": "-0.36",
+        "fluctuationsType": {
+          "code": "5",
+          "text": "하락",
+          "name": "FALLING"
+        },
+        "marketStatus": "OPEN",
+        "priceDataType": "NOTICE_ROUND",
+        "endUrl": "https://m.stock.naver.com/marketindex/exchange/FX_USDKRW",
+        "newPcUrl": "https://stock.naver.com/marketindex/exchange/FX_USDKRW",
+        "unit": "KRW",
+        "degreeCount": 602,
+        "imageCharts": {
+          "areaYearThree": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year3/FX_USDKRW_end.png",
+          "areaYearTen": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year10/FX_USDKRW_end.png",
+          "areaMonth": "https://financial-vn.pstatic.net/chart/mobile/marketindex/month/FX_USDKRW_end.png",
+          "areaMonthThree": "https://financial-vn.pstatic.net/chart/mobile/marketindex/month3/FX_USDKRW_end.png",
+          "areaYear": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year/FX_USDKRW_end.png",
+          "areaYearFive": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year5/FX_USDKRW_end.png"
+        },
+        "imageChartUrlInfo": {
+          "line": {
+            "month": "https://financial-vn.pstatic.net/chart/mobile/marketindex/month/FX_USDKRW_end.png",
+            "month3": "https://financial-vn.pstatic.net/chart/mobile/marketindex/month3/FX_USDKRW_end.png",
+            "year": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year/FX_USDKRW_end.png",
+            "year3": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year3/FX_USDKRW_end.png",
+            "year5": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year5/FX_USDKRW_end.png",
+            "year10": "https://financial-vn.pstatic.net/chart/mobile/marketindex/year10/FX_USDKRW_end.png"
+          }
+        },
+        "scriptChartTypes": [
+          "day",
+          "areaMonth",
+          "areaMonthThree",
+          "areaYear",
+          "areaYearThree",
+          "areaYearFive",
+          "areaYearTen"
+        ],
+        "calcPrice": "1341.2"
+      }
+    },
+    "us_treasury": {
+      "status": "ok",
+      "url": "https://m.stock.naver.com/front-api/marketIndex/bondList?countryCode=USA",
+      "requested_at": "2026-11-04T06:48:10.139Z",
+      "received_at": "2026-11-04T06:48:10.225Z",
+      "duration_ms": 86,
+      "http_status": 200,
+      "content_type": "application/json; charset=utf-8",
+      "observations": [
+        {
+          "code": "US10YT=RR",
+          "observed_at": "2026-11-04T01:39:58-05:00",
+          "delay_minutes": 0
+        },
+        {
+          "code": "US2YT=RR",
+          "observed_at": "2026-11-04T01:39:47-05:00",
+          "delay_minutes": 0
+        }
+      ],
+      "data": [
+        {
+          "name": "미국 국채 10년",
+          "closePrice": "4.9290",
+          "fluctuations": "-0.0209",
+          "fluctuationsType": {
+            "code": "5",
+            "text": "하락",
+            "name": "FALLING"
+          },
+          "fluctuationsRatio": "-0.42",
+          "localTradedAt": "2026-11-04T01:39:58-05:00",
+          "marketStatus": "OPEN",
+          "delayTimeName": "실시간",
+          "reutersCode": "US10YT=RR",
+          "month": "",
+          "priceDataType": "REALTIME",
+          "delayTime": 0,
+          "unit": null,
+          "nationType": "USA",
+          "categoryType": "bond",
+          "symbolCode": null
+        },
+        {
+          "name": "미국 국채 2년",
+          "closePrice": "4.6000",
+          "fluctuations": "-0.0144",
+          "fluctuationsType": {
+            "code": "5",
+            "text": "하락",
+            "name": "FALLING"
+          },
+          "fluctuationsRatio": "-0.31",
+          "localTradedAt": "2026-11-04T01:39:47-05:00",
+          "marketStatus": "OPEN",
+          "delayTimeName": "실시간",
+          "reutersCode": "US2YT=RR",
+          "month": "",
+          "priceDataType": "REALTIME",
+          "delayTime": 0,
+          "unit": null,
+          "nationType": "USA",
+          "categoryType": "bond",
+          "symbolCode": null
+        }
+      ]
+    },
+    "kospi": {
+      "status": "ok",
+      "url": "https://polling.finance.naver.com/api/realtime/domestic/index/KOSPI",
+      "requested_at": "2026-11-04T06:48:10.225Z",
+      "received_at": "2026-11-04T06:48:10.249Z",
+      "duration_ms": 24,
+      "http_status": 200,
+      "content_type": "application/json;charset=UTF-8",
+      "observations": [
+        {
+          "code": "KOSPI",
+          "observed_at": "2026-11-04T15:48:00+09:00",
+          "delay_minutes": null
+        }
+      ],
+      "data": {
+        "itemCode": "KOSPI",
+        "stockName": "코스피",
+        "stockExchangeType": {
+          "code": "KS",
+          "zoneId": "Asia/Seoul",
+          "nationType": "KOR",
+          "delayTime": 0,
+          "startTime": "0900",
+          "endTime": "1530",
+          "closePriceSendTime": "1630",
+          "nameKor": "코스피",
+          "nameEng": "KOSPI",
+          "nationCode": "KOR",
+          "nationName": "대한민국",
+          "stockType": "domestic",
+          "name": "KOSPI"
+        },
+        "closePrice": "5,683.80",
+        "compareToPreviousClosePrice": "35.01",
+        "compareToPreviousPrice": {
+          "code": "2",
+          "text": "상승",
+          "name": "RISING"
+        },
+        "fluctuationsRatio": "0.62",
+        "openPrice": "5,786.13",
+        "highPrice": "5,828.13",
+        "lowPrice": "5,421.72",
+        "accumulatedTradingVolume": "258,778천주",
+        "accumulatedTradingValue": "22,514,043백만",
+        "marketStatus": "CLOSE",
+        "localTradedAt": "2026-11-04T15:48:00+09:00",
+        "symbolCode": "KOSPI",
+        "closePriceRaw": "5683.80",
+        "compareToPreviousClosePriceRaw": "35.01",
+        "fluctuationsRatioRaw": "0.62",
+        "openPriceRaw": "5786.13",
+        "highPriceRaw": "5828.13",
+        "lowPriceRaw": "5421.72",
+        "accumulatedTradingVolumeRaw": "258778000",
+        "accumulatedTradingValueRaw": "22514043000000"
+      }
+    },
+    "kospi200": {
+      "status": "ok",
+      "url": "https://api.stock.naver.com/chart/domestic/index/KPI200?periodType=dayCandle",
+      "requested_at": "2026-11-04T06:48:10.249Z",
+      "received_at": "2026-11-04T06:48:10.264Z",
+      "duration_ms": 15,
+      "http_status": 200,
+      "content_type": "application/json;charset=UTF-8",
+      "observations": [
+        {
+          "code": "KPI200",
+          "observed_date": "20261104"
+        }
+      ],
+      "data": {
+        "code": "KPI200",
+        "latest": {
+          "localDate": "20261104",
+          "closePrice": 889.25,
+          "openPrice": 910.04,
+          "highPrice": 916.67,
+          "lowPrice": 847.36,
+          "accumulatedTradingVolume": 146022,
+          "foreignRetentionRate": 0
+        }
+      }
+    }
+  },
+  "phase": "manual",
+  "market_date": "2026-11-04"
+}
