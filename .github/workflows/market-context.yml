@@ -30,12 +30,18 @@ jobs:
         env:
           SCHEDULE: ${{ github.event.schedule }}
         run: |
-          case "$SCHEDULE" in
-            '30 22 * * 0-4') export MARKET_CONTEXT_PHASE=morning ;;
-            '20 23 * * 0-4') export MARKET_CONTEXT_PHASE=preopen ;;
-            '40 7 * * 1-5') export MARKET_CONTEXT_PHASE=after_close ;;
-            *) export MARKET_CONTEXT_PHASE=manual ;;
-          esac
+          # A local dispatch (act) pre-sets MARKET_CONTEXT_PHASE via --env to
+          # label the stage; SCHEDULE is only populated for GitHub's own cron
+          # trigger, so leave an explicit phase alone instead of overwriting
+          # it with "manual".
+          if [ -z "${MARKET_CONTEXT_PHASE:-}" ]; then
+            case "$SCHEDULE" in
+              '30 22 * * 0-4') export MARKET_CONTEXT_PHASE=morning ;;
+              '20 23 * * 0-4') export MARKET_CONTEXT_PHASE=preopen ;;
+              '40 7 * * 1-5') export MARKET_CONTEXT_PHASE=after_close ;;
+              *) export MARKET_CONTEXT_PHASE=manual ;;
+            esac
+          fi
           node scripts/collect-market-context.mjs
       - name: Save observations
         if: always() && steps.market.outputs.should_run == 'true'
