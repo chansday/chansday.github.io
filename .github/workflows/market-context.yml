@@ -1,0 +1,47 @@
+name: "시장 환경 데이터 수집"
+on:
+  schedule:
+    - cron: '30 22 * * 0-4' # 07:30 KST Mon-Fri
+    - cron: '20 23 * * 0-4' # 08:20 KST Mon-Fri
+    - cron: '40 7 * * 1-5'  # 16:40 KST Mon-Fri
+  workflow_dispatch:
+
+permissions:
+  contents: write
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - id: market
+        run: node scripts/market-session-guard.mjs
+      - name: Collect market context
+        id: collect
+        if: steps.market.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          case "$SCHEDULE" in
+            '30 22 * * 0-4') export MARKET_CONTEXT_PHASE=morning ;;
+            '20 23 * * 0-4') export MARKET_CONTEXT_PHASE=preopen ;;
+            '40 7 * * 1-5') export MARKET_CONTEXT_PHASE=after_close ;;
+            *) export MARKET_CONTEXT_PHASE=manual ;;
+          esac
+          node scripts/collect-market-context.mjs
+      - name: Save observations
+        if: always() && steps.market.outputs.should_run == 'true'
+        run: |
+          if [[ -d data/market-context ]]; then git add -- data/market-context; fi
+          if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): record market context"; fi
+      - name: Report complete failure
+        if: steps.collect.outcome == 'failure'
+        run: exit 1
