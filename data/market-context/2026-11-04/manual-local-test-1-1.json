@@ -613,6 +613,6 @@
       }
     }
   },
-  "phase": "preopen",
+  "phase": "manual",
   "market_date": "2026-11-04"
 }
