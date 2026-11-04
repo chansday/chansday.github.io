@@ -1,0 +1,12 @@
+{
+  "status": "partial",
+  "targetDate": "2026-11-04",
+  "compared": 881,
+  "missing": 4,
+  "excluded": 26,
+  "meanAbsoluteError": 1.8607069131996543,
+  "message": "2026-11-04 정산 비교 881개, 미확인 4개, 거래 없음 26개. 출처: 네이버 금융 공개 polling 웹 크롤링 (비공식·지연 가능); 기준과 이용 조건은 원본 기록을 따릅니다.",
+  "runDate": "2026-11-05",
+  "attemptedAt": "2026-11-04T22:00:12.612Z",
+  "runId": "41921259835.1"
+}
