@@ -1,6 +1,7 @@
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
 import { kstDate } from './market-calendar.mjs';
+import { parseBlsCalendar, readMarketBreadth } from '../providers/market-context-extra.js';
 
 // Public, unofficial Naver responses. No retries or access-control bypass.
 export const SOURCES = {
@@ -9,6 +10,7 @@ export const SOURCES = {
   us_treasury: 'https://m.stock.naver.com/front-api/marketIndex/bondList?countryCode=USA',
   kospi: 'https://polling.finance.naver.com/api/realtime/domestic/index/KOSPI',
   kospi200: 'https://api.stock.naver.com/chart/domestic/index/KPI200?periodType=dayCandle',
+  bls_calendar: 'https://www.bls.gov/schedule/news_release/bls.ics',
 };
 
 export function selectData(name, value) {
@@ -41,6 +43,7 @@ export function selectData(name, value) {
 }
 
 export function describeData(name, data) {
+  if (name === 'bls_calendar') return [{ code: 'BLS_CPI_EMPLOYMENT', observed_at: null, event_count: data.events.length }];
   if (Array.isArray(data)) return data.map(row => ({ code: row.reutersCode, observed_at: row.localTradedAt || null, delay_minutes: row.delayTime ?? null }));
   if (name === 'kospi200') return [{ code: data.code, observed_date: data.latest.localDate || null }];
   return [{ code: data.reutersCode || data.itemCode || name, observed_at: data.localTradedAt || null, delay_minutes: data.delayTime ?? null }];
@@ -58,8 +61,14 @@ export async function collect({ fetchImpl = fetch, now = () => new Date(), log =
       httpStatus = response.status;
       contentType = response.headers.get('content-type');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      if (!(contentType || '').includes('json')) throw new Error('Non-JSON response');
-      const data = selectData(name, await response.json());
+      let data;
+      if (name === 'bls_calendar') {
+        if (!(contentType || '').includes('text/calendar')) throw new Error('Non-calendar response');
+        data = parseBlsCalendar(await response.text());
+      } else {
+        if (!(contentType || '').includes('json')) throw new Error('Non-JSON response');
+        data = selectData(name, await response.json());
+      }
       const receivedAt = now().toISOString();
       sources[name] = { status: 'ok', url, requested_at: requestedAt, received_at: receivedAt, duration_ms: Math.max(0, Date.parse(receivedAt) - Date.parse(requestedAt)), http_status: httpStatus, content_type: contentType, observations: describeData(name, data), data };
       log(`[${name}] 성공: HTTP ${httpStatus} · ${sources[name].duration_ms}ms · 관측 ${JSON.stringify(sources[name].observations)}`);
@@ -90,6 +99,10 @@ export function formatSummary(snapshot, path) {
     const error = String(row.error || row.reason || '—').replace(/[|\r\n]/g, ' ');
     lines.push(`| ${name} | ${row.status} | ${row.http_status ?? '—'} | ${row.duration_ms ?? '—'} | ${observations} | ${error} |`);
   }
+  if (snapshot.derived?.market_breadth) {
+    const row = snapshot.derived.market_breadth;
+    lines.push(`| market_breadth | ${row.status} | — | — | ${row.data?.as_of || '—'} | ${String(row.error || '—').replace(/[|\r\n]/g, ' ')} |`);
+  }
   lines.push('', '단계명은 예정 시각이며 실제 수집 시각과 다를 수 있습니다.', '');
   return lines.join('\n');
 }
@@ -99,6 +112,9 @@ export async function run() {
   if (!['morning', 'preopen', 'after_close', 'manual'].includes(phase)) throw new Error('Invalid collection phase');
   const snapshot = await collect({ log: line => console.log(line) });
   const date = kstDate(new Date(snapshot.started_at));
+  const breadth = await readMarketBreadth(date, snapshot.started_at);
+  snapshot.derived = { market_breadth: breadth };
+  console.log(`[market_breadth] ${breadth.status}: ${breadth.status === 'ok' ? JSON.stringify(breadth.data) : breadth.error}`);
   const id = (process.env.GITHUB_RUN_ID || snapshot.started_at.replace(/[^0-9]/g, '')) + '-' + (process.env.GITHUB_RUN_ATTEMPT || '1');
   if (!/^[0-9]+-[0-9]+$/.test(id)) throw new Error('Invalid run identifier');
   const dir = `data/market-context/${date}`;
@@ -108,7 +124,7 @@ export async function run() {
   await writeFile(path, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
   console.log(JSON.stringify({ path, status: snapshot.status, sources: Object.fromEntries(Object.entries(snapshot.sources).map(([k,v]) => [k,v.status])) }));
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, formatSummary(record, path));
-  if (snapshot.status === 'partial') console.warn('::warning::시장 환경 데이터 일부를 수집하지 못했습니다. 상세 요약을 확인하세요.');
+  if (snapshot.status === 'partial' || breadth.status !== 'ok') console.warn('::warning::시장 환경 데이터 일부를 수집하지 못했습니다. 상세 요약을 확인하세요.');
   if (snapshot.status === 'failed') process.exitCode = 1;
 }
 if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) run().catch(e => { console.error(e); process.exitCode = 1; });
