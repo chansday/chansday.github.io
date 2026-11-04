@@ -21,12 +21,3 @@ jobs:
     secrets:
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
       KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
-
-  # Investor flows of the same day, right after a successful close settlement
-  # (replaces the former workflow_run trigger, whose name filter did not match).
-  investor-flow:
-    needs: close-settlement
-    if: github.repository == 'kospi-signal/kospi-signal.github.io' && needs.close-settlement.result == 'success'
-    uses: ./.github/workflows/personal-investor-flow.yml
-    with:
-      chained: true
