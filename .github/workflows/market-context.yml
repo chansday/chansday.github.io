@@ -46,7 +46,7 @@ jobs:
       - name: Save observations
         if: always() && steps.market.outputs.should_run == 'true'
         run: |
-          if [[ -d data/market-context ]]; then git add -- data/market-context; fi
+          if [[ -d data/market-context ]]; then bash scripts/git-add-retry.sh -- data/market-context; fi
           if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): record market context"; fi
       - name: Report complete failure
         if: steps.collect.outcome == 'failure'

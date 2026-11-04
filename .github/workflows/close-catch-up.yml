@@ -71,7 +71,7 @@ jobs:
             echo "No catch-up changes to commit."
             exit 0
           fi
-          git add -- data/runs data/date-index.json data/latest-snapshot.json
+          bash scripts/git-add-retry.sh -- data/runs data/date-index.json data/latest-snapshot.json
           bash scripts/commit-and-push.sh "chore(data): record KOSPI close-settlement catch-up"
 
       - name: Fail when the catch-up is not ready

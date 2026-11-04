@@ -135,7 +135,7 @@ jobs:
           set -euo pipefail
           file="data/runs/$RUN_DATE/previous-result-status.json"
           if [ ! -f "$file" ]; then echo "No status was produced."; exit 0; fi
-          git add -- "$file"
+          bash scripts/git-add-retry.sh -- "$file"
           if git diff --cached --quiet; then exit 0; fi
           bash scripts/commit-and-push.sh "chore(data): record previous result status"
 
@@ -237,9 +237,9 @@ jobs:
             exit 0
           fi
           node scripts/generate-date-index.mjs
-          git add data/latest-snapshot.json data/runs data/date-index.json
-          if [ -d data/daytrade ]; then git add -- data/daytrade; fi
-          if [ -d data/preopen-ranking ]; then git add -- data/preopen-ranking; fi
+          bash scripts/git-add-retry.sh data/latest-snapshot.json data/runs data/date-index.json
+          if [ -d data/daytrade ]; then bash scripts/git-add-retry.sh -- data/daytrade; fi
+          if [ -d data/preopen-ranking ]; then bash scripts/git-add-retry.sh -- data/preopen-ranking; fi
           bash scripts/commit-and-push.sh "chore(data): record KOSPI $RESOLVED_STAGE stage"
 
       - name: Save isolated daily baseline
