@@ -1,6 +1,6 @@
 import { previewToSnapshot } from "./providers/preview-snapshot.js";
 import { loadInvestorDays, formatInvestorShares } from "./providers/investor-view.js";
-import { rankChanges } from "./providers/rank-change.js";
+import { rankChanges, canCompareRankings } from "./providers/rank-change.js";
 import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance, compoundPerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
@@ -1046,14 +1046,15 @@ async function loadComparison(data) {
   const token = ++comparisonToken;
   currentChanges = {};
   const date = data?.meta?.run_date;
-  if (data?.mode !== "provider" || data?.meta?.run_stage !== "forecast" || !isIsoDate(date) || data?.meta?.test_only || data?.meta?.retrospective_evaluation) { if (snapshot) renderRows(); return; }
+  if (data?.mode !== "provider" || !["forecast", "open-settlement", "close-settlement"].includes(data?.meta?.run_stage) || !isIsoDate(date) || data?.meta?.test_only || data?.meta?.retrospective_evaluation) { if (snapshot) renderRows(); return; }
   try {
     const [a, b] = await Promise.all([fetch(`./data/next-preview/${date}.json`, {cache:"no-store"}), fetch(`./data/preopen-ranking/${date}.json`, {cache:"no-store"})]);
     if (!a.ok || !b.ok) throw new Error("ranking unavailable");
     const [preview, preopen] = await Promise.all([a.json(), b.json()]);
-    if (!/^[A-Za-z0-9._-]+$/.test(preopen.run_id || "") || preopen.run_id !== data.meta.run_id || preview.kind !== "next_preview" || preopen.kind !== "preopen_ranking") throw new Error("ranking identity mismatch");
+    if (!canCompareRankings(data, preview, preopen, date)) throw new Error("ranking identity mismatch");
     if (token !== comparisonToken) return;
-    currentChanges = rankChanges(preview, preopen, date);
+    const comparisonRanking = data.meta.run_stage === "forecast" ? preopen : {target_date: date, rows: data.rows};
+    currentChanges = rankChanges(preview, comparisonRanking, date);
     if (snapshot) renderRows();
   } catch { if (token === comparisonToken && snapshot) renderRows(); }
 }
