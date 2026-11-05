@@ -23,7 +23,7 @@ jobs:
           node-version: 22
       - id: market
         run: node scripts/market-session-guard.mjs
-      - name: Collect market context
+      - name: 시장 환경 정보 수집
         id: collect
         if: steps.market.outputs.should_run == 'true'
         continue-on-error: true
@@ -43,11 +43,11 @@ jobs:
             esac
           fi
           node scripts/collect-market-context.mjs
-      - name: Save observations
+      - name: 시장 정보 저장
         if: always() && steps.market.outputs.should_run == 'true'
         run: |
           if [[ -d data/market-context ]]; then git add -- data/market-context; fi
           if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): record market context"; fi
-      - name: Report complete failure
+      - name: 수집 실패 여부 확인
         if: steps.collect.outcome == 'failure'
         run: exit 1

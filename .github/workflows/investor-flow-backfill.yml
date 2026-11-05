@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: Backfill investor flows
+      - name: 과거 매매동향 수집
         env:
           BEFORE: ${{ inputs.before_date }}
           BUDGET: ${{ inputs.budget_minutes }}

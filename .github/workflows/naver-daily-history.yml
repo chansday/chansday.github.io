@@ -31,7 +31,7 @@ jobs:
         if: steps.market.outputs.should_run == 'true'
         continue-on-error: true
         run: node scripts/update-kospi-universe.mjs --candidates-csv latest
-      - name: Collect before 08:00 KST
+      - name: 장전 일봉 수집
         id: log_step_05
         if: steps.market.outputs.should_run == 'true'
         run: node scripts/collect-naver-daily.mjs
@@ -42,7 +42,7 @@ jobs:
         env:
           MARKET_DATE: ${{ steps.market.outputs.market_date }}
         run: node scripts/preview-ranking.mjs "$MARKET_DATE"
-      - name: Save date-specific history
+      - name: 일자별 시세 저장
         id: log_step_06
         if: steps.market.outputs.should_run == 'true'
         shell: bash
@@ -71,7 +71,7 @@ jobs:
           STEP_RESULT_04: ${{ steps.log_step_04.outcome }}|${{ steps.log_step_04.conclusion }}
           STEP_RESULT_05: ${{ steps.log_step_05.outcome }}|${{ steps.log_step_05.conclusion }}
           STEP_RESULT_06: ${{ steps.log_step_06.outcome }}|${{ steps.log_step_06.conclusion }}
-          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6ICJhY3Rpb25zL2NoZWNrb3V0QHY3IiwgImxvZ19zdGVwXzAyIjogImFjdGlvbnMvc2V0dXAtbm9kZUB2NyIsICJtYXJrZXQiOiAibWFya2V0IiwgImxvZ19zdGVwXzA0IjogIlJlZnJlc2ggY29tbWl0dGVkIEtPU1BJIHVuaXZlcnNlIChyb2JvdHMtY2hlY2tlZCwgbm8gcmV0cnkpIiwgImxvZ19zdGVwXzA1IjogIkNvbGxlY3QgYmVmb3JlIDA4OjAwIEtTVCIsICJsb2dfc3RlcF8wNiI6ICJTYXZlIGRhdGUtc3BlY2lmaWMgaGlzdG9yeSJ9
+          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6IuyggOyepeyGjCDrgrTroKTrsJvquLAiLCJsb2dfc3RlcF8wMiI6Ik5vZGUuanMg7ZmY6rK9IOykgOu5hCIsIm1hcmtldCI6Im1hcmtldCIsImxvZ19zdGVwXzA0IjoiUmVmcmVzaCBjb21taXR0ZWQgS09TUEkgdW5pdmVyc2UgKHJvYm90cy1jaGVja2VkLCBubyByZXRyeSkiLCJsb2dfc3RlcF8wNSI6IuyepeyghCDsnbzrtIkg7IiY7KeRIiwibG9nX3N0ZXBfMDYiOiLsnbzsnpDrs4Qg7Iuc7IS4IOyggOyepSJ9
           CURRENT_JOB_STATUS: ${{ job.status }}
         shell: bash
         run: |

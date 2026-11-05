@@ -52,7 +52,7 @@ jobs:
         id: log_step_02
         with:
           node-version: 22
-      - name: Dispatch due stages, sleep, relay before the runner limit
+      - name: 예정 작업 실행 및 스케줄러 유지
         id: log_step_03
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -64,7 +64,7 @@ jobs:
           STEP_RESULT_01: ${{ steps.log_step_01.outcome }}|${{ steps.log_step_01.conclusion }}
           STEP_RESULT_02: ${{ steps.log_step_02.outcome }}|${{ steps.log_step_02.conclusion }}
           STEP_RESULT_03: ${{ steps.log_step_03.outcome }}|${{ steps.log_step_03.conclusion }}
-          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6ICJhY3Rpb25zL2NoZWNrb3V0QHY3IiwgImxvZ19zdGVwXzAyIjogImFjdGlvbnMvc2V0dXAtbm9kZUB2NyIsICJsb2dfc3RlcF8wMyI6ICJEaXNwYXRjaCBkdWUgc3RhZ2VzLCBzbGVlcCwgcmVsYXkgYmVmb3JlIHRoZSBydW5uZXIgbGltaXQifQ==
+          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6IuyggOyepeyGjCDrgrTroKTrsJvquLAiLCJsb2dfc3RlcF8wMiI6Ik5vZGUuanMg7ZmY6rK9IOykgOu5hCIsImxvZ19zdGVwXzAzIjoi7JiI7KCVIOyekeyXhSDsi6Ttlokg67CPIOyKpOy8gOykhOufrCDsnKDsp4AifQ==
           CURRENT_JOB_STATUS: ${{ job.status }}
         shell: bash
         run: |

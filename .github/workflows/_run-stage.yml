@@ -70,11 +70,11 @@ jobs:
           echo "run_started_at=$run_started_at" >> "$GITHUB_OUTPUT"
           echo "KOSPI_RUN_STARTED_AT=$run_started_at" >> "$GITHUB_ENV"
 
-      - name: Check out repository
+      - name: 저장소 내려받기
         id: checkout
         uses: actions/checkout@v7
 
-      - name: Set up Node.js
+      - name: Node.js 환경 준비
         id: setup-node
         uses: actions/setup-node@v7
         with:
@@ -104,7 +104,7 @@ jobs:
         if: steps.market-day.outputs.should_run == 'true'
         run: npm test && npm run check && npm run check:experiment
 
-      - name: Run resolved KOSPI stage
+      - name: 해당 단계 실행
         id: stage
         if: >-
           always() &&
@@ -183,7 +183,7 @@ jobs:
           KOSPI_RUN_DATE: ${{ steps.validate-run-context.outputs.run_date }}
         run: node scripts/daytrade-signal.mjs "$([ "$RESOLVED_STAGE" = open-settlement ] && echo open || echo close)" --date "$KOSPI_RUN_DATE"
 
-      - name: Write workflow summary
+      - name: 실행 결과 요약 작성
         id: log_step_14
         if: always()
         shell: bash
@@ -192,20 +192,20 @@ jobs:
         run: |
           if [ "${{ steps.market-day.outputs.should_run }}" != "true" ]; then
             {
-              echo "### KOSPI stage: market closed"
-              echo "- stage: \`${RESOLVED_STAGE}\`"
-              echo "- provider: \`${KOSPI_PROVIDER}\`"
-              echo "- collection and snapshot mutation: **not run**"
+              echo "### 코스피 작업: 휴장일"
+              echo "- 실행 단계: \`${RESOLVED_STAGE}\`"
+              echo "- 수집 방식: \`${KOSPI_PROVIDER}\`"
+              echo "- 수집 및 결과 저장: **실행하지 않음**"
             } >> "$GITHUB_STEP_SUMMARY"
           else
             {
-              echo "### KOSPI stage workflow"
-              echo "- stage: \`${RESOLVED_STAGE}\`"
-              echo "- provider: \`${KOSPI_PROVIDER}\`"
-              echo "- reference time: \`${KOSPI_RUN_STARTED_AT}\` (runner-captured start UTC; KST stage is derived from the same value)"
-              echo "- manual button and schedule use the same stage command"
-              echo "- isolated daily experiment status: ${{ steps.daily-experiment.outputs.status || 'not_run_or_status_write_failed' }}; step: ${{ steps.daily-experiment.outcome }}; status saved: ${{ steps.daily-experiment.outputs.status_saved || 'false' }}"
-              echo "- no_data/partial/degraded/blocked results fail the job after the snapshot and summary are written"
+              echo "### 코스피 작업 실행 결과"
+              echo "- 실행 단계: \`${RESOLVED_STAGE}\`"
+              echo "- 수집 방식: \`${KOSPI_PROVIDER}\`"
+              echo "- 작업 시작 시각: \`${KOSPI_RUN_STARTED_AT}\` (runner-captured start UTC; KST stage is derived from the same value)"
+              echo "- 수동 실행과 예약 실행에 같은 명령 사용"
+              echo "- 일별 비교 실험 상태: ${{ steps.daily-experiment.outputs.status || 'not_run_or_status_write_failed' }}; 단계 결과: ${{ steps.daily-experiment.outcome }}; 상태 저장: ${{ steps.daily-experiment.outputs.status_saved || 'false' }}"
+              echo "- 데이터 없음·부분 수집·품질 저하·차단 시 결과 저장 후 실패로 표시"
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 
@@ -350,7 +350,7 @@ jobs:
           STEP_RESULT_16: ${{ steps.save-experiment.outcome }}|${{ steps.save-experiment.conclusion }}
           STEP_RESULT_17: ${{ steps.log_step_17.outcome }}|${{ steps.log_step_17.conclusion }}
           STEP_RESULT_18: ${{ steps.log_step_18.outcome }}|${{ steps.log_step_18.conclusion }}
-          STEP_LABELS_BASE64: eyJjYXB0dXJlLXJ1bi1jb250ZXh0IjogIkNhcHR1cmUgYWN0dWFsIHJ1bm5lciBzdGFydCB0aW1lc3RhbXAiLCAiY2hlY2tvdXQiOiAiQ2hlY2sgb3V0IHJlcG9zaXRvcnkiLCAic2V0dXAtbm9kZSI6ICJTZXQgdXAgTm9kZS5qcyIsICJ2YWxpZGF0ZS1ydW4tY29udGV4dCI6ICJWYWxpZGF0ZSBjYWxsZXIgcnVuIGNvbnRleHQiLCAibWFya2V0LWRheSI6ICJHdWFyZCBLT1NQSSB0cmFkaW5nIGRheSIsICJhdXRvX3N0YWdlIjogIlJlc29sdmUgY3VycmVudCBLU1Qgc3RhZ2UiLCAic3RhdGljLWNvbnRyYWN0IjogIlZhbGlkYXRlIHRoZSBzdGF0aWMgY29udHJhY3QiLCAic3RhZ2UiOiAiUnVuIHJlc29sdmVkIEtPU1BJIHN0YWdlIiwgImxvZ19zdGVwXzA5IjogIlNhdmUgcHJldmlvdXMtcmVzdWx0IGZhaWx1cmUgc3RhdHVzIiwgImxvZ19zdGVwXzEwIjogIkZyZWV6ZSByZWNvcmRlZCBwcmUtb3BlbiByYW5raW5nIiwgImRhaWx5LWV4cGVyaW1lbnQiOiAiQ29sbGVjdCBpc29sYXRlZCBkYWlseSBiYXNlbGluZSIsICJyZXRyb3NwZWN0aXZlIjogIkV2YWx1YXRlIHBvc3QtY2xvc2UgcmV0cm9zcGVjdGl2ZSIsICJkYXl0cmFkZSI6ICJTY29yZSBkYXktdHJhZGUgcGlja3MiLCAibG9nX3N0ZXBfMTQiOiAiV3JpdGUgd29ya2Zsb3cgc3VtbWFyeSIsICJjb21taXQiOiAiQ29tbWl0IHNuYXBzaG90IHN0YXRlIHdoZW4gY2hhbmdlZCIsICJzYXZlLWV4cGVyaW1lbnQiOiAiU2F2ZSBpc29sYXRlZCBkYWlseSBiYXNlbGluZSIsICJsb2dfc3RlcF8xNyI6ICJGYWlsIHdoZW4gdGhlIHN0YWdlIGlzIG5vdCByZWFkeSIsICJsb2dfc3RlcF8xOCI6ICJGYWlsIHdoZW4gdGhlIGlzb2xhdGVkIGV4cGVyaW1lbnQgZmFpbGVkIn0=
+          STEP_LABELS_BASE64: eyJjYXB0dXJlLXJ1bi1jb250ZXh0IjoiQ2FwdHVyZSBhY3R1YWwgcnVubmVyIHN0YXJ0IHRpbWVzdGFtcCIsImNoZWNrb3V0Ijoi7KCA7J6l7IaMIOuCtOugpOuwm+q4sCIsInNldHVwLW5vZGUiOiJOb2RlLmpzIO2ZmOqyvSDspIDruYQiLCJ2YWxpZGF0ZS1ydW4tY29udGV4dCI6IlZhbGlkYXRlIGNhbGxlciBydW4gY29udGV4dCIsIm1hcmtldC1kYXkiOiJHdWFyZCBLT1NQSSB0cmFkaW5nIGRheSIsImF1dG9fc3RhZ2UiOiJSZXNvbHZlIGN1cnJlbnQgS1NUIHN0YWdlIiwic3RhdGljLWNvbnRyYWN0IjoiVmFsaWRhdGUgdGhlIHN0YXRpYyBjb250cmFjdCIsInN0YWdlIjoi7ZW064u5IOuLqOqzhCDsi6TtlokiLCJsb2dfc3RlcF8wOSI6IlNhdmUgcHJldmlvdXMtcmVzdWx0IGZhaWx1cmUgc3RhdHVzIiwibG9nX3N0ZXBfMTAiOiJGcmVlemUgcmVjb3JkZWQgcHJlLW9wZW4gcmFua2luZyIsImRhaWx5LWV4cGVyaW1lbnQiOiJDb2xsZWN0IGlzb2xhdGVkIGRhaWx5IGJhc2VsaW5lIiwicmV0cm9zcGVjdGl2ZSI6IkV2YWx1YXRlIHBvc3QtY2xvc2UgcmV0cm9zcGVjdGl2ZSIsImRheXRyYWRlIjoiU2NvcmUgZGF5LXRyYWRlIHBpY2tzIiwibG9nX3N0ZXBfMTQiOiLsi6Ttlokg6rKw6rO8IOyalOyVvSDsnpHshLEiLCJjb21taXQiOiJDb21taXQgc25hcHNob3Qgc3RhdGUgd2hlbiBjaGFuZ2VkIiwic2F2ZS1leHBlcmltZW50IjoiU2F2ZSBpc29sYXRlZCBkYWlseSBiYXNlbGluZSIsImxvZ19zdGVwXzE3IjoiRmFpbCB3aGVuIHRoZSBzdGFnZSBpcyBub3QgcmVhZHkiLCJsb2dfc3RlcF8xOCI6IkZhaWwgd2hlbiB0aGUgaXNvbGF0ZWQgZXhwZXJpbWVudCBmYWlsZWQifQ==
           CURRENT_JOB_STATUS: ${{ job.status }}
         shell: bash
         run: |

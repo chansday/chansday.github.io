@@ -30,11 +30,11 @@ jobs:
       # through shell interpolation.
       KOSPI_CATCH_UP_DATES: ${{ inputs.run_date }}
     steps:
-      - name: Check out repository
+      - name: 저장소 내려받기
         id: checkout
         uses: actions/checkout@v7
 
-      - name: Set up Node.js
+      - name: Node.js 환경 준비
         id: setup-node
         uses: actions/setup-node@v7
         with:
@@ -48,7 +48,7 @@ jobs:
           KOSPI_CATCH_UP_DATES: ""
         run: npm test && npm run check && npm run check:experiment
 
-      - name: Settle missed close from the Naver daily candle
+      - name: 누락된 종가 결과 보충
         id: catch-up
         # Eligibility is checked per date D (past KOSPI trading day within the
         # last 5 trading days); today may be any day, so a manual run on a
@@ -57,7 +57,7 @@ jobs:
         continue-on-error: true
         run: node scripts/close-catch-up.mjs
 
-      - name: Commit caught-up settlement
+      - name: 보충한 결과 저장
         id: commit
         if: >-
           always() &&
@@ -110,7 +110,7 @@ jobs:
           STEP_RESULT_04: ${{ steps.catch-up.outcome }}|${{ steps.catch-up.conclusion }}
           STEP_RESULT_05: ${{ steps.commit.outcome }}|${{ steps.commit.conclusion }}
           STEP_RESULT_06: ${{ steps.log_step_06.outcome }}|${{ steps.log_step_06.conclusion }}
-          STEP_LABELS_BASE64: eyJjaGVja291dCI6ICJDaGVjayBvdXQgcmVwb3NpdG9yeSIsICJzZXR1cC1ub2RlIjogIlNldCB1cCBOb2RlLmpzIiwgInN0YXRpYy1jb250cmFjdCI6ICJWYWxpZGF0ZSB0aGUgc3RhdGljIGNvbnRyYWN0IiwgImNhdGNoLXVwIjogIlNldHRsZSBtaXNzZWQgY2xvc2UgZnJvbSB0aGUgTmF2ZXIgZGFpbHkgY2FuZGxlIiwgImNvbW1pdCI6ICJDb21taXQgY2F1Z2h0LXVwIHNldHRsZW1lbnQiLCAibG9nX3N0ZXBfMDYiOiAiRmFpbCB3aGVuIHRoZSBjYXRjaC11cCBpcyBub3QgcmVhZHkifQ==
+          STEP_LABELS_BASE64: eyJjaGVja291dCI6IuyggOyepeyGjCDrgrTroKTrsJvquLAiLCJzZXR1cC1ub2RlIjoiTm9kZS5qcyDtmZjqsr0g7KSA67mEIiwic3RhdGljLWNvbnRyYWN0IjoiVmFsaWRhdGUgdGhlIHN0YXRpYyBjb250cmFjdCIsImNhdGNoLXVwIjoi64iE652965CcIOyiheqwgCDqsrDqs7wg67O07LapIiwiY29tbWl0Ijoi67O07Lap7ZWcIOqysOqzvCDsoIDsnqUiLCJsb2dfc3RlcF8wNiI6IkZhaWwgd2hlbiB0aGUgY2F0Y2gtdXAgaXMgbm90IHJlYWR5In0=
           CURRENT_JOB_STATUS: ${{ job.status }}
         shell: bash
         run: |

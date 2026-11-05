@@ -39,12 +39,12 @@ jobs:
         if: steps.market.outputs.should_run == 'true'
         continue-on-error: true
         run: node scripts/update-kospi-universe.mjs --candidates-csv latest
-      - name: Collect after 18:00 KST for the next trading day
+      - name: 다음 거래일 일봉 수집
         id: collect
         continue-on-error: true
         if: steps.market.outputs.should_run == 'true'
         run: node scripts/collect-naver-daily.mjs --evening
-      - name: Generate next-trading-day preview
+      - name: 다음 거래일 예측 생성
         id: preview
         if: steps.market.outputs.should_run == 'true' && steps.collect.outcome == 'success' && steps.collect.outputs.target_date != ''
         continue-on-error: true
@@ -58,7 +58,7 @@ jobs:
           SOURCE_DATE: ${{ steps.market.outputs.market_date }}
           PREVIEW_OUTCOME: ${{ steps.preview.outcome }}
         run: node scripts/preview-state.mjs
-      - name: Save next-day history
+      - name: 다음 거래일 데이터 저장
         id: log_step_08
         if: steps.market.outputs.should_run == 'true'
         shell: bash
@@ -92,7 +92,7 @@ jobs:
           STEP_RESULT_06: ${{ steps.preview.outcome }}|${{ steps.preview.conclusion }}
           STEP_RESULT_07: ${{ steps.log_step_07.outcome }}|${{ steps.log_step_07.conclusion }}
           STEP_RESULT_08: ${{ steps.log_step_08.outcome }}|${{ steps.log_step_08.conclusion }}
-          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6ICJhY3Rpb25zL2NoZWNrb3V0QHY3IiwgImxvZ19zdGVwXzAyIjogImFjdGlvbnMvc2V0dXAtbm9kZUB2NyIsICJtYXJrZXQiOiAibWFya2V0IiwgImxvZ19zdGVwXzA0IjogIlJlZnJlc2ggY29tbWl0dGVkIEtPU1BJIHVuaXZlcnNlIChyb2JvdHMtY2hlY2tlZCwgbm8gcmV0cnkpIiwgImNvbGxlY3QiOiAiQ29sbGVjdCBhZnRlciAxODowMCBLU1QgZm9yIHRoZSBuZXh0IHRyYWRpbmcgZGF5IiwgInByZXZpZXciOiAiR2VuZXJhdGUgbmV4dC10cmFkaW5nLWRheSBwcmV2aWV3IiwgImxvZ19zdGVwXzA3IjogIlJlY29yZCBwcmV2aWV3IHN0YXR1cyIsICJsb2dfc3RlcF8wOCI6ICJTYXZlIG5leHQtZGF5IGhpc3RvcnkifQ==
+          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6IuyggOyepeyGjCDrgrTroKTrsJvquLAiLCJsb2dfc3RlcF8wMiI6Ik5vZGUuanMg7ZmY6rK9IOykgOu5hCIsIm1hcmtldCI6Im1hcmtldCIsImxvZ19zdGVwXzA0IjoiUmVmcmVzaCBjb21taXR0ZWQgS09TUEkgdW5pdmVyc2UgKHJvYm90cy1jaGVja2VkLCBubyByZXRyeSkiLCJjb2xsZWN0Ijoi64uk7J2MIOqxsOuemOydvCDsnbzrtIkg7IiY7KeRIiwicHJldmlldyI6IuuLpOydjCDqsbDrnpjsnbwg7JiI7LihIOyDneyEsSIsImxvZ19zdGVwXzA3IjoiUmVjb3JkIHByZXZpZXcgc3RhdHVzIiwibG9nX3N0ZXBfMDgiOiLri6TsnYwg6rGw656Y7J28IOuNsOydtO2EsCDsoIDsnqUifQ==
           CURRENT_JOB_STATUS: ${{ job.status }}
         shell: bash
         run: |

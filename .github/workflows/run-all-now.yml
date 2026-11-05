@@ -60,11 +60,11 @@ jobs:
           echo "run_started_at=$run_started_at" >> "$GITHUB_OUTPUT"
           echo "KOSPI_RUN_STARTED_AT=$run_started_at" >> "$GITHUB_ENV"
 
-      - name: Check out repository
+      - name: 저장소 내려받기
         id: checkout
         uses: actions/checkout@v7
 
-      - name: Set up Node.js
+      - name: Node.js 환경 준비
         id: setup-node
         uses: actions/setup-node@v7
         with:
@@ -130,7 +130,7 @@ jobs:
           esac
           echo "collection_started_at=$collection_started_at" >> "$GITHUB_OUTPUT"
 
-      - name: Run all KOSPI stages sequentially
+      - name: 전체 단계 순서대로 실행
         id: run-all
         continue-on-error: true
         run: node scripts/run-all.mjs --run-date "$KOSPI_RUN_DATE" --run-started-at "${{ steps.run-context.outputs.run_started_at }}" --attempted-at "${{ steps.collection-context.outputs.collection_started_at }}" --run-id "$KOSPI_RUN_ID"
@@ -316,7 +316,7 @@ jobs:
           STEP_RESULT_11: ${{ steps.commit.outcome }}|${{ steps.commit.conclusion }}
           STEP_RESULT_12: ${{ steps.log_step_12.outcome }}|${{ steps.log_step_12.conclusion }}
           STEP_RESULT_13: ${{ steps.log_step_13.outcome }}|${{ steps.log_step_13.conclusion }}
-          STEP_LABELS_BASE64: eyJ2YWxpZGF0ZS1pbnB1dCI6ICJWYWxpZGF0ZSBydW4gZGF0ZSBpbnB1dCIsICJydW4tY29udGV4dCI6ICJDYXB0dXJlIGFjdHVhbCBydW4gc3RhcnQgdGltZXN0YW1wIiwgImNoZWNrb3V0IjogIkNoZWNrIG91dCByZXBvc2l0b3J5IiwgInNldHVwLW5vZGUiOiAiU2V0IHVwIE5vZGUuanMiLCAiaGlzdG9yaWNhbC1ndWFyZCI6ICJDaGVjayBwYXN0IHJ1biBkYXRlcyIsICJzdGF0aWMtY29udHJhY3QiOiAiVmFsaWRhdGUgdGhlIHN0YXRpYyBjb250cmFjdCIsICJjb2xsZWN0aW9uLWNvbnRleHQiOiAiQ2FwdHVyZSBjb2xsZWN0aW9uIGludm9jYXRpb24gdGltZXN0YW1wIiwgInJ1bi1hbGwiOiAiUnVuIGFsbCBLT1NQSSBzdGFnZXMgc2VxdWVudGlhbGx5IiwgImxvZ19zdGVwXzA5IjogIlNhdmUgcHJldmlvdXMtcmVzdWx0IHN0YXR1cyBhZnRlciBhIGZhaWxlZCBydW4iLCAibG9nX3N0ZXBfMTAiOiAiRnJlZXplIHJlY29yZGVkIHByZS1vcGVuIHJhbmtpbmciLCAiY29tbWl0IjogIkNvbW1pdCBmaW5hbCBydW4gc3RhdGUgb25jZSIsICJsb2dfc3RlcF8xMiI6ICJGYWlsIHdoZW4gdGhlIGFsbC1zdGFnZSByZXN1bHQgaXMgbm90IHJlYWR5IiwgImxvZ19zdGVwXzEzIjogIkZhaWwgd2hlbiB0aGUgaXNvbGF0ZWQgZXhwZXJpbWVudCBmYWlsZWQifQ==
+          STEP_LABELS_BASE64: eyJ2YWxpZGF0ZS1pbnB1dCI6IlZhbGlkYXRlIHJ1biBkYXRlIGlucHV0IiwicnVuLWNvbnRleHQiOiJDYXB0dXJlIGFjdHVhbCBydW4gc3RhcnQgdGltZXN0YW1wIiwiY2hlY2tvdXQiOiLsoIDsnqXshowg64K066Ck67Cb6riwIiwic2V0dXAtbm9kZSI6Ik5vZGUuanMg7ZmY6rK9IOykgOu5hCIsImhpc3RvcmljYWwtZ3VhcmQiOiJDaGVjayBwYXN0IHJ1biBkYXRlcyIsInN0YXRpYy1jb250cmFjdCI6IlZhbGlkYXRlIHRoZSBzdGF0aWMgY29udHJhY3QiLCJjb2xsZWN0aW9uLWNvbnRleHQiOiJDYXB0dXJlIGNvbGxlY3Rpb24gaW52b2NhdGlvbiB0aW1lc3RhbXAiLCJydW4tYWxsIjoi7KCE7LK0IOuLqOqzhCDsiJzshJzrjIDroZwg7Iuk7ZaJIiwibG9nX3N0ZXBfMDkiOiJTYXZlIHByZXZpb3VzLXJlc3VsdCBzdGF0dXMgYWZ0ZXIgYSBmYWlsZWQgcnVuIiwibG9nX3N0ZXBfMTAiOiJGcmVlemUgcmVjb3JkZWQgcHJlLW9wZW4gcmFua2luZyIsImNvbW1pdCI6IkNvbW1pdCBmaW5hbCBydW4gc3RhdGUgb25jZSIsImxvZ19zdGVwXzEyIjoiRmFpbCB3aGVuIHRoZSBhbGwtc3RhZ2UgcmVzdWx0IGlzIG5vdCByZWFkeSIsImxvZ19zdGVwXzEzIjoiRmFpbCB3aGVuIHRoZSBpc29sYXRlZCBleHBlcmltZW50IGZhaWxlZCJ9
           CURRENT_JOB_STATUS: ${{ job.status }}
         shell: bash
         run: |

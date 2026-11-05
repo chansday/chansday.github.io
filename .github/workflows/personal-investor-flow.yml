@@ -40,7 +40,7 @@ jobs:
           node-version: 22
       - id: market
         run: node scripts/market-session-guard.mjs
-      - name: Guard delayed scheduled runs
+      - name: 실행 시간 및 누락 날짜 확인
         id: window
         env:
           EVENT_TYPE: ${{ github.event_name }}
@@ -66,7 +66,7 @@ jobs:
             echo "allowed=false" >> "$GITHUB_OUTPUT"
             echo "Scheduled run outside the collection window ($now_kst KST); skipping."
           fi
-      - name: Collect investor flows
+      - name: 투자자별 매매동향 수집
         id: collect
         if: >-
           steps.window.outputs.allowed == 'true'
@@ -89,14 +89,14 @@ jobs:
             args+=(--date "$TARGET_DATE")
           fi
           node scripts/collect-investor-flow.mjs "${args[@]}"
-      - name: Save investor output
+      - name: 매매동향 저장
         id: save
         if: always() && steps.collect.outputs.saved == 'true'
         run: |
           set -euo pipefail
           git add -- data/investor-flow
           if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): save investor flow"; fi
-      - name: Summarize source coverage
+      - name: 수집 건수·누락 요약
         id: log_step_06
         if: always() && steps.collect.outputs.saved == 'true'
         env:
@@ -112,7 +112,7 @@ jobs:
             echo "- 요청 날짜 또는 주체별 값이 부족한 종목: $INCOMPLETE"
             echo "- 순매수 수량은 사이트 표시에 사용됩니다."
           } >> "$GITHUB_STEP_SUMMARY"
-      - name: Report incomplete collection
+      - name: 수집 완료 여부 확인
         id: log_step_07
         if: always() && (steps.collect.outcome == 'failure' || steps.collect.outputs.status == 'not_published' || steps.collect.outputs.status == 'partial')
         run: |
@@ -128,7 +128,7 @@ jobs:
           STEP_RESULT_05: ${{ steps.save.outcome }}|${{ steps.save.conclusion }}
           STEP_RESULT_06: ${{ steps.log_step_06.outcome }}|${{ steps.log_step_06.conclusion }}
           STEP_RESULT_07: ${{ steps.log_step_07.outcome }}|${{ steps.log_step_07.conclusion }}
-          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6ICJhY3Rpb25zL2NoZWNrb3V0QHY3IiwgImxvZ19zdGVwXzAyIjogImFjdGlvbnMvc2V0dXAtbm9kZUB2NyIsICJtYXJrZXQiOiAibWFya2V0IiwgImNvbGxlY3QiOiAiQ29sbGVjdCBpbnZlc3RvciBmbG93cyIsICJzYXZlIjogIlNhdmUgaW52ZXN0b3Igb3V0cHV0IiwgImxvZ19zdGVwXzA2IjogIlN1bW1hcml6ZSBzb3VyY2UgY292ZXJhZ2UiLCAibG9nX3N0ZXBfMDciOiAiUmVwb3J0IGluY29tcGxldGUgY29sbGVjdGlvbiJ9
+          STEP_LABELS_BASE64: eyJsb2dfc3RlcF8wMSI6IuyggOyepeyGjCDrgrTroKTrsJvquLAiLCJsb2dfc3RlcF8wMiI6Ik5vZGUuanMg7ZmY6rK9IOykgOu5hCIsIm1hcmtldCI6Im1hcmtldCIsImNvbGxlY3QiOiLtiKzsnpDsnpDrs4Qg66ek66ek64+Z7ZalIOyImOynkSIsInNhdmUiOiLrp6Trp6Trj5ntlqUg7KCA7J6lIiwibG9nX3N0ZXBfMDYiOiLsiJjsp5Eg6rG07IiYwrfriITrnb0g7JqU7JW9IiwibG9nX3N0ZXBfMDciOiLsiJjsp5Eg7JmE66OMIOyXrOu2gCDtmZXsnbgifQ==
           CURRENT_JOB_STATUS: ${{ job.status }}
         shell: bash
         run: |

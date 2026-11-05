@@ -28,7 +28,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: Probe investor-flow sources
+      - name: 매매동향 수집 가능 여부 확인
         env:
           SYMBOL: ${{ inputs.symbol }}
           COLLECTOR: ${{ inputs.collector_endpoint }}
