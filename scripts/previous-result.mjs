@@ -32,12 +32,36 @@ export async function evaluatePreviousResult(runDate, attemptedAt) {
   if (saved.mode !== "provider" || saved.provider?.id !== "naver-crawl" || saved.asOfDate !== targetDate || saved.meta?.run_date !== targetDate || saved.meta?.run_stage !== "close-settlement" || saved.meta?.test_only || saved.meta?.historical_test || saved.meta?.settlement_source || !["ready", "partial"].includes(step?.status) || source?.source_id !== "naver-public-polling-crawl" || source?.source_date !== targetDate || !Number.isFinite(when) || when < closeStart || when > reference || !Number.isFinite(retrieved) || retrieved < closeStart || retrieved > reference || !Array.isArray(saved.rows) || !saved.rows.length) {
     return { status: "blocked", targetDate, message: `${targetDate} 정산의 날짜·출처·상태 또는 15:31 이후 수집을 확인할 수 없습니다.` };
   }
-  let compared = 0, missing = 0, excluded = 0, sum = 0;
+  // A symbol intentionally excluded during pre-open forecasting may trade later.
+  // Consult the original dated forecast; never infer this from missing prices.
+  let forecastExclusions = new Set();
+  try {
+    const forecast = JSON.parse(await readFile(resolve("data", "runs", targetDate, "0820.json"), "utf8"));
+    const forecastAt = Date.parse(forecast.pipeline?.forecast?.attemptedAt);
+    const fetchedAt = Date.parse(forecast.meta?.source?.retrieved_at);
+    const dayStart = Date.parse(`${targetDate}T00:00:00+09:00`);
+    const open = Date.parse(`${targetDate}T09:00:00+09:00`);
+    if (forecast.mode === "provider" && forecast.provider?.id === "naver-crawl"
+      && forecast.asOfDate === targetDate && forecast.meta?.run_date === targetDate && forecast.meta?.run_stage === "forecast"
+      && !forecast.meta?.test_only && !forecast.meta?.historical_test
+      && forecast.meta?.source?.source_id === "naver-public-polling-crawl"
+      && forecast.meta?.source?.source_date === targetDate && ["ready", "partial"].includes(forecast.pipeline?.forecast?.status)
+      && Number.isFinite(forecastAt) && forecastAt >= dayStart && forecastAt < open
+      && Number.isFinite(fetchedAt) && fetchedAt >= forecastAt && fetchedAt < open && Array.isArray(forecast.rows)) {
+      const counts = new Map();
+      for (const row of forecast.rows) counts.set(row.symbol, (counts.get(row.symbol) || 0) + 1);
+      forecastExclusions = new Set(forecast.rows.filter(row => counts.get(row.symbol) === 1 && isNoTradeEvidence(row)
+        && row.expected_open === null && row.expected_close === null).map(row => row.symbol));
+    }
+  } catch { /* Missing or invalid forecast cannot justify an exclusion. */ }
+  let compared = 0, missing = 0, excluded = 0, forecastExcluded = 0, sum = 0;
   const symbols = new Set();
   for (const row of saved.rows) {
     if (!/^\d{6}$/.test(row.symbol || "") || symbols.has(row.symbol)) { missing += 1; continue; }
     symbols.add(row.symbol);
     if (row.trading_status === "no_trade_observed") { if (isNoTradeEvidence(row)) excluded += 1; else missing += 1; continue; }
+    if (row.actual_open > 0 && row.actual_close > 0 && row.expected_open === null && row.expected_close === null
+      && forecastExclusions.has(row.symbol)) { forecastExcluded += 1; continue; }
     const quoteAt = Date.parse(row.close_quote_at);
     const observed = quoteAt + row.close_quote_age_seconds * 1000;
     const predictionAt = Date.parse(saved.meta?.close_model?.scored_at || row.expected_open_source?.recorded_at);
@@ -53,6 +77,6 @@ export async function evaluatePreviousResult(runDate, attemptedAt) {
     sum += Math.abs(actual - expected); compared += 1;
   }
   const status = compared && !missing && step.status === "ready" ? "ready" : compared ? "partial" : "blocked";
-  return { status, targetDate, compared, missing, excluded, meanAbsoluteError: compared ? sum / compared : null,
-    message: `${targetDate} 정산 비교 ${compared}개, 미확인 ${missing}개, 거래 없음 ${excluded}개. 출처: ${source.name || "네이버 공개 시세"}; 기준과 이용 조건은 원본 기록을 따릅니다.` };
+  return { status, targetDate, compared, missing, excluded, forecastExcluded, meanAbsoluteError: compared ? sum / compared : null,
+    message: `${targetDate} 정산 비교 ${compared}개, 미확인 ${missing}개, 거래 없음 ${excluded}개, 장전 예측 제외 후 거래 ${forecastExcluded}개. 출처: ${source.name || "네이버 공개 시세"}; 기준과 이용 조건은 원본 기록을 따릅니다.` };
 }
