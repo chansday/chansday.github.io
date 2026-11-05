@@ -28,6 +28,9 @@ jobs:
           import {collectInvestorFlow,saveInvestorDays} from './scripts/collect-investor-flow.mjs';
           const symbols=JSON.parse(await readFile('data/kospi-universe.json','utf8')).symbols.map(x=>x.symbol);
           const fetchImpl=(url,options)=>fetch(url+'?pageSize=60&bizdate=20261105',options);
+          const probe=await fetchImpl('https://m.stock.naver.com/api/stock/005930/trend',{headers:{'User-Agent':'kospi-signal-personal-investor-collector/1.0','Accept':'application/json'}});
+          const body=await probe.json();
+          console.log('Source probe HTTP',probe.status,'rows',Array.isArray(body)?body.length:'invalid','dates',Array.isArray(body)?body.map(row=>row.bizdate).slice(0,5):[]);
           const result=await collectInvestorFlow(symbols,{startDate:'2026-11-04',endDate:'2026-11-04',expectedDates:['2026-11-04'],fetchImpl});
           const saved=result.status!=='not_published';
           if(saved) await saveInvestorDays(result);
