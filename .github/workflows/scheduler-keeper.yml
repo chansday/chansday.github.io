@@ -1,4 +1,4 @@
-name: "[5 관리] 단계 정시 실행 스케줄러"
+name: "[관리 01] 자동 실행 스케줄러"
 
 # The keeper stays alive between trading days (scripts/scheduler-keeper.mjs,
 # stayAlive) and relays itself before the runner limit, so the schedule does

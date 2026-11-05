@@ -1,4 +1,4 @@
-name: "[2 단계] 07:00 전일 결과 정리"
+name: "[02 결과] 전일 예측 결과 정리 · 07:00"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the

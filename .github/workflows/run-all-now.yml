@@ -1,4 +1,4 @@
-name: "[4 수동] 전체 단계 실행 (날짜 지정)"
+name: "[수동 02] 날짜 지정 후 전체 결과 생성"
 
 on:
   workflow_dispatch:

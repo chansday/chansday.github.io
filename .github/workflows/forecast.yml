@@ -1,4 +1,4 @@
-name: "[2 단계] 08:35 장전 예측"
+name: "[04 예측] 오늘의 종목 순위 생성 · 08:35"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the

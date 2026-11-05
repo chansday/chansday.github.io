@@ -1,4 +1,4 @@
-name: "[1 수집] 장전 일봉 선행 수집"
+name: "[01 시세] 장전 일봉 수집 · 06:10"
 
 on:
   # Started by scheduler-keeper.yml at 06:10 KST, with one retry at 07:10 KST

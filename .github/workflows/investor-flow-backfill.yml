@@ -1,4 +1,4 @@
-name: "[개인] 매매동향 과거 수집"
+name: "[수동 03] 과거 매매동향 일괄 수집"
 
 # Manual backfill of data/investor-flow/YYYY-MM-DD.json as far back as the
 # collector endpoint serves (60 sessions per request). Each complete round is

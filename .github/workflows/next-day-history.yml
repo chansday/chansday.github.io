@@ -1,4 +1,4 @@
-name: "[1 수집] 저녁 일봉·모델 갱신"
+name: "[07 예측] 다음 거래일 예측 준비 · 저녁"
 
 on:
   # After the close and after-hours trading (18:00 KST) of a trading day:

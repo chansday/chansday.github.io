@@ -1,4 +1,4 @@
-name: "[점검] 매매동향 출처·기간 확인"
+name: "[점검 02] 매매동향 수집 가능 여부 확인"
 
 # Manual, read-only probe: re-checks robots.txt and looks for a robots-permitted
 # per-date investor-flow source and its oldest available date. Commits nothing.

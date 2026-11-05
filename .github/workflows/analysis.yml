@@ -1,4 +1,4 @@
-name: "[2 단계] 08:00 장전 분석"
+name: "[03 분석] 장전 종목 분석 · 08:00"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the

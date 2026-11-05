@@ -1,4 +1,4 @@
-name: "[2 단계] 09:00 시가 정산"
+name: "[05 결과] 오늘 시가 반영 · 09:00"
 
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at its KST time; the
