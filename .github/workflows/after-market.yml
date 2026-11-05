@@ -1,0 +1,36 @@
+name: "[10 수집] 네이버 애프터마켓 시세"
+on:
+  schedule:
+    - cron: '5 11 * * 1-5' # 20:05 KST, after the 20:00 close
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - id: market
+        run: node scripts/market-session-guard.mjs
+      - name: 애프터마켓 원본 수집
+        id: collect
+        if: steps.market.outputs.should_run == 'true'
+        continue-on-error: true
+        run: node scripts/collect-after-market.mjs
+      - name: 수집 기록 저장
+        if: always() && steps.market.outputs.should_run == 'true'
+        run: |
+          if [[ -d data/after-market ]]; then git add -- data/after-market; fi
+          if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh 'chore(data): record after-market quotes'; fi
+      - name: 수집 상태 확인
+        if: steps.collect.outcome == 'failure'
+        run: exit 1
+
