@@ -30,6 +30,9 @@ jobs:
           if(script){
             const js=await (await fetch(base+script,{signal:AbortSignal.timeout(20000)})).text();
             console.log('BUNDLE_LENGTH',js.length);
+            for(const term of ['baseURL:','baseURL=','/data/v2/stock/summary/']){let pos=0,k=0;while((pos=js.indexOf(term,pos))>=0 && k++<4){console.log('BASE_CTX',term,js.slice(Math.max(0,pos-200),pos+350));pos+=term.length}}
+            const api=await fetch(base+'/data/v2/stock/summary/005930',{headers:{Accept:'application/json','User-Agent':'kospi-signal-personal-investor-collector/1.0'},redirect:'manual',signal:AbortSignal.timeout(15000)});
+            const body=await api.text();console.log('API',api.status,api.headers.get('content-type'),body.slice(0,1000));
             for(const term of ['kx={getStockSummary','getStockSummary:','/home/stock/stock-summary']){let pos=js.indexOf(term); if(pos>=0) console.log('CONTEXT',term,js.slice(Math.max(0,pos-300),pos+2500));}
             console.log('BUNDLE_PATHS', [...new Set([...js.matchAll(/[^"'\x60\s,()]{0,100}(?:investor|Investor|stock-summary|StockSummary)[^"'\x60\s,()]{0,120}/g)].map(x=>x[0]))].slice(0,45));
             for(const term of ['investorTrade','investor-trading','investorTrend','investor','투자자별','순매수량']){
