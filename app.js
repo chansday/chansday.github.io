@@ -1055,7 +1055,7 @@ async function loadComparison(data) {
     if (!canCompareRankings(data, preview, preopen, date)) throw new Error("ranking identity mismatch");
     if (token !== comparisonToken) return;
     const baseline = preview.collection === "morning" ? "당일 오전 8시 이전에 수집한 일봉" : "전 거래일 저녁 일봉";
-    const reconstructed = preview.reconstructed ? " · 기준 순위는 장 마감 이후가 아닌 장전 수집 자료로 사후 복구" : "";
+    const reconstructed = preview.reconstructed ? " · 장전 자료로 사후 계산한 기준이며 전날 저녁에 저장된 순위는 아닙니다" : "";
     setText(document.getElementById("ranking-comparison-note"), `순위 변동 기준: ${baseline}${reconstructed}`);
     const comparisonRanking = data.meta.run_stage === "forecast" ? preopen : {target_date: date, rows: data.rows};
     currentChanges = rankChanges(preview, comparisonRanking, date);
