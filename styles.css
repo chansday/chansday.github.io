@@ -42,12 +42,6 @@
 #daily-experiment-results > p,
 #provenance { display: none; }
 
-.update-schedule { display: flex; align-items: baseline; gap: 18px; padding-top: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
-.update-schedule-label { flex: 0 0 auto; color: var(--green); font-size: 11px; font-weight: 700; }
-.update-schedule ul { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 11px; }
-.update-schedule li { white-space: nowrap; }
-.update-schedule time { margin-right: 4px; color: var(--text); font-family: "DM Mono", monospace; }
-@media (max-width: 600px) { .update-schedule { align-items: flex-start; flex-direction: column; gap: 9px; } .update-schedule ul { gap: 7px 14px; } }
 html { scroll-behavior: smooth; }
 body {
   min-width: 320px;
