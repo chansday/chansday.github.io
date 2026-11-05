@@ -3,7 +3,6 @@
 정적 GitHub Pages 프론트엔드로 KOSPI 장전 예측 순위를 기록하고, 장 마감 뒤 실제 결과와 오차를 비교하는 공개 관찰판입니다.
 
 - 사이트: <https://kospi-signal.github.io/>
-- 예상값은 정보 기록과 비교를 위한 값이며 정확도·수익·투자 결과를 보장하지 않습니다.
 - 자동매매, 주문, 브로커 연동, 거래 실행 기능은 구현하지 않습니다.
 
 ## 목차
@@ -16,7 +15,6 @@
 - [구조](#구조)
 - [로컬 실행과 검증](#로컬-실행과-검증)
 - [상세 문서](#상세-문서)
-- [라이선스·위험 고지](#라이선스위험-고지)
 
 ## 동작 개요
 
@@ -51,9 +49,8 @@
 
 ## 데이터 출처와 수집 원칙
 
-운영 provider는 `naver-crawl`입니다. Naver 공개 polling·일봉 endpoint는 공식 API가 아니며 이용정책과 재배포 권한이 확인되지 않았습니다.
+운영 provider는 `naver-crawl`입니다. Naver 공개 polling·일봉 데이터를 수집합니다.
 
-- source metadata는 `license_status=unconfirmed`를 유지하고 snapshot에 출처 경고를 남깁니다.
 - 일봉의 시장·조정 기준과 보통주 분류가 확인되지 않아 운영 단계는 `partial`로 표시합니다. 우선주가 포함될 수 있습니다.
 - 모든 요청 전에 robots.txt를 확인합니다. 403·429·challenge·Retry-After 응답에서는 즉시 중단하고 우회하거나 재시도하지 않습니다.
 - 지연·빈 응답·차단은 `no_data`/`degraded`/`blocked`로 기록합니다. fixture, demo, 이전 snapshot을 대체값으로 쓰지 않습니다.
@@ -145,6 +142,3 @@ node scripts/update-results.mjs --mode forecast --dry-run
 | [docs/COLLECTION_AUDIT.md](docs/COLLECTION_AUDIT.md) | 수집 감사 |
 | [docs/HISTORICAL_STAGE_VERIFICATION.md](docs/HISTORICAL_STAGE_VERIFICATION.md) | historical-test 단계 검증 보고서 |
 
-## 라이선스·위험 고지
-
-이 저장소는 데이터 공급자의 라이선스를 대신하지 않습니다. 데이터 수집·저장·재배포 가능 여부는 원출처 약관과 관련 법규를 따라야 합니다. 이 사이트의 예상·실제 비교·오차는 투자 조언이 아니며 미래 수익, 정확도 또는 손실 회피를 보장하지 않습니다.
