@@ -348,11 +348,11 @@ test("catch-up workflow: dispatch-only with run_date input, own commit, tests is
   assert.match(text, /KOSPI_CATCH_UP_DATES: \$\{\{ inputs\.run_date \}\}/);
   assert.doesNotMatch(text, /run:.*inputs\.run_date/, "input never interpolated into a shell command");
   // The test step overrides job-level modes so they cannot leak into npm test.
-  const testStep = text.slice(text.indexOf("- name: Validate the static contract"), text.indexOf("- name: Settle missed close"));
+  const testStep = text.slice(text.indexOf("- name: Validate the static contract"), text.indexOf("- name: 누락된 종가 결과 보충"));
   assert.match(testStep, /env:\n {10}KOSPI_DAILY_HISTORY: ""\n {10}KOSPI_CATCH_UP_DATES: ""/);
   assert.match(testStep, /npm test && npm run check && npm run check:experiment/);
   assert.match(text, /node scripts\/close-catch-up\.mjs/);
   assert.match(text, /git add -- data\/runs data\/date-index\.json data\/latest-snapshot\.json/);
-  assert.ok(text.indexOf("Validate the static contract") < text.indexOf("Settle missed close") && text.indexOf("Settle missed close") < text.indexOf("Commit caught-up settlement"));
+  assert.ok(text.indexOf("Validate the static contract") < text.indexOf("누락된 종가 결과 보충") && text.indexOf("누락된 종가 결과 보충") < text.indexOf("보충한 결과 저장"));
   assert.ok(STAGES.some((s) => s.workflow === "close-catch-up.yml" && s.kind === "catch-up"), "keeper lists the workflow");
 });
