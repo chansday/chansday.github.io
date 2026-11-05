@@ -30,6 +30,7 @@ jobs:
           if(script){
             const js=await (await fetch(base+script,{signal:AbortSignal.timeout(20000)})).text();
             console.log('BUNDLE_LENGTH',js.length);
+            for(const term of ['kx={getStockSummary','getStockSummary:','/home/stock/stock-summary']){let pos=js.indexOf(term); if(pos>=0) console.log('CONTEXT',term,js.slice(Math.max(0,pos-300),pos+2500));}
             console.log('BUNDLE_PATHS', [...new Set([...js.matchAll(/[^"'\x60\s,()]{0,100}(?:investor|Investor|stock-summary|StockSummary)[^"'\x60\s,()]{0,120}/g)].map(x=>x[0]))].slice(0,45));
             for(const term of ['investorTrade','investor-trading','investorTrend','investor','투자자별','순매수량']){
               let pos=0,count=0;
