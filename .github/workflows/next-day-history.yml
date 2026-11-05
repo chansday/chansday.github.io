@@ -32,6 +32,10 @@ jobs:
         id: log_step_02
         with:
           node-version: 22
+      - name: 작업 및 요청 공통 기록 설정
+        shell: bash
+        run: |
+          printf '%s\n' 'KOSPI_REQUEST_AUDIT=1' "BASH_ENV=$GITHUB_WORKSPACE/scripts/audit-env.sh" >> "$GITHUB_ENV"
       - id: market
         run: node scripts/market-session-guard.mjs
       - name: Refresh committed KOSPI universe (robots-checked, no retry)

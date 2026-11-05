@@ -47,11 +47,16 @@ jobs:
             scripts/
             data/krx-market-holidays.json
             providers/progress-log.js
+            providers/request-audit.js
           sparse-checkout-cone-mode: false
       - uses: actions/setup-node@v7
         id: log_step_02
         with:
           node-version: 22
+      - name: 작업 및 요청 공통 기록 설정
+        shell: bash
+        run: |
+          printf '%s\n' 'KOSPI_REQUEST_AUDIT=1' "BASH_ENV=$GITHUB_WORKSPACE/scripts/audit-env.sh" >> "$GITHUB_ENV"
       - name: 예정 작업 실행 및 스케줄러 유지
         id: log_step_03
         env:
