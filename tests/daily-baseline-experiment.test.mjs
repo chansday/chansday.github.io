@@ -272,7 +272,7 @@ test("both workflows save status independently and fail on experiment errors", a
   const all = await readFile(new URL("../.github/workflows/run-all-now.yml", import.meta.url), "utf8");
   assert.match(stage, /steps\.daily-experiment\.outputs\.status_saved/);
   assert.match(stage, /steps\.daily-experiment\.outcome.*!=.*success/);
-  assert.match(stage, /isolated daily experiment status/);
+  assert.match(stage, /일별 비교 실험 상태/);
   assert.match(all, /steps\.run-all\.outputs\.experiment_status_saved/);
   assert.match(all, /scripts\/validate-experiment-gate\.mjs/);
   assert.match(all, /EXPERIMENT_CANDIDATES/);
