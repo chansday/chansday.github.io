@@ -35,9 +35,11 @@
 .ranking-lede,
 .selected-policy,
 .detail-disclaimer,
+.detail-evidence .detail-steps,
 .cumulative-axis-note,
 .pipeline-step .step-copy > p,
 #daily-experiment > p:not(#daily-experiment-status),
+#daily-experiment-results > p,
 #provenance { display: none; }
 
 .update-schedule { display: flex; align-items: baseline; gap: 18px; padding-top: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
