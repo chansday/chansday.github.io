@@ -102,7 +102,7 @@ test("feature workflows expose input-free buttons and route through the shared g
     assert.match(workflow, /uses: \.\/\.github\/workflows\/_run-stage\.yml/);
   }
   const shared = await readFile(new URL("_run-stage.yml", workflowRoot), "utf8");
-  assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("Run resolved KOSPI stage"));
+  assert.ok(shared.indexOf("Guard KOSPI trading day") < shared.indexOf("해당 단계 실행"));
   assert.match(shared, /Capture actual runner start timestamp/);
   assert.match(shared, /GITHUB_OUTPUT/);
   assert.match(shared, /GITHUB_ENV/);
