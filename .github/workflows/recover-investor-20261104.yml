@@ -1,0 +1,32 @@
+name: "일회성 2026-11-04 매매동향 복구"
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/recover-investor-20261104.yml']
+permissions:
+  contents: write
+concurrency:
+  group: kospi-signal-board-pipeline
+  cancel-in-progress: false
+jobs:
+  recover:
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Collect November 4
+        id: collect
+        continue-on-error: true
+        run: node scripts/collect-investor-flow.mjs --all --date 2026-11-04
+      - name: Save recovered data
+        if: always() && steps.collect.outputs.saved == 'true'
+        run: |
+          git add -- data/investor-flow/2026-11-04.json
+          if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): recover investor flow 2026-11-04"; fi
+      - name: Report collection outcome
+        if: always() && steps.collect.outcome == 'failure'
+        run: exit 1
