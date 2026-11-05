@@ -5,6 +5,7 @@ import { repoPath } from "./repo-paths.js";
 import { RETURN_HISTORY_SESSIONS } from "./forecast-basis.js";
 import { isRidgeModel } from "./ridge-model.js";
 import { RANK_FEATURE_SESSIONS, isRankModel, predictCrossSection } from "./rank-model.js";
+import { PERSONAL_MODEL } from "./personal-model.js";
 
 export const dailyHistoryPath = (targetDate) => repoPath(`data/daily-history/${targetDate}.json`);
 
@@ -94,8 +95,19 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
       const again = predictCrossSection(rf.model, new Map(symbols.map((s) => [s, return_history[s]])));
       const same = (a, b) => typeof a === "number" && typeof b === "number" && Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b));
       if (!again || Object.keys(again).length !== symbols.length || symbols.some((s) => !again[s] || !same(again[s].predicted, preds[s]?.predicted) || !Array.isArray(preds[s].ranks) || !again[s].ranks.every((v, j) => same(v, preds[s].ranks[j])) || !Array.isArray(preds[s].features) || !again[s].features.every((v, j) => same(v, preds[s].features[j])))) throw new Error("rank forecast does not reproduce");
-      rank_forecast = { model: rf.model, predictions: preds };
+      let personal = null;
+      if (rf.personal != null) {
+        personal = rf.personal;
+        if (personal.model !== PERSONAL_MODEL || personal.target_date !== targetDate || !Array.isArray(personal.dates) || personal.dates.length !== 20 || personal.dates.some((d, i) => !isValidDate(d) || !(d < targetDate) || (i && !(personal.dates[i - 1] < d))) || !personal.residuals || typeof personal.residuals !== "object" || Array.isArray(personal.residuals)) throw new Error("invalid personal model");
+        for (const [symbol, rows] of Object.entries(personal.residuals)) {
+          if (!universe.has(symbol) || !Array.isArray(rows) || rows.length > 20 || rows.some((r, i) => !personal.dates.includes(r.date) || typeof r.value !== "number" || !Number.isFinite(r.value) || (i && !(rows[i - 1].date < r.date)))) throw new Error("invalid personal residuals");
+        }
+      }
+      rank_forecast = { model: rf.model, predictions: preds, personal };
     }
+    // From the rollout date, a missing new model must not silently publish the
+    // old ranking as if the personal adjustment had been applied.
+    if (targetDate >= "2026-11-06" && current >= cutoff && !rank_forecast?.personal) throw new Error("personal model missing after pre-open collection deadline");
     const comparison_conflicts = sessions.reduce((n, s) => n + s.rows.filter(r => r.comparison === "conflict").length, 0);
     return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, rank_forecast, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
   } catch (error) { return { ok: false, reason: `Naver daily history unavailable: ${error.message}` }; }

@@ -5,6 +5,7 @@
 import { FEATURE_SESSIONS, RIDGE_MODEL, isRidgeModel, ridgeFeatures, ridgePredict } from "./ridge-model.js";
 import { RANK_FEATURE_SESSIONS, RANK_MODEL, isRankModel, rankFeatures, rankPredict } from "./rank-model.js";
 import { DAYTRADE_FEATURE_NAMES, DAYTRADE_MODEL, daytradeClosePrediction } from "./daytrade-model.js";
+import { PERSONAL_MODEL, personalStats } from "./personal-model.js";
 
 export const PREOPEN_QUOTE_MODEL = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL = "prior_3_sessions_open_gap_mean_capped_5pct";
@@ -71,6 +72,15 @@ export function priorHistoryEstimate(sessions, symbol, { returnHistory = null, f
   if (candles && candles.length === RANK_FEATURE_SESSIONS && rank && isRankModel(rankForecast.model) && rankForecast.model.train_last_date <= dates[0] && candles.every((c) => positive(c.high) && positive(c.low) && positive(c.volume))) {
     const bars = candles.map((c) => ({ date: c.date, open: c.open, close: c.close, high: c.high, low: c.low, volume: c.volume }));
     const predicted = rankPredict(rankForecast.model, rank.ranks);
+    const personal = rankForecast.personal;
+    if (personal?.model === PERSONAL_MODEL) {
+      const residuals = personal.residuals[symbol] || [];
+      const stats = personalStats(residuals.map(r => r.value));
+      const baselineClose = round(expectedOpen * (1 + predicted));
+      const adjusted = baselineClose / expectedOpen - 1 + stats.adjustment;
+      return { expected_open: expectedOpen, expected_close: round(expectedOpen * (1 + adjusted)), open_basis: openBasis,
+        close_basis: { model: PERSONAL_MODEL, history_dates: dates, inputs: { expected_open: expectedOpen, candles: bars, features: rank.features, ranks: rank.ranks, predicted_return: predicted, model_params: rankForecast.model, residuals, stats } } };
+    }
     return {
       expected_open: expectedOpen,
       expected_close: round(expectedOpen * (1 + predicted)),
@@ -224,6 +234,15 @@ function isDaytradeCloseBasis(basis, row, asOfDate) {
 }
 
 export function isCloseBasis(basis, row, { asOfDate = null } = {}) {
+  if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === PERSONAL_MODEL) {
+    const { residuals, stats, ...base } = basis.inputs || {};
+    if (!Array.isArray(residuals) || residuals.length > 20 || residuals.some((r, i) => !exactKeys(r, ["date", "value"]) || !DATE.test(r.date) || !finite(r.value) || !(r.date <= basis.history_dates[0]) || (i && !(residuals[i - 1].date < r.date)))) return false;
+    const recomputed = personalStats(residuals.map(r => r.value));
+    if (!stats || !Object.keys(recomputed).every(k => near(stats[k], recomputed[k]))) return false;
+    const baselineClose = round(base.expected_open * (1 + base.predicted_return));
+    if (!isRankCloseBasis({ ...basis, model: RANK_MODEL, inputs: base }, { ...row, expected_close: baselineClose }, asOfDate)) return false;
+    return positive(row.expected_close) && row.expected_close === round(base.expected_open * (baselineClose / base.expected_open + recomputed.adjustment));
+  }
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === DAYTRADE_MODEL) return positive(row?.expected_close) && isDaytradeCloseBasis(basis, row, asOfDate);
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === RANK_MODEL) return positive(row?.expected_close) && isRankCloseBasis(basis, row, asOfDate);
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === RIDGE_MODEL) return positive(row?.expected_close) && isRidgeCloseBasis(basis, row, asOfDate);

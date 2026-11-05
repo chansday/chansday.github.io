@@ -20,6 +20,7 @@ export const CLOSE_SESSION_MODEL_ID = RETROSPECTIVE_MODEL_ID;
 export const CLOSE_SHRUNK_MODEL_ID = "prior_20_sessions_trimmed_shrunk_mean_capped_1pct";
 export const RIDGE_MODEL_ID = "ridge_6_features_60_sessions_v1";
 export const RANK_MODEL_ID = "ridge_rank_11_features_60_sessions_v1";
+export const PERSONAL_MODEL_ID = "rank_personal_residual_shrink_v1";
 const RANK_FEATURE_LABELS = ["20일 절사평균 장중수익률", "5일 평균 장중수익률", "전일 장중수익률", "전일 갭", "20일 모멘텀", "20일 변동성", "20일 평균 일중 변동폭", "전일 거래량 비율(로그)", "전일 종가 위치", "20일 평균 갭", "거래대금 규모(로그)"];
 const RIDGE_FEATURE_LABELS = ["20일 절사평균 장중수익률", "5일 평균 장중수익률", "전일 장중수익률", "전일 갭", "20일 모멘텀", "20일 변동성"];
 
@@ -120,6 +121,10 @@ function describeCloseBasis(basis, row) {
   if (model === CLOSE_SHRUNK_MODEL_ID) return describeShrunkCloseBasis(basis, row);
   if (model === RIDGE_MODEL_ID) return describeRidgeCloseBasis(basis, row);
   if (model === RANK_MODEL_ID) return describeRankCloseBasis(basis, row);
+  if (model === PERSONAL_MODEL_ID) {
+    const s = i.stats || {};
+    return { items: [item("예상 종가 모델", model), item("공통 모델 예상 수익률", ratioPct(i.predicted_return)), item("종목별 보정", ratioPct(s.adjustment))], sentences: [`최근 ${s.n ?? 0}거래일의 종목별 예측 오차 평균 ${ratioPct(s.mean)} × 신뢰도 ${finite(s.confidence) ? `${(s.confidence * 100).toFixed(1)}%` : "—"}를 공통 모델에 더했습니다.`] };
+  }
   if (model !== CLOSE_SESSION_MODEL_ID) return null;
   const sessions = Array.isArray(i.session_returns) ? i.session_returns : [];
   const multiplier = finite(i.applied_session_return) ? 1 + i.applied_session_return : null;

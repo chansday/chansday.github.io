@@ -15,6 +15,7 @@ import { isSnapshot } from "../providers/provider-adapter.js";
 import { isCloseBasis } from "../providers/forecast-basis.js";
 import { createProgressLog } from "../providers/progress-log.js";
 import { repoPath } from "../providers/repo-paths.js";
+import { PERSONAL_MODEL } from "../providers/personal-model.js";
 
 const pct = (v) => Math.round(v * 1e6) / 1e4;
 const round = (v, d = 4) => (Number.isFinite(v) ? Math.round(v * 10 ** d) / 10 ** d : null);
@@ -31,6 +32,7 @@ const round2 = (v) => Math.round((v + Number.EPSILON) * 100) / 100;
 // predicted open->close), so its expected return is the model's prediction.
 // Rows the model could not score get no expected close (one scale per day).
 export function applyDaytradeToSnapshot(snapshot, record) {
+  if (snapshot.rows.some(row => row.expected_close_basis?.model === PERSONAL_MODEL)) return snapshot;
   const predictions = new Map(Object.entries(record.predictions || {}));
   const rows = snapshot.rows.map((source) => {
     const row = { ...source };

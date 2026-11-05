@@ -8,7 +8,7 @@ export const DAILY_CHART_ENDPOINT = "https://api.stock.naver.com/chart/domestic/
 const USER_AGENT = "kospi-signal-board/1.0 (+https://kospi-signal.github.io/)";
 // 150 calendar days cover the 60 training sessions plus 20 feature sessions
 // of the ridge model (ridge-model.js) with room for holidays.
-const LOOKBACK_DAYS = 150;
+const LOOKBACK_DAYS = 210;
 
 function compactDate(isoDate) { return isoDate.replaceAll("-", ""); }
 function shiftDate(isoDate, days) {
