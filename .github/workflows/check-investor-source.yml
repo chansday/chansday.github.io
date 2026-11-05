@@ -22,4 +22,8 @@ jobs:
           const r=await fetch(base+'/home/stock-summary?code=005930',{headers:{'User-Agent':'kospi-signal-personal-investor-collector/1.0'},redirect:'manual',signal:AbortSignal.timeout(15000)});
           const text=await r.text();
           console.log('PAGE',r.status,r.headers.get('content-type'),'length',text.length,'hasSymbol',text.includes('005930'),'hasTable',text.includes('투자자별 매매동향'),'hasDate',text.includes('2026-11-04'));
+          console.log('SCRIPTS', [...text.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]).slice(0,25));
+          const mobile=await fetch('https://m.alphasquare.co.kr/home/stock-summary?code=005930',{headers:{'User-Agent':'kospi-signal-personal-investor-collector/1.0'},redirect:'manual',signal:AbortSignal.timeout(15000)});
+          const m=await mobile.text();
+          console.log('MOBILE',mobile.status,mobile.headers.get('content-type'),'length',m.length,'hasTable',m.includes('투자자별 매매동향'),'hasDate',m.includes('2026-11-04'));
           NODE
