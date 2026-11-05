@@ -1,5 +1,5 @@
 // Shared request policy of the investor-flow collectors (daily and backfill),
-// as chosen by the repository owner for m.stock.naver.com:
+// as chosen by the repository owner for the secondary source:
 // - HTTP 403: switch to the next User-Agent and retry after a growing wait
 //   (BLOCK_WAIT_MS, doubling); stop once every User-Agent was refused.
 // - HTTP 429: wait Retry-After (<= 120 s, 60 s when absent), up to 3 retries;
@@ -24,7 +24,6 @@ export const TRANSIENT_WAITS_MS = Object.freeze([5_000, 15_000, 45_000]);
 const MAX_RETRY_AFTER_S = 120;
 
 const uaName = (agents, i) => `UA ${i + 1}/${agents.length}${agents === INVESTOR_USER_AGENTS ? `(${USER_AGENT_LABELS[i]})` : ""}`;
-const pathOf = (url) => { try { const u = new URL(url); return `${u.pathname}${u.search}`; } catch { return String(url); } };
 
 // A short, single-line excerpt of an error body for the log (never the data of
 // a successful response).
@@ -49,7 +48,7 @@ export function createInvestorRequester({ fetchImpl = globalThis.fetch, sleep = 
   // counts every request sent for this URL.
   async function request(url, label = "") {
     let requests = 0, rotations = 0, rateLimited = 0, transient = 0;
-    const tag = `${label ? `${label} · ` : ""}${pathOf(url)}`;
+    const tag = label || "보조 수집";
     for (;;) {
       requests++; stats.requests++;
       const agent = uaName(userAgents, current), started = clock();

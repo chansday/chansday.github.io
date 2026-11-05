@@ -2,13 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {generateKeyPairSync} from 'node:crypto';
 import {parseInvestorFlow} from '../providers/investor-flow.js';
+import {createPrimaryInvestorSource} from '../providers/investor-primary.js';
 import {encryptInvestorData,decryptInvestorData} from '../providers/private-envelope.js';
 import {collectInvestorFlow,tradingDates} from '../scripts/collect-investor-flow.mjs';
 import {loadMarketCalendar} from '../scripts/market-calendar.mjs';
 import {INVESTOR_USER_AGENTS} from '../providers/investor-request.js';
 const payload=[{itemCode:'011420',bizdate:'20261102',foreignerPureBuyQuant:'-1,702',organPureBuyQuant:'-32',individualPureBuyQuant:'+1,734',foreignerHoldRatio:'5.31%'},{itemCode:'011420',bizdate:'20261030',foreignerPureBuyQuant:'0',organPureBuyQuant:'-',individualPureBuyQuant:'-',foreignerHoldRatio:'-'}];
 const response=(status,body=payload,headers={'content-type':'application/json'})=>({status,ok:status>=200&&status<300,headers:new Headers(headers),text:async()=>JSON.stringify(body)});
-const options={startDate:'2026-10-30',endDate:'2026-11-02',expectedDates:['2026-10-30','2026-11-02'],now:()=>new Date('2026-11-03T11:15:00Z')};
+const options={usePrimary:false,startDate:'2026-10-30',endDate:'2026-11-02',expectedDates:['2026-10-30','2026-11-02'],now:()=>new Date('2026-11-03T11:15:00Z')};
 test('investor values preserve signs, missing values, dates, and units',()=>{
  const r=parseInvestorFlow(payload,'011420','2026-10-30','2026-11-02','2026-11-03');assert.deepEqual(r.rows[0],{date:'2026-11-02',foreign_net_shares:-1702,institution_net_shares:-32,individual_net_shares:1734,foreign_holding_pct:5.31});assert.equal(r.rows[1].foreign_net_shares,0);assert.equal(r.rows[1].individual_net_shares,null);
  assert.throws(()=>parseInvestorFlow(payload,'005930','2026-10-30','2026-11-02','2026-11-03'));assert.throws(()=>parseInvestorFlow(payload,'011420','2026-10-30','2026-11-02','2026-11-01'));
@@ -52,4 +53,31 @@ test('continues with every symbol once the probe symbol has the end date',async(
  const urls=[];const fetchImpl=async(url)=>{urls.push(url);const code=url.split('/').at(-2);return response(200,[{itemCode:code,bizdate:'20261102',foreignerPureBuyQuant:'+1',organPureBuyQuant:'-1',individualPureBuyQuant:'0',foreignerHoldRatio:'1.00%'},{itemCode:code,bizdate:'20261030',foreignerPureBuyQuant:'+1',organPureBuyQuant:'-1',individualPureBuyQuant:'0',foreignerHoldRatio:'1.00%'}])};
  const result=await collectInvestorFlow(['011420','005930','000660'],{...options,fetchImpl,sleep:async()=>{}});
  assert.equal(urls.length,3);assert.match(urls[0],/005930\/trend$/);assert.equal(result.collected,3);assert.equal(result.status,'ready');
+});
+test('primary data is preferred and fallback fills only missing fields',async()=>{
+ const primaryFetch=async symbol=>({symbol,rows:[{date:'2026-11-02',individual_net_shares:99,institution_net_shares:null,foreign_net_shares:-9}]});
+ let calls=0;const result=await collectInvestorFlow(['011420'],{...options,usePrimary:true,primaryFetch,fetchImpl:async()=>{calls++;return response(200)},sleep:async()=>{}});
+ assert.equal(calls,1); const row=result.stocks[0].rows.find(x=>x.date==='2026-11-02');
+ assert.equal(row.individual_net_shares,99); assert.equal(row.foreign_net_shares,-9); assert.equal(row.institution_net_shares,-32);
+ assert.equal(result.stocks[0].rows.some(x=>x.date==='2026-10-30'),true);
+});
+test('complete primary result needs no fallback and a failed primary uses fallback',async()=>{
+ const primaryFetch=async symbol=>({symbol,rows:['2026-10-30','2026-11-02'].map(date=>({date,individual_net_shares:1,institution_net_shares:2,foreign_net_shares:3}))});
+ let calls=0;let result=await collectInvestorFlow(['011420'],{...options,usePrimary:true,primaryFetch,fetchImpl:async()=>{calls++;return response(200)},sleep:async()=>{}});
+ assert.equal(calls,0);assert.equal(result.status,'ready');
+ result=await collectInvestorFlow(['011420'],{...options,usePrimary:true,primaryFetch:async()=>{throw Error('unavailable')},fetchImpl:async()=>{calls++;return response(200)},sleep:async()=>{}});
+ assert.equal(calls,1);assert.equal(result.stocks[0].rows[0].individual_net_shares,1734);
+});
+test('primary source checks robots, symbol identity and parses signed share counts',async()=>{
+ const urls=[], waits=[];
+ const fetchImpl=async url=>{
+   urls.push(url);
+   if(url.endsWith('/robots.txt'))return response(404,{});
+   if(url.includes('/summary/'))return response(200,{id:1014,code:'005930',market:'kospi'});
+   return response(200,{data:[{dt:'2026-11-02',net_vol_individual:5,net_vol_institutional:-8,net_vol_foreigner:3}]});
+ };
+ const primary=createPrimaryInvestorSource({fetchImpl,now:()=>new Date('2026-11-03T00:00:00Z'),sleep:async ms=>waits.push(ms)});
+ const result=await primary('005930','2026-11-02','2026-11-02','2026-11-03');
+ assert.equal(result.rows[0].individual_net_shares,5);assert.equal(result.rows[0].institution_net_shares,-8);
+ assert.equal(urls.length,3);assert.deepEqual(waits,[1000]);
 });

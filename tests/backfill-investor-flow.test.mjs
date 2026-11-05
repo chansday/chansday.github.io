@@ -4,7 +4,7 @@ import { mkdtemp, readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { INVESTOR_USER_AGENTS } from "../providers/investor-request.js";
-import { backfillInvestorFlow, oldestSavedDate, trendPageUrl } from "../scripts/backfill-investor-flow.mjs";
+import { backfillInvestorFlow, oldestSavedDate, trendPageUrl, TREND_BASE } from "../scripts/backfill-investor-flow.mjs";
 
 const json = (body, status = 200) => ({ status, ok: status >= 200 && status < 300, headers: new Headers({ "content-type": "application/json" }), text: async () => JSON.stringify(body) });
 // Weekday sessions strictly before `before`, newest first, back to `listed`.
@@ -22,7 +22,7 @@ const fakeSource = (listed, calls = []) => async (url, init) => {
 const opts = (dir, extra = {}) => ({ directory: dir, now: () => new Date("2026-11-03T05:00:00Z"), sleep: async () => {}, log: () => {}, ...extra });
 
 test("trend page URL uses the collector endpoint with 60-session pages before a date", () => {
-  assert.equal(trendPageUrl("005930", "2026-10-26"), "https://m.stock.naver.com/api/stock/005930/trend?pageSize=60&bizdate=20261026");
+  assert.equal(trendPageUrl("005930", "2026-10-26"), `${TREND_BASE}005930/trend?pageSize=60&bizdate=20261026`);
   assert.throws(() => trendPageUrl("../x", "2026-10-26"));
 });
 
@@ -30,7 +30,7 @@ test("backfills date files round by round until the source is exhausted", async 
   const dir = await mkdtemp(join(tmpdir(), "flow-")), calls = [], rounds = [];
   const summary = await backfillInvestorFlow(["005930", "000660"], opts(dir, { before: "2026-10-26", fetchImpl: fakeSource({ "005930": "2026-03-01", "000660": "2026-06-01" }, calls), afterRound: async (r) => rounds.push(r) }));
   assert.equal(summary.stopped, "source_exhausted");
-  assert.ok(calls.every((c) => c.ua === "kospi-signal-personal-investor-collector/1.0" && c.url.startsWith("https://m.stock.naver.com/api/stock/")));
+  assert.ok(calls.every((c) => c.ua === "kospi-signal-personal-investor-collector/1.0" && c.url.startsWith(TREND_BASE)));
   assert.ok(rounds.length >= 3);
   const files = (await readdir(dir)).sort();
   assert.equal(files[0], "2026-03-02.json");

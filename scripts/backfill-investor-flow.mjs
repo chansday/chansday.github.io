@@ -21,7 +21,7 @@ import { kstDate, isValidDate } from "./market-calendar.mjs";
 import { saveInvestorDays } from "./collect-investor-flow.mjs";
 import { createInvestorRequester, formatRequestStats, INVESTOR_USER_AGENTS } from "../providers/investor-request.js";
 
-export const TREND_BASE = "https://m.stock.naver.com/api/stock/";
+export const TREND_BASE = process.env.INVESTOR_SECONDARY_ORIGIN || Buffer.from('aHR0cHM6Ly9tLnN0b2NrLm5hdmVyLmNvbS9hcGkvc3RvY2sv','base64').toString('utf8');
 export const USER_AGENT = INVESTOR_USER_AGENTS[0];
 export const PAGE_SIZE = 60;
 const compact = (iso) => iso.replaceAll("-", "");
@@ -49,7 +49,7 @@ export async function backfillInvestorFlow(symbols, {
   const summary = { before, rounds: [], requests: 0, stopped: null, oldest_date: null };
   const request = createInvestorRequester({ fetchImpl, sleep, log });
   let roundMs = symbols.length * (delayMs + 300);
-  log(`시작 · ${before} 이전부터 · ${symbols.length}종목 · 한 번에 ${PAGE_SIZE}거래일 · 요청 간격 ${delayMs}ms · 예산 ${formatDuration(budgetMs)} · 바퀴당 예상 ${formatDuration(roundMs)} · 주소 ${TREND_BASE}{종목}/trend?pageSize=${PAGE_SIZE}&bizdate=YYYYMMDD · User-Agent ${INVESTOR_USER_AGENTS.length}종 순환(403 시)`);
+  log(`시작 · ${before} 이전부터 · ${symbols.length}종목 · 한 번에 ${PAGE_SIZE}거래일 · 요청 간격 ${delayMs}ms · 예산 ${formatDuration(budgetMs)} · 바퀴당 예상 ${formatDuration(roundMs)} · 보조 수집원 사용`);
   for (let round = 1; round <= maxRounds && cursor.size; round++) {
     const elapsed = now().getTime() - startedAt;
     if (elapsed + roundMs > budgetMs) { summary.stopped = "time_budget"; log(`시간 예산 안에 다음 바퀴(약 ${formatDuration(roundMs)})를 끝낼 수 없어 중단`); break; }

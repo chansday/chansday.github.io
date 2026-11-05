@@ -1,0 +1,36 @@
+name: "11월 4일 매매동향 보충"
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/recover-flow-20261104.yml']
+permissions:
+  contents: write
+concurrency:
+  group: personal-investor-flow
+  cancel-in-progress: false
+jobs:
+  collect:
+    if: github.repository == 'kospi-signal/kospi-signal.github.io'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Collect dated data
+        id: collect
+        continue-on-error: true
+        run: node scripts/collect-investor-flow.mjs --all --date 2026-11-04
+      - name: Save retrieved data
+        if: always() && steps.collect.outputs.saved == 'true'
+        run: |
+          if [[ -f data/investor-flow/2026-11-04.json ]]; then
+            git add -- data/investor-flow/2026-11-04.json
+            if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): collect investor flow 2026-11-04"; fi
+          fi
+      - name: Report incomplete or unpublished
+        if: always() && (steps.collect.outcome == 'failure' || steps.collect.outputs.status == 'not_published' || steps.collect.outputs.status == 'partial')
+        run: |
+          echo "수집이 완료되지 않았습니다. 저장된 부분과 누락 종목을 로그에서 확인하세요." >&2
+          exit 1

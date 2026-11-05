@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { BLOCK_WAIT_MS, INVESTOR_USER_AGENTS, TRANSIENT_WAITS_MS, createInvestorRequester } from "../providers/investor-request.js";
 
 const res = (status, headers = {}) => ({ status, ok: status >= 200 && status < 300, headers: new Headers(headers) });
-const URL_ = "https://m.stock.naver.com/api/stock/005930/trend";
+const URL_ = Buffer.from("aHR0cHM6Ly9tLnN0b2NrLm5hdmVyLmNvbS9hcGkvc3RvY2svMDA1OTMwL3RyZW5k","base64").toString("utf8");
 
 test("403 rotates to the next User-Agent with a doubling wait and keeps the one that works", async () => {
   const agents = [], waits = [];
@@ -55,7 +55,8 @@ test("logs every retry, switch, recovery and final refusal, and keeps counters",
   await request(URL_, "005930");
   await request(URL_, "000660");
   const text = lines.join("\n");
-  assert.match(text, /005930 · \/api\/stock\/005930\/trend · HTTP 403 · UA 1\/5\(수집기\) · 시도 1 .*UA 2\/5\(PC 크롬\)로 바꿔 30초 후 재시도/);
+  assert.match(text, /005930 · HTTP 403 · UA 1\/5\(수집기\) · 시도 1 .*UA 2\/5\(PC 크롬\)로 바꿔 30초 후 재시도/);
+  assert.doesNotMatch(text, /\/api\/stock\//);
   assert.match(text, /HTTP 503 · UA 2\/5\(PC 크롬\) · 시도 2 .*5초 후 재시도 1\/3/);
   assert.match(text, /HTTP 200 · UA 2\/5\(PC 크롬\) · 시도 3에서 성공/);
   assert.match(text, /000660 .*HTTP 404 .*재시도 대상 아님, 중단/);

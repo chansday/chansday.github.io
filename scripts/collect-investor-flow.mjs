@@ -3,9 +3,10 @@ import {pathToFileURL} from 'node:url';
 import {isKoreanSymbol} from '../providers/korean-symbol.js';
 import {createProgressLog,formatDuration} from '../providers/progress-log.js';
 import {parseInvestorFlow} from '../providers/investor-flow.js';
+import {createPrimaryInvestorSource} from '../providers/investor-primary.js';
 import {createInvestorRequester,formatRequestStats,INVESTOR_USER_AGENTS} from '../providers/investor-request.js';
 import {kstDate,isValidDate,loadMarketCalendar,classifyMarketDate} from './market-calendar.mjs';
-const BASE='https://m.stock.naver.com/api/stock/',USER_AGENT=INVESTOR_USER_AGENTS[0];
+const BASE=process.env.INVESTOR_SECONDARY_ORIGIN || Buffer.from('aHR0cHM6Ly9tLnN0b2NrLm5hdmVyLmNvbS9hcGkvc3RvY2sv','base64').toString('utf8');
 export function tradingDates(start,end,calendar){
   if(!isValidDate(start)||!isValidDate(end)||start>end)throw new Error('Invalid date range');
   const d=new Date(`${start}T00:00:00Z`),last=new Date(`${end}T00:00:00Z`),days=[];
@@ -17,24 +18,48 @@ export function tradingDates(start,end,calendar){
 // is requested first; if the source has no row for endDate yet, collection
 // stops after that one request with status 'not_published' (not a failure).
 export const PROBE_SYMBOL='005930';
-export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,startDate,endDate,expectedDates,fetchImpl=globalThis.fetch,now=()=>new Date(),sleep=ms=>new Promise(r=>setTimeout(r,ms)),delayMs=1000,log=createProgressLog({label:'투자자 수집',now})}={}){
+export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,startDate,endDate,expectedDates,fetchImpl=globalThis.fetch,now=()=>new Date(),sleep=ms=>new Promise(r=>setTimeout(r,ms)),delayMs=1000,log=createProgressLog({label:'투자자 수집',now}),usePrimary=true,primaryFetch=null}={}){
   if(!Array.isArray(symbols)||!symbols.length||symbols.some(s=>!isKoreanSymbol(s))||new Set(symbols).size!==symbols.length)throw new Error('Invalid or duplicate stock codes');
   const asOfDate=kstDate(now());if(!isValidDate(startDate)||!isValidDate(endDate)||startDate>endDate||endDate>asOfDate||!Array.isArray(expectedDates)||!expectedDates.length)throw new Error('Invalid date range');
   if(delayMs<1000)throw new Error('Request interval must be at least one second');
   const startedAt=now().toISOString(),collected=[],failures=[],incomplete=[],request=createInvestorRequester({fetchImpl,sleep,log});
-  log(`시작 · 기간 ${startDate}~${endDate} · 대상 ${symbols.length}종목 · 요청 간격 ${delayMs}ms · 주소 ${BASE}{종목}/trend · User-Agent ${INVESTOR_USER_AGENTS.length}종 순환(403 시)`);
+  const primary=primaryFetch || createPrimaryInvestorSource({fetchImpl,sleep,now,log});
+  const fields=['foreign_net_shares','institution_net_shares','individual_net_shares'];
+  log(`시작 · 기간 ${startDate}~${endDate} · 대상 ${symbols.length}종목 · 우선 수집 후 누락값 보조 수집 · 요청 간격 ${delayMs}ms`);
   if(symbols.length>1&&symbols.includes(probeSymbol))symbols=[probeSymbol,...symbols.filter(s=>s!==probeSymbol)];
   let notPublished=false;
   for(let i=0;i<symbols.length;i++){
     const symbol=symbols[i];if(i)await sleep(delayMs);
     try{
+      let item={symbol,rows:[]};
+      if(usePrimary) {
+        try { item=await primary(symbol,startDate,endDate,asOfDate); }
+        catch(error) { log(`우선 수집 실패 · ${symbol} · ${String(error.message||error).slice(0,100)} · 보조 수집 시도`); }
+      }
+      const primaryByDate=new Map(item.rows.map(row=>[row.date,row]));
+      const needsFallback=expectedDates.some(date=>{const row=primaryByDate.get(date);return !row||fields.some(field=>!Number.isSafeInteger(row[field]));});
+      if(needsFallback){
+      if(usePrimary) await sleep(delayMs);
+      try {
       const result=await request(`${BASE}${symbol}/trend`,symbol);
       if(result.error)throw result.error;
       const response=result.response;
-      if(!response.ok){log(`수집 중단 · ${symbol} · HTTP ${response.status} · 추가 요청 없음`);failures.push({symbol,reason:`HTTP_${response.status}`});break;}
-      if(!/application\/(?:[a-z.+-]*\+)?json/i.test(response.headers.get('content-type')||'')){log(`수집 중단 · ${symbol} · 예상과 다른 응답 형식`);failures.push({symbol,reason:'unexpected_content_type'});break;}
-      const text=await response.text();if(text.length>2_000_000){failures.push({symbol,reason:'response_too_large'});break;}
-      const item=parseInvestorFlow(JSON.parse(text),symbol,startDate,endDate,asOfDate),available=new Set(item.rows.map(r=>r.date));
+      if(!response.ok)throw new Error(`HTTP_${response.status}`);
+      if(!/application\/(?:[a-z.+-]*\+)?json/i.test(response.headers.get('content-type')||''))throw new Error('unexpected_content_type');
+      const text=await response.text();if(text.length>2_000_000)throw new Error('response_too_large');
+      const fallback=parseInvestorFlow(JSON.parse(text),symbol,startDate,endDate,asOfDate);
+      for(const row of fallback.rows){
+        const prior=primaryByDate.get(row.date);
+        if(!prior){primaryByDate.set(row.date,row);continue;}
+        for(const field of fields) if(!Number.isSafeInteger(prior[field]) && Number.isSafeInteger(row[field])) prior[field]=row[field];
+      }
+      item.rows=[...primaryByDate.values()].sort((a,b)=>b.date.localeCompare(a.date));
+      } catch(error) {
+        if(!item.rows.length) {log(`수집 중단 · ${symbol} · ${String(error.message||error).replace('_',' ')} · 추가 요청 없음`);failures.push({symbol,reason:String(error.message||error)});break;}
+        log(`보조 수집 실패 · ${symbol} · 우선 수집 값은 보존`);
+      }
+      }
+      const available=new Set(item.rows.map(r=>r.date));
       item.missing_dates=expectedDates.filter(date=>!available.has(date));
       if(item.missing_dates.length||item.rows.some(r=>r.foreign_net_shares===null||r.institution_net_shares===null||r.individual_net_shares===null))incomplete.push(symbol);
       if(i===0&&symbols.length>1&&symbol===probeSymbol&&!available.has(endDate)){notPublished=true;log(`게시 전 · 확인 종목 ${symbol}에 ${endDate} 행이 없음(최신 ${item.rows[0]?.date??'-'}) · 소스가 아직 게시하지 않은 것으로 보고 나머지 ${symbols.length-1}종목은 요청하지 않음`);break;}
@@ -46,7 +71,7 @@ export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,star
   log(`종료 · 수집 ${collected.length}/${symbols.length}종목 · 누락 ${incomplete.length} · 오류 ${failures.length}${failures.length?` (${failures.map(f=>`${f.symbol} ${f.reason}`).join(', ')})`:''}`);
   log(`요청 통계 · ${formatRequestStats(requestStats)}`);
   if(incomplete.length)log(`누락 종목 ${incomplete.length}개 · ${incomplete.slice(0,30).join(', ')}${incomplete.length>30?' …':''}`);
-  return {schema_version:1,kind:'personal_investor_flow',status:notPublished?'not_published':failures.length||incomplete.length?'partial':'ready',started_at:startedAt,completed_at:now().toISOString(),collection_date:asOfDate,start_date:startDate,end_date:endDate,expected_dates:expectedDates,source:'naver-mobile-trend',unit:'shares',exchange_basis:'unconfirmed',request_stats:requestStats,requested:symbols.length,collected:collected.length,incomplete_symbols:incomplete,failures,stocks:collected};
+  return {schema_version:1,kind:'personal_investor_flow',status:notPublished?'not_published':failures.length||incomplete.length?'partial':'ready',started_at:startedAt,completed_at:now().toISOString(),collection_date:asOfDate,start_date:startDate,end_date:endDate,expected_dates:expectedDates,source:'primary-secondary',unit:'shares',exchange_basis:'unconfirmed',request_stats:requestStats,requested:symbols.length,collected:collected.length,incomplete_symbols:incomplete,failures,stocks:collected};
 }
 export async function saveInvestorDays(result, directory='data/investor-flow') {
   const days=new Map();
@@ -66,7 +91,7 @@ export async function saveInvestorDays(result, directory='data/investor-flow') {
       for(const field of ['foreign_net_shares','individual_net_shares','institution_net_shares']) if(Number.isSafeInteger(row[field])) prior[field]=row[field];
       existing[symbol]=prior;
     }
-    await writeFile(path,JSON.stringify({date,unit:'shares',source:'naver-mobile-trend',stocks:existing})+'\n');
+    await writeFile(path,JSON.stringify({date,unit:'shares',source:result.source || 'naver-mobile-trend',stocks:existing})+'\n');
   }
 }
 export async function main(argv=process.argv.slice(2)){
