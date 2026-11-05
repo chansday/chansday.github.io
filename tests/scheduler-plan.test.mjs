@@ -352,7 +352,7 @@ test("catch-up workflow: dispatch-only with run_date input, own commit, tests is
   assert.match(testStep, /env:\n {10}KOSPI_DAILY_HISTORY: ""\n {10}KOSPI_CATCH_UP_DATES: ""/);
   assert.match(testStep, /npm test && npm run check && npm run check:experiment/);
   assert.match(text, /node scripts\/close-catch-up\.mjs/);
-  assert.match(text, /git add -- data\/runs data\/date-index\.json data\/latest-snapshot\.json/);
+  assert.match(text, /bash scripts\/git-add-retry\.sh -- data\/runs data\/date-index\.json data\/latest-snapshot\.json/);
   assert.ok(text.indexOf("Validate the static contract") < text.indexOf("Settle missed close") && text.indexOf("Settle missed close") < text.indexOf("Commit caught-up settlement"));
   assert.ok(STAGES.some((s) => s.workflow === "close-catch-up.yml" && s.kind === "catch-up"), "keeper lists the workflow");
 });

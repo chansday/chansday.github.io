@@ -190,7 +190,7 @@ test("run all now exposes only run_date and commits the final state once", async
   assert.match(workflow, /outputs\.commit_allowed == 'true'/);
   assert.match(workflow, /only non-executed stages; every executed stage was ready/);
   assert.match(workflow, /group: kospi-signal-board-pipeline/);
-  assert.match(workflow, /git add data\/latest-snapshot\.json data\/runs/);
+  assert.match(workflow, /bash scripts\/git-add-retry\.sh data\/latest-snapshot\.json data\/runs/);
   const finalCommit = workflow.split("- name: Commit final run state once")[1].split("- name: Fail when the all-stage result is not ready")[0];
   assert.equal((finalCommit.match(/commit-and-push\.sh/g) || []).length, 1);
   assert.match(workflow, /Save previous-result status after a failed run/);

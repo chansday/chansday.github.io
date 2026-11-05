@@ -55,7 +55,7 @@ jobs:
             echo "KRX calendar is already current."
             exit 0
           fi
-          git add -- data/krx-market-holidays.json
+          bash scripts/git-add-retry.sh -- data/krx-market-holidays.json
           bash scripts/commit-and-push.sh "chore(data): update KRX market calendar"
 
       - name: 작업 단계 결과 요약
