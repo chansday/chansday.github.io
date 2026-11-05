@@ -1,0 +1,68 @@
+{
+  "schemaVersion": "1.0.0",
+  "status": "ready",
+  "mode": "provider",
+  "asOfDate": "2026-11-06",
+  "publishedAt": null,
+  "market": {
+    "name": "KOSPI",
+    "currency": "KRW",
+    "timezone": "Asia/Seoul"
+  },
+  "provider": {
+    "id": "naver-crawl",
+    "status": "ready",
+    "label": "NAVER PUBLIC CRAWL · UNOFFICIAL / DELAY POSSIBLE",
+    "source": {
+      "name": "네이버 금융 공개 polling 웹 크롤링 (비공식·지연 가능)",
+      "url": "https://polling.finance.naver.com/api/realtime/domestic/stock/",
+      "license_status": "unconfirmed",
+      "license_url": null,
+      "retrieved_at": null
+    }
+  },
+  "pipeline": {
+    "previousResult": {
+      "status": "ready",
+      "attemptedAt": "2026-11-05T22:00:14.621Z",
+      "provider_id": "naver-crawl",
+      "message": "2026-11-05 정산 비교 881개, 미확인 0개, 거래 없음 26개, 장전 예측 제외 후 거래 4개. 출처: 네이버 금융 공개 polling 웹 크롤링 (비공식·지연 가능); 기준과 이용 조건은 원본 기록을 따릅니다."
+    },
+    "analysis": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    },
+    "forecast": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    },
+    "openSettlement": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    },
+    "closeSettlement": {
+      "status": "pending",
+      "attemptedAt": null,
+      "provider_id": null,
+      "message": null
+    }
+  },
+  "rows": [],
+  "meta": {
+    "generatedBy": "provider-adapter",
+    "lastAttemptAt": "2026-11-05T22:00:14.621Z",
+    "lastAttemptMode": "update-results",
+    "blockedReason": null,
+    "isDemo": false,
+    "source": null,
+    "run_date": "2026-11-06",
+    "run_stage": "update-results",
+    "run_id": "42117650478.1"
+  }
+}
