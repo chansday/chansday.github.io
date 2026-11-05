@@ -1,0 +1,25 @@
+name: "투자정보 수집 가능 여부 확인"
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/check-investor-source.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Check robots and example page
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://alphasquare.co.kr';
+          const robots=await fetch(base+'/robots.txt',{headers:{'User-Agent':'kospi-signal-personal-investor-collector/1.0'},redirect:'manual',signal:AbortSignal.timeout(15000)});
+          console.log('ROBOTS',robots.status,(await robots.text()).slice(0,8000));
+          if(robots.status!==200 && robots.status!==404) process.exit(2);
+          const r=await fetch(base+'/home/stock-summary?code=005930',{headers:{'User-Agent':'kospi-signal-personal-investor-collector/1.0'},redirect:'manual',signal:AbortSignal.timeout(15000)});
+          const text=await r.text();
+          console.log('PAGE',r.status,r.headers.get('content-type'),'length',text.length,'hasSymbol',text.includes('005930'),'hasTable',text.includes('투자자별 매매동향'),'hasDate',text.includes('2026-11-04'));
+          NODE
