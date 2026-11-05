@@ -29,6 +29,10 @@ export const STAGES = Object.freeze([
   // Late close dispatches are labelled close_basis "integrated_nxt" and cannot
   // replace a "krx_regular" close (see KRX_CLOSE_WINDOW in update-results.mjs).
   { id: "close-settlement", workflow: "close-settlement.yml", at: "15:31", lastStart: "23:00", kind: "settlement" },
+  // GitHub's scheduled events can arrive hours late. The keeper dispatches
+  // the first evening preview at its intended time; existing cron runs remain
+  // as later opportunities to recover a failed or delayed collection.
+  { id: "next-day-history", workflow: "next-day-history.yml", at: "18:45", lastStart: "23:00", kind: "evening" },
 ].map(Object.freeze));
 
 export const CATCH_UP_STAGE_ID = "close-catch-up";
@@ -99,7 +103,8 @@ export function runsForDay(runs, date) {
 
 export function stageState(stage, runs, now, date) {
   const at = kstInstant(date, stage.at), last = kstInstant(date, stage.lastStart);
-  const today = runsForDay(runs, date);
+  // A daytime no-op invocation must not suppress the scheduled evening run.
+  const today = runsForDay(runs, date).filter((run) => stage.kind !== "evening" || Date.parse(run.created_at) >= at.getTime());
   const active = today.filter((r) => r.status !== "completed");
   const succeeded = today.filter((r) => r.status === "completed" && r.conclusion === "success");
   const cancelled = today.filter((r) => r.status === "completed" && ["cancelled", "skipped"].includes(r.conclusion));

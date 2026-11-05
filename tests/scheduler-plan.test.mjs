@@ -28,13 +28,21 @@ test("before 06:10 the keeper sleeps until just after the first stage time, then
 });
 
 test("dispatch order and times follow the KST stage table", () => {
-  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:35"], ["open-settlement", "09:00"], ["close-catch-up", "09:30"], ["close-settlement", "15:31"]]);
+  assert.deepEqual(STAGES.map((s) => [s.id, s.at]), [["naver-daily-history", "06:10"], ["update-results", "07:00"], ["analysis", "08:00"], ["forecast", "08:35"], ["open-settlement", "09:00"], ["close-catch-up", "09:30"], ["close-settlement", "15:31"], ["next-day-history", "18:45"]]);
   const done = (ids) => Object.fromEntries(ids.map((id) => [id, [run(DAY, "06:11")]]));
   assert.equal(plan("07:00", done(["naver-daily-history"]), null, "05").action.stage, "update-results");
   assert.equal(plan("08:35", done(["naver-daily-history", "update-results", "analysis"]), null, "05").action.stage, "forecast");
   assert.equal(plan("15:31", done(["naver-daily-history", "update-results", "analysis", "forecast", "open-settlement"]), null, "05").action.stage, "close-settlement");
-  const all = plan("15:40", done(STAGES.map((s) => s.id)));
+  const all = plan("23:30", done(STAGES.map((s) => s.id)));
   assert.equal(all.action.type, "exit");
+});
+
+test("evening preview is dispatched at 18:45 even if a daytime run was skipped", () => {
+  const prior = Object.fromEntries(STAGES.filter(s => s.at < "18:45").map(s => [s.id, [run(DAY, s.at)]]));
+  const runs = {...prior, "next-day-history": [run(DAY, "10:00")]};
+  assert.equal(state(plan("18:44", runs), "next-day-history"), "waiting");
+  assert.equal(plan("18:45", runs, null, "05").action.stage, "next-day-history");
+  assert.equal(state(plan("18:50", {...prior, "next-day-history": [run(DAY, "18:45")]}), "next-day-history"), "done");
 });
 
 test("history is watched while running and retried once at 07:10 after a failure, never after 07:45", () => {
@@ -117,8 +125,9 @@ test("runKeeper simulation dispatches each stage once at its time and relays wit
   const deps = { client, calendar, now: () => new Date(clock), sleep: async (ms) => { clock += ms; }, log: () => {} };
   const first = await runKeeper({ ...deps, startedAt: new Date(clock) });
   assert.equal(first.result, "relay");
-  const second = await runKeeper({ ...deps, startedAt: new Date(clock) });
-  assert.equal(second.result, "exit");
+  let next;
+  do next = await runKeeper({ ...deps, startedAt: new Date(clock) }); while (next.result === "relay");
+  assert.equal(next.result, "exit");
   const stageDispatches = dispatches.filter(([w]) => w !== KEEPER_WORKFLOW);
   // Without a repository check (no listRunFiles) the catch-up is never dispatched.
   assert.deepEqual(stageDispatches.map(([w]) => w), STAGES.filter((s) => s.kind !== "catch-up").map((s) => s.workflow));
@@ -127,7 +136,7 @@ test("runKeeper simulation dispatches each stage once at its time and relays wit
     const delay = Date.parse(at) - kst(DAY, stage.at).getTime();
     assert.ok(delay >= 3000 && delay < 60_000, `${workflow} dispatched ${delay} ms after its time`);
   }
-  assert.equal(dispatches.filter(([w]) => w === KEEPER_WORKFLOW).length, 1);
+  assert.ok(dispatches.filter(([w]) => w === KEEPER_WORKFLOW).length >= 1);
   const relayAt = Date.parse(dispatches.find(([w]) => w === KEEPER_WORKFLOW)[1]);
   assert.ok(relayAt - kst(DAY, "05:00").getTime() <= 325 * 60_000 + 60_000);
 });
@@ -186,7 +195,8 @@ test("workflows: keeper has minimal permissions and bounded runtime; stages are 
   }
   for (const stage of STAGES) {
     const text = await readFile(new URL(stage.workflow, root), "utf8");
-    assert.doesNotMatch(text, /cron:/, `${stage.workflow} must not keep a duplicate schedule`); assert.match(text, /workflow_dispatch:/);
+    if (stage.kind !== "evening") assert.doesNotMatch(text, /cron:/, `${stage.workflow} must not keep a duplicate schedule`);
+    assert.match(text, /workflow_dispatch:/);
   }
 });
 
@@ -218,7 +228,7 @@ test("a keeper starting at 08:40 runs the late pre-open stages one at a time, in
   let outcome;
   do outcome = await runKeeper({ ...sim.deps, startedAt: new Date(sim.now()) }); while (outcome.result === "relay");
   const order = sim.dispatches.filter(([w]) => w !== KEEPER_WORKFLOW).map(([w]) => w);
-  assert.deepEqual(order, ["update-results.yml", "analysis.yml", "forecast.yml", "open-settlement.yml", "close-settlement.yml"]);
+  assert.deepEqual(order, ["update-results.yml", "analysis.yml", "forecast.yml", "open-settlement.yml", "close-settlement.yml", "next-day-history.yml"]);
   assert.deepEqual(sim.overlaps, [], "no stage is dispatched while another stage run is active");
   const at = Object.fromEntries(sim.dispatches.map(([w, t]) => [w, t]));
   assert.ok(at["analysis.yml"] >= at["update-results.yml"] + 180_000 && at["forecast.yml"] >= at["analysis.yml"] + 180_000);
@@ -230,7 +240,7 @@ test("sequential late processing marks a pre-open stage missed once its last sta
   let outcome;
   do outcome = await runKeeper({ ...sim.deps, startedAt: new Date(sim.now()) }); while (outcome.result === "relay");
   const order = sim.dispatches.filter(([w]) => w !== KEEPER_WORKFLOW).map(([w]) => w);
-  assert.deepEqual(order, ["update-results.yml", "analysis.yml", "open-settlement.yml", "close-settlement.yml"], "forecast would start after 08:50 and is missed");
+  assert.deepEqual(order, ["update-results.yml", "analysis.yml", "open-settlement.yml", "close-settlement.yml", "next-day-history.yml"], "forecast would start after 08:50 and is missed");
   assert.deepEqual(sim.overlaps, []);
 });
 
@@ -308,7 +318,7 @@ test("runKeeper checks data/runs once via the contents API and dispatches the ca
   let outcome;
   do outcome = await runKeeper({ ...sim.deps, startedAt: new Date(sim.now()) }); while (outcome.result === "relay");
   const order = sim.dispatches.filter(([w]) => w !== KEEPER_WORKFLOW).map(([w]) => w);
-  assert.deepEqual(order, ["naver-daily-history.yml", "update-results.yml", "analysis.yml", "forecast.yml", "open-settlement.yml", "close-catch-up.yml", "close-settlement.yml"]);
+  assert.deepEqual(order, ["naver-daily-history.yml", "update-results.yml", "analysis.yml", "forecast.yml", "open-settlement.yml", "close-catch-up.yml", "close-settlement.yml", "next-day-history.yml"]);
   assert.deepEqual(sim.overlaps, []);
   assert.deepEqual(dispatchInputs.find(([w]) => w === "close-catch-up.yml")[1], { run_date: "2026-10-28" });
   assert.equal(dispatchInputs.filter(([w]) => w !== "close-catch-up.yml" && w !== KEEPER_WORKFLOW).every(([, inputs]) => inputs === null), true, "other stages get no inputs");
