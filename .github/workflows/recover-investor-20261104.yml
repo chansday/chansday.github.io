@@ -18,10 +18,22 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: 22
-      - name: Collect November 4
+      - name: Collect target date using historical page
         id: collect
         continue-on-error: true
-        run: node scripts/collect-investor-flow.mjs --all --date 2026-11-04
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFile,appendFile} from 'node:fs/promises';
+          import {collectInvestorFlow,saveInvestorDays} from './scripts/collect-investor-flow.mjs';
+          const symbols=JSON.parse(await readFile('data/kospi-universe.json','utf8')).symbols.map(x=>x.symbol);
+          const fetchImpl=(url,options)=>fetch(url+'?pageSize=60&bizdate=20261105',options);
+          const result=await collectInvestorFlow(symbols,{startDate:'2026-11-04',endDate:'2026-11-04',expectedDates:['2026-11-04'],fetchImpl});
+          const saved=result.status!=='not_published';
+          if(saved) await saveInvestorDays(result);
+          await appendFile(process.env.GITHUB_OUTPUT, 'saved='+saved+'\nstatus='+result.status+'\n');
+          if(result.failures.length || !saved) process.exitCode=2;
+          NODE
       - name: Save recovered data
         if: always() && steps.collect.outputs.saved == 'true'
         run: |
