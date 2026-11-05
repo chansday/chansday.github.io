@@ -12,13 +12,21 @@ const intOrNull = value => Number.isSafeInteger(value) ? value : null;
 export function createPrimaryInvestorSource({fetchImpl = fetch, sleep = ms => new Promise(r => setTimeout(r,ms)), now = () => new Date(), log = () => {}} = {}) {
   let disabled = false, requests = 0;
   const context = {fetchImpl, now};
-  async function get(path) {
+  async function get(path, symbol, operation) {
     if (disabled) throw new Error('primary_disabled');
     const url = new URL(path, BASE);
     const robots = await checkRobotsUrl(context, url.href, AGENT, {allowMissing:true});
     if (!robots.ok) { disabled = true; throw new Error('primary_robots_unavailable_or_disallowed'); }
     if (requests++) await sleep(1000);
-    const response = await fetchImpl(url.href, {headers:{Accept:'application/json','User-Agent':AGENT}, redirect:'error', signal:AbortSignal.timeout(12000)});
+    const started = now();
+    let response;
+    try {
+      response = await fetchImpl(url.href, {headers:{Accept:'application/json','User-Agent':AGENT}, redirect:'error', signal:AbortSignal.timeout(12000)});
+    } catch (error) {
+      log(`우선 요청 · ${symbol} · ${operation} · 시작 ${started.toISOString()} · 응답 없음 · ${error.name}`);
+      throw error;
+    }
+    log(`우선 요청 · ${symbol} · ${operation} · 시작 ${started.toISOString()} · HTTP ${response.status} · ${Math.max(0,now().getTime()-started.getTime())}ms`);
     if (!response.ok) {
       if ([401,403,429].includes(response.status)) disabled = true;
       throw new Error(`primary_http_${response.status}`);
@@ -29,9 +37,9 @@ export function createPrimaryInvestorSource({fetchImpl = fetch, sleep = ms => ne
     return JSON.parse(text);
   }
   return async function fetchPrimary(symbol, startDate, endDate, asOfDate) {
-    const info = await get(SUMMARY + encodeURIComponent(symbol));
+    const info = await get(SUMMARY + encodeURIComponent(symbol), symbol, '종목정보');
     if (info?.code !== symbol || info.market !== 'kospi' || !Number.isSafeInteger(info.id) || info.id < 1) throw new Error('primary_symbol_mismatch');
-    const result = await get(HISTORY + info.id + '?offset=0&limit=60');
+    const result = await get(HISTORY + info.id + '?offset=0&limit=60', symbol, '매매동향');
     if (!Array.isArray(result?.data)) throw new Error('primary_invalid_history');
     const seen = new Set(), rows = [];
     for (const row of result.data) {

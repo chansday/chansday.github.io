@@ -161,7 +161,7 @@ async function fetchJson(url, context) {
   const result = await fetchJsonOnce(url, context);
   const target = new URL(url);
   const rows = Array.isArray(result.payload?.datas) ? ` · ${result.payload.datas.length}행` : Array.isArray(result.payload?.stocks) ? ` · ${result.payload.stocks.length}종목` : "";
-  requestLog(`#${context.metrics.requested} ${target.host}${target.pathname.length > 60 ? `${target.pathname.slice(0, 60)}…` : target.pathname} · ${result.ok ? `HTTP ${result.status}` : `실패 ${result.status ?? "-"} ${result.reason}`} · ${Date.now() - started}ms · 시도 ${context.metrics.requested - before}회${rows}`);
+  requestLog(`#${context.metrics.requested} ${target.host}${target.pathname}${target.search} · ${result.ok ? `HTTP ${result.status}` : `실패 ${result.status ?? "-"} ${result.reason}`} · ${Date.now() - started}ms · 시도 ${context.metrics.requested - before}회${rows}`);
   return result;
 }
 

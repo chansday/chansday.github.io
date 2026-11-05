@@ -39,8 +39,9 @@ export function createProgressLog({ label, now = () => new Date(), write = defau
 // every PROGRESS_EVERY symbols and on the last one.
 export function collectionProgress(log) {
   let maxMs = 0;
-  return ({ done, total, symbol, elapsedMs, lastMs, observations, rejected }) => {
+  return ({ done, total, symbol, outcome, elapsedMs, lastMs, observations, rejected }) => {
     maxMs = Math.max(maxMs, lastMs ?? 0);
+    log(`일봉 종목 완료 · ${symbol} · ${done}/${total} · ${outcome || '-'} · 요청 ${lastMs ?? '-'}ms · 누적 일봉 ${observations}행 · 누적 제외 ${rejected}건`);
     if (done % PROGRESS_EVERY && done !== total) return;
     const perSymbol = elapsedMs / done;
     log(`수집 ${done}/${total} (${Math.round((done / total) * 100)}%) · 경과 ${formatDuration(elapsedMs)} · 남은 예상 ${formatDuration(perSymbol * (total - done))} · 평균 ${(perSymbol / 1000).toFixed(2)}s/종목 · 마지막 요청 ${lastMs ?? "-"}ms (${symbol}) · 최대 요청 ${maxMs}ms · 일봉 ${observations}행 · 제외 ${rejected}건`);

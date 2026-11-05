@@ -68,11 +68,11 @@ export async function collectNaverDailyRows({ symbols, targetDate, fetchImpl = f
   const robotsContext = { fetchImpl, now };
   let last = null, robots = null, done = 0;
   // onProgress (optional) observes each finished symbol; it never changes the result.
-  const progress = (symbol) => { done += 1; if (onProgress) onProgress({ done, total: symbols.length, symbol, elapsedMs: clock() - started, lastMs: durations.at(-1) ?? null, observations: observations.length, rejected: rejected.length }); };
+  const progress = (symbol, outcome = 'HTTP 200') => { done += 1; if (onProgress) onProgress({ done, total: symbols.length, symbol, outcome, elapsedMs: clock() - started, lastMs: durations.at(-1) ?? null, observations: observations.length, rejected: rejected.length }); };
   for (const symbol of symbols) {
     const url = dailyChartUrl(symbol, targetDate);
     const policy = await checkRobotsUrl(robotsContext, url, USER_AGENT, { allowMissing: true });
-    if (!policy.ok) return { status: "blocked", reason: `robots: ${policy.reason}`, robots_url: policy.robotsUrl, observations, rejected, requested: durations.length, durations_ms: durations };
+    if (!policy.ok) { progress(symbol, `robots ${policy.reason}`); return { status: "blocked", reason: `robots: ${policy.reason}`, robots_url: policy.robotsUrl, observations, rejected, requested: durations.length, durations_ms: durations }; }
     robots ||= { robots_url: policy.robotsUrl, robots_status: policy.missing ? policy.robotsStatus : 200, robots_checked_at: policy.checkedAt };
     if (last !== null) await sleep(Math.max(0, intervalMs - (clock() - last)));
     if (clock() >= deadline) return { status: "degraded", reason: "collection_deadline", observations, rejected, requested: durations.length, durations_ms: durations, ...robots };
@@ -81,15 +81,16 @@ export async function collectNaverDailyRows({ symbols, targetDate, fetchImpl = f
     try {
       response = await fetchImpl(url, { headers: { Accept: "application/json", "User-Agent": USER_AGENT }, redirect: "error", signal: AbortSignal.timeout(Math.max(1, Math.min(8000, deadline - clock()))) });
       body = await response.text();
-    } catch (error) { return { status: "degraded", reason: `request_failed: ${error.name}`, observations, rejected, requested: durations.length + 1, durations_ms: durations, ...robots }; }
+    } catch (error) { progress(symbol, `request_failed ${error.name}`); return { status: "degraded", reason: `request_failed: ${error.name}`, observations, rejected, requested: durations.length + 1, durations_ms: durations, ...robots }; }
     durations.push(clock() - last);
     const retry = response.headers?.get?.("retry-after");
     if (response.status === 429 || retry) {
+      progress(symbol, `HTTP ${response.status} Retry-After ${retry || '-'}`);
       const until = retry ? (/^\d+$/.test(retry.trim()) ? clock() + Number(retry) * 1000 : Date.parse(retry)) : NaN;
       return { status: "blocked", reason: response.status === 429 ? "rate_limited" : "retry_after", retry_not_before: Number.isFinite(until) ? new Date(until).toISOString() : null, observations, rejected, requested: durations.length, durations_ms: durations, ...robots };
     }
-    if (response.status === 403 || (response.status >= 300 && response.status < 400) || /text\/html/i.test(response.headers?.get?.("content-type") || "") || challengeBody(body)) return { status: "blocked", reason: `source_block_${response.status}`, observations, rejected, requested: durations.length, durations_ms: durations, ...robots };
-    if (response.status !== 200) return { status: "degraded", reason: `http_${response.status}`, observations, rejected, requested: durations.length, durations_ms: durations, ...robots };
+    if (response.status === 403 || (response.status >= 300 && response.status < 400) || /text\/html/i.test(response.headers?.get?.("content-type") || "") || challengeBody(body)) { progress(symbol, `blocked HTTP ${response.status}`); return { status: "blocked", reason: `source_block_${response.status}`, observations, rejected, requested: durations.length, durations_ms: durations, ...robots }; }
+    if (response.status !== 200) { progress(symbol, `HTTP ${response.status}`); return { status: "degraded", reason: `http_${response.status}`, observations, rejected, requested: durations.length, durations_ms: durations, ...robots }; }
     try {
       const parsed = parseNaverChartDailyRows(JSON.parse(body), { symbol, targetDate });
       if (parsed.rows.length < 3) rejected.push({ symbol, reason: "insufficient_prior_rows" });

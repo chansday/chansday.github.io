@@ -37,6 +37,7 @@ export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,star
         catch(error) { log(`우선 수집 실패 · ${symbol} · ${String(error.message||error).slice(0,100)} · 보조 수집 시도`); }
       }
       const primaryByDate=new Map(item.rows.map(row=>[row.date,row]));
+      const fieldSources=new Map(item.rows.map(row=>[row.date,Object.fromEntries(fields.filter(field=>Number.isSafeInteger(row[field])).map(field=>[field,'primary']))]));
       const needsFallback=expectedDates.some(date=>{const row=primaryByDate.get(date);return !row||fields.some(field=>!Number.isSafeInteger(row[field]));});
       if(needsFallback){
       if(usePrimary) await sleep(delayMs);
@@ -50,8 +51,8 @@ export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,star
       const fallback=parseInvestorFlow(JSON.parse(text),symbol,startDate,endDate,asOfDate);
       for(const row of fallback.rows){
         const prior=primaryByDate.get(row.date);
-        if(!prior){primaryByDate.set(row.date,row);continue;}
-        for(const field of fields) if(!Number.isSafeInteger(prior[field]) && Number.isSafeInteger(row[field])) prior[field]=row[field];
+        if(!prior){primaryByDate.set(row.date,row);fieldSources.set(row.date,Object.fromEntries(fields.filter(field=>Number.isSafeInteger(row[field])).map(field=>[field,'naver'])));continue;}
+        for(const field of fields) if(!Number.isSafeInteger(prior[field]) && Number.isSafeInteger(row[field])) {prior[field]=row[field]; const sources=fieldSources.get(row.date)||{};sources[field]='naver';fieldSources.set(row.date,sources);}
       }
       item.rows=[...primaryByDate.values()].sort((a,b)=>b.date.localeCompare(a.date));
       } catch(error) {
@@ -61,15 +62,16 @@ export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,star
       }
       const available=new Set(item.rows.map(r=>r.date));
       item.missing_dates=expectedDates.filter(date=>!available.has(date));
+      for(const row of item.rows) log(`종목 결과 · ${symbol} · ${row.date} · 외국인 ${row.foreign_net_shares ?? '-'} (${fieldSources.get(row.date)?.foreign_net_shares || '-'}) · 개인 ${row.individual_net_shares ?? '-'} (${fieldSources.get(row.date)?.individual_net_shares || '-'}) · 기관 ${row.institution_net_shares ?? '-'} (${fieldSources.get(row.date)?.institution_net_shares || '-'})`);
       if(item.missing_dates.length||item.rows.some(r=>r.foreign_net_shares===null||r.institution_net_shares===null||r.individual_net_shares===null))incomplete.push(symbol);
       if(i===0&&symbols.length>1&&symbol===probeSymbol&&!available.has(endDate)){notPublished=true;log(`게시 전 · 확인 종목 ${symbol}에 ${endDate} 행이 없음(최신 ${item.rows[0]?.date??'-'}) · 소스가 아직 게시하지 않은 것으로 보고 나머지 ${symbols.length-1}종목은 요청하지 않음`);break;}
       collected.push(item);
-      if((i+1)%25===0||i+1===symbols.length){const elapsed=Math.max(0,now().getTime()-Date.parse(startedAt)),st=request.stats();log(`진행 ${i+1}/${symbols.length} (${Math.round((i+1)*100/symbols.length)}%) · 경과 ${formatDuration(elapsed)} · 남은 예상 ${formatDuration(elapsed/(i+1)*(symbols.length-i-1))} · 누락 ${incomplete.length}종목 · 요청 ${st.requests} · UA 전환 ${st.ua_switches} · 재시도 ${st.rate_limit_waits+st.transient_retries} · ${st.current_user_agent}`);}
+      if((i+1)%25===0||i+1===symbols.length){const elapsed=Math.max(0,now().getTime()-Date.parse(startedAt)),st=request.stats();log(`진행 ${i+1}/${symbols.length} (${Math.round((i+1)*100/symbols.length)}%) · 경과 ${formatDuration(elapsed)} · 남은 예상 ${formatDuration(elapsed/(i+1)*(symbols.length-i-1))} · 누락 ${incomplete.length}종목 · 보조 요청 ${st.requests} · UA 전환 ${st.ua_switches} · 재시도 ${st.rate_limit_waits+st.transient_retries} · ${st.current_user_agent}`);}
     }catch(error){log(`수집 중단 · ${symbol} · ${error.name==='TimeoutError'?'시간 초과':'요청 또는 응답 오류'} (${error.name}: ${String(error.message||'').slice(0,120)}) · 추가 요청 없음`);failures.push({symbol,reason:error.name==='TimeoutError'?'timeout':'request_or_response_error'});break;}
   }
   const requestStats=request.stats();
   log(`종료 · 수집 ${collected.length}/${symbols.length}종목 · 누락 ${incomplete.length} · 오류 ${failures.length}${failures.length?` (${failures.map(f=>`${f.symbol} ${f.reason}`).join(', ')})`:''}`);
-  log(`요청 통계 · ${formatRequestStats(requestStats)}`);
+  log(`보조 출처 요청 통계 · ${formatRequestStats(requestStats)}`);
   if(incomplete.length)log(`누락 종목 ${incomplete.length}개 · ${incomplete.slice(0,30).join(', ')}${incomplete.length>30?' …':''}`);
   return {schema_version:1,kind:'personal_investor_flow',status:notPublished?'not_published':failures.length||incomplete.length?'partial':'ready',started_at:startedAt,completed_at:now().toISOString(),collection_date:asOfDate,start_date:startDate,end_date:endDate,expected_dates:expectedDates,source:'primary-secondary',unit:'shares',exchange_basis:'unconfirmed',request_stats:requestStats,requested:symbols.length,collected:collected.length,incomplete_symbols:incomplete,failures,stocks:collected};
 }
@@ -106,7 +108,7 @@ export async function main(argv=process.argv.slice(2)){
   if(saved)await saveInvestorDays(result);
   if(process.env.GITHUB_OUTPUT)await appendFile(process.env.GITHUB_OUTPUT,`saved=${saved}\nstatus=${result.status}\ncount=${result.collected}\nrequested=${result.requested}\nincomplete=${result.incomplete_symbols.length}\n`);
   console.log(saved?`Collection ${result.status}: ${result.collected}/${result.requested}; saved public daily investor flow`:`Collection not_published: the source has no ${endDate} row yet; nothing saved`);
-  if(process.env.GITHUB_STEP_SUMMARY){const st=result.request_stats,lines=['### 매매동향 수집 요청 통계',`- 기간: ${startDate}~${endDate} · 수집 ${result.collected}/${result.requested} · 상태 ${result.status}`,`- ${formatRequestStats(st)}`,`- 실패: ${result.failures.map(f=>`${f.symbol} ${f.reason}`).join(', ')||'없음'}`,'','| User-Agent | 성공 |','| --- | --- |',...Object.entries(st.ua_success).map(([k,v])=>`| ${k} | ${v} |`)];await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n');}
+  if(process.env.GITHUB_STEP_SUMMARY){const st=result.request_stats,lines=['### 매매동향 수집 요청 통계',`- 기간: ${startDate}~${endDate} · 수집 ${result.collected}/${result.requested} · 상태 ${result.status}`,`- 보조 출처: ${formatRequestStats(st)}`,`- 실패: ${result.failures.map(f=>`${f.symbol} ${f.reason}`).join(', ')||'없음'}`,'','| User-Agent | 성공 |','| --- | --- |',...Object.entries(st.ua_success).map(([k,v])=>`| ${k} | ${v} |`)];await appendFile(process.env.GITHUB_STEP_SUMMARY,lines.join('\n')+'\n');}
   if(result.failures.length)process.exitCode=2;
 }
 if(process.argv[1]&&pathToFileURL(process.argv[1]).href===import.meta.url)main().catch(error=>{console.error(error.message);process.exitCode=1;});

@@ -56,9 +56,10 @@ test('continues with every symbol once the probe symbol has the end date',async(
 });
 test('primary data is preferred and fallback fills only missing fields',async()=>{
  const primaryFetch=async symbol=>({symbol,rows:[{date:'2026-11-02',individual_net_shares:99,institution_net_shares:null,foreign_net_shares:-9}]});
- let calls=0;const result=await collectInvestorFlow(['011420'],{...options,usePrimary:true,primaryFetch,fetchImpl:async()=>{calls++;return response(200)},sleep:async()=>{}});
+ let calls=0;const lines=[];const result=await collectInvestorFlow(['011420'],{...options,usePrimary:true,primaryFetch,log:line=>lines.push(line),fetchImpl:async()=>{calls++;return response(200)},sleep:async()=>{}});
  assert.equal(calls,1); const row=result.stocks[0].rows.find(x=>x.date==='2026-11-02');
  assert.equal(row.individual_net_shares,99); assert.equal(row.foreign_net_shares,-9); assert.equal(row.institution_net_shares,-32);
+ assert.match(lines.join('\n'),/011420 · 2026-11-02 · 외국인 -9 \(primary\) · 개인 99 \(primary\) · 기관 -32 \(naver\)/);
  assert.equal(result.stocks[0].rows.some(x=>x.date==='2026-10-30'),true);
 });
 test('complete primary result needs no fallback and a failed primary uses fallback',async()=>{
@@ -69,15 +70,17 @@ test('complete primary result needs no fallback and a failed primary uses fallba
  assert.equal(calls,1);assert.equal(result.stocks[0].rows[0].individual_net_shares,1734);
 });
 test('primary source checks robots, symbol identity and parses signed share counts',async()=>{
- const urls=[], waits=[];
+ const urls=[], waits=[], lines=[];
  const fetchImpl=async url=>{
    urls.push(url);
    if(url.endsWith('/robots.txt'))return response(404,{});
    if(url.includes('/summary/'))return response(200,{id:1014,code:'005930',market:'kospi'});
    return response(200,{data:[{dt:'2026-11-02',net_vol_individual:5,net_vol_institutional:-8,net_vol_foreigner:3}]});
  };
- const primary=createPrimaryInvestorSource({fetchImpl,now:()=>new Date('2026-11-03T00:00:00Z'),sleep:async ms=>waits.push(ms)});
+ const primary=createPrimaryInvestorSource({fetchImpl,now:()=>new Date('2026-11-03T00:00:00Z'),sleep:async ms=>waits.push(ms),log:line=>lines.push(line)});
  const result=await primary('005930','2026-11-02','2026-11-02','2026-11-03');
  assert.equal(result.rows[0].individual_net_shares,5);assert.equal(result.rows[0].institution_net_shares,-8);
  assert.equal(urls.length,3);assert.deepEqual(waits,[1000]);
+ assert.match(lines.join('\n'),/005930 · 종목정보 · 시작 2026-11-03T00:00:00.000Z · HTTP 200/);
+ assert.match(lines.join('\n'),/005930 · 매매동향 · 시작 2026-11-03T00:00:00.000Z · HTTP 200/);
 });

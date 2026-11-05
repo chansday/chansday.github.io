@@ -80,7 +80,8 @@ export function createInvestorRequester({ fetchImpl = globalThis.fetch, sleep = 
       if (response.status >= 500 && transient < TRANSIENT_WAITS_MS.length) { const pause = TRANSIENT_WAITS_MS[transient++]; stats.transient_retries++; log(`${tag} · HTTP ${response.status} · ${agent} · 시도 ${requests} · ${ms}ms · ${pause / 1000}초 후 재시도 ${transient}/${TRANSIENT_WAITS_MS.length}`); await wait(pause); continue; }
       if (response.ok) {
         stats.ua_success[agent]++;
-        if (requests > 1) { stats.recovered++; log(`${tag} · HTTP ${response.status} · ${agent} · 시도 ${requests}에서 성공 · ${ms}ms`); }
+        if (requests > 1) stats.recovered++;
+        log(`${tag} · HTTP ${response.status} · ${agent} · 시도 ${requests}에서 성공 · ${ms}ms`);
       } else {
         const body = await excerpt(response);
         log(`${tag} · HTTP ${response.status} · ${agent} · 시도 ${requests} · ${ms}ms${body ? ` · 응답 "${body}"` : ""} · ${response.status === 403 ? "모든 User-Agent 거부, 중단" : "재시도 대상 아님, 중단"}`);
