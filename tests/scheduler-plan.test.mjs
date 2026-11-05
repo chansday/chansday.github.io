@@ -353,6 +353,6 @@ test("catch-up workflow: dispatch-only with run_date input, own commit, tests is
   assert.match(testStep, /npm test && npm run check && npm run check:experiment/);
   assert.match(text, /node scripts\/close-catch-up\.mjs/);
   assert.match(text, /git add -- data\/runs data\/date-index\.json data\/latest-snapshot\.json/);
-  assert.ok(text.indexOf("Validate the static contract") < text.indexOf("누락된 종가 결과 보충") && text.indexOf("누락된 종가 결과 보충") < text.indexOf("보충한 결과 저장"));
+  assert.ok(text.indexOf("Validate the static contract") < text.indexOf("- name: 누락된 종가 결과 보충") && text.indexOf("- name: 누락된 종가 결과 보충") < text.indexOf("- name: 보충한 결과 저장"));
   assert.ok(STAGES.some((s) => s.workflow === "close-catch-up.yml" && s.kind === "catch-up"), "keeper lists the workflow");
 });
