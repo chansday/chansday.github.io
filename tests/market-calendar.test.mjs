@@ -113,7 +113,7 @@ test("feature workflows expose input-free buttons and route through the shared g
   assert.doesNotMatch(runNow, /github\.run_started_at/);
   assert.match(runNow, /uses: \.\/\.github\/workflows\/_run-stage\.yml/);
   assert.match(shared, /npm test && npm run check/);
-  assert.match(shared, /no_data\/partial\/degraded\/blocked/);
+  assert.match(shared, /데이터 없음·부분 수집·품질 저하·차단/);
   assert.match(shared, /steps\.stage\.outcome.*success/);
   assert.match(shared, /steps\.stage\.outputs\.status == 'ready'/);
   assert.match(shared, /steps\.capture-run-context\.outcome == 'success'/);
