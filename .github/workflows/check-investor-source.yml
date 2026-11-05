@@ -29,7 +29,7 @@ jobs:
           const script=[...text.matchAll(/<script[^>]+src="([^"]+)"/g)].map(x=>x[1]).find(x=>x.startsWith('/assets/index-'));
           if(script){
             const js=await (await fetch(base+script,{signal:AbortSignal.timeout(20000)})).text();
-            console.log('BUNDLE_LENGTH',js.length);
+            console.log('BUNDLE_LENGTH',js.length); const hookjs=await (await fetch(base+'/assets/index-6d3de160.js',{signal:AbortSignal.timeout(15000)})).text();console.log('DATA_MODULE',hookjs.slice(0,16000));
             const filenames=[...new Set([...js.matchAll(/assets\/(?:StockInformation|stock-information|Investor|investor)[^"'\s,()]*?\.js/g)].map(x=>x[0]))].slice(0,10);
             for(const file of filenames){const cs=await (await fetch(base+'/'+file,{signal:AbortSignal.timeout(15000)})).text();console.log('CHUNK',file,cs.length); if(file.includes('StockInformation-003')){let p=cs.indexOf('function Wn(');console.log('HOOK',cs.slice(p,p+5500));console.log('IMPORTS',cs.slice(0,5500));}for(const term of ['investor','Investor','순매수','투자자']){let p=0,n=0;while((p=cs.indexOf(term,p))>=0 && n++<5){console.log('CHUNK_CTX',term,cs.slice(Math.max(0,p-160),p+260));p+=term.length}}}
             const robotsApi=await fetch('https://api.alphasquare.co.kr/robots.txt',{headers:{'User-Agent':'kospi-signal-personal-investor-collector/1.0'},redirect:'manual',signal:AbortSignal.timeout(15000)});
