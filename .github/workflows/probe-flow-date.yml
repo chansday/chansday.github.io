@@ -1,0 +1,24 @@
+name: "매매동향 게시 시점 진단"
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/probe-flow-date.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Check source dates
+        shell: bash
+        run: |
+          node --input-type=module <<'NODE'
+          for (const suffix of ['', '?pageSize=60&bizdate=20261105', '?pageSize=60&bizdate=20261106']) {
+            const res = await fetch('https://m.stock.naver.com/api/stock/005930/trend' + suffix, {headers:{'User-Agent':'kospi-signal-personal-investor-collector/1.0',Accept:'application/json'}});
+            const body = await res.json();
+            console.log(JSON.stringify({suffix,http:res.status,count:Array.isArray(body)?body.length:null,dates:Array.isArray(body)?body.slice(0,8).map(x=>x.bizdate):null}));
+          }
+          NODE
