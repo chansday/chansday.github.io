@@ -21,3 +21,8 @@ jobs:
     secrets:
       KOSPI_PROVIDER_API_KEY: ${{ secrets.KOSPI_PROVIDER_API_KEY }}
       KOSPI_PROVIDER_BASE_URL: ${{ secrets.KOSPI_PROVIDER_BASE_URL }}
+
+  investor-flow:
+    needs: close-settlement
+    if: github.repository == 'kospi-signal/kospi-signal.github.io' && needs.close-settlement.result == 'success'
+    uses: ./.github/workflows/personal-investor-flow.yml
