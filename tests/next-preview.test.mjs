@@ -22,11 +22,18 @@ test('preopen freezes only the genuine forecast before 09:00',()=>{
  snapshot.meta.lastAttemptAt='2026-11-03T23:35:00Z';snapshot.meta.source.retrieved_at='2026-11-04T00:00:01Z';assert.throws(()=>buildPreopenRanking(snapshot,'2026-11-04'));
  snapshot.meta.source.retrieved_at='2026-11-03T23:35:10Z';snapshot.meta.retrospective_evaluation=true;assert.throws(()=>buildPreopenRanking(snapshot,'2026-11-04'));
 });
-test('evening preview uses prior sessions and refuses a later morning',async()=>{
+test('preview accepts validated evening and early morning history, with explicit recovery',async()=>{
  const make=(date,close)=>({date,rows:[{symbol:'000001',open:100,close,volume:100}]});
  const history={ok:true,partial:false,valid_symbols:['000001'],symbols:['000001'],sessions:[make('2026-11-03',102),make('2026-11-02',101),make('2026-10-30',100)],retrieved_at:'2026-11-03T10:00:00Z'};
  const options={now:()=>new Date('2026-11-03T10:05:00Z'),rawRecord:{collection:'evening',target_date:'2026-11-04',retrieved_at:'2026-11-03T10:00:00Z'},loadHistory:async()=>history,universe:{symbols:[{symbol:'000001',name:'가'}]}};
  const preview=await buildPreview('2026-11-04',options);assert.equal(preview.rows.length,1);assert.equal(preview.source_date,'2026-11-03');assert.equal(preview.rows[0].expected_open,102);
  await assert.rejects(buildPreview('2026-11-04',{...options,now:()=>new Date('2026-11-04T00:00:00Z')}));
  await assert.rejects(buildPreview('2026-11-04',{...options,rawRecord:{...options.rawRecord,collection:'morning'}}));
+ const morning = {...options, now:()=>new Date('2026-11-03T22:00:00Z'),rawRecord:{collection:'morning',target_date:'2026-11-04',retrieved_at:'2026-11-03T21:40:00Z'},loadHistory:async()=>({...history,retrieved_at:'2026-11-03T21:40:00Z'})};
+ const morningPreview = await buildPreview('2026-11-04',morning);
+ assert.equal(morningPreview.collection,'morning'); assert.equal(morningPreview.reconstructed,false);
+ await assert.rejects(buildPreview('2026-11-04',{...morning,now:()=>new Date('2026-11-04T02:00:00Z')}));
+ const repaired = await buildPreview('2026-11-04',{...morning,now:()=>new Date('2026-11-04T02:00:00Z'),recovery:true});
+ assert.equal(repaired.reconstructed,true); assert.equal(repaired.generated_at,'2026-11-04T02:00:00.000Z');
+ await assert.rejects(buildPreview('2026-11-04',{...morning,recovery:true,rawRecord:{...morning.rawRecord,retrieved_at:'2026-11-03T23:01:00Z'}}));
 });

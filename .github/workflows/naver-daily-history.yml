@@ -35,6 +35,13 @@ jobs:
         id: log_step_05
         if: steps.market.outputs.should_run == 'true'
         run: node scripts/collect-naver-daily.mjs
+      - name: Prepare missing ranking comparison baseline
+        id: preview
+        if: steps.market.outputs.should_run == 'true'
+        continue-on-error: true
+        env:
+          MARKET_DATE: ${{ steps.market.outputs.market_date }}
+        run: node scripts/preview-ranking.mjs "$MARKET_DATE"
       - name: Save date-specific history
         id: log_step_06
         if: steps.market.outputs.should_run == 'true'
@@ -45,9 +52,15 @@ jobs:
           set -euo pipefail
           [[ "$MARKET_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]]
           git add -- "data/daily-history/$MARKET_DATE.json"
+          if [[ -f "data/next-preview/$MARKET_DATE.json" ]]; then git add -- "data/next-preview/$MARKET_DATE.json"; fi
           if [[ -f data/kospi-universe.json ]]; then git add -- data/kospi-universe.json; fi
           if git diff --cached --quiet; then exit 0; fi
           bash scripts/commit-and-push.sh "chore(data): record prior daily history $MARKET_DATE"
+      - name: Report missing comparison baseline
+        if: steps.market.outputs.should_run == 'true' && steps.preview.outcome == 'failure'
+        run: |
+          echo "장전 순위 비교 기준 생성 실패; 수집 기록을 확인하세요." >&2
+          exit 1
 
       - name: 작업 단계 결과 요약
         if: always()

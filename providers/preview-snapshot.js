@@ -7,5 +7,5 @@ export function previewToSnapshot(preview, date) {
     seen.add(row.symbol);
     return {symbol:row.symbol,name:row.name || row.symbol,rank:row.rank,expected_open:row.expected_open,expected_close:row.expected_close,actual_open:null,actual_close:null,actual_high:null,actual_volume:null,status:'pending',quality:'pending'};
   });
-  return {mode:'provider',status:'partial',asOfDate:date,publishedAt:preview.generated_at,provider:{id:'next-preview',label:'전일 미리보기'},meta:{run_date:date,run_stage:'next-preview',preview:true,source_date:preview.source_date,lastAttemptAt:preview.generated_at},pipeline:{},rows};
+  return {mode:'provider',status:'partial',asOfDate:date,publishedAt:preview.generated_at,provider:{id:'next-preview',label:preview.collection === 'morning' ? '당일 장전 미리보기' : '전일 미리보기'},meta:{run_date:date,run_stage:'next-preview',preview:true,preview_collection:preview.collection,source_date:preview.source_date,lastAttemptAt:preview.generated_at},pipeline:{},rows};
 }

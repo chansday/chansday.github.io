@@ -505,7 +505,7 @@ function renderHeader(data) {
   renderRows();
   renderSelected();
   renderDateNavigation();
-  setText(document.getElementById("ranking-lede"), data?.meta?.preview ? "전일 저녁 일봉 기준 예상 순위 · 장전 시세와 실제 시가·종가 미반영" : data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
+  setText(document.getElementById("ranking-lede"), data?.meta?.preview ? (data.meta.preview_collection === "morning" ? "당일 장전 수집 일봉 기준 예상 순위 · 실제 시가·종가 미반영" : "전일 저녁 일봉 기준 예상 순위 · 장전 시세와 실제 시가·종가 미반영") : data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
   // A table already scored by the day-trade model keeps its own expected values.
   if (usesRetrospectiveOverlay(data)) void renderPostClose(data);
 }
@@ -1045,6 +1045,7 @@ async function refreshNextPreview() {
 async function loadComparison(data) {
   const token = ++comparisonToken;
   currentChanges = {};
+  setText(document.getElementById("ranking-comparison-note"), "");
   const date = data?.meta?.run_date;
   if (data?.mode !== "provider" || !["forecast", "open-settlement", "close-settlement"].includes(data?.meta?.run_stage) || !isIsoDate(date) || data?.meta?.test_only || data?.meta?.retrospective_evaluation) { if (snapshot) renderRows(); return; }
   try {
@@ -1053,8 +1054,11 @@ async function loadComparison(data) {
     const [preview, preopen] = await Promise.all([a.json(), b.json()]);
     if (!canCompareRankings(data, preview, preopen, date)) throw new Error("ranking identity mismatch");
     if (token !== comparisonToken) return;
+    const baseline = preview.collection === "morning" ? "당일 오전 8시 이전에 수집한 일봉" : "전 거래일 저녁 일봉";
+    const reconstructed = preview.reconstructed ? " · 기준 순위는 장 마감 이후가 아닌 장전 수집 자료로 사후 복구" : "";
+    setText(document.getElementById("ranking-comparison-note"), `순위 변동 기준: ${baseline}${reconstructed}`);
     const comparisonRanking = data.meta.run_stage === "forecast" ? preopen : {target_date: date, rows: data.rows};
     currentChanges = rankChanges(preview, comparisonRanking, date);
     if (snapshot) renderRows();
-  } catch { if (token === comparisonToken && snapshot) renderRows(); }
+  } catch { if (token === comparisonToken && snapshot) { setText(document.getElementById("ranking-comparison-note"), "순위 비교 기준 자료가 없어 변동을 표시할 수 없습니다."); renderRows(); } }
 }

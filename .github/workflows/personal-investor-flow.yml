@@ -3,6 +3,7 @@ name: "[개인] 투자자별 매매동향 수집"
 on:
   schedule:
     - cron: '47 11 * * 1-5' # 20:47 KST: observed complete run on 2026-11-03
+    - cron: '30 22 * * 0-5' # 07:30 KST: retry a missing recent trading day
   workflow_dispatch:
     inputs:
       from_date:
@@ -43,25 +44,39 @@ jobs:
         id: window
         env:
           EVENT_TYPE: ${{ github.event_name }}
+          TRADING_DAY: ${{ steps.market.outputs.should_run }}
         run: |
+          set -euo pipefail
           now_kst=$(TZ=Asia/Seoul date +%H%M)
-          if [[ "$EVENT_TYPE" == 'schedule' && ( "$now_kst" < '2047' || "$now_kst" > '2259' ) ]]; then
-            echo "allowed=false" >> "$GITHUB_OUTPUT"
-            echo "Scheduled run started outside its evening window ($now_kst KST); skipping."
-          else
+          if [[ "$EVENT_TYPE" != 'schedule' ]]; then
             echo "allowed=true" >> "$GITHUB_OUTPUT"
+          elif [[ "$now_kst" < '1200' ]]; then
+            target=$(node --input-type=module -e 'import {existsSync} from "node:fs"; import {previousTradingDate} from "./scripts/previous-result.mjs"; import {kstDate,loadMarketCalendar} from "./scripts/market-calendar.mjs"; const calendar=await loadMarketCalendar(); let day=kstDate(), missing=[]; for(let i=0;i<5;i++){day=previousTradingDate(day,calendar); if(!existsSync(`data/investor-flow/${day}.json`)) missing.push(day)} console.log(missing.at(-1)||"")')
+            echo "target_date=$target" >> "$GITHUB_OUTPUT"
+            if [[ -z "$target" ]]; then
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              echo "The five most recent trading days already have files; skipping."
+            else
+              echo "allowed=true" >> "$GITHUB_OUTPUT"
+              echo "Collecting missing recent trading day $target."
+            fi
+          elif [[ "$now_kst" > '2046' && "$TRADING_DAY" == 'true' ]]; then
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "allowed=false" >> "$GITHUB_OUTPUT"
+            echo "Scheduled run outside the collection window ($now_kst KST); skipping."
           fi
       - name: Collect investor flows
         id: collect
         if: >-
-          steps.window.outputs.allowed == 'true' &&
-          (github.event_name == 'workflow_dispatch' || steps.market.outputs.should_run == 'true')
+          steps.window.outputs.allowed == 'true'
         continue-on-error: true
         env:
           EVENT_TYPE: ${{ github.event_name }}
           INPUT_FROM: ${{ inputs.from_date }}
           INPUT_TO: ${{ inputs.to_date }}
           INPUT_SYMBOL: ${{ inputs.symbol }}
+          TARGET_DATE: ${{ steps.window.outputs.target_date }}
         shell: bash
         run: |
           set -euo pipefail
@@ -70,6 +85,8 @@ jobs:
           if [[ "$EVENT_TYPE" == workflow_dispatch && ( -n "$INPUT_FROM" || -n "$INPUT_TO" ) ]]; then
             [[ -n "$INPUT_FROM" && -n "$INPUT_TO" ]] || { echo 'Both dates are required.' >&2; exit 1; }
             args+=(--from "$INPUT_FROM" --to "$INPUT_TO")
+          elif [[ "$EVENT_TYPE" == schedule && -n "$TARGET_DATE" ]]; then
+            args+=(--date "$TARGET_DATE")
           fi
           node scripts/collect-investor-flow.mjs "${args[@]}"
       - name: Save investor output
@@ -97,7 +114,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
       - name: Report incomplete collection
         id: log_step_07
-        if: always() && steps.collect.outcome == 'failure'
+        if: always() && (steps.collect.outcome == 'failure' || steps.collect.outputs.status == 'not_published')
         run: |
           echo "Collection did not complete; any collected portion was preserved when available." >&2
           exit 1
