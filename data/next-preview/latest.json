@@ -12,6 +12,8 @@
   "market_venue": "unconfirmed",
   "adjustment": "unconfirmed",
   "model": "rank_personal_residual_shrink_v1",
+  "model_trained_at": "2026-11-05T13:48:54.581Z",
+  "model_train_last_date": "2026-11-05",
   "universe": [
     "000020",
     "000040",
