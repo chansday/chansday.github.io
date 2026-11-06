@@ -512,7 +512,6 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .cumulative-summary strong { margin-top: 6px; color: var(--text); font-size: 23px; font-family: "DM Mono", monospace; }
 .cumulative-key::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 7px; border-radius: 50%; background: #82e7b7; }
 .cumulative-key-5::before { background: #8cb8ff; }
-.cumulative-key-20::before { background: #f6c77b; }
 .cumulative-chart-wrap { min-width: 0; max-width: 760px; margin: 12px auto 0; overflow-x: auto; overscroll-behavior-x: contain; }
 .cumulative-chart { display: block; max-width: none; height: auto; }
 .cumulative-chart text { fill: var(--muted); font-size: 11px; font-family: "DM Mono", monospace; }
@@ -522,10 +521,8 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .cumulative-line { fill: none; stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
 .cumulative-line.cumulative-top5 { stroke: #8cb8ff; }
 .cumulative-line.cumulative-top10 { stroke: #82e7b7; }
-.cumulative-line.cumulative-top20 { stroke: #f6c77b; }
 .cumulative-chart circle.cumulative-top5 { fill: #8cb8ff; }
 .cumulative-chart circle.cumulative-top10 { fill: #82e7b7; }
-.cumulative-chart circle.cumulative-top20 { fill: #f6c77b; }
 .cumulative-details { margin-top: 10px; color: var(--muted); font-size: 12px; }
 .cumulative-details summary { cursor: pointer; padding: 8px 0; }
 .cumulative-table-wrap { max-height: 320px; overflow: auto; }
@@ -533,7 +530,7 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .cumulative-details th, .cumulative-details td { padding: 8px; border-bottom: 1px solid var(--line); }
 .cumulative-details th:first-child { text-align: left; }
 .cumulative-note { margin-top: 14px; }
-@media (max-width: 600px) { .cumulative-panel { padding: 16px; } }
+@media (max-width: 600px) { .cumulative-panel { padding: 16px; } .cumulative-summary { gap: 16px 24px; } .cumulative-summary small { flex-basis: 100%; } .performance-day { grid-template-columns: 37px minmax(0, 1fr); } }
 
 
 
