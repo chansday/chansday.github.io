@@ -154,7 +154,7 @@ function providerDisplayName(data) {
   return labels[providerId] || "데이터 공급자 정보";
 }
 function sourceDisplayName(source, data) { const sourceName = String(source?.name || "").trim(); return sourceName && !/^[a-z0-9_-]+$/i.test(sourceName) ? sourceName : providerDisplayName(data); }
-const MODEL_LABELS = { daytrade_open_gap_rank_ridge_v1: "단타 모델(시가 갭)", ridge_rank_11_features_60_sessions_v1: "순위 리지 모델", ridge_6_features_60_sessions_v1: "리지 모델", prior_20_sessions_trimmed_shrunk_mean_capped_1pct: "20일 축소 평균", prior_3_sessions_gap_and_session_mean_capped_5pct: "직전 3거래일 평균" };
+const MODEL_LABELS = { daytrade_open_gap_rank_ridge_v1: "단타 모델(시가 갭)", ridge_rank_11_features_60_sessions_v1: "순위 리지 모델", ridge_6_features_60_sessions_v1: "리지 모델", rank_personal_residual_shrink_v1: "순위 리지 + 개인화 보정", prior_20_sessions_trimmed_shrunk_mean_capped_1pct: "20일 축소 평균", prior_3_sessions_gap_and_session_mean_capped_5pct: "직전 3거래일 평균", daily_history: "일봉 기준선(학습 모델 없음)" };
 // The expected-close model actually stored on most rows of this snapshot, with
 // the training identity carried in its basis (version = model generation +
 // last training date, e.g. v1.20261029).
@@ -166,7 +166,15 @@ function forecastModelInfo(data) {
     const entry = counts.get(basis.model) || { n: 0, params: basis.inputs?.model_params || null };
     entry.n += 1; counts.set(basis.model, entry);
   }
-  if (!counts.size) return null;
+  if (!counts.size) {
+    // Preview-stage payloads (data/next-preview) carry only the top-level model
+    // id and its training date, not a per-row expected_close_basis.
+    if (typeof data?.model !== "string") return null;
+    const last = typeof data.model_train_last_date === "string" ? data.model_train_last_date : null;
+    const generation = data.model.match(/_v(\d+)$/)?.[1];
+    return { id: data.model, label: MODEL_LABELS[data.model] || data.model, version: generation && last ? `v${generation}.${last.replaceAll("-", "")}` : null,
+      trainedAt: data.model_trained_at || null, first: null, last, days: null, samples: null };
+  }
   const [id, { params }] = [...counts].sort((a, b) => b[1].n - a[1].n)[0];
   const generation = id.match(/_v(\d+)$/)?.[1];
   const last = typeof params?.train_last_date === "string" ? params.train_last_date : null;

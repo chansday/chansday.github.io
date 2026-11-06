@@ -30,7 +30,8 @@ export async function buildPreview(target, { now = () => new Date(), loadHistory
   });
   const rows = rankedRecords(candidates);
   if (!rows.length) throw new Error('No valid preview rankings');
-  return { schema_version: 1, kind: 'next_preview', status: h.partial ? 'partial' : 'ready', source_date: sourceDate, target_date: target, generated_at: nowDate.toISOString(), retrieved_at: h.retrieved_at, collection: raw.collection, reconstructed: recovery, data_source: 'naver-daily', market_venue: 'unconfirmed', adjustment: 'unconfirmed', model: h.rank_forecast?.model?.model || h.forecast_model?.model || 'daily_history', universe: h.symbols, universe_complete: !h.partial && !h.universe_stale, rows };
+  const trainedModel = h.rank_forecast?.model || h.forecast_model || null;
+  return { schema_version: 1, kind: 'next_preview', status: h.partial ? 'partial' : 'ready', source_date: sourceDate, target_date: target, generated_at: nowDate.toISOString(), retrieved_at: h.retrieved_at, collection: raw.collection, reconstructed: recovery, data_source: 'naver-daily', market_venue: 'unconfirmed', adjustment: 'unconfirmed', model: trainedModel?.model || 'daily_history', model_trained_at: trainedModel?.trained_at || null, model_train_last_date: trainedModel?.train_last_date || null, universe: h.symbols, universe_complete: !h.partial && !h.universe_stale, rows };
 }
 export async function savePreview(target, { recovery = false } = {}) {
   const path = repoPath(`data/next-preview/${target}.json`);
