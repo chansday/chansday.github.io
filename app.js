@@ -1079,12 +1079,12 @@ async function renderTodayRisk() {
     const date = todayKst(), response = await fetch(`./data/risk-index/${date}.json`, {cache:"no-store"});
     if (!response.ok) throw new Error("missing");
     const r = await response.json();
-    if (r.date !== date || !Number.isInteger(r.score) || r.score < 0 || r.score > 100 || !Array.isArray(r.parts) || r.parts.length !== 3 || r.parts.some((v,i) => !Number.isInteger(v) || v < 0 || v > [30,40,30][i]) || r.parts.reduce((a,b)=>a+b,0) !== r.score) throw new Error("invalid");
-    const [grade, color] = r.score < 25 ? ["낮음", "low"] : r.score < 50 ? ["보통", "normal"] : r.score < 75 ? ["주의", "caution"] : ["높음", "high"];
+    if (r.date !== date || !Number.isInteger(r.score) || r.score < 0 || r.score > 100 || !Array.isArray(r.parts) || r.version !== 2 || r.parts.length !== 4 || r.parts.some((v,i) => !Number.isInteger(v) || v < 0 || v > [40,30,20,10][i]) || Math.max(r.parts.reduce((a,b)=>a+b,0),r.shock_floor) !== r.score) throw new Error("invalid");
+    const [grade, color] = r.score < 25 ? ["낮음", "low"] : r.score < 50 ? ["보통", "normal"] : r.score < 75 ? ["주의", "caution"] : r.score < 90 ? ["높음", "high"] : ["매우 높음", "high"];
     put("risk-score", r.score); put("risk-grade", grade); document.getElementById("risk-index").dataset.level = color;
-    const names = ["시장 환경", "종목 변동성·과열", "수급 부담"], ids = ["market","stocks","flow"], max = [30,40,30];
+    const names = ["해외 시장 충격", "전일 국내 시장", "전일 종목 약세", "전일 수급 부담"], ids = ["market","local","stocks","flow"], max = [40,30,20,10];
     const largest = r.parts.map((v,i)=>v/max[i]).indexOf(Math.max(...r.parts.map((v,i)=>v/max[i])));
-    put("risk-summary", `${names[largest]} 항목의 상대 점수가 가장 높습니다.`);
+    put("risk-summary", `${names[largest]} 항목의 상대 점수가 가장 높습니다.${r.shock_floor > r.base_score ? " 해외 충격 기준으로 최소 75점을 적용했습니다." : ""}${r.sidecar_status === "unknown" ? " 전일 사이드카 여부는 확인되지 않았습니다." : ""}`);
     ids.forEach((id,i) => { put(`risk-${id}`, `${r.parts[i]} / ${max[i]}`); document.getElementById(`risk-${id}-bar`).style.width = `${r.parts[i]/max[i]*100}%`; });
     put("risk-time", `산출 ${timeFormatter.format(new Date(r.generated_at))} · 종목·수급 ${r.history_date} 기준`);
     const note = document.getElementById("risk-reconstruction-note");
