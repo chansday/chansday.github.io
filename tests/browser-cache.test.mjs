@@ -13,7 +13,7 @@ test('browser cache revision changes with published browser code', async()=>{
   const content=(await readFile(new URL('../'+path,import.meta.url),'utf8')).replace(/\r\n/g,'\n');
   hash.update(path+'\0'+content+'\0');
  }
- const expected='assets-'+hash.digest('hex').slice(0,16);
+ const expected='assets'+hash.digest('hex').slice(0,16);
  for(const [key,value] of Object.entries(map)) assert.equal(value,`${key}?v=${expected}`,`${key}: update browser asset revision`);
  assert.ok(html.includes(`./app.js?v=${expected}`));
  assert.ok(html.includes(`./styles.css?v=${expected}`));
