@@ -1086,8 +1086,9 @@ async function renderTodayRisk() {
     const largest = r.parts.map((v,i)=>v/max[i]).indexOf(Math.max(...r.parts.map((v,i)=>v/max[i])));
     put("risk-summary", `${names[largest]} 항목의 상대 점수가 가장 높습니다.`);
     ids.forEach((id,i) => { put(`risk-${id}`, `${r.parts[i]} / ${max[i]}`); document.getElementById(`risk-${id}-bar`).style.width = `${r.parts[i]/max[i]*100}%`; });
-    put("risk-time", r.reconstructed ? `사후 계산 ${timeFormatter.format(new Date(r.generated_at))} · 시장 관측 ${timeFormatter.format(new Date(r.market_at))} · 종목·수급 ${r.history_date} 기준. 일봉·수급의 장전 원본 및 수정 이력은 확인되지 않았습니다.` : `산출 ${timeFormatter.format(new Date(r.generated_at))} · 종목·수급 ${r.history_date} 기준`);
-    if (r.reconstructed) put("risk-summary", `사후 계산 · ${names[largest]} 항목의 상대 점수가 가장 높습니다.`);
+    put("risk-time", `산출 ${timeFormatter.format(new Date(r.generated_at))} · 종목·수급 ${r.history_date} 기준`);
+    const note = document.getElementById("risk-reconstruction-note");
+    if (note) note.hidden = !r.reconstructed;
   } catch { put("risk-grade", "자료 부족"); put("risk-summary", "오늘 장전 위험 지수를 산출할 자료가 없습니다."); put("risk-time", "자료가 준비되면 표시합니다."); }
 }
 renderTodayRisk();
