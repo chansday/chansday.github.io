@@ -5,7 +5,7 @@ import { CALENDAR, easternParts } from './us-market-calendar.mjs';
 export const SOURCE = 'https://www.nasdaq.com/holidayandtradinghours';
 export function parseSchedule(html) {
   const table = html.match(/<table\b[^>]*id=["']e1["'][^>]*>([\s\S]*?)<\/table>/i)?.[1];
-  if (!table) throw new Error('NASDAQ holiday table e1 not found');
+  if (!table) { console.log('NASDAQ_TABLE_DIAGNOSTIC', JSON.stringify([...html.matchAll(/<table\b[^>]*>/gi)].map(x=>x[0]).slice(0,10))); console.log('NASDAQ_HOLIDAY_DIAGNOSTIC', JSON.stringify(html.slice(Math.max(0,html.indexOf('New Years Day')-300),html.indexOf('New Years Day')+600))); throw new Error('NASDAQ holiday table e1 not found'); }
   const rows = [...table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(m => [...m[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>x[1].replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&').replace(/\s+/g,' ').trim()));
   const header=rows.shift(); const year=Number(header?.[1]);
   if (header?.length !== 3 || !/^20\d\d$/.test(header[1]) || !/holiday/i.test(header[0]) || !/status/i.test(header[2])) throw new Error('Unexpected NASDAQ table header');
