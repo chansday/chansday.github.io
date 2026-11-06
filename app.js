@@ -419,7 +419,7 @@ function renderEvaluationSummary(data, rows, status) {
 function renderRibbon(data, status) {
   const historicalFallback = data?.meta?.historical_fallback === true;
   const retrospective = data?.meta?.retrospective_evaluation === true;
-  const show = Boolean(retrospective || historicalFallback || data?.meta?.fallback_from_no_data || (isTestOnly(data) && status !== "no_data"));
+  const show = Boolean(!retrospective && (historicalFallback || data?.meta?.fallback_from_no_data || (isTestOnly(data) && status !== "no_data")));
   elementIds["quality-ribbon"].hidden = !show;
   if (!show) return;
   setText(elementIds["quality-ribbon-label"], retrospective ? (data?.meta?.retrospective_mixed ? "장전 기록 · 사후 계산 혼합" : "장 마감 후 사후 계산") : historicalFallback ? historicalFallbackLabel : testLabel(data));
