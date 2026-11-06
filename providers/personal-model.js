@@ -2,13 +2,39 @@ import { trainRankModel, predictCrossSection } from "./rank-model.js";
 
 export const PERSONAL_MODEL = "rank_personal_residual_shrink_v1";
 
+const mean = (values) => (values.length ? values.reduce((a, b) => a + b, 0) / values.length : 0);
+const sampleSd = (values, m) => (values.length > 1 ? Math.sqrt(values.reduce((a, b) => a + (b - m) ** 2, 0) / (values.length - 1)) : 0);
+
+// n is always the full (untrimmed) residual count, so a short-history symbol
+// is still shrunk toward zero the same way as before trimming was added.
+//
+// Winsorized: the top and bottom floor(n / 10) residuals are dropped before
+// computing the mean/t-stat (same trim ratio as forecast-basis.js's
+// shrunkSessionReturn), so a short run of extreme days -- e.g. one huge
+// speculative spike in an otherwise ordinary stock -- doesn't by itself set
+// the adjustment. On top of that, an extra volatility dampening factor
+// compares the trimmed sample's dispersion to the full sample's: when the
+// untrimmed residuals are far more volatile than the trimmed ones, the
+// trimmed-out days were doing most of the explaining, so the signal that
+// survives trimming is shrunk further rather than taken at its own t-stat's
+// word. Both are symbol-specific, since a short recent price run (large
+// residuals produced by the symbol's own history) is the exact case that
+// should not translate into near-full confidence.
 export function personalStats(residuals) {
   const n = residuals.length;
-  const mean = n ? residuals.reduce((a, b) => a + b, 0) / n : 0;
-  const sd = n > 1 ? Math.sqrt(residuals.reduce((a, b) => a + (b - mean) ** 2, 0) / (n - 1)) : 0;
-  const t = sd > 0 ? mean / (sd / Math.sqrt(n)) : 0;
-  const confidence = n / (n + 20) * (t * t / (1 + t * t));
-  return { n, mean, sd, confidence, adjustment: mean * confidence };
+  const rawMean = mean(residuals);
+  const rawSd = sampleSd(residuals, rawMean);
+  const trim = Math.floor(n / 10);
+  const trimmed = [...residuals].sort((a, b) => a - b).slice(trim, n - trim);
+  const m = trimmed.length;
+  const trimmedMean = mean(trimmed);
+  const trimmedSd = sampleSd(trimmed, trimmedMean);
+  const se = m > 0 ? trimmedSd / Math.sqrt(m) : 0;
+  const t = se > 0 ? trimmedMean / se : 0;
+  const rankConfidence = n / (n + 20) * (t * t / (1 + t * t));
+  const volatilityDamping = rawSd > 0 ? Math.min(1, trimmedSd / rawSd) : 1;
+  const confidence = rankConfidence * volatilityDamping;
+  return { n, mean: trimmedMean, sd: trimmedSd, confidence, adjustment: trimmedMean * confidence };
 }
 
 // Reconstruct each historical prediction exclusively from bars before that day.
