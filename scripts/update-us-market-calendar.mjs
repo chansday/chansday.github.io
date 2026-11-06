@@ -1,4 +1,5 @@
 import { readFile, writeFile, rename, rm } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
 import { CALENDAR, easternParts } from './us-market-calendar.mjs';
@@ -39,7 +40,7 @@ export async function update({fetchImpl=fetch, path=CALENDAR, dryRun=false}={}) 
   const initial=await readFile(path,'utf8'), old=JSON.parse(initial);
   const response=await fetchImpl(SOURCE,{headers:{'User-Agent':'kospi-signal-us-calendar/1.0',Accept:'text/html'},redirect:'error',signal:AbortSignal.timeout(20000)});
   if (!response.ok) throw new Error(`NASDAQ calendar HTTP ${response.status}`);
-  const data=parseSchedule(await response.text()), next=mergeCalendar(old,data), today=easternParts(new Date()).date;
+  const buffer=Buffer.from(await response.arrayBuffer()); const pdf=spawnSync('pdftotext',['-layout','-','-'],{input:buffer,encoding:'utf8'}); console.log('PDF_TEXT_DIAGNOSTIC', JSON.stringify(pdf.stdout)); if (pdf.status !== 0) throw new Error('PDF extraction failed: '+pdf.stderr); const data=parseSchedule(pdf.stdout), next=mergeCalendar(old,data), today=easternParts(new Date()).date;
   if (next.coverage.end < today) throw new Error('NASDAQ source does not cover current year');
   if (JSON.stringify(next)===JSON.stringify(old)) return {changed:false,year:data.year};
   if (dryRun) return {changed:false,wouldChange:true,year:data.year};
