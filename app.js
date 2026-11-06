@@ -1092,8 +1092,6 @@ async function renderTodayRisk() {
     put("risk-summary", `${names[largest]} 항목의 상대 점수가 가장 높습니다.${r.shock_floor > r.base_score ? " 해외 충격 기준으로 최소 75점을 적용했습니다." : ""}${r.sidecar_status === "unknown" ? " 전일 사이드카 여부는 확인되지 않았습니다." : ""}`);
     ids.forEach((id,i) => { put(`risk-${id}`, `${r.parts[i]} / ${max[i]}`); document.getElementById(`risk-${id}-bar`).style.width = `${r.parts[i]/max[i]*100}%`; });
     put("risk-time", `산출 ${timeFormatter.format(new Date(r.generated_at))} · 종목·수급 ${r.history_date} 기준`);
-    const note = document.getElementById("risk-reconstruction-note");
-    if (note) note.hidden = !r.reconstructed;
   } catch { put("risk-grade", "자료 부족"); put("risk-summary", "오늘 장전 위험 지수를 산출할 자료가 없습니다."); put("risk-time", "자료가 준비되면 표시합니다."); }
 }
 renderTodayRisk();
