@@ -3,6 +3,8 @@ on:
   schedule:
     - cron: '35 13 * * 1-5' # 09:35 ET (EDT) 개장 직후
     - cron: '35 14 * * 1-5' # 09:35 ET (EST) 개장 직후
+    - cron: '5 17 * * 1-5'  # 13:05 ET (EDT) 조기 마감
+    - cron: '5 18 * * 1-5'  # 13:05 ET (EST) 조기 마감
     - cron: '5 20 * * 1-5'  # 16:05 ET (EDT) 마감 직후
     - cron: '5 21 * * 1-5'  # 16:05 ET (EST) 마감 직후
   workflow_dispatch:
@@ -26,24 +28,17 @@ jobs:
         run: |
           printf '%s\n' 'KOSPI_REQUEST_AUDIT=1' "BASH_ENV=$GITHUB_WORKSPACE/scripts/audit-env.sh" >> "$GITHUB_ENV"
       - id: market
-        run: node scripts/market-session-guard.mjs
+        env:
+          SCHEDULE: ${{ github.event.schedule }}
+        run: node scripts/us-market-calendar.mjs
       - name: 나스닥 섹터 데이터 수집
         id: collect
         if: steps.market.outputs.should_run == 'true'
         continue-on-error: true
         env:
-          SCHEDULE: ${{ github.event.schedule }}
-        run: |
-          if [ -z "${NASDAQ_SECTORS_PHASE:-}" ]; then
-            case "$SCHEDULE" in
-              '35 13 * * 1-5') export NASDAQ_SECTORS_PHASE=open ;;
-              '35 14 * * 1-5') export NASDAQ_SECTORS_PHASE=open ;;
-              '5 20 * * 1-5') export NASDAQ_SECTORS_PHASE=close ;;
-              '5 21 * * 1-5') export NASDAQ_SECTORS_PHASE=close ;;
-              *) export NASDAQ_SECTORS_PHASE=manual ;;
-            esac
-          fi
-          node scripts/collect-nasdaq-sectors.mjs
+          NASDAQ_SECTORS_PHASE: ${{ steps.market.outputs.phase }}
+          NASDAQ_MARKET_DATE: ${{ steps.market.outputs.market_date }}
+        run: node scripts/collect-nasdaq-sectors.mjs
       - name: 나스닥 섹터 데이터 저장
         if: always() && steps.market.outputs.should_run == 'true'
         run: |

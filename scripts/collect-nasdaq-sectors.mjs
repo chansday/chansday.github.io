@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-import { kstDate } from './market-calendar.mjs';
+import { easternParts } from './us-market-calendar.mjs';
 
 // NASDAQ's own broad sector indexes (api.nasdaq.com). Public, unofficial. No retries or access-control bypass.
 export const SECTORS = {
@@ -137,7 +137,8 @@ export async function run() {
   const phase = process.env.NASDAQ_SECTORS_PHASE || 'manual';
   if (!['open', 'close', 'manual'].includes(phase)) throw new Error('Invalid collection phase');
   const snapshot = await collect();
-  const date = kstDate(new Date(snapshot.started_at));
+  const date = process.env.NASDAQ_MARKET_DATE || easternParts(new Date(snapshot.started_at)).date;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Invalid market date');
   const id = (process.env.GITHUB_RUN_ID || snapshot.started_at.replace(/[^0-9]/g, '')) + '-' + (process.env.GITHUB_RUN_ATTEMPT || '1');
   if (!/^[0-9]+-[0-9]+$/.test(id)) throw new Error('Invalid run identifier');
   const dir = `data/nasdaq-sectors/${date}`;

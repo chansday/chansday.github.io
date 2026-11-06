@@ -1,0 +1,61 @@
+{
+  "market": "NASDAQ",
+  "timezone": "America/New_York",
+  "source": "https://www.nasdaq.com/holidayandtradinghours",
+  "coverage": {
+    "start": "2026-01-01",
+    "end": "2026-12-31"
+  },
+  "holidays": [
+    {
+      "date": "2026-01-01",
+      "name": "New Years Day"
+    },
+    {
+      "date": "2026-01-19",
+      "name": "Martin Luther King Jr. Day"
+    },
+    {
+      "date": "2026-02-16",
+      "name": "Presidents Day"
+    },
+    {
+      "date": "2026-04-03",
+      "name": "Good Friday"
+    },
+    {
+      "date": "2026-05-25",
+      "name": "Memorial Day"
+    },
+    {
+      "date": "2026-06-19",
+      "name": "Juneteenth"
+    },
+    {
+      "date": "2026-07-03",
+      "name": "Independence Day (Observed)"
+    },
+    {
+      "date": "2026-09-07",
+      "name": "Labor Day"
+    },
+    {
+      "date": "2026-11-26",
+      "name": "Thanksgiving Day"
+    },
+    {
+      "date": "2026-12-25",
+      "name": "Christmas Day"
+    }
+  ],
+  "early_closes": [
+    {
+      "date": "2026-11-27",
+      "close": "13:00"
+    },
+    {
+      "date": "2026-12-24",
+      "close": "13:00"
+    }
+  ]
+}
