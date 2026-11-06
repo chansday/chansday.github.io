@@ -8,7 +8,7 @@ import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, rankingExpectedReturn } from "./providers/evaluation-contract.js";
 import { sortRankingRows } from "./providers/ranking-sort.js";
-import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore, rowConfidence } from "./providers/evaluation-score.js";
+import { computeEvaluationScores, evaluationScoreTooltip, formatEvaluationScore, rowConfidence } from "./providers/evaluation-score.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
 import { NO_TRADE_LABEL, buildSelectedDetail, naverFinanceUrl, recentDailyRows } from "./providers/selected-detail.js";
 
@@ -127,8 +127,6 @@ function formatExpectedPrice(value) { if (!finite(value)) return "—"; const di
 // and post-close overlays render the same way.
 function attachEvaluationScores(rows) { const entries = computeEvaluationScores(rows.map((row) => row.expectedReturnRaw), rows.map((row) => rowConfidence(row.raw))); return rows.map((row, index) => ({ ...row, evaluationScore: entries[index]?.score ?? null, evaluationEntry: entries[index] })); }
 function evaluationTitle(row) { return evaluationScoreTooltip(row.evaluationEntry, row.expectedReturnRaw); }
-// Visible (not hover-only) rank and original value for touch layouts.
-function evaluationNote(row) { return evaluationScoreSummary(row.evaluationEntry, row.expectedReturnRaw); }
 function formatNumber(value) { return finite(value) ? integerFormatter.format(value) : "—"; }
 function formatDate(value) { if (!value) return "—"; const date = new Date(value); return Number.isNaN(date.getTime()) ? "—" : dateFormatter.format(date).replaceAll(". ", "."); }
 function formatPlainDate(value) { const match = String(value || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); return match ? `${match[1]}.${match[2]}.${match[3]}` : "—"; }
@@ -676,7 +674,7 @@ function openSourceLabel(source) {
   if (source?.kind === "retrospective_history") return `사후 계산 · 공개 일봉 ${source.history_dates.join(", ")}`;
   return "출처 미확인";
 }
-function rowMetric(label, value, tone = "", title = "", note = "") { return `<div><span>${label}</span><strong class="${tone}"${title ? ` title="${escapeText(title)}"` : ""}>${value}</strong>${note ? `<small class="evaluation-note">${escapeText(note)}</small>` : ""}</div>`; }
+function rowMetric(label, value, tone = "", title = "") { return `<div><span>${label}</span><strong class="${tone}"${title ? ` title="${escapeText(title)}"` : ""}>${value}</strong></div>`; }
 function changeMarkup(symbol) {
   const entry = currentChanges[symbol];
   if (!entry || entry.kind === "unknown") return '<span class="rank-change rank-change-muted">X</span>';
@@ -693,7 +691,7 @@ function createMobileCard(row) {
   card.setAttribute("aria-label", `${row.name} ${row.symbol} 상세 보기`);
   card.setAttribute("aria-selected", String(row.symbol === selectedSymbol));
   card.dataset.symbol = row.symbol;
-  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span>${changeMarkup(row.symbol)}<strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric(`예상 시가 · ${escapeText(openSourceLabel(row.expectedOpenSource))}`, formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("종목 평가", formatEvaluationScore(row.evaluationScore), toneClass(row.expectedReturn), evaluationTitle(row), evaluationNote(row))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("실제 최고가", formatHigh(row.actualHigh))}${rowMetric("실제 장중 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
+  card.innerHTML = `<div class="ranking-card-head"><span class="ranking-card-rank">#${escapeText(row.rank)}</span>${changeMarkup(row.symbol)}<strong class="ranking-card-name">${escapeText(row.name)}</strong><span class="ranking-card-code">${escapeText(row.symbol)}</span></div><span class="row-status ${escapeText(row.status)} ranking-card-status">${escapeText(rowStatusLabel(row))}</span><div class="ranking-card-metrics">${rowMetric(`예상 시가 · ${escapeText(openSourceLabel(row.expectedOpenSource))}`, formatExpectedPrice(row.expectedOpen))}${rowMetric("예상 종가", formatExpectedPrice(row.expectedClose))}${rowMetric("종목 평가", formatEvaluationScore(row.evaluationScore), toneClass(row.expectedReturn), evaluationTitle(row))}${rowMetric("실제 시가", formatPrice(row.actualOpen))}${rowMetric("실제 종가", formatPrice(row.actualClose))}${rowMetric("실제 최고가", formatHigh(row.actualHigh))}${rowMetric("실제 장중 수익률", formatPercent(row.sessionReturn), toneClass(row.sessionReturn))}${rowMetric("거래량", formatNumber(row.actualVolume))}</div>`;
   card.addEventListener("click", () => selectRow(row.symbol, { reveal: true }));
   card.addEventListener("keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); selectRow(row.symbol, { reveal: true }); } });
   return card;
@@ -888,7 +886,6 @@ function renderSelected() {
   setText(elementIds["selected-expected-close"], formatExpectedPrice(row.expectedClose));
   setText(elementIds["selected-expected-return"], formatEvaluationScore(row.evaluationScore));
   elementIds["selected-expected-return"]?.setAttribute("title", evaluationTitle(row));
-  setText(document.getElementById("selected-evaluation-note"), evaluationNote(row));
   setText(elementIds["selected-actual-open"], formatPrice(row.actualOpen));
   setText(elementIds["selected-actual-close"], formatPrice(row.actualClose));
   setText(elementIds["selected-actual-return"], formatPercent(row.sessionReturn));
