@@ -1,3 +1,4 @@
+import { applyOpenPriceReference } from "./providers/open-price-reference.js";
 import { previewToSnapshot } from "./providers/preview-snapshot.js";
 import { loadInvestorDays, formatInvestorShares } from "./providers/investor-view.js";
 import { rankChanges, canCompareRankings } from "./providers/rank-change.js";
@@ -198,7 +199,7 @@ function normalizeRow(row, index) {
     rank: valueOf(row, "rank") ?? index + 1,
     symbol: valueOf(row, "symbol", "code", "instrument_id") || "—",
     name: valueOf(row, "name", "instrument_name") || "종목명 미정",
-    expectedOpen, expectedOpenSource: row?.expected_open_source || (row?.retrospective_overlay ? { kind: "retrospective_history", history_dates: row.retrospective_overlay } : null), expectedClose, expectedReturn: deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }), expectedReturnRaw: rankingExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }),
+    expectedOpen, expectedOpenSource: row?.expected_open_source || (row?.quality === "naver_open_price_reference" ? {kind: "naver_open_price_reference"} : null) || (row?.retrospective_overlay ? { kind: "retrospective_history", history_dates: row.retrospective_overlay } : null), expectedClose, expectedReturn: deriveExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }), expectedReturnRaw: rankingExpectedReturn({ expected_open: expectedOpen, expected_close: expectedClose }),
     actualOpen, actualClose, actualHigh: valueOf(row, "actual_high"), sessionReturn: deriveSessionReturn({ actual_open: actualOpen, actual_close: actualClose }), actualVolume: valueOf(row, "actual_volume"),
     error: deriveEvaluationError({ expected_open: expectedOpen, expected_close: expectedClose, actual_open: actualOpen, actual_close: actualClose }), confidence: valueOf(row, "confidence", "confidence_score"), quality: valueOf(row, "quality", "quality_status") || rawStatus,
     reasons: row?.eligibility?.reasons || row?.reasons || [], status: rawStatus === "ready" ? "valid" : rawStatus,
@@ -278,6 +279,14 @@ async function loadDateMetadata() {
 
 function dateState(date, mode = currentDataMode) { return classifyDate(date, mode, dateIndex, marketCalendar); }
 
+async function withOpenPriceReference(data) {
+  if (data?.mode !== "provider" || !isIsoDate(data?.asOfDate) || data.meta?.test_only || data.meta?.historical_test || data.meta?.preview) return data;
+  try {
+    const response = await fetch(`./data/open-price-reference/${data.asOfDate}.json`, {cache: "no-store"});
+    return response.ok ? applyOpenPriceReference(data, await response.json()) : data;
+  } catch { return data; }
+}
+
 async function loadSnapshotForMode(mode, date) {
   const normalizedMode = dateModeForRoute(mode);
   const path = snapshotPath(normalizedMode, date, normalizedMode === "provider" ? dateIndex?.latestStages?.provider?.[date] : null);
@@ -306,7 +315,7 @@ async function loadSnapshot() {
     if (state.status === "not_collected") throw new DateNavigationError("not_collected", selectedDate, `${selectedDate} has no collected snapshot`);
     if (mode === "historical-test") return loadHistoricalTestSnapshot(selectedDate);
     const selected = await loadSnapshotForMode(mode, selectedDate);
-    return mode === "provider" ? applyPreviousResultStatus(selected, selectedDate) : selected;
+    return mode === "provider" ? withOpenPriceReference(await applyPreviousResultStatus(selected, selectedDate)) : selected;
   }
   const response = await fetch("./data/latest-snapshot.json", { cache: "no-store" });
   if (response.status === 404) return emptySnapshot();
@@ -318,7 +327,7 @@ async function loadSnapshot() {
   await applyPreviousResultStatus(latest, statusDate);
   if (latest.status === "no_data") return (await loadHistoricalFallback(latest)) || latest;
   if (isTestOnly(latest)) return emptySnapshot();
-  return latest;
+  return withOpenPriceReference(latest);
 }
 
 async function applyPreviousResultStatus(latest, statusDate) {
@@ -505,7 +514,7 @@ function renderHeader(data) {
   renderRows();
   renderSelected();
   renderDateNavigation();
-  setText(document.getElementById("ranking-lede"), data?.meta?.preview ? (data.meta.preview_collection === "morning" ? "당일 장전 수집 일봉 기준 예상 순위 · 실제 시가·종가 미반영" : "전일 저녁 일봉 기준 예상 순위 · 장전 시세와 실제 시가·종가 미반영") : data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
+  setText(document.getElementById("ranking-lede"), data?.meta?.open_price_reference_at ? `네이버 시가 기준 · ${timeFormatter.format(new Date(data.meta.open_price_reference_at))} 조회` : data?.meta?.preview ? (data.meta.preview_collection === "morning" ? "당일 장전 수집 일봉 기준 예상 순위 · 실제 시가·종가 미반영" : "전일 저녁 일봉 기준 예상 순위 · 장전 시세와 실제 시가·종가 미반영") : data?.meta?.retrospective_evaluation ? "종목별 출처를 확인하세요. 장전 기록이 없는 종목의 사후 기준값은 장전 예측 성과를 의미하지 않습니다." : "종목 평가는 예상 시가→예상 종가 수익률이 이날 전체 종목 중 몇 백분위인지 0–100점(소수 셋째 자리)으로 표시합니다. 예상 시가·예상 종가가 모두 있을 때만 계산하고, 없으면 데이터 없음으로 표시합니다. 실제 수익률은 실제 시가→실제 종가 기준입니다.");
   // A table already scored by the day-trade model keeps its own expected values.
   if (usesRetrospectiveOverlay(data)) void renderPostClose(data);
 }
@@ -652,6 +661,7 @@ function moveCalendarMonth(delta) {
 function toneClass(value) { return finite(value) ? value >= 0 ? "positive" : "negative" : ""; }
 function sortRows(rows, sortKey = "expectedReturn") { return sortRankingRows(rows, sortKey); }
 function openSourceLabel(source) {
+  if (source?.kind === "naver_open_price_reference") return "네이버 시가";
   if (snapshot?.meta?.preview) return "전일 일봉 예상";
   if (source?.kind === "preopen_quote") return "장전 호가 기록";
   if (source?.kind === "preopen_history") return "장전 공개 일봉 계산";

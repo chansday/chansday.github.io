@@ -1,0 +1,7 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {applyOpenPriceReference} from '../providers/open-price-reference.js';
+const original={mode:'provider',asOfDate:'2026-11-06',meta:{},rows:[{symbol:'000001',expected_open:100,expected_close:101,expected_return:1,actual_open:100,actual_close:null,error:null,quality:'valid',status:'valid'},{symbol:'000002',expected_open:100,expected_close:102,expected_return:2,actual_open:100,actual_close:null,error:null,quality:'valid',status:'valid'}]};
+const data={date:'2026-11-06',source:'naver_polling_openPriceRaw',retrieved_at:'2026-11-06T01:36:00Z',rows:[{symbol:'000001',expected_open:90,expected_close:94.5,quote_at:'2026-11-06T01:36:00Z'},{symbol:'000002',expected_open:100,expected_close:101,quote_at:'2026-11-06T01:36:00Z'}]};
+test('uses selected prices and recomputes ranking while preserving actual observations',()=>{const out=applyOpenPriceReference(original,data);assert.equal(out.rows[0].symbol,'000001');assert.equal(out.rows[0].rank,1);assert.equal(out.rows[0].actual_open,100);assert.equal(out.rows[0].expected_return,5);assert.equal(out.rows[0].evaluation_score,100);assert.equal(original.rows[0].expected_open,100);});
+test('ignores wrong dates, wrong sources and incomplete records',()=>{assert.strictEqual(applyOpenPriceReference(original,{...data,date:'2026-11-05'}),original);assert.strictEqual(applyOpenPriceReference(original,{...data,source:'unknown'}),original);assert.strictEqual(applyOpenPriceReference(original,{...data,rows:[{symbol:'000001'}]}),original);});
