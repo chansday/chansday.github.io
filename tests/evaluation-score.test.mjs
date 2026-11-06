@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore, formatRawExpectedReturn, scoreThousandths, withEvaluationScores } from "../providers/evaluation-score.js";
+import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore, formatRawExpectedReturn, rowConfidence, scoreThousandths, withEvaluationScores } from "../providers/evaluation-score.js";
 import { deriveEvaluationError, deriveExpectedReturn } from "../providers/evaluation-contract.js";
 import { validateRankingRows } from "../providers/provider-adapter.js";
 import { sortRankingRows } from "../providers/ranking-sort.js";
@@ -21,6 +21,39 @@ test("a negative expected return never scores above 50 and a positive one never 
   assert.deepEqual(scores([-1, -3, -2, -5, -4]), [50, 25, 37.5, 0, 12.5]);
   // mixed day: negatives confined to [0, 50], zero exactly 50, positives to [50, 100].
   assert.deepEqual(scores([0.0371, -1.2, 0.0102, 2.5]), [75, 25, 50, 100]);
+});
+
+test("confidence weights the position within a sign group: a bigger move the model trusts less ranks below a smaller, more trusted one", () => {
+  const entries = computeEvaluationScores([5, 1], [0.1, 0.9]);
+  assert.deepEqual(entries.map((e) => e.score), [50, 100]);
+  // Flipping which row has the confidence flips the ordering, not just the values.
+  assert.deepEqual(computeEvaluationScores([5, 1], [0.9, 0.1]).map((e) => e.score), [100, 50]);
+  // Omitting confidence (or an invalid entry) defaults to 1: ranked purely on raw magnitude, as before.
+  assert.deepEqual(computeEvaluationScores([5, 1]).map((e) => e.score), [100, 50]);
+  assert.deepEqual(computeEvaluationScores([5, 1], [Number.NaN, -1]).map((e) => e.score), [100, 50]);
+  // Confidence can never flip a row out of its raw sign's half, even near the boundary.
+  const mixed = computeEvaluationScores([-10, 1], [0.01, 0.01]);
+  assert.ok(mixed[0].score <= 50 && mixed[1].score >= 50);
+});
+
+test("rowConfidence reads the personal model's fit confidence and defaults to 1 (no shrinkage) otherwise", () => {
+  assert.equal(rowConfidence({ expected_close_basis: { inputs: { stats: { confidence: 0.37 } } } }), 0.37);
+  assert.equal(rowConfidence({ expected_close_basis: { model: "ridge_rank_11_features_60_sessions_v1" } }), 1);
+  assert.equal(rowConfidence({ expected_close_basis: { inputs: { stats: { confidence: 1.5 } } } }), 1, "out-of-range confidence is ignored");
+  assert.equal(rowConfidence(null), 1);
+  assert.equal(rowConfidence({}), 1);
+});
+
+test("withEvaluationScores weights by each row's own personal-model confidence", () => {
+  const row = (symbol, close, confidence) => ({ symbol, expected_open: 100, expected_close: close, expected_close_basis: { inputs: { stats: { confidence } } } });
+  const rows = [row("A", 105, 0.1), row("B", 101, 0.9)];
+  const scored = withEvaluationScores(rows);
+  // A's raw +5% is the bigger move, but B's +1% is five times as confident
+  // (0.9 x 1 = 0.9 beats 0.1 x 5 = 0.5), so B outranks A.
+  assert.deepEqual(scored.map((r) => r.symbol), ["A", "B"]);
+  assert.deepEqual(scored.map((r) => r.evaluation_score), [50, 100]);
+  // Rank/count stay raw-based regardless: A's raw return is still the higher one.
+  assert.deepEqual(scored.map((r) => r.evaluation_score_rank), [1, 2]);
 });
 
 test("tied values share the average of the ranks they occupy, within their sign group", () => {

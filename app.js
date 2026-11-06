@@ -8,7 +8,7 @@ import { createDemoProvider } from "./providers/demo-provider.js";
 import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, rankingExpectedReturn } from "./providers/evaluation-contract.js";
 import { sortRankingRows } from "./providers/ranking-sort.js";
-import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore } from "./providers/evaluation-score.js";
+import { computeEvaluationScores, evaluationScoreSummary, evaluationScoreTooltip, formatEvaluationScore, rowConfidence } from "./providers/evaluation-score.js";
 import { mergePostCloseEvaluation } from "./providers/post-close-overlay.js";
 import { NO_TRADE_LABEL, buildSelectedDetail, naverFinanceUrl, recentDailyRows } from "./providers/selected-detail.js";
 
@@ -125,7 +125,7 @@ function formatExpectedPrice(value) { if (!finite(value)) return "—"; const di
 // over every row of the displayed snapshot (providers/evaluation-score.js).
 // Computed from the displayed rows so old snapshots without the stored fields
 // and post-close overlays render the same way.
-function attachEvaluationScores(rows) { const entries = computeEvaluationScores(rows.map((row) => row.expectedReturnRaw)); return rows.map((row, index) => ({ ...row, evaluationScore: entries[index]?.score ?? null, evaluationEntry: entries[index] })); }
+function attachEvaluationScores(rows) { const entries = computeEvaluationScores(rows.map((row) => row.expectedReturnRaw), rows.map((row) => rowConfidence(row.raw))); return rows.map((row, index) => ({ ...row, evaluationScore: entries[index]?.score ?? null, evaluationEntry: entries[index] })); }
 function evaluationTitle(row) { return evaluationScoreTooltip(row.evaluationEntry, row.expectedReturnRaw); }
 // Visible (not hover-only) rank and original value for touch layouts.
 function evaluationNote(row) { return evaluationScoreSummary(row.evaluationEntry, row.expectedReturnRaw); }

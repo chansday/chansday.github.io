@@ -34,12 +34,37 @@
 // rescaling the local thousandths). Rank and count stay global (computed
 // across every scored row, not per group) since they describe the row's
 // position among all evaluated symbols, independent of the score's sign gate.
+//
+// The within-group position (L/E above) is ranked by confidence-weighted
+// magnitude, not the raw return: weighted = raw × confidence, where
+// confidence is the personal model's own [0, 1] fit confidence
+// (providers/personal-model.js, carried in expected_close_basis.inputs.stats
+// for rows the personal model scored; rows without it default to 1, i.e. no
+// shrinkage). A large predicted move the model isn't confident about is
+// pulled toward the neutral midpoint instead of reaching near 100 (or near 0
+// for a loss) on raw magnitude alone; a smaller but high-confidence move
+// ranks above it. Confidence is always >= 0, so it never flips which half
+// (gain/loss) a row falls into -- only where it lands inside that half.
+// Global rank/ties/count (the tooltip's "113위/885") stay based on the raw
+// return, since that is the literal predicted number being compared.
 import { rankingExpectedReturn } from "./evaluation-contract.js";
 
 export const EVALUATION_SCORE_FIELDS = Object.freeze(["expected_return_raw", "evaluation_score", "evaluation_score_rank", "evaluation_score_count"]);
 
 function finite(value) {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function finiteConfidence(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
+}
+
+// The personal model's own fit confidence for this row (providers/personal-model.js
+// personalStats), or 1 (no shrinkage) when the row has none -- older basis models,
+// or no close basis at all.
+export function rowConfidence(row) {
+  const confidence = row?.expected_close_basis?.inputs?.stats?.confidence;
+  return finiteConfidence(confidence) ? confidence : 1;
 }
 
 // Score in thousandths (integer 0..100000) for L lower and E equal rows of N.
@@ -65,20 +90,25 @@ function bounds(sorted) {
   };
 }
 
-// values: array of numbers or null. Returns one entry per input, null where the
-// input has no finite value; otherwise { score, thousandths, rank, ties, count }
-// where score = thousandths / 1000 (already rounded half up to 3 decimals),
-// rank/ties/count are global (see file header), and thousandths is gated by
-// sign into [0, 50000] for raw < 0, exactly 50000 for raw == 0, and
-// [50000, 100000] for raw > 0.
-export function computeEvaluationScores(values) {
+// values: array of numbers or null. confidences: optional array of [0, 1]
+// numbers, same length (missing/invalid entries default to 1, no shrinkage).
+// Returns one entry per input, null where the input has no finite value;
+// otherwise { score, thousandths, rank, ties, count } where
+// score = thousandths / 1000 (already rounded half up to 3 decimals),
+// rank/ties/count are global and raw-based (see file header), and
+// thousandths is gated by sign into [0, 50000] for raw < 0, exactly 50000
+// for raw == 0, and [50000, 100000] for raw > 0, positioned within its half
+// by confidence-weighted magnitude.
+export function computeEvaluationScores(values, confidences = null) {
   const list = Array.isArray(values) ? values : [];
-  const present = list.filter(finite).sort((a, b) => a - b);
-  const count = present.length;
-  const global = bounds(present);
-  const neg = present.filter((v) => v < 0), negBounds = bounds(neg);
-  const pos = present.filter((v) => v > 0), posBounds = bounds(pos);
-  return list.map((value) => {
+  const weightOf = (index) => { const c = Array.isArray(confidences) ? confidences[index] : undefined; return finiteConfidence(c) ? c : 1; };
+  const present = list.map((raw, index) => ({ raw, weighted: raw * weightOf(index) })).filter((entry) => finite(entry.raw));
+  const sortedRaw = present.map((entry) => entry.raw).sort((a, b) => a - b);
+  const count = sortedRaw.length;
+  const global = bounds(sortedRaw);
+  const neg = present.filter((entry) => entry.raw < 0).map((entry) => entry.weighted).sort((a, b) => a - b), negBounds = bounds(neg);
+  const pos = present.filter((entry) => entry.raw > 0).map((entry) => entry.weighted).sort((a, b) => a - b), posBounds = bounds(pos);
+  return list.map((value, index) => {
     if (!finite(value)) return null;
     const lower = global.lower(value);
     const ties = global.upper(value) - lower;
@@ -86,23 +116,28 @@ export function computeEvaluationScores(values) {
     let thousandths;
     if (value === 0) {
       thousandths = 50000;
-    } else if (value > 0) {
-      const gl = posBounds.lower(value), gt = posBounds.upper(value) - gl;
-      thousandths = 50000 + Math.round(scoreThousandths(gl, gt, pos.length) / 2);
     } else {
-      const gl = negBounds.lower(value), gt = negBounds.upper(value) - gl;
-      thousandths = Math.round(scoreThousandths(gl, gt, neg.length) / 2);
+      const weighted = value * weightOf(index);
+      if (value > 0) {
+        const gl = posBounds.lower(weighted), gt = posBounds.upper(weighted) - gl;
+        thousandths = 50000 + Math.round(scoreThousandths(gl, gt, pos.length) / 2);
+      } else {
+        const gl = negBounds.lower(weighted), gt = negBounds.upper(weighted) - gl;
+        thousandths = Math.round(scoreThousandths(gl, gt, neg.length) / 2);
+      }
     }
     return { score: thousandths / 1000, thousandths, rank, ties, count };
   });
 }
 
 // Pipeline helper: returns new rows with the four optional score fields set
-// from the rows' own expected_open/expected_close. expected_return is untouched.
+// from the rows' own expected_open/expected_close and the personal model's
+// own confidence, when present. expected_return is untouched.
 export function withEvaluationScores(rows) {
   const list = Array.isArray(rows) ? rows : [];
   const raws = list.map((row) => rankingExpectedReturn(row));
-  const scores = computeEvaluationScores(raws);
+  const confidences = list.map((row) => rowConfidence(row));
+  const scores = computeEvaluationScores(raws, confidences);
   return list.map((row, index) => ({
     ...row,
     expected_return_raw: raws[index],
