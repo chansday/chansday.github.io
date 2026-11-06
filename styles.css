@@ -552,3 +552,19 @@ h1 em, h2 em { color: var(--blue-strong); font-style: normal; }
 .next-preview-more { margin-top: 14px; color: var(--muted); font-size: 12px; }
 .next-preview-more summary { cursor: pointer; padding: 8px 0; }
 
+
+.risk-panel { padding: 30px; }
+.risk-main { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+.risk-kicker { margin: 0 0 8px; color: var(--blue); font-size: .76rem; font-weight: 700; letter-spacing: .09em; }
+.risk-kicker span { color: var(--dim); letter-spacing: 0; }
+.risk-value { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; }
+.risk-value strong { font-size: clamp(3rem, 6vw, 4.7rem); line-height: 1.1; letter-spacing: -.06em; }
+.risk-value > span { color: var(--muted); }
+.risk-value .risk-grade { padding: 3px 12px; border-radius: 999px; background: rgba(164,191,221,.12); color: var(--muted); font-size: .85rem; font-weight: 700; }
+[data-level="low"] .risk-grade { color: var(--green); } [data-level="normal"] .risk-grade { color: var(--blue); } [data-level="caution"] .risk-grade { color: var(--yellow); } [data-level="high"] .risk-grade { color: var(--red); }
+.risk-summary { margin: 14px 0 3px; } .risk-time { color: var(--dim); font-size: .82rem; margin: 0; }
+.risk-bars { display: grid; gap: 16px; } .risk-bars > div { display: grid; grid-template-columns: 1fr auto; gap: 6px; font-size: .88rem; } .risk-bars strong { color: var(--muted); font-variant-numeric: tabular-nums; }
+.risk-bars i { grid-column: 1 / -1; height: 6px; border-radius: 9px; background: rgba(164,191,221,.15); overflow: hidden; } .risk-bars b { display: block; width: 0; height: 100%; background: var(--blue); border-radius: inherit; }
+[data-level="low"] .risk-bars b { background: var(--green); } [data-level="caution"] .risk-bars b { background: var(--yellow); } [data-level="high"] .risk-bars b { background: var(--red); }
+.risk-details { margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: .84rem; } .risk-details summary { color: var(--blue); cursor: pointer; font-weight: 700; } .risk-details p { margin: 12px 0 0; }
+@media (max-width: 700px) { .risk-panel { padding: 22px; } .risk-main { grid-template-columns: 1fr; gap: 25px; } }

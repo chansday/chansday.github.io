@@ -1072,3 +1072,21 @@ async function loadComparison(data) {
     if (snapshot) renderRows();
   } catch { if (token === comparisonToken && snapshot) { setText(document.getElementById("ranking-comparison-note"), "순위 비교 기준 자료가 없어 변동을 표시할 수 없습니다."); renderRows(); } }
 }
+
+async function renderTodayRisk() {
+  const put = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+  try {
+    const date = todayKst(), response = await fetch(`./data/risk-index/${date}.json`, {cache:"no-store"});
+    if (!response.ok) throw new Error("missing");
+    const r = await response.json();
+    if (r.date !== date || !Number.isInteger(r.score) || r.score < 0 || r.score > 100 || !Array.isArray(r.parts) || r.parts.length !== 3 || r.parts.some((v,i) => !Number.isInteger(v) || v < 0 || v > [30,40,30][i]) || r.parts.reduce((a,b)=>a+b,0) !== r.score) throw new Error("invalid");
+    const [grade, color] = r.score < 25 ? ["낮음", "low"] : r.score < 50 ? ["보통", "normal"] : r.score < 75 ? ["주의", "caution"] : ["높음", "high"];
+    put("risk-score", r.score); put("risk-grade", grade); document.getElementById("risk-index").dataset.level = color;
+    const names = ["시장 환경", "종목 변동성·과열", "수급 부담"], ids = ["market","stocks","flow"], max = [30,40,30];
+    const largest = r.parts.map((v,i)=>v/max[i]).indexOf(Math.max(...r.parts.map((v,i)=>v/max[i])));
+    put("risk-summary", `${names[largest]} 항목의 상대 점수가 가장 높습니다.`);
+    ids.forEach((id,i) => { put(`risk-${id}`, `${r.parts[i]} / ${max[i]}`); document.getElementById(`risk-${id}-bar`).style.width = `${r.parts[i]/max[i]*100}%`; });
+    put("risk-time", `산출 ${timeFormatter.format(new Date(r.generated_at))} · 종목·수급 ${r.history_date} 기준`);
+  } catch { put("risk-grade", "자료 부족"); put("risk-summary", "오늘 장전 위험 지수를 산출할 자료가 없습니다."); put("risk-time", "자료가 준비되면 표시합니다."); }
+}
+renderTodayRisk();

@@ -51,6 +51,7 @@ jobs:
         if: always() && steps.market.outputs.should_run == 'true'
         run: |
           if [[ -d data/market-context ]]; then git add -- data/market-context; fi
+          if [[ -d data/risk-index ]]; then git add -- data/risk-index; fi
           if ! git diff --cached --quiet; then bash scripts/commit-and-push.sh "chore(data): record market context"; fi
       - name: 수집 실패 여부 확인
         if: steps.collect.outcome == 'failure'

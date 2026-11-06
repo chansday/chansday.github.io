@@ -1,0 +1,10 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { calculateRisk } from "../scripts/build-risk-index.mjs";
+const date="2026-11-06", now=new Date("2026-11-06T08:25:00+09:00");
+const context={market_date:date,started_at:"2026-11-06T08:20:00+09:00",completed_at:"2026-11-06T08:21:00+09:00",sources:{us_indices:{status:"ok",data:[{reutersCode:".VIX",closePrice:"25",localTradedAt:"2026-11-06T05:00:00+09:00"},{reutersCode:".INX",fluctuationsRatio:"-1.5",localTradedAt:"2026-11-06T05:00:00+09:00"}]},usd_krw:{status:"ok",data:{fluctuationsRatio:"1",localTradedAt:"2026-11-06T08:00:00+09:00"}}}};
+const history={target_date:date,retrieved_at:"2026-11-06T07:00:00+09:00",symbols:["000001"],sessions:[{date:"2026-11-05"}],return_history:{"000001":[["2026-11-05",0,100],["2026-11-04",0,100],["2026-11-03",0,100],["2026-11-02",0,100],["2026-10-30",0,100],["2026-10-29",0,100]]}};
+const flow={date:"2026-11-05",stocks:{"000001":{foreign_net_shares:-1,institution_net_shares:-1}}};
+test("점수 계산과 배점",()=>{const r=calculateRisk(context,history,flow,date,now);assert.deepEqual(r.parts,[15,0,30]);assert.equal(r.score,45)});
+test("장 시작 후 및 사후 수집 자료 거부",()=>{assert.throws(()=>calculateRisk(context,history,flow,date,new Date("2026-11-06T09:00:00+09:00")));assert.throws(()=>calculateRisk(context,{...history,retrieved_at:"2026-11-06T08:22:00+09:00"},flow,date,now));});
+test("수급 누락과 당일 가격 거부",()=>{assert.throws(()=>calculateRisk(context,history,{...flow,stocks:{}},date,now));const h=structuredClone(history);h.return_history["000001"][0][0]=date;assert.throws(()=>calculateRisk(context,h,flow,date,now));});

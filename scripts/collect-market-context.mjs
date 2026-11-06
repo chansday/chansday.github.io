@@ -122,6 +122,11 @@ export async function run() {
   await mkdir(dir, { recursive: true });
   const record = { ...snapshot, phase, market_date: date };
   await writeFile(path, JSON.stringify(record, null, 2) + '\n', { flag: 'wx' });
+  if (phase === 'preopen') {
+    const { spawnSync } = await import('node:child_process');
+    const risk = spawnSync(process.execPath, ['scripts/build-risk-index.mjs', path], { stdio: 'inherit' });
+    if (risk.status !== 0) console.warn('::warning::장전 위험 지수 생성 불가');
+  }
   console.log(JSON.stringify({ path, status: snapshot.status, sources: Object.fromEntries(Object.entries(snapshot.sources).map(([k,v]) => [k,v.status])) }));
   if (process.env.GITHUB_STEP_SUMMARY) await appendFile(process.env.GITHUB_STEP_SUMMARY, formatSummary(record, path));
   if (snapshot.status === 'partial' || breadth.status !== 'ok') console.warn('::warning::시장 환경 데이터 일부를 수집하지 못했습니다. 상세 요약을 확인하세요.');
