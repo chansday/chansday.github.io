@@ -5,11 +5,12 @@ import { pathToFileURL } from 'node:url';
 import { CALENDAR, easternParts } from './us-market-calendar.mjs';
 export const SOURCE = 'https://www.nasdaq.com/holidayandtradinghours';
 export function parseSchedule(html) {
-  const table = html.match(/<table\b[^>]*id=["']e1["'][^>]*>([\s\S]*?)<\/table>/i)?.[1];
-  if (!table) { console.log('NASDAQ_TABLE_DIAGNOSTIC', JSON.stringify([...html.matchAll(/<table\b[^>]*>/gi)].map(x=>x[0]).slice(0,10))); console.log('NASDAQ_HOLIDAY_DIAGNOSTIC', JSON.stringify(html.slice(Math.max(0,html.indexOf('New Years Day')-300),html.indexOf('New Years Day')+600))); throw new Error('NASDAQ holiday table e1 not found'); }
-  const rows = [...table.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi)].map(m => [...m[1].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(x=>x[1].replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/gi,'&').replace(/\s+/g,' ').trim()));
-  const header=rows.shift(); const year=Number(header?.[1]);
-  if (header?.length !== 3 || !/^20\d\d$/.test(header[1]) || !/holiday/i.test(header[0]) || !/status/i.test(header[2])) throw new Error('Unexpected NASDAQ table header');
+  const section = html.split('Holiday Schedule')[1]?.split('Trading Hours')[0];
+  if (!section) throw new Error('NASDAQ holiday schedule not found');
+  const yearMatch = /^\s*Holiday\s+(20\d{2})\s+Status\s*$/m.exec(section);
+  if (!yearMatch) throw new Error('Unexpected NASDAQ table header');
+  const year=Number(yearMatch[1]);
+  const rows=section.split(/\r?\n/).map(x=>x.trim()).filter(x=>/^(?!Holiday\b).+\s{2,}(?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),/.test(x)).map(x=>x.split(/\s{2,}/));
   const holidays=[], early_closes=[], seen=new Set();
   for (const row of rows) {
     if (row.length !== 3) throw new Error('Unexpected NASDAQ holiday row');
@@ -40,7 +41,11 @@ export async function update({fetchImpl=fetch, path=CALENDAR, dryRun=false}={}) 
   const initial=await readFile(path,'utf8'), old=JSON.parse(initial);
   const response=await fetchImpl(SOURCE,{headers:{'User-Agent':'kospi-signal-us-calendar/1.0',Accept:'text/html'},redirect:'error',signal:AbortSignal.timeout(20000)});
   if (!response.ok) throw new Error(`NASDAQ calendar HTTP ${response.status}`);
-  const buffer=Buffer.from(await response.arrayBuffer()); const pdf=spawnSync('pdftotext',['-layout','-','-'],{input:buffer,encoding:'utf8'}); console.log('PDF_TEXT_DIAGNOSTIC', JSON.stringify(pdf.stdout)); if (pdf.status !== 0) throw new Error('PDF extraction failed: '+pdf.stderr); const data=parseSchedule(pdf.stdout), next=mergeCalendar(old,data), today=easternParts(new Date()).date;
+  const buffer=Buffer.from(await response.arrayBuffer());
+  if (!buffer.subarray(0,5).equals(Buffer.from('%PDF-'))) throw new Error('NASDAQ response is not a PDF');
+  const pdf=spawnSync('pdftotext',['-layout','-','-'],{input:buffer,encoding:'utf8',maxBuffer:4*1024*1024});
+  if (pdf.error || pdf.status !== 0) throw new Error(`PDF extraction failed: ${pdf.error?.message || pdf.stderr}`);
+  const data=parseSchedule(pdf.stdout), next=mergeCalendar(old,data), today=easternParts(new Date()).date;
   if (next.coverage.end < today) throw new Error('NASDAQ source does not cover current year');
   if (JSON.stringify(next)===JSON.stringify(old)) return {changed:false,year:data.year};
   if (dryRun) return {changed:false,wouldChange:true,year:data.year};

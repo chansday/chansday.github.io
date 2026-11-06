@@ -19,7 +19,7 @@ test('season and early closes run only at correct eastern time',()=>{
 });
 test('calendar rejects missing coverage',()=>assert.throws(()=>classify(cal,'2028-01-03'),/does not cover/));
 const rows=[['New Years Day','Thursday, January 1','Closed'],['MLK','Monday, January 19','Closed'],['Presidents','Monday, February 16','Closed'],['Good Friday','Friday, April 3','Closed'],['Memorial','Monday, May 25','Closed'],['Juneteenth','Friday, June 19','Closed'],['Independence','Friday, July 3','Closed'],['Labor','Monday, September 7','Closed'],['Thanksgiving','Thursday, November 26','Closed'],['Early Close','Friday, November 27','1:00 p.m. ET'],['Early Close','Thursday, December 24','1:00 p.m. ET'],['Christmas','Friday, December 25','Closed']];
-const html='<table id="e1"><tr><th>Holiday</th><th>2026</th><th>Status</th></tr>'+rows.map(r=>'<tr>'+r.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</table>';
+const html='Holiday Schedule\nHoliday       2026       Status\n'+rows.map(r=>r.join('    ')).join('\n')+'\nTrading Hours';
 test('parses official table and refuses incomplete or missing existing dates',()=>{
  const data=parseSchedule(html); assert.equal(data.holidays.length,10); assert.equal(data.early_closes.length,2);
  assert.throws(()=>parseSchedule(html.replace('Closed','Unexpected')),/status/);
