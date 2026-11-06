@@ -8,32 +8,42 @@ import { sortRankingRows } from "../providers/ranking-sort.js";
 
 const scores = (values) => computeEvaluationScores(values).map((entry) => (entry ? entry.score : null));
 
-test("evaluation score is the mid-rank percentile: highest 100, lowest 0, higher return scores higher", () => {
-  assert.deepEqual(scores([1, 3, 2, 5, 4]), [0, 50, 25, 100, 75]);
+test("evaluation score is the mid-rank percentile within its sign group: highest scores 100, lowest (of the same sign) scores 50", () => {
+  // all positive: worst-of-the-positives floors at 50, best scores 100.
+  assert.deepEqual(scores([1, 3, 2, 5, 4]), [50, 75, 62.5, 100, 87.5]);
   const entries = computeEvaluationScores([0.5, -0.2, 0.9]);
   assert.deepEqual(entries.map((entry) => entry.rank), [2, 3, 1]);
   assert.deepEqual(entries.map((entry) => entry.count), [3, 3, 3]);
 });
 
-test("tied values share the average of the ranks they occupy", () => {
-  // ascending ranks: 1, (2,3) -> 2.5, 4 ; score = (avg_rank - 1) / (N - 1) x 100
-  assert.deepEqual(scores([1, 2, 2, 3]), [0, 50, 50, 100]);
-  assert.deepEqual(scores([7, 7, 7]), [50, 50, 50]);
-  assert.deepEqual(scores([1, 1, 2]), [25, 25, 100]);
+test("a negative expected return never scores above 50 and a positive one never scores below 50", () => {
+  // worst crash day: every return negative, the "best" (least negative) still only reaches 50.
+  assert.deepEqual(scores([-1, -3, -2, -5, -4]), [50, 25, 37.5, 0, 12.5]);
+  // mixed day: negatives confined to [0, 50], zero exactly 50, positives to [50, 100].
+  assert.deepEqual(scores([0.0371, -1.2, 0.0102, 2.5]), [75, 25, 50, 100]);
+});
+
+test("tied values share the average of the ranks they occupy, within their sign group", () => {
+  // ascending ranks within the (all-positive) group: 1, (2,3) -> 2.5, 4; rescaled into [50, 100].
+  assert.deepEqual(scores([1, 2, 2, 3]), [50, 75, 75, 100]);
+  assert.deepEqual(scores([7, 7, 7]), [75, 75, 75]);
+  assert.deepEqual(scores([1, 1, 2]), [62.5, 62.5, 100]);
   const entries = computeEvaluationScores([1, 2, 2, 3]);
   assert.deepEqual(entries.map((entry) => [entry.rank, entry.ties]), [[4, 1], [2, 2], [2, 2], [1, 1]]);
 });
 
 test("missing values get no score and are excluded from N", () => {
   const entries = computeEvaluationScores([null, 2, undefined, Number.NaN, 1, "3"]);
-  assert.deepEqual(entries.map((entry) => entry?.score ?? null), [null, 100, null, null, 0, null]);
+  assert.deepEqual(entries.map((entry) => entry?.score ?? null), [null, 100, null, null, 50, null]);
   assert.equal(entries[1].count, 2);
   assert.deepEqual(computeEvaluationScores([]), []);
   assert.deepEqual(computeEvaluationScores([null, null]), [null, null]);
 });
 
-test("a single scored symbol (N = 1) scores 50", () => {
-  assert.deepEqual(scores([null, 0.04, null]), [null, 50, null]);
+test("a single scored symbol (N = 1 within its sign group) scores the midpoint of its own half", () => {
+  assert.deepEqual(scores([null, 0.04, null]), [null, 75, null]);
+  assert.deepEqual(scores([null, -0.04, null]), [null, 25, null]);
+  assert.deepEqual(scores([null, 0, null]), [null, 50, null]);
   assert.equal(computeEvaluationScores([0.04])[0].rank, 1);
 });
 
@@ -45,7 +55,8 @@ test("scores use unrounded returns, so values tied at 0.00 are still ordered", (
   ];
   assert.deepEqual(rows.map(deriveExpectedReturn), [0.04, 0, 0]);
   const scored = withEvaluationScores(rows);
-  assert.deepEqual(scored.map((row) => row.evaluation_score), [100, 50, 0]);
+  // All three raws are (tiny) positive, so all three land in [50, 100].
+  assert.deepEqual(scored.map((row) => row.evaluation_score), [100, 75, 50]);
   assert.ok(Math.abs(scored[0].expected_return_raw - 0.0371) < 1e-9);
 });
 
@@ -86,22 +97,25 @@ test("stored score fields are optional, keep expected_return and error unchanged
   assert.equal(validateRankingRows(scored).valid, true);
   assert.deepEqual(scored.map((row) => row.expected_return), rows.map((row) => row.expected_return));
   assert.deepEqual(scored.map((row) => row.error), [0.5, 0.8, null]);
-  assert.deepEqual(scored.map((row) => [row.evaluation_score, row.evaluation_score_rank, row.evaluation_score_count]), [[100, 1, 2], [0, 2, 2], [null, null, null]]);
+  // Both rows are positive (0.5%, 0.2%), so both land in [50, 100]; the
+  // worst-of-the-positives floors at 50 instead of 0.
+  assert.deepEqual(scored.map((row) => [row.evaluation_score, row.evaluation_score_rank, row.evaluation_score_count]), [[100, 1, 2], [50, 2, 2], [null, null, null]]);
   assert.equal(scored[2].expected_return_raw, null);
   assert.equal(validateRankingRows([{ ...scored[0], evaluation_score: 101 }]).valid, false);
   assert.equal(validateRankingRows([{ ...scored[0], evaluation_score_rank: 0 }]).valid, false);
-  // Stored scores are rounded half up to 3 decimals (N = 4: 2/3 -> 66.667).
+  // Stored scores are rounded half up to 3 decimals, rescaled into [50, 100] (all positive).
   const four = withEvaluationScores([4, 3, 2, 1].map((close, index) => ({ ...rows[0], symbol: `S${index}`, expected_close: 100 + close / 10 })));
-  assert.deepEqual(four.map((row) => row.evaluation_score), [100, 66.667, 33.333, 0]);
-  // Stale carried-over values are replaced on recomputation.
-  assert.deepEqual(withEvaluationScores([{ ...scored[1], evaluation_score: 99 }]).map((row) => row.evaluation_score), [50]);
+  assert.deepEqual(four.map((row) => row.evaluation_score), [100, 83.334, 66.667, 50]);
+  // A lone positive row (N = 1 within its group) scores the midpoint of [50, 100], not 50.
+  assert.deepEqual(withEvaluationScores([{ ...scored[1], evaluation_score: 99 }]).map((row) => row.evaluation_score), [75]);
 });
 
 test("sorting by the 종목 평가 key orders exactly like the score", () => {
   const raw = [0.0371, -1.2, 0.0102, null, 2.5];
   const entries = computeEvaluationScores(raw);
   const rows = raw.map((value, index) => ({ symbol: `S${index}`, name: `S${index}`, expectedReturn: value === null ? null : Math.round(value * 100) / 100, expectedReturnRaw: value, evaluationScore: entries[index]?.score ?? null }));
-  assert.deepEqual(sortRankingRows(rows, "expectedReturn").map((row) => row.evaluationScore), [100, 66.667, 33.333, 0, null]);
+  // Descending by raw: 2.5, 0.0371, 0.0102 (all positive, [50,100]); -1.2 (negative, [0,50]); null last.
+  assert.deepEqual(sortRankingRows(rows, "expectedReturn").map((row) => row.evaluationScore), [100, 75, 50, 25, null]);
 });
 
 // Exact reference: half-up of (2L + E - 1) * 100000 / (2(N - 1)) in BigInt.
@@ -129,16 +143,22 @@ test("half-up rounding to 3 decimals is exact for every rank/tie combination wit
   assert.equal(checked, 1 + 1499 * 1501);
 });
 
-test("N = 161, k = 23 (score 7.1875) rounds half up to 7.188 in storage and display", () => {
+test("N = 161, k = 23 (local 7.1875) rescales and rounds half up to 53.302 in storage and display", () => {
+  // scoreThousandths is the shared low-level rank formula, unaffected by sign
+  // gating: 11 below a tied pair out of 161 values (L = 11, E = 2) still gives
+  // the same local percentile (7.1875%) it always did.
   assert.equal(scoreThousandths(11, 2, 161), 7188);
-  // 161 values: 11 below a tied pair, so L = 11, E = 2.
+  // values 0..160, with index 12 overwritten to tie index 11 at 11. Only
+  // value 0 is non-positive, so the positive group has 160 members (L = 10
+  // below the tied pair of 11s now, not 11, since the group excludes 0) and
+  // the local percentile rescales into [50, 100].
   const values = Array.from({ length: 161 }, (_, index) => index);
   values[12] = 11;
   const entry = computeEvaluationScores(values)[11];
-  assert.deepEqual([entry.thousandths, entry.score, entry.ties], [7188, 7.188, 2]);
-  assert.equal(formatEvaluationScore(entry.score), "7.188");
+  assert.deepEqual([entry.thousandths, entry.score, entry.ties], [53302, 53.302, 2]);
+  assert.equal(formatEvaluationScore(entry.score), "53.302");
   const rows = values.map((value, index) => ({ symbol: `S${index}`, expected_open: 100, expected_close: 100 + value / 1000 }));
-  assert.equal(withEvaluationScores(rows)[11].evaluation_score, 7.188);
+  assert.equal(withEvaluationScores(rows)[11].evaluation_score, 53.302);
 });
 
 test("display strings come from the integer thousandths for every N <= 1500 score", () => {

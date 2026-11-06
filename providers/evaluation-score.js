@@ -1,24 +1,39 @@
-// 종목 평가 (evaluation score): the mid-rank percentile (0–100) of a symbol's
-// unrounded expected return among every symbol in the same snapshot that has
-// one. Shared by the data pipeline (stored row fields) and the browser (render
-// and fallback for snapshots written before these fields existed).
+// 종목 평가 (evaluation score): a sign-gated mid-rank percentile (0–100) of a
+// symbol's unrounded expected return among every symbol in the same snapshot
+// that has one. Shared by the data pipeline (stored row fields) and the
+// browser (render and fallback for snapshots written before these fields
+// existed).
 //
-//   raw   = (expected_close / expected_open - 1) × 100, unrounded
-//   N     = number of rows in the snapshot with a finite raw value
-//   L     = rows whose raw value is strictly lower
-//   E     = rows whose raw value is exactly equal (including the row itself)
-//   score = (L + 0.5 × (E - 1)) / (N - 1) × 100        (N ≥ 2)
-//   score = 50                                          (N = 1)
+//   raw = (expected_close / expected_open - 1) × 100, unrounded
 //
-// This equals (average ascending rank - 1) / (N - 1) × 100: the highest unique
-// value scores 100, the lowest unique value 0, and tied values share the mean
-// of the ranks they occupy (all values equal → 50, consistent with N = 1).
-// Rows without a raw value get no score (null) and are excluded from N.
-// The score is rounded half up to 3 decimals with exact integer arithmetic:
-//   thousandths = round_half_up((2L + E - 1) × 100000 / (2 × (N - 1)))
-// (no floating-point rounding, which drifts for scores ≥ 10). Both the stored
-// value and the display string come from that integer. Rank is the descending
-// competition rank (1 + rows strictly higher), shared by ties.
+// A negative expected return can never score above 50, and a positive
+// expected return can never score below 50: the percentile is computed
+// separately within the positive group and the negative group (so a stock
+// is never ranked "high" purely for losing less than everything else on a
+// red day), then each group's 0–100 local percentile is compressed into its
+// own half of the 0–100 scale. A raw value of exactly 0 scores exactly 50,
+// and so can the least-negative row of its group (worst positive, best
+// negative, and exact zero all meet at the neutral midpoint, never above it
+// for a loss).
+//
+//   group   = rows with raw > 0 ("pos"), raw < 0 ("neg"), or raw == 0
+//   N       = size of the row's group (pos or neg only; irrelevant for raw == 0)
+//   L       = rows in the same group whose raw value is strictly lower
+//   E       = rows in the same group whose raw value is exactly equal (incl. itself)
+//   local   = (L + 0.5 × (E - 1)) / (N - 1) × 100       (N ≥ 2)
+//   local   = 50                                         (N = 1)
+//   score   = 50 + local / 2   (raw > 0)  →  range [50, 100]
+//   score   = local / 2        (raw < 0)  →  range [0, 50]
+//   score   = 50                (raw == 0)
+//
+// Within a group this is the same mid-rank percentile as before (highest
+// scores 100 locally, lowest 0, ties share the mean rank they occupy), just
+// rescaled into its half. Rows without a raw value get no score (null).
+// The score is rounded half up to 3 decimals with exact integer arithmetic
+// (division by 2 of an integer is exact in IEEE 754, so no precision is lost
+// rescaling the local thousandths). Rank and count stay global (computed
+// across every scored row, not per group) since they describe the row's
+// position among all evaluated symbols, independent of the score's sign gate.
 import { rankingExpectedReturn } from "./evaluation-contract.js";
 
 export const EVALUATION_SCORE_FIELDS = Object.freeze(["expected_return_raw", "evaluation_score", "evaluation_score_rank", "evaluation_score_count"]);
@@ -42,21 +57,43 @@ function thousandthsText(value) {
   return `${Math.floor(value / 1000)}.${String(value % 1000).padStart(3, "0")}`;
 }
 
+function bounds(sorted) {
+  const n = sorted.length;
+  return {
+    lower: (target) => { let lo = 0, hi = n; while (lo < hi) { const mid = (lo + hi) >> 1; if (sorted[mid] < target) lo = mid + 1; else hi = mid; } return lo; },
+    upper: (target) => { let lo = 0, hi = n; while (lo < hi) { const mid = (lo + hi) >> 1; if (sorted[mid] <= target) lo = mid + 1; else hi = mid; } return lo; },
+  };
+}
+
 // values: array of numbers or null. Returns one entry per input, null where the
 // input has no finite value; otherwise { score, thousandths, rank, ties, count }
-// where score = thousandths / 1000 (already rounded half up to 3 decimals).
+// where score = thousandths / 1000 (already rounded half up to 3 decimals),
+// rank/ties/count are global (see file header), and thousandths is gated by
+// sign into [0, 50000] for raw < 0, exactly 50000 for raw == 0, and
+// [50000, 100000] for raw > 0.
 export function computeEvaluationScores(values) {
   const list = Array.isArray(values) ? values : [];
   const present = list.filter(finite).sort((a, b) => a - b);
   const count = present.length;
-  const lowerBound = (target) => { let lo = 0, hi = count; while (lo < hi) { const mid = (lo + hi) >> 1; if (present[mid] < target) lo = mid + 1; else hi = mid; } return lo; };
-  const upperBound = (target) => { let lo = 0, hi = count; while (lo < hi) { const mid = (lo + hi) >> 1; if (present[mid] <= target) lo = mid + 1; else hi = mid; } return lo; };
+  const global = bounds(present);
+  const neg = present.filter((v) => v < 0), negBounds = bounds(neg);
+  const pos = present.filter((v) => v > 0), posBounds = bounds(pos);
   return list.map((value) => {
     if (!finite(value)) return null;
-    const lower = lowerBound(value);
-    const ties = upperBound(value) - lower;
-    const thousandths = scoreThousandths(lower, ties, count);
-    return { score: thousandths / 1000, thousandths, rank: count - lower - ties + 1, ties, count };
+    const lower = global.lower(value);
+    const ties = global.upper(value) - lower;
+    const rank = count - lower - ties + 1;
+    let thousandths;
+    if (value === 0) {
+      thousandths = 50000;
+    } else if (value > 0) {
+      const gl = posBounds.lower(value), gt = posBounds.upper(value) - gl;
+      thousandths = 50000 + Math.round(scoreThousandths(gl, gt, pos.length) / 2);
+    } else {
+      const gl = negBounds.lower(value), gt = negBounds.upper(value) - gl;
+      thousandths = Math.round(scoreThousandths(gl, gt, neg.length) / 2);
+    }
+    return { score: thousandths / 1000, thousandths, rank, ties, count };
   });
 }
 
