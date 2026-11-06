@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-06",
+  "generated_at": "2026-11-06T02:48:15.817Z",
+  "market_at": "2026-11-05T23:20:18.164Z",
+  "history_date": "2026-11-05",
+  "score": 43,
+  "parts": [
+    22,
+    13,
+    8
+  ],
+  "coverage": {
+    "stocks": 882,
+    "flow": 911,
+    "total": 911
+  },
+  "inputs": {
+    "vix": 28.18,
+    "sp_change": -4.36,
+    "fx_change": 1.08,
+    "volatile_share": 0.21541950113378686,
+    "heated_share": 0.02834467120181406,
+    "selling_share": 0.16136114160263446
+  },
+  "reconstructed": true,
+  "provenance_note": "장전 시장 관측과 전일 일봉·수급을 사용해 장 시작 후 계산했습니다. 일봉·수급 파일의 장전 원본 및 수정 이력은 확인되지 않았습니다."
+}
