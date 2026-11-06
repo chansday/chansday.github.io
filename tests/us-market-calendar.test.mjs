@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { classify, scheduledPhase } from '../scripts/us-market-calendar.mjs';
+import { classify, scheduledPhase, sessionsBetween } from '../scripts/us-market-calendar.mjs';
 import { parseSchedule, mergeCalendar, update } from '../scripts/update-us-market-calendar.mjs';
 const cal=JSON.parse(await readFile(new URL('../data/us-market-calendar.json',import.meta.url)));
 const at=(date,cron)=>scheduledPhase(cal,new Date(date),cron);
@@ -27,4 +27,22 @@ test('parses official table and refuses incomplete or missing existing dates',()
 });
 test('network failure is surfaced without changing calendar',async()=>{
  await assert.rejects(update({fetchImpl:async()=>new Response('',{status:503})}),/503/);
+});
+
+test('closed US session is not reused after the previous KRX close',()=>{
+ const start=Date.parse('2026-11-26T15:30:00+09:00'), end=Date.parse('2026-11-27T08:20:00+09:00');
+ assert.deepEqual(sessionsBetween(cal,start,end),[]);
+});
+test('Friday close is new on Monday and uses early close',()=>{
+ const sessions=sessionsBetween(cal,Date.parse('2026-11-27T15:30:00+09:00'),Date.parse('2026-11-30T08:20:00+09:00'));
+ assert.equal(sessions.length,1); assert.equal(sessions[0].date,'2026-11-27'); assert.equal(sessions[0].closed_at,'2026-11-27T18:00:00.000Z');
+});
+test('counts multiple US closes across a Korean holiday',()=>{
+ const sessions=sessionsBetween(cal,Date.parse('2026-11-23T15:30:00+09:00'),Date.parse('2026-11-26T08:20:00+09:00'));
+ assert.deepEqual(sessions.map(s=>s.date),['2026-11-23','2026-11-24','2026-11-25']);
+});
+test('EDT close and uncovered date fail closed',()=>{
+ const sessions=sessionsBetween(cal,Date.parse('2026-07-06T15:30:00+09:00'),Date.parse('2026-07-07T08:20:00+09:00'));
+ assert.equal(sessions[0].closed_at,'2026-07-06T20:00:00.000Z');
+ assert.throws(()=>sessionsBetween(cal,Date.parse('2026-12-31T15:30:00+09:00'),Date.parse('2027-01-04T08:20:00+09:00')),/does not cover/);
 });

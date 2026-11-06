@@ -9,10 +9,36 @@ export function easternParts(date) {
 }
 export function classify(calendar, date) {
   if (!isValidDate(date) || calendar.market !== 'NASDAQ' || calendar.timezone !== 'America/New_York' || !isValidDate(calendar.coverage?.start) || !isValidDate(calendar.coverage?.end) || !Array.isArray(calendar.holidays) || !Array.isArray(calendar.early_closes)) throw new Error('Invalid US calendar');
+  if (calendar.coverage.start > calendar.coverage.end) throw new Error('Invalid US calendar coverage');
+  const dates=new Set();
+  for (const [key, rows] of [['holidays',calendar.holidays],['early_closes',calendar.early_closes]]) for (const row of rows) {
+    if (!isValidDate(row?.date) || row.date < calendar.coverage.start || row.date > calendar.coverage.end || dates.has(row.date) || (key==='holidays' && (typeof row.name!=='string' || !row.name.trim())) || (key==='early_closes' && row.close!=='13:00')) throw new Error('Invalid or duplicate US calendar entry');
+    dates.add(row.date);
+  }
   if (date < calendar.coverage.start || date > calendar.coverage.end) throw new Error(`US calendar does not cover ${date}`);
   if ([0,6].includes(new Date(date+'T12:00:00Z').getUTCDay())) return { run:false, reason:'weekend' };
   if (calendar.holidays.some(x => x.date === date)) return { run:false, reason:'holiday' };
   return { run:true, close:calendar.early_closes.find(x => x.date === date)?.close || '16:00' };
+}
+// A completed US regular session whose close falls in (after, before].
+// Fail closed outside checked-in calendar coverage, including weekends.
+export function sessionsBetween(calendar, after, before) {
+  if (!Number.isFinite(after) || !Number.isFinite(before) || before <= after) throw new Error('Invalid session interval');
+  const from=easternParts(new Date(after)).date, to=easternParts(new Date(before)).date;
+  const result=[];
+  for (let d=from; d<=to;) {
+    const day=classify(calendar,d);
+    if (day.run) {
+      // The regular close is 13:00 or 16:00 Eastern; select its UTC instant
+      // through the time-zone database rather than a fixed DST calendar.
+      const candidateHours=day.close==='13:00' ? [17,18] : [20,21];
+      const matches=candidateHours.map(h=>Date.parse(`${d}T${h}:00:00Z`)).filter(ms=>{ const p=easternParts(new Date(ms)); return p.date===d && p.time===day.close; });
+      if (matches.length!==1) throw new Error(`Cannot resolve US close for ${d}`);
+      if (matches[0]>after && matches[0]<=before) result.push({ date:d, close:day.close, closed_at:new Date(matches[0]).toISOString() });
+    }
+    const next=new Date(`${d}T12:00:00Z`); next.setUTCDate(next.getUTCDate()+1); d=next.toISOString().slice(0,10);
+  }
+  return result;
 }
 export function scheduledPhase(calendar, now, schedule) {
   const date = easternParts(now).date, result = classify(calendar,date);
