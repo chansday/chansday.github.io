@@ -32,3 +32,5 @@ test('returns at most the last 30 values without resetting the starting amount',
   assert.ok(Math.abs(result.at(-1).top10 - (1.01 ** 35 - 1) * 100) < 1e-9);
 });
 
+
+test('top five compounds independently and stops after a missing result', () => { const rows = compoundPerformance([{date:'2026-10-26',top5:2,top10:1,top20:1},{date:'2026-10-27',top5:3,top10:1,top20:1},{date:'2026-10-28',top5:null,top10:1,top20:1},{date:'2026-10-29',top5:1,top10:1,top20:1}]); assert.ok(Math.abs(rows[1].top5 - 5.06) < 1e-9); assert.equal(rows[3].top5, null); assert.ok(Number.isFinite(rows[3].top10)); });
