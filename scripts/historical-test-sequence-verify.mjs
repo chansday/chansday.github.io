@@ -6,8 +6,8 @@ import { isSnapshot } from "../providers/provider-adapter.js";
 import { buildEvaluationSummary, deriveEvaluationError, deriveSessionReturn } from "../providers/evaluation-contract.js";
 
 const DATES = ["2026-10-22", "2026-10-23"];
-const NORMAL_ORDER = ["0700", "0800", "0820", "0900", "1530"];
-const OUT_OF_ORDER = ["0900", "0700", "1530", "0800", "0820"];
+const NORMAL_ORDER = ["0700", "0800", "0835", "0900", "1530"];
+const OUT_OF_ORDER = ["0900", "0700", "1530", "0800", "0835"];
 
 function round(value) { return Math.round((value + Number.EPSILON) * 100) / 100; }
 
@@ -17,7 +17,7 @@ function settleRows(sourceRows, currentRows, stage) {
     const current = currentBySymbol.get(sourceRow.symbol) || {};
     const baseline = { ...sourceRow, actual_open: null, actual_close: null, actual_return: null, session_return: null, actual_volume: null, error: null };
     const row = { ...baseline, ...current };
-    if (stage === "0700" || stage === "0800" || stage === "0820") {
+    if (stage === "0700" || stage === "0800" || stage === "0835") {
       row.actual_open = current.actual_open ?? null;
       row.actual_close = current.actual_close ?? null;
       row.session_return = current.session_return ?? null;
@@ -63,7 +63,7 @@ function buildSnapshot(source, date, stage, sequence, rows) {
       ...source.pipeline,
       previousResult: { ...source.pipeline.previousResult, status: sequence.indexOf("0700") <= sequence.indexOf(stage) ? "ready" : "pending" },
       analysis: { ...source.pipeline.analysis, status: sequence.indexOf("0800") <= sequence.indexOf(stage) ? "ready" : "pending" },
-      forecast: { ...source.pipeline.forecast, status: sequence.indexOf("0820") <= sequence.indexOf(stage) ? "ready" : "pending" },
+      forecast: { ...source.pipeline.forecast, status: sequence.indexOf("0835") <= sequence.indexOf(stage) ? "ready" : "pending" },
       openSettlement: { ...source.pipeline.openSettlement, status: sequence.indexOf("0900") <= sequence.indexOf(stage) ? "ready" : "pending" },
       closeSettlement: { ...source.pipeline.closeSettlement, status: sequence.indexOf("1530") <= sequence.indexOf(stage) ? "ready" : "pending" },
     },

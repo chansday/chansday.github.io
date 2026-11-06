@@ -91,7 +91,7 @@ npm run historical-test:pipeline
 npm run historical-test:verify
 ```
 
-파일은 `data/runs/historical-test/YYYY-MM-DD/{0700,0800,0820,0900,1530}.json`에 생성되며, 순서 변경 검증과 결과 보고서는 `docs/HISTORICAL_STAGE_VERIFICATION.md`에 기록합니다. 모든 파일은 `test_only=true`, `historical_test=true`이며 `data/latest-snapshot.json`을 갱신하지 않습니다.
+파일은 `data/runs/historical-test/YYYY-MM-DD/{0700,0800,0835,0900,1530}.json`에 생성되며, 순서 변경 검증과 결과 보고서는 `docs/HISTORICAL_STAGE_VERIFICATION.md`에 기록합니다. 모든 파일은 `test_only=true`, `historical_test=true`이며 `data/latest-snapshot.json`을 갱신하지 않습니다.
 
 각 historical-test snapshot에는 화면이 평가 결과를 평면 필드 추측 없이 사용할 수 있도록 top-level `evaluation` 계약도 포함됩니다. `evaluation.target`은 `expected_return`(예측), `session_return`(실제), `error`(오차)의 정규화된 필드 매핑과 `session_return - expected_return` 공식을 선언합니다. 현재 historical 입력에는 expected close가 없어 모든 단계가 `pending`이며, 두 값이 모두 존재하는 별도 snapshot만 `evaluated`가 됩니다. `sample_count`, `evaluated_sample_count`, `missing_sample_count`, `evaluation_range`, MAE/RMSE/평균 오차 집계 및 `test_only=true`, `dataset=historical_test`를 함께 기록합니다.
 

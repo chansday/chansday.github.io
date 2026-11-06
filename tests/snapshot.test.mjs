@@ -83,7 +83,7 @@ test("historical fallback is eligible only for live no_data and keeps observed f
 
 test("historical-test snapshots expose a normalized, test-only evaluation contract", async () => {
   const source = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "historical-test", "2026-10-23.json"), "utf8"));
-  const forecast = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", "2026-10-23", "0820.json"), "utf8"));
+  const forecast = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", "2026-10-23", "0835.json"), "utf8"));
   const settled = JSON.parse(await readFile(join(PROJECT_ROOT, "data", "runs", "historical-test", "2026-10-23", "1530.json"), "utf8"));
   for (const snapshot of [source, forecast, settled]) {
     assert.equal(isEvaluationSummary(snapshot.evaluation), true);
@@ -296,7 +296,7 @@ test("historical-test pipeline writes five isolated stage files without touching
   try {
     await execFileAsync(process.execPath, [script, "--output-root", join(tempRoot, "data", "runs", "historical-test")], { cwd: PROJECT_ROOT });
     for (const date of ["2026-10-22", "2026-10-23"]) {
-      const stageFiles = ["0700", "0800", "0820", "0900", "1530"].map((stage) => join(tempRoot, "data", "runs", "historical-test", date, `${stage}.json`));
+      const stageFiles = ["0700", "0800", "0835", "0900", "1530"].map((stage) => join(tempRoot, "data", "runs", "historical-test", date, `${stage}.json`));
       const snapshots = await Promise.all(stageFiles.map((path) => readFile(path, "utf8").then(JSON.parse)));
       assert.equal(snapshots.every((snapshot) => snapshot.mode === "historical_test" && snapshot.meta.test_only === true && snapshot.meta.historical_test === true), true);
       assert.equal(snapshots[0].rows.every((row) => row.expected_open !== null && row.expected_return === null && row.actual_open === null && row.actual_return === null && row.error === null), true);
@@ -339,7 +339,7 @@ test("historical-test snapshots contain observed OHLC-volume values and no futur
     assert.equal(snapshot.rows.every((row) => row.features && Number.isFinite(row.features.momentum) && Number.isFinite(row.features.volatility)), true);
     assert.equal(snapshot.rows.every((row) => row.session_return === (row.actual_open > 0 ? Math.round(((row.actual_close / row.actual_open - 1) * 100 + Number.EPSILON) * 100) / 100 : null)), true);
     assert.equal(snapshot.rows.every((row) => row.expected_close === null && row.expected_return === null && row.actual_return === null && row.error === null), true);
-    assert.match(snapshot.pipeline.forecast.message, new RegExp(`${inputDates.at(-1)}|Historical-test stage 0820`));
+    assert.match(snapshot.pipeline.forecast.message, new RegExp(`${inputDates.at(-1)}|Historical-test stage 08(?:20|35)`));
     assert.match(snapshot.provider.source.url, new RegExp(date.replaceAll("-", "")));
   }
 });

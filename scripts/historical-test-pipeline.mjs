@@ -8,7 +8,7 @@ const SUPPORTED_DATES = ["2026-10-22", "2026-10-23"];
 const STAGES = [
   ["0700", "previousResult"],
   ["0800", "analysis"],
-  ["0820", "forecast"],
+  ["0835", "forecast"],
   ["0900", "openSettlement"],
   ["1530", "closeSettlement"],
 ];
