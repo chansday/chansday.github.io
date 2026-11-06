@@ -7,6 +7,7 @@ import { RANK_FEATURE_SESSIONS, RANK_MODEL, isRankModel, rankFeatures, rankPredi
 import { DAYTRADE_FEATURE_NAMES, DAYTRADE_MODEL, daytradeClosePrediction } from "./daytrade-model.js";
 import { PERSONAL_MODEL, personalStats } from "./personal-model.js";
 
+export const PREOPEN_GAP_MODEL = "preopen_gap_adjusted_v1";
 export const PREOPEN_QUOTE_MODEL = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL = "prior_3_sessions_open_gap_mean_capped_5pct";
 // Expected open from 2026-10-30: the prior close itself. 120-session check on
@@ -234,6 +235,17 @@ function isDaytradeCloseBasis(basis, row, asOfDate) {
 }
 
 export function isCloseBasis(basis, row, { asOfDate = null } = {}) {
+  if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === PREOPEN_GAP_MODEL) {
+    const i = basis.inputs, m = i?.model_params;
+    if (!exactKeys(i, ["prior_close", "baseline_close", "baseline_open_basis", "baseline_close_basis", "gap", "market_gap", "ranks", "zero_ranks", "model_params", "adjustment"]) || row.expected_open_source?.kind !== "preopen_quote" || !positive(i.prior_close) || !positive(i.baseline_close) || !near(i.gap, row.expected_open / i.prior_close - 1)) return false;
+    const old = { ...row, expected_open: i.prior_close, expected_close: i.baseline_close, expected_open_source: {kind: "preopen_history", recorded_at: row.expected_open_source.recorded_at, history_dates: basis.history_dates}, expected_open_basis: i.baseline_open_basis };
+    if (!isOpenBasis(i.baseline_open_basis, old, {asOfDate}) || !isCloseBasis(i.baseline_close_basis, old, {asOfDate}) || i.baseline_close_basis.history_dates.join() !== basis.history_dates.join()) return false;
+    if (!m || m.model !== DAYTRADE_MODEL || !Array.isArray(m.columns) || !m.columns.every(j => Number.isInteger(j) && j >= 0 && j < DAYTRADE_FEATURE_NAMES.length) || !Array.isArray(m.weights) || m.weights.length !== m.columns.length + 1 || ![m.level_intercept, m.level_slope, ...m.weights, i.market_gap, i.adjustment].every(finite) || !DATE.test(m.train_last_date) || !(m.train_last_date <= basis.history_dates[0])) return false;
+    if (![i.ranks, i.zero_ranks].every(a => Array.isArray(a) && a.length === DAYTRADE_FEATURE_NAMES.length && a.every(v => finite(v) && v >= -0.5 && v <= 0.5))) return false;
+    if (i.zero_ranks.at(-1) !== 0 || !i.ranks.slice(0, -1).every((v, k) => v === i.zero_ranks[k])) return false;
+    const adjustment = daytradeClosePrediction(m, i.ranks, i.market_gap) - daytradeClosePrediction(m, i.zero_ranks, 0);
+    return near(i.adjustment, adjustment) && row.expected_close === round(row.expected_open * (i.baseline_close / i.prior_close + adjustment));
+  }
   if (exactKeys(basis, ["model", "history_dates", "inputs"]) && basis.model === PERSONAL_MODEL) {
     const { residuals, stats, ...base } = basis.inputs || {};
     if (!Array.isArray(residuals) || residuals.length > 20 || residuals.some((r, i) => !exactKeys(r, ["date", "value"]) || !DATE.test(r.date) || !finite(r.value) || !(r.date <= basis.history_dates[0]) || (i && !(residuals[i - 1].date < r.date)))) return false;

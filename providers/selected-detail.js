@@ -13,6 +13,7 @@ export function naverFinanceUrl(symbol) {
 export const DETAIL_DISCLAIMER = "예상은 기록·비교용이며 수익을 보장하지 않습니다. 투자 조언이 아닙니다.";
 export const RETROSPECTIVE_MODEL_ID = "prior_3_sessions_gap_and_session_mean_capped_5pct";
 export const HISTORICAL_BASELINE_MODEL_ID = "public_daily_momentum_volatility_v1";
+export const PREOPEN_GAP_MODEL_ID = "preopen_gap_adjusted_v1";
 export const PREOPEN_QUOTE_MODEL_ID = "naver_preopen_quote_open_v1";
 export const OPEN_GAP_MODEL_ID = "prior_3_sessions_open_gap_mean_capped_5pct";
 export const PRIOR_CLOSE_OPEN_MODEL_ID = "prior_close_open_v1";
@@ -89,7 +90,7 @@ function multiplierText(value) { return finite(value) ? fixed4.format(value) : "
 function describeOpenBasis(basis, row) {
   const model = basisModel(basis), i = basis?.inputs || {}, eo = row.expected_open;
   if (model === PREOPEN_QUOTE_MODEL_ID) {
-    const sentences = [`장전 동시호가 예상 체결가(${formatKst(i.quote_at)}, ${i.market_status || "상태 미상"})를 예상 시가로 사용했습니다: ${formatWon(i.open_price)}. 예상 종가 모델은 없습니다.`];
+    const sentences = [`장전 동시호가 예상 체결가(${formatKst(i.quote_at)}, ${i.market_status || "상태 미상"})를 예상 시가로 사용했습니다: ${formatWon(i.open_price)}.${finite(row.expected_close) ? "" : " 예상 종가 모델은 없습니다."}`];
     if (finite(i.open_price) && finite(eo) && Math.abs(i.open_price - eo) > 0.0001) sentences.push(`저장된 예상 시가(${formatWon(eo)})와 근거의 예상 체결가(${formatWon(i.open_price)})가 다릅니다. 화면에는 저장값을 표시합니다.`);
     return { items: [item("예상 시가 모델", model), item("호가 시각", formatKst(i.quote_at)), item("호가 시장 상태", MARKET_STATUS_LABELS[String(i.market_status || "").toUpperCase()] || i.market_status)], sentences };
   }
@@ -118,6 +119,7 @@ function describeOpenBasis(basis, row) {
 // Renders a stored expected_close_basis. Returns null when the model is unknown.
 function describeCloseBasis(basis, row) {
   const model = basisModel(basis), i = basis?.inputs || {}, ec = row.expected_close;
+  if (model === PREOPEN_GAP_MODEL_ID) return { items: [item("전일 종가", formatWon(i.prior_close)), item("장전 시세 전일 대비", ratioPct(i.gap)), item("갭 반영 보정치", ratioPct(i.adjustment))], sentences: [`기존 예상 수익률에 장전 시세와 전일 종가의 차이를 반영한 모델 보정치 ${ratioPct(i.adjustment)}를 더했습니다. 예상 종가 ${formatWon(ec)}.`] };
   if (model === CLOSE_SHRUNK_MODEL_ID) return describeShrunkCloseBasis(basis, row);
   if (model === RIDGE_MODEL_ID) return describeRidgeCloseBasis(basis, row);
   if (model === RANK_MODEL_ID) return describeRankCloseBasis(basis, row);

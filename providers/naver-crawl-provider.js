@@ -8,6 +8,7 @@ import { isKoreanSymbol } from "./korean-symbol.js";
 import { checkRobotsUrl } from "./robots-policy.js";
 import { KOSPI_UNIVERSE_PATH, loadKospiUniverseCache, DEFAULT_UNIVERSE_MAX_AGE_DAYS } from "./kospi-universe-cache.js";
 import { NO_TRADE_STATUS, compareByExpectedReturn, deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn } from "./evaluation-contract.js";
+import { applyPreopenGap } from "./preopen-gap.js";
 import { preopenQuoteBasis, priorHistoryEstimate } from "./forecast-basis.js";
 
 // Every request host below is checked against its robots.txt before each data
@@ -753,7 +754,9 @@ export function createNaverCrawlProvider({ env = globalThis.process?.env || {}, 
     const completedAt = now();
     if (kstDate(completedAt) !== kstDate(current) || resolveCrawlStage(completedAt) !== phase) return result("no_data", "Market phase changed during collection; no opening estimate recorded.", { ...source, status: "stage_mismatch" }, [], sourceDate);
     const priorRows = new Map((history?.sessions?.[0]?.rows || []).map(row => [row.symbol, row]));
-    const rows = rankRows(freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun)), stagePhase);
+    let rows = freshQuotes.map((quote) => ({ ...quote, manualRunAll })).map((quote) => rowForQuote(quote, phase, stage, snapshotRowsBySymbol, history, current, fetchTime, sameRun));
+    if (stage === "forecast" && phase === "before-open" && current.getTime() >= Date.parse(`${kstDate(current)}T08:30:00+09:00`)) rows = applyPreopenGap(rows, freshQuotes, history);
+    rows = rankRows(rows, stagePhase);
     // no_trade: a fresh same-day quote marked halted by the source, in every
     // stage (freshQuotes already require the stage's timestamp window); in
     // forecast stages also symbols excluded from history only by zero volume.

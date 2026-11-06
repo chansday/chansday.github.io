@@ -5,6 +5,7 @@ import { repoPath } from "./repo-paths.js";
 import { RETURN_HISTORY_SESSIONS } from "./forecast-basis.js";
 import { isRidgeModel } from "./ridge-model.js";
 import { RANK_FEATURE_SESSIONS, isRankModel, predictCrossSection } from "./rank-model.js";
+import { isDaytradeModel } from "./daytrade-model.js";
 import { PERSONAL_MODEL } from "./personal-model.js";
 
 export const dailyHistoryPath = (targetDate) => repoPath(`data/daily-history/${targetDate}.json`);
@@ -108,7 +109,8 @@ export async function loadNaverDailyHistory({ targetDate, now = () => new Date()
     // From the rollout date, a missing new model must not silently publish the
     // old ranking as if the personal adjustment had been applied.
     if (targetDate >= "2026-11-06" && current >= cutoff && !rank_forecast?.personal) throw new Error("personal model missing after pre-open collection deadline");
+    const daytrade_model = isDaytradeModel(record.daytrade_model) && record.daytrade_model.train_last_date < targetDate ? record.daytrade_model : null;
     const comparison_conflicts = sessions.reduce((n, s) => n + s.rows.filter(r => r.comparison === "conflict").length, 0);
-    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, rank_forecast, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
+    return { ok: true, source: "naver-daily", source_basis: "naver-daily", security_type: "unknown", sessions, return_history, forecast_model, rank_forecast, daytrade_model, symbols: record.symbols, valid_symbols: valid, retrieved_at: record.retrieved_at, excluded_count: record.symbols.length - valid.length, no_trade_symbols, no_trade_count: no_trade_symbols.length, comparison_conflicts, partial: valid.length + no_trade_symbols.length !== record.symbols.length, robots_url: typeof record.robots_url === "string" ? record.robots_url : "https://api.stock.naver.com/robots.txt", robots_checked_at: typeof record.robots_checked_at === "string" ? record.robots_checked_at : null, robots_status: Number.isInteger(record.robots_status) ? record.robots_status : null, universe_source: typeof record.universe_source === "string" ? record.universe_source : null, universe_stale: typeof record.universe_stale === "boolean" ? record.universe_stale : null };
   } catch (error) { return { ok: false, reason: `Naver daily history unavailable: ${error.message}` }; }
 }

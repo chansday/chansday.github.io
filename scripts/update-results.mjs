@@ -255,7 +255,7 @@ export function mergeRows(existingRows, incomingRows, mode) {
     }
 
     const merged = { ...existing, ...incoming };
-    if (existing.expected_open > 0 && existing.expected_open_source) copyForecastBundle(merged, existing);
+    if (existing.expected_open > 0 && existing.expected_open_source && !(mode === "forecast" && incoming.expected_open_source?.kind === "preopen_quote" && incoming.expected_close_basis?.model === "preopen_gap_adjusted_v1")) copyForecastBundle(merged, existing);
     else if (!incoming.expected_open_source) { delete merged.expected_open_source; delete merged.expected_open_basis; if (!incoming.expected_close_basis) delete merged.expected_close_basis; }
     for (const field of EXPECTED_FIELDS) {
       if (incoming[field] === null && existing[field] !== null) merged[field] = existing[field];
