@@ -5,7 +5,7 @@ import { rankChanges, canCompareRankings } from "./providers/rank-change.js";
 import { summarizeDisplayedPerformance, usesRetrospectiveOverlay, isNegativePerformance, compoundPerformance } from "./providers/recent-performance.js";
 import { isSnapshot, noDataSnapshot } from "./providers/provider-adapter.js";
 import { createDemoProvider } from "./providers/demo-provider.js";
-import { classifyDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
+import { classifyDate, holidayForDate, isIsoDate, normalizeDateIndex, normalizeMode, snapshotPath, statusLabel } from "./providers/date-navigation.js";
 import { deriveEvaluationError, deriveExpectedReturn, deriveSessionReturn, rankingExpectedReturn } from "./providers/evaluation-contract.js";
 import { sortRankingRows } from "./providers/ranking-sort.js";
 import { computeEvaluationScores, evaluationScoreTooltip, formatEvaluationScore, rowConfidence } from "./providers/evaluation-score.js";
@@ -354,10 +354,20 @@ async function applyPreviousResultStatus(latest, statusDate) {
 function setStatusPill(node, status, text = stateLabels[normalizeStatus(status)] || normalizeStatus(status)) { if (!node) return; node.className = `status-pill ${statusClass(status)}`; node.textContent = text; }
 function rowStatusLabel(row) { if (row.raw?.trading_status === "no_trade_observed") return NO_TRADE_LABEL; if (isHistorical(snapshot)) return row.status === "valid" ? "정상 확인" : (rowStateLabels[row.status] || row.status); return rowStateLabels[row.status] || qualityLabel(row.quality); }
 function renderPipeline(data) {
+  const holiday = holidayForDate(todayKst(), marketCalendar);
+  setText(document.getElementById("pipeline-day-note"), holiday ? "오늘은 한국거래소 휴장일입니다." : "오늘 분석부터 다음 거래일 미리보기까지 확인합니다.");
   const pipeline = data?.pipeline || {};
   const showTodayPreview = !requestedRoute().date || requestedRoute().date === todayKst();
   const steps = { nextPreview: showTodayPreview && latestPreview?.source_date === todayKst() ? {status: latestPreview.status} : showTodayPreview && previewState?.source_date === todayKst() ? previewState : null, analysis: pipeline.analysis, forecast: pipeline.forecast, openSettlement: pipeline.openSettlement, closeSettlement: pipeline.closeSettlement };
   document.querySelectorAll(".pipeline-step[data-step]").forEach((step) => {
+    if (holiday) {
+      step.dataset.state = "holiday";
+      const node = step.querySelector("[data-step-status]");
+      node.className = "step-status status-muted";
+      node.textContent = "휴장";
+      node.title = holiday.name || "한국거래소 휴장일";
+      return;
+    }
     const state = normalizeStatus(steps[step.dataset.step]?.status || (step.dataset.step === "nextPreview" ? "pending" : data?.status === "no_data" ? "no_data" : "pending"));
     step.dataset.state = state;
     const statusNode = step.querySelector("[data-step-status]");
@@ -939,7 +949,7 @@ initSkipLink();
 elementIds["search-input"].addEventListener("input", renderRows);
 elementIds["status-filter"].addEventListener("change", renderRows);
 elementIds["sort-select"].addEventListener("change", renderRows);
-elementIds["refresh-button"].addEventListener("click", async () => { await loadDateMetadata(); renderRecentPerformance(); refreshNextPreview(); refresh(); });
+elementIds["refresh-button"].addEventListener("click", async () => { await loadDateMetadata(); renderPipeline(snapshot); renderTodayRisk(); renderRecentPerformance(); refreshNextPreview(); refresh(); });
 elementIds["ranking-date-button"].addEventListener("click", () => {
   const expanded = elementIds["ranking-date-button"].getAttribute("aria-expanded") === "true";
   if (expanded) closeDatePopover(); else openDatePopover();
@@ -963,9 +973,19 @@ elementIds["ranking-date-popover"].addEventListener("keydown", (event) => {
 });
 window.addEventListener("popstate", () => refresh({ showLoading: true }));
 updateClock();
-setInterval(updateClock, 1000);
+let displayedKstDate = todayKst();
+setInterval(() => {
+  updateClock();
+  const date = todayKst();
+  if (date === displayedKstDate) return;
+  displayedKstDate = date;
+  (async () => { await loadDateMetadata(); renderPipeline(null); renderTodayRisk(); renderRecentPerformance(); refreshNextPreview(); refresh(); })();
+}, 1000);
+let riskRenderToken = 0;
 (async () => {
   await loadDateMetadata();
+  renderPipeline(snapshot);
+  renderTodayRisk();
   renderRecentPerformance();
   refreshNextPreview();
   refresh();
@@ -1079,11 +1099,25 @@ async function loadComparison(data) {
 }
 
 async function renderTodayRisk() {
+  const token = ++riskRenderToken;
   const put = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+  const holiday = holidayForDate(todayKst(), marketCalendar);
+  put("risk-day-note", holiday ? "오늘은 한국거래소 휴장일로 위험 지수를 산출하지 않습니다." : "장 시작 전 자료로 살펴보는 시장 환경");
+  put("risk-score", "—"); put("risk-grade", holiday ? "휴장" : "확인 중");
+  const section = document.getElementById("risk-index");
+  delete section.dataset.level;
+  for (const [id, max] of [["market",40],["local",30],["stocks",20],["flow",10]]) {
+    put(`risk-${id}`, `— / ${max}`);
+    document.getElementById(`risk-${id}-bar`).style.width = "0%";
+  }
+  if (holiday) {
+    return;
+  }
   try {
     const date = todayKst(), response = await fetch(`./data/risk-index/${date}.json`, {cache:"no-store"});
     if (!response.ok) throw new Error("missing");
     const r = await response.json();
+    if (token !== riskRenderToken || date !== todayKst()) return;
     if (r.date !== date || !Number.isInteger(r.score) || r.score < 0 || r.score > 100 || !Array.isArray(r.parts) || r.version !== 2 || r.parts.length !== 4 || r.parts.some((v,i) => !Number.isInteger(v) || v < 0 || v > [40,30,20,10][i]) || Math.max(r.parts.reduce((a,b)=>a+b,0),r.shock_floor) !== r.score) throw new Error("invalid");
     const [grade, color] = r.score < 25 ? ["낮음", "low"] : r.score < 50 ? ["보통", "normal"] : r.score < 75 ? ["주의", "caution"] : r.score < 90 ? ["높음", "high"] : ["매우 높음", "high"];
     put("risk-score", r.score); put("risk-grade", grade); document.getElementById("risk-index").dataset.level = color;
@@ -1092,6 +1126,5 @@ async function renderTodayRisk() {
     put("risk-summary", `${names[largest]} 항목의 상대 점수가 가장 높습니다.${r.shock_floor > r.base_score ? " 해외 충격 기준으로 최소 75점을 적용했습니다." : ""}${r.sidecar_status === "unknown" ? " 전일 사이드카 여부는 확인되지 않았습니다." : ""}`);
     ids.forEach((id,i) => { put(`risk-${id}`, `${r.parts[i]} / ${max[i]}`); document.getElementById(`risk-${id}-bar`).style.width = `${r.parts[i]/max[i]*100}%`; });
     put("risk-time", `산출 ${timeFormatter.format(new Date(r.generated_at))} · 종목·수급 ${r.history_date} 기준`);
-  } catch { put("risk-grade", "자료 부족"); put("risk-summary", "오늘 장전 위험 지수를 산출할 자료가 없습니다."); put("risk-time", "자료가 준비되면 표시합니다."); }
+  } catch { if (token !== riskRenderToken) return; put("risk-grade", "자료 부족"); put("risk-summary", "오늘 장전 위험 지수를 산출할 자료가 없습니다."); put("risk-time", "자료가 준비되면 표시합니다."); }
 }
-renderTodayRisk();
