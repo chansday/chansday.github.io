@@ -18,18 +18,18 @@ export function tradingDates(start,end,calendar){
 // is requested first; if the source has no row for endDate yet, collection
 // stops after that one request with status 'not_published' (not a failure).
 export const PROBE_SYMBOL='005930';
-export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,startDate,endDate,expectedDates,fetchImpl=globalThis.fetch,now=()=>new Date(),sleep=ms=>new Promise(r=>setTimeout(r,ms)),delayMs=1000,log=createProgressLog({label:'투자자 수집',now}),usePrimary=true,primaryFetch=null}={}){
+export async function collectInvestorFlow(symbols,{probeSymbol=PROBE_SYMBOL,startDate,endDate,expectedDates,fetchImpl=globalThis.fetch,now=()=>new Date(),sleep=ms=>new Promise(r=>setTimeout(r,ms)),delayMs=1500,log=createProgressLog({label:'투자자 수집',now}),usePrimary=true,primaryFetch=null}={}){
   if(!Array.isArray(symbols)||!symbols.length||symbols.some(s=>!isKoreanSymbol(s))||new Set(symbols).size!==symbols.length)throw new Error('Invalid or duplicate stock codes');
   const asOfDate=kstDate(now());if(!isValidDate(startDate)||!isValidDate(endDate)||startDate>endDate||endDate>asOfDate||!Array.isArray(expectedDates)||!expectedDates.length)throw new Error('Invalid date range');
   if(delayMs<1000)throw new Error('Request interval must be at least one second');
   const startedAt=now().toISOString(),collected=[],failures=[],incomplete=[],request=createInvestorRequester({fetchImpl,sleep,log});
-  const primary=primaryFetch || createPrimaryInvestorSource({fetchImpl,sleep,now,log});
+  const primary=primaryFetch || createPrimaryInvestorSource({fetchImpl,sleep,now,log,requestIntervalMs:delayMs/2});
   const fields=['foreign_net_shares','institution_net_shares','individual_net_shares'];
-  log(`시작 · 기간 ${startDate}~${endDate} · 대상 ${symbols.length}종목 · 우선 수집 후 누락값 보조 수집 · 요청 간격 ${delayMs}ms`);
+  log(`시작 · 기간 ${startDate}~${endDate} · 대상 ${symbols.length}종목 · 우선 수집 후 누락값 보조 수집 · 종목당 대기 약 ${delayMs}ms`);
   if(symbols.length>1&&symbols.includes(probeSymbol))symbols=[probeSymbol,...symbols.filter(s=>s!==probeSymbol)];
   let notPublished=false;
   for(let i=0;i<symbols.length;i++){
-    const symbol=symbols[i];if(i)await sleep(delayMs);
+    const symbol=symbols[i];if(i&&!usePrimary)await sleep(delayMs);
     try{
       let item={symbol,rows:[]};
       if(usePrimary) {

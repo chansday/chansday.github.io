@@ -5,8 +5,9 @@ import { priorHistoryEstimate } from '../providers/forecast-basis.js';
 import { rankedRecords } from '../providers/rank-change.js';
 import { repoPath } from '../providers/repo-paths.js';
 import { kstDate, isValidDate } from './market-calendar.mjs';
+import { buildFlowAdjustment } from './preview-flow.mjs';
 
-export async function buildPreview(target, { now = () => new Date(), loadHistory = loadNaverDailyHistory, universe = null, rawRecord = null, recovery = false } = {}) {
+export async function buildPreview(target, { now = () => new Date(), loadHistory = loadNaverDailyHistory, universe = null, rawRecord = null, recovery = false, loadFlow = buildFlowAdjustment } = {}) {
   if (!isValidDate(target)) throw new Error('Invalid target date');
   const [sourceDate] = await priorTradingDates(target);
   const nowDate = now();
@@ -24,14 +25,21 @@ export async function buildPreview(target, { now = () => new Date(), loadHistory
   if (h.retrieved_at !== raw.retrieved_at) throw new Error('Preview history does not match the recorded collection');
   const list = universe || JSON.parse(await readFile(repoPath('data/kospi-universe.json'), 'utf8'));
   const names = new Map((list.symbols || []).map(v => [v.symbol, v.name]));
+  let flow;
+  try { flow = await loadFlow(h, sourceDate, target); }
+  catch { flow = {status:'unavailable',reason:'read_error',source_date:sourceDate,adjustments:{}}; }
   const candidates = h.valid_symbols.map(symbol => {
     const estimate = priorHistoryEstimate(h.sessions, symbol, { returnHistory: h.return_history?.[symbol], forecastModel: h.forecast_model, rankForecast: h.rank_forecast });
-    return { symbol, name: names.get(symbol) || symbol, expected_open: estimate?.expected_open, expected_close: estimate?.expected_close };
+    const adjustment = flow.status === 'applied' ? flow.adjustments?.[symbol] : null;
+    const close = estimate?.expected_close;
+    const adjusted = Number.isFinite(adjustment) && Number.isFinite(close) && estimate.expected_open > 0 ? Math.round((close + estimate.expected_open * adjustment) * 100) / 100 : close;
+    return { symbol, name: names.get(symbol) || symbol, expected_open: estimate?.expected_open, expected_close: adjusted };
   });
   const rows = rankedRecords(candidates);
   if (!rows.length) throw new Error('No valid preview rankings');
   const trainedModel = h.rank_forecast?.model || h.forecast_model || null;
-  return { schema_version: 1, kind: 'next_preview', status: h.partial ? 'partial' : 'ready', source_date: sourceDate, target_date: target, generated_at: nowDate.toISOString(), retrieved_at: h.retrieved_at, collection: raw.collection, reconstructed: recovery, data_source: 'naver-daily', market_venue: 'unconfirmed', adjustment: 'unconfirmed', model: trainedModel?.model || 'daily_history', model_trained_at: trainedModel?.trained_at || null, model_train_last_date: trainedModel?.train_last_date || null, universe: h.symbols, universe_complete: !h.partial && !h.universe_stale, rows };
+  const { adjustments, ...flowMetadata } = flow;
+  return { schema_version: 1, kind: 'next_preview', status: h.partial ? 'partial' : 'ready', source_date: sourceDate, target_date: target, generated_at: nowDate.toISOString(), retrieved_at: h.retrieved_at, collection: raw.collection, reconstructed: recovery, data_source: 'naver-daily', market_venue: 'unconfirmed', adjustment: 'unconfirmed', investor_flow: flowMetadata, model: trainedModel?.model || 'daily_history', model_trained_at: trainedModel?.trained_at || null, model_train_last_date: trainedModel?.train_last_date || null, universe: h.symbols, universe_complete: !h.partial && !h.universe_stale, rows };
 }
 export async function savePreview(target, { recovery = false } = {}) {
   const path = repoPath(`data/next-preview/${target}.json`);

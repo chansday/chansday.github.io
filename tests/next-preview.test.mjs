@@ -44,6 +44,10 @@ test('preview accepts validated evening and early morning history, with explicit
  const history={ok:true,partial:false,valid_symbols:['000001'],symbols:['000001'],sessions:[make('2026-11-03',102),make('2026-11-02',101),make('2026-10-30',100)],retrieved_at:'2026-11-03T10:00:00Z'};
  const options={now:()=>new Date('2026-11-03T10:05:00Z'),rawRecord:{collection:'evening',target_date:'2026-11-04',retrieved_at:'2026-11-03T10:00:00Z'},loadHistory:async()=>history,universe:{symbols:[{symbol:'000001',name:'가'}]}};
  const preview=await buildPreview('2026-11-04',options);assert.equal(preview.rows.length,1);assert.equal(preview.source_date,'2026-11-03');assert.equal(preview.rows[0].expected_open,102);
+ const withFlow=await buildPreview('2026-11-04',{...options,loadFlow:async()=>({status:'applied',source_date:'2026-11-03',adjustments:{'000001':0.005}})});
+ assert.equal(withFlow.investor_flow.status,'applied'); assert.ok(withFlow.rows[0].expected_close>preview.rows[0].expected_close);
+ const missingFlow=await buildPreview('2026-11-04',{...options,loadFlow:async()=>{throw new Error('missing');}});
+ assert.equal(missingFlow.investor_flow.status,'unavailable'); assert.deepEqual(missingFlow.rows,preview.rows);
  await assert.rejects(buildPreview('2026-11-04',{...options,now:()=>new Date('2026-11-04T00:00:00Z')}));
  await assert.rejects(buildPreview('2026-11-04',{...options,rawRecord:{...options.rawRecord,collection:'morning'}}));
  const morning = {...options, now:()=>new Date('2026-11-03T22:00:00Z'),rawRecord:{collection:'morning',target_date:'2026-11-04',retrieved_at:'2026-11-03T21:40:00Z'},loadHistory:async()=>({...history,retrieved_at:'2026-11-03T21:40:00Z'})};

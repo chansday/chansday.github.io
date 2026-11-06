@@ -84,3 +84,13 @@ test('primary source checks robots, symbol identity and parses signed share coun
  assert.match(lines.join('\n'),/005930 · 종목정보 · 시작 2026-11-03T00:00:00.000Z · HTTP 200/);
  assert.match(lines.join('\n'),/005930 · 매매동향 · 시작 2026-11-03T00:00:00.000Z · HTTP 200/);
 });
+test('daily primary collection uses 750 ms between requests, about 1.5 s per two-request symbol',async()=>{
+ const waits=[]; let current='';
+ const fetchImpl=async url=>{
+  if(url.endsWith('/robots.txt')) return response(404,{});
+  if(url.includes('/summary/')) { current=url.split('/').at(-1); return response(200,{id:Number(current),code:current,market:'kospi'}); }
+  return response(200,{data:[{dt:'2026-11-02',net_vol_individual:1,net_vol_institutional:2,net_vol_foreigner:3}]});
+ };
+ const result=await collectInvestorFlow(['005930','000660'],{startDate:'2026-11-02',endDate:'2026-11-02',expectedDates:['2026-11-02'],now:()=>new Date('2026-11-03T00:00:00Z'),fetchImpl,sleep:async ms=>waits.push(ms),log:()=>{}});
+ assert.equal(result.status,'ready'); assert.deepEqual(waits,[750,750,750]);
+});

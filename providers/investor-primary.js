@@ -9,7 +9,7 @@ const HISTORY = decode('L2RhdGEvdjMvaW52ZXN0b3IvbmV0LXZvbHVtZXMvaGlzdG9yeS8=');
 const AGENT = 'kospi-signal-personal-investor-collector/1.0';
 const intOrNull = value => Number.isSafeInteger(value) ? value : null;
 
-export function createPrimaryInvestorSource({fetchImpl = fetch, sleep = ms => new Promise(r => setTimeout(r,ms)), now = () => new Date(), log = () => {}} = {}) {
+export function createPrimaryInvestorSource({fetchImpl = fetch, sleep = ms => new Promise(r => setTimeout(r,ms)), now = () => new Date(), log = () => {}, requestIntervalMs = 1000} = {}) {
   let disabled = false, requests = 0;
   const context = {fetchImpl, now};
   async function get(path, symbol, operation) {
@@ -17,7 +17,7 @@ export function createPrimaryInvestorSource({fetchImpl = fetch, sleep = ms => ne
     const url = new URL(path, BASE);
     const robots = await checkRobotsUrl(context, url.href, AGENT, {allowMissing:true});
     if (!robots.ok) { disabled = true; throw new Error('primary_robots_unavailable_or_disallowed'); }
-    if (requests++) await sleep(1000);
+    if (requests++) await sleep(requestIntervalMs);
     const started = now();
     let response;
     try {

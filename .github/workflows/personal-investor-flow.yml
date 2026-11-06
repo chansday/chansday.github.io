@@ -53,6 +53,7 @@ jobs:
         id: window
         env:
           EVENT_TYPE: ${{ inputs.keeper_mode != '' && 'schedule' || github.event_name }}
+          KEEPER_MODE: ${{ inputs.keeper_mode }}
           TRADING_DAY: ${{ steps.market.outputs.should_run }}
         run: |
           set -euo pipefail
@@ -69,6 +70,8 @@ jobs:
               echo "allowed=true" >> "$GITHUB_OUTPUT"
               echo "Collecting missing recent trading day $target."
             fi
+          elif [[ "$KEEPER_MODE" == 'afternoon' && "$now_kst" > '1744' && "$now_kst" < '1846' && "$TRADING_DAY" == 'true' ]]; then
+            echo "allowed=true" >> "$GITHUB_OUTPUT"
           elif [[ "$now_kst" > '2046' && "$TRADING_DAY" == 'true' ]]; then
             echo "allowed=true" >> "$GITHUB_OUTPUT"
           else

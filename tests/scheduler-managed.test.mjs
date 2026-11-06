@@ -7,6 +7,10 @@ import {runKeeper} from '../scripts/scheduler-keeper.mjs';
 const kr=await loadMarketCalendar(),us=JSON.parse(await readFile(new URL('../data/us-market-calendar.json',import.meta.url)));
 const ts=s=>Date.parse(s);
 const byId=(day,id)=>managedStages(day,kr,us).find(s=>s.id===id);
+test('afternoon investor flow is scheduled for 17:45 on trading days',()=>{
+ const s=byId('2026-11-06','flow-afternoon'); assert.equal(new Date(s.at).toISOString(),'2026-11-06T08:45:00.000Z'); assert.equal(s.inputs.keeper_mode,'afternoon');
+ assert.equal(byId('2026-11-07','flow-afternoon'),undefined);
+});
 test('US holiday and Saturday early close use the US trading date',()=>{
  assert.equal(byId('2026-11-27','nasdaq-close'),undefined);
  const close=byId('2026-11-28','nasdaq-close');

@@ -17,6 +17,7 @@ export function managedStages(date, krx, us) {
  if(market.status==='run') {
   for(const [phase,at,end] of [['morning','07:30','08:00'],['preopen','08:20','08:50'],['after_close','16:40','18:00']]) add('context-'+phase,'market-context.yml',iso(date,at),iso(date,end),{phase});
   add('after-market','after-market.yml',iso(date,'20:05'),iso(date,'23:30'));
+  add('flow-afternoon','personal-investor-flow.yml',iso(date,'17:45'),iso(date,'18:30'),{keeper_mode:'afternoon'});
   add('flow-evening','personal-investor-flow.yml',iso(date,'20:47'),iso(date,'23:30'),{keeper_mode:'evening'});
  }
  const d=new Date(`${date}T12:00:00Z`);d.setUTCDate(d.getUTCDate()-1);
