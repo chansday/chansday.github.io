@@ -185,8 +185,7 @@ test("workflows: keeper has minimal permissions and bounded runtime; stages are 
   assert.match(keeper, /concurrency:\n  group: kospi-scheduler-keeper\n  cancel-in-progress: false/);
   const timeout = Number(keeper.match(/timeout-minutes: (\d+)/)[1]); assert.ok(timeout <= 340);
   assert.match(keeper, /node scripts\/scheduler-keeper\.mjs/); assert.match(keeper, /workflow_dispatch:/);
-  const crons = [...keeper.matchAll(/cron: "(\d+) (\d+) \* \* ([\d-]+)"/g)].map(([, m, h]) => (Number(h) * 60 + Number(m) + 540) % 1440);
-  assert.ok(crons.filter((t) => t < 6 * 60).length >= 4, "several pre-dawn KST starts");
+  assert.doesNotMatch(keeper, /^\s*schedule:/m, "keeper uses relay instead of cron");
   for (const file of await readdir(root)) {
     const text = await readFile(new URL(file, root), "utf8");
     assert.doesNotMatch(text, /\t/, `${file} has a tab`); assert.match(text, /^name: /m); assert.match(text, /^on:/m);
@@ -195,7 +194,7 @@ test("workflows: keeper has minimal permissions and bounded runtime; stages are 
   }
   for (const stage of STAGES) {
     const text = await readFile(new URL(stage.workflow, root), "utf8");
-    if (stage.kind !== "evening") assert.doesNotMatch(text, /cron:/, `${stage.workflow} must not keep a duplicate schedule`);
+    assert.doesNotMatch(text, /^\s*schedule:/m, `${stage.workflow} must not keep a duplicate schedule`);
     assert.match(text, /workflow_dispatch:/);
   }
 });

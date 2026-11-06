@@ -1,14 +1,12 @@
 name: "[관리 02] 거래일·휴장일 갱신"
+run-name: "keeper:${{ inputs.keeper_slot }}"
 
 on:
-  schedule:
-    # Daily at 03:00 KST (18:00 UTC), away from the stage runs. Each run
-    # re-checks the current year for mid-year changes and, from December, the
-    # next year; an unchanged list makes no commit. While KRX has not published
-    # the next year a run warns and passes; December 31 is the final attempt.
-    - cron: "0 18 * * *"
   workflow_dispatch:
     inputs:
+      keeper_slot:
+        type: string
+        required: false
       dry_run:
         description: "Check KRX without changing the calendar"
         type: boolean

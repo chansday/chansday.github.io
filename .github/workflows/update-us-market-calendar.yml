@@ -1,9 +1,11 @@
 name: "[관리] 미국 거래일·휴장일 갱신"
+run-name: "keeper:${{ inputs.keeper_slot }}"
 on:
-  schedule:
-    - cron: '15 18 * * *' # 매일 03:15 KST
   workflow_dispatch:
     inputs:
+      keeper_slot:
+        type: string
+        required: false
       dry_run:
         description: "Check without changing the calendar"
         type: boolean

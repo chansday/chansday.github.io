@@ -1,12 +1,16 @@
 name: "[08 매매동향] 외국인·개인·기관 수집"
+run-name: "keeper:${{ inputs.keeper_slot }}"
 
 on:
   workflow_call:
-  schedule:
-    - cron: '47 11 * * 1-5' # 20:47 KST: observed complete run on 2026-11-03
-    - cron: '30 22 * * 0-5' # 07:30 KST: retry a missing recent trading day
   workflow_dispatch:
     inputs:
+      keeper_slot:
+        type: string
+        required: false
+      keeper_mode:
+        type: string
+        required: false
       from_date:
         description: '시작 거래일 YYYY-MM-DD (비우면 오늘)'
         type: string
@@ -48,7 +52,7 @@ jobs:
       - name: 실행 시간 및 누락 날짜 확인
         id: window
         env:
-          EVENT_TYPE: ${{ github.event_name }}
+          EVENT_TYPE: ${{ inputs.keeper_mode != '' && 'schedule' || github.event_name }}
           TRADING_DAY: ${{ steps.market.outputs.should_run }}
         run: |
           set -euo pipefail
@@ -77,7 +81,7 @@ jobs:
           steps.window.outputs.allowed == 'true'
         continue-on-error: true
         env:
-          EVENT_TYPE: ${{ github.event_name }}
+          EVENT_TYPE: ${{ inputs.keeper_mode != '' && 'schedule' || github.event_name }}
           INPUT_FROM: ${{ inputs.from_date }}
           INPUT_TO: ${{ inputs.to_date }}
           INPUT_SYMBOL: ${{ inputs.symbol }}

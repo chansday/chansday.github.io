@@ -1,13 +1,17 @@
 name: "[11 수집] 나스닥 섹터 지수"
+run-name: "keeper:${{ inputs.keeper_slot }}"
 on:
-  schedule:
-    - cron: '35 13 * * 1-5' # 09:35 ET (EDT) 개장 직후
-    - cron: '35 14 * * 1-5' # 09:35 ET (EST) 개장 직후
-    - cron: '5 17 * * 1-5'  # 13:05 ET (EDT) 조기 마감
-    - cron: '5 18 * * 1-5'  # 13:05 ET (EST) 조기 마감
-    - cron: '5 20 * * 1-5'  # 16:05 ET (EDT) 마감 직후
-    - cron: '5 21 * * 1-5'  # 16:05 ET (EST) 마감 직후
   workflow_dispatch:
+    inputs:
+      keeper_slot:
+        type: string
+        required: false
+      phase:
+        type: string
+        required: false
+      market_date:
+        type: string
+        required: false
 permissions:
   contents: write
 concurrency:
@@ -30,6 +34,8 @@ jobs:
       - id: market
         env:
           SCHEDULE: ${{ github.event.schedule }}
+          KEEPER_PHASE: ${{ inputs.phase }}
+          KEEPER_MARKET_DATE: ${{ inputs.market_date }}
         run: node scripts/us-market-calendar.mjs
       - name: 나스닥 섹터 데이터 수집
         id: collect

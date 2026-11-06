@@ -1,10 +1,14 @@
 name: "[09 시황] 시장 환경 정보 수집"
+run-name: "keeper:${{ inputs.keeper_slot }}"
 on:
-  schedule:
-    - cron: '30 22 * * 0-4' # 07:30 KST Mon-Fri
-    - cron: '20 23 * * 0-4' # 08:20 KST Mon-Fri
-    - cron: '40 7 * * 1-5'  # 16:40 KST Mon-Fri
   workflow_dispatch:
+    inputs:
+      keeper_slot:
+        type: string
+        required: false
+      phase:
+        type: string
+        required: false
 
 permissions:
   contents: write
@@ -33,11 +37,13 @@ jobs:
         continue-on-error: true
         env:
           SCHEDULE: ${{ github.event.schedule }}
+          KEEPER_PHASE: ${{ inputs.phase }}
         run: |
           # A local dispatch (act) pre-sets MARKET_CONTEXT_PHASE via --env to
           # label the stage; SCHEDULE is only populated for GitHub's own cron
           # trigger, so leave an explicit phase alone instead of overwriting
           # it with "manual".
+          if [ -n "${KEEPER_PHASE:-}" ]; then export MARKET_CONTEXT_PHASE="$KEEPER_PHASE"; fi
           if [ -z "${MARKET_CONTEXT_PHASE:-}" ]; then
             case "$SCHEDULE" in
               '30 22 * * 0-4') export MARKET_CONTEXT_PHASE=morning ;;

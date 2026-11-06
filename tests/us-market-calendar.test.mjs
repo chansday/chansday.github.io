@@ -17,7 +17,7 @@ test('season and early closes run only at correct eastern time',()=>{
   assert.equal(at('2026-11-27T21:05:00Z','5 21 * * 1-5').run,false);
   assert.equal(at('2026-11-26T14:35:00Z','35 14 * * 1-5').reason,'holiday');
 });
-test('calendar rejects missing coverage',()=>assert.throws(()=>classify(cal,'2028-01-03'),/does not cover/));
+test('calendar rejects missing coverage',()=>{ const limited=structuredClone(cal); limited.coverage.end='2026-12-31'; limited.holidays=limited.holidays.filter(x=>x.date<='2026-12-31'); limited.early_closes=limited.early_closes.filter(x=>x.date<='2026-12-31'); assert.throws(()=>classify(limited,'2027-01-04'),/does not cover/); });
 const rows=[['New Years Day','Thursday, January 1','Closed'],['MLK','Monday, January 19','Closed'],['Presidents','Monday, February 16','Closed'],['Good Friday','Friday, April 3','Closed'],['Memorial','Monday, May 25','Closed'],['Juneteenth','Friday, June 19','Closed'],['Independence','Friday, July 3','Closed'],['Labor','Monday, September 7','Closed'],['Thanksgiving','Thursday, November 26','Closed'],['Early Close','Friday, November 27','1:00 p.m. ET'],['Early Close','Thursday, December 24','1:00 p.m. ET'],['Christmas','Friday, December 25','Closed']];
 const html='Holiday Schedule\nHoliday       2026       Status\n'+rows.map(r=>r.join('    ')).join('\n')+'\nTrading Hours';
 test('parses official table and refuses incomplete or missing existing dates',()=>{
@@ -44,5 +44,6 @@ test('counts multiple US closes across a Korean holiday',()=>{
 test('EDT close and uncovered date fail closed',()=>{
  const sessions=sessionsBetween(cal,Date.parse('2026-07-06T15:30:00+09:00'),Date.parse('2026-07-07T08:20:00+09:00'));
  assert.equal(sessions[0].closed_at,'2026-07-06T20:00:00.000Z');
- assert.throws(()=>sessionsBetween(cal,Date.parse('2026-12-31T15:30:00+09:00'),Date.parse('2027-01-04T08:20:00+09:00')),/does not cover/);
+ const limited=structuredClone(cal); limited.coverage.end='2026-12-31'; limited.holidays=limited.holidays.filter(x=>x.date<='2026-12-31'); limited.early_closes=limited.early_closes.filter(x=>x.date<='2026-12-31');
+ assert.throws(()=>sessionsBetween(limited,Date.parse('2026-12-31T15:30:00+09:00'),Date.parse('2027-01-04T08:20:00+09:00')),/does not cover/);
 });

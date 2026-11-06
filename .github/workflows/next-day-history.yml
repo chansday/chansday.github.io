@@ -5,12 +5,7 @@ on:
   # collects the daily bars, trains the forecast models and computes the rank
   # forecast for the next trading day. The 06:10 KST morning run verifies this
   # cache and replaces it only if the bars changed. Several starts absorb late
-  # schedule events; a complete cache is kept, so repeats are no-ops, and a start
-  # delayed past midnight becomes that morning's collection.
-  schedule:
-    - cron: "45 9 * * 1-5"   # 18:45 KST Mon-Fri
-    - cron: "0 11 * * 1-5"   # 20:00 KST
-    - cron: "30 13 * * 1-5"  # 22:30 KST
+  # keeper retries after failure at 20:00 and 22:30 within the evening window.
   workflow_dispatch:
 
 permissions:

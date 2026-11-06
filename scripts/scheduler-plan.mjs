@@ -32,7 +32,7 @@ export const STAGES = Object.freeze([
   // GitHub's scheduled events can arrive hours late. The keeper dispatches
   // the first evening preview at its intended time; existing cron runs remain
   // as later opportunities to recover a failed or delayed collection.
-  { id: "next-day-history", workflow: "next-day-history.yml", at: "18:45", lastStart: "23:00", kind: "evening" },
+  { id: "next-day-history", workflow: "next-day-history.yml", at: "18:45", lastStart: "23:00", kind: "evening", retry: { at: "20:00", times: ["20:00", "22:30"], maxAttempts: 3 } },
 ].map(Object.freeze));
 
 export const CATCH_UP_STAGE_ID = "close-catch-up";
@@ -125,7 +125,7 @@ export function stageState(stage, runs, now, date) {
   }
   if (failed.length) {
     if (stage.retry && attempts < stage.retry.maxAttempts) {
-      const retryAt = kstInstant(date, stage.retry.at);
+      const retryAt = kstInstant(date, stage.retry.times?.[Math.min(attempts-1,stage.retry.times.length-1)] || stage.retry.at);
       if (now > last) return { ...base, state: "missed", reason: "retry window closed" };
       return { ...base, state: now >= retryAt ? "due" : "waiting", due_at: retryAt.toISOString(), reason: "retry after failure" };
     }

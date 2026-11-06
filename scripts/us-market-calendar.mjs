@@ -54,7 +54,16 @@ export function scheduledPhase(calendar, now, schedule) {
 }
 export async function run() {
   const calendar = JSON.parse(await readFile(CALENDAR,'utf8'));
-  const result = scheduledPhase(calendar,new Date(),process.env.SCHEDULE || '');
+  const now=new Date();
+  let result=scheduledPhase(calendar,now,process.env.SCHEDULE || '');
+  if (process.env.KEEPER_PHASE) {
+    const phase=process.env.KEEPER_PHASE, expectedDate=process.env.KEEPER_MARKET_DATE, local=easternParts(now);
+    if (!['open','close'].includes(phase) || !isValidDate(expectedDate)) throw new Error('Invalid keeper session');
+    const day=classify(calendar,expectedDate), time=phase==='open'?'09:35':day.close==='13:00'?'13:05':'16:05';
+    const mins=x=>Number(x.slice(0,2))*60+Number(x.slice(3));
+    const run=day.run && local.date===expectedDate && mins(local.time)>=mins(time) && mins(local.time)<mins(time)+10;
+    result={run,date:expectedDate,phase:run?phase:null,reason:run?'trading_session':'outside_collection_window'};
+  }
   console.log(JSON.stringify(result));
   if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `should_run=${result.run}\nmarket_date=${result.date}\nphase=${result.phase || ''}\n`);
 }
