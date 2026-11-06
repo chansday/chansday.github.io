@@ -162,7 +162,7 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
     const stage = async (name) => JSON.parse(await readFile(join(tempRoot, "data", "runs", "2026-10-23", `${name}.json`), "utf8"));
     const stage0700 = await stage("0700");
     const stage0800 = await stage("0800");
-    const stage0820 = await stage("0820");
+    const stage0820 = await stage("0835");
     const stage0900 = await stage("0900");
     const stage1530 = await stage("1530");
     assert.equal(stage0700.meta.run_stage, "update-results");
@@ -173,9 +173,9 @@ test("canonical stage runs preserve fields, settle cumulatively, and are idempot
     assert.deepEqual(stage1530.rows.map((row) => row.actual_return), stage0900.rows.map((row) => row.actual_return));
     assert.deepEqual(JSON.parse(await readFile(join(tempRoot, "data", "latest-snapshot.json"), "utf8")), stage1530);
 
-    const before = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0820" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
+    const before = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0835" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
     for (const mode of modes) await execFileAsync(process.execPath, [script, "--mode", mode, ...args], { cwd: tempRoot, env: deterministicEnv });
-    const after = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0820" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
+    const after = await Promise.all(modes.map(async (mode) => readFile(join(tempRoot, "data", "runs", "2026-10-23", `${mode === "update-results" ? "0700" : mode === "analysis" ? "0800" : mode === "forecast" ? "0835" : mode === "open-settlement" ? "0900" : "1530"}.json`), "utf8")));
     assert.deepEqual(after, before);
   } finally {
     await rm(tempRoot, { recursive: true, force: true });

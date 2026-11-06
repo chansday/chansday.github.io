@@ -57,7 +57,7 @@ export function catchUpCandidateDates(today, calendar, count = CATCH_UP_TRADING_
 export function missingCloseDates(candidates, filesByDate) {
   return candidates.filter((date) => {
     const files = Array.isArray(filesByDate?.[date]) ? filesByDate[date] : [];
-    return !files.includes("1530.json") && (files.includes("0900.json") || files.includes("0820.json"));
+    return !files.includes("1530.json") && (files.includes("0900.json") || files.includes("0835.json") || files.includes("0820.json"));
   });
 }
 

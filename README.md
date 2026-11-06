@@ -95,7 +95,7 @@ keeper 동작, 중복 방지, 거래일 guard, 연간 휴장일 갱신은 [docs/
 ├─ data/
 │  ├─ latest-snapshot.json             최신 운영 run 복사본
 │  ├─ date-index.json                  날짜별 조회 인덱스
-│  ├─ runs/YYYY-MM-DD/                 stage 파일 {0700,0800,0820,0900,1530}.json, retrospective-*.json
+│  ├─ runs/YYYY-MM-DD/                 stage 파일 {0700,0800,0835,0900,1530}.json (기존 0820 호환), retrospective-*.json
 │  ├─ runs/historical-test/            검증용 과거 snapshot
 │  ├─ daily-history/                   일봉 선행 수집 캐시
 │  ├─ kospi-universe.json              KOSPI 종목 목록

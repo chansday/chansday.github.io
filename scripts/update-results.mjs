@@ -391,7 +391,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
   const currentRunId = process.env.KOSPI_RUN_ID || null;
   const timely = (recordedAt, sourceSnapshot) => savedOpeningIsTimely(recordedAt, options.runContext.referenceTime, stageStartedAt.toISOString(), Boolean(currentRunId && sourceSnapshot?.meta?.run_id === currentRunId));
   const latestPath = resolve(options.dataFile || "data/latest-snapshot.json");
-  const runPath = resolve("data", "runs", options.runDate, `${options.mode === "update-results" ? "0700" : options.mode === "analysis" ? "0800" : options.mode === "forecast" ? "0820" : options.mode === "open-settlement" ? "0900" : "1530"}.json`);
+  const runPath = resolve("data", "runs", options.runDate, `${options.mode === "update-results" ? "0700" : options.mode === "analysis" ? "0800" : options.mode === "forecast" ? "0835" : options.mode === "open-settlement" ? "0900" : "1530"}.json`);
   const previousMode = {
     "update-results": null,
     analysis: "update-results",
@@ -400,7 +400,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     "close-settlement": "open-settlement",
   }[options.mode];
   const previousPath = previousMode
-    ? resolve("data", "runs", options.runDate, `${previousMode === "update-results" ? "0700" : previousMode === "analysis" ? "0800" : previousMode === "forecast" ? "0820" : "0900"}.json`)
+    ? resolve("data", "runs", options.runDate, `${previousMode === "update-results" ? "0700" : previousMode === "analysis" ? "0800" : previousMode === "forecast" ? "0835" : "0900"}.json`)
     : null;
   const explicitDataFile = Boolean(options.dataFile);
   async function readIfPresent(path, expectedStage = null) {
@@ -410,7 +410,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
       const candidate = JSON.parse(await readFile(path, "utf8"));
       return expectedStage && !snapshotBelongsToStage(candidate, options.runDate, expectedStage, options.mode) ? null : candidate;
     } catch (error) {
-      if (error.code === "ENOENT") return null;
+      if (error.code === "ENOENT") return path.endsWith("0835.json") ? readIfPresent(path.replace(/0835\.json$/, "0820.json"), expectedStage) : null;
       throw error;
     }
   }
@@ -444,7 +444,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     snapshot = { ...snapshot, pipeline };
     // Each saved stage owns its own pipeline result. A rerun of a later stage
     // can otherwise retain an obsolete inherited status from its existing file.
-    const stages = [["0700", "update-results"], ["0800", "analysis"], ["0820", "forecast"], ["0900", "open-settlement"], ["1530", "close-settlement"]];
+    const stages = [["0700", "update-results"], ["0800", "analysis"], ["0835", "forecast"], ["0900", "open-settlement"], ["1530", "close-settlement"]];
     for (const [label, stage] of stages.slice(0, stages.findIndex(([, name]) => name === options.mode))) {
       const prior = await readIfPresent(resolve("data", "runs", options.runDate, `${label}.json`), stage);
       if (prior?.mode !== "provider" || prior.meta?.historical_test || prior.meta?.test_only) continue;
@@ -460,7 +460,7 @@ export async function run(argv = process.argv.slice(2), dependencies = {}) {
     }
     // Recover the latest genuine pre-open record even if an intermediate run is missing.
     const recovered = new Map();
-    for (const [label, stage] of [["0820", "forecast"], ["0800", "analysis"], ["0700", "update-results"]]) {
+    for (const [label, stage] of [["0835", "forecast"], ["0800", "analysis"], ["0700", "update-results"]]) {
       const prior = await readIfPresent(resolve("data", "runs", options.runDate, `${label}.json`), stage);
       if (prior?.asOfDate !== options.runDate || prior?.mode !== "provider" || prior?.provider?.id !== "naver-crawl" || !Array.isArray(prior.rows)) continue;
       for (const row of prior.rows) {

@@ -43,7 +43,7 @@ test("date index generator lists only dates with the configured stage file", asy
     const names = await readdir(runRoot, { withFileTypes: true });
     const expected = [];
     for (const entry of names) if (entry.isDirectory() && /^\d{4}-\d{2}-\d{2}$/.test(entry.name)) {
-      for (const stage of ["1530", "0900", "0820", "0800", "0700"]) {
+      for (const stage of ["1530", "0900", "0835", "0820", "0800", "0700"]) {
         try { if ((await stat(new URL(`${entry.name}/${stage}.json`, runRoot))).isFile()) { expected.push(entry.name); break; } } catch (error) { if (error.code !== "ENOENT") throw error; }
       }
     }

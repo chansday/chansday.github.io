@@ -26,7 +26,7 @@ export const RECONSTRUCTION_CAVEAT = "Reconstructed after the trading day from N
 export const RECONSTRUCTED_STAGES = Object.freeze([
   ["0700", "update-results", "previousResult"],
   ["0800", "analysis", "analysis"],
-  ["0820", "forecast", "forecast"],
+  ["0835", "forecast", "forecast"],
   ["0900", "open-settlement", "openSettlement"],
   ["1530", "close-settlement", "closeSettlement"],
 ]);

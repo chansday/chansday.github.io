@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const PROJECT_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUTPUT = join(PROJECT_ROOT, "data", "date-index.json");
 // Newest first: the latest stage file present for a date is the one shown.
-export const PROVIDER_STAGES = Object.freeze(["1530", "0900", "0820", "0800", "0700"]);
+export const PROVIDER_STAGES = Object.freeze(["1530", "0900", "0835", "0820", "0800", "0700"]);
 // An isolated root (tests, KOSPI_DATA_ROOT dry-runs) may lack the test-only
 // folders; the repository root must have them all.
 const sourceConfig = (base) => {

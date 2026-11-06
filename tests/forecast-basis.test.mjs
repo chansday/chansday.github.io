@@ -112,7 +112,7 @@ test("scheduled forecast → open-settlement → close-settlement keeps the hist
   await withPipeline(async ({ stage, read }) => {
     const forecast = await stage("forecast", "2026-10-26T23:20:00.000Z", { openPriceRaw: 0, closePriceRaw: 104, localTradedAt: "2026-10-27T08:19:50+09:00", marketStatus: "PREOPEN" });
     assert.equal(forecast.status, "ready", forecast.message);
-    const f = (await read("0820")).rows[0];
+    const f = (await read("0835")).rows[0];
     assert.equal(f.expected_open, 104); assert.equal(f.expected_close, 104.69); assert.equal(f.expected_return, 0.66);
     assert.equal(f.expected_open_source.kind, "preopen_history"); assert.equal(f.expected_open_basis.model, OPEN_GAP_MODEL); assert.equal(f.expected_close_basis.model, CLOSE_SESSION_MODEL);
     assert.deepEqual(f.expected_open_basis, priorHistoryEstimate(SESSIONS, "005930").open_basis);
@@ -133,7 +133,7 @@ test("a pre-open quote forecast keeps its quote basis and has no closing estimat
   await withPipeline(async ({ stage, read }) => {
     const forecast = await stage("forecast", "2026-10-26T23:20:00.000Z", { openPriceRaw: 103, closePriceRaw: 104, localTradedAt: "2026-10-27T08:19:50+09:00", marketStatus: "PREOPEN" });
     assert.equal(forecast.status, "ready", forecast.message);
-    const f = (await read("0820")).rows[0];
+    const f = (await read("0835")).rows[0];
     assert.equal(f.expected_open, 103); assert.equal(f.expected_open_source.kind, "preopen_quote"); assert.equal(f.expected_close, null); assert.equal(Object.hasOwn(f, "expected_close_basis"), false);
     assert.deepEqual(f.expected_open_basis, { model: PREOPEN_QUOTE_MODEL, history_dates: [], inputs: { open_price: 103, quote_at: "2026-10-26T23:19:50.000Z", market_status: "PREOPEN" } });
     await stage("open-settlement", "2026-10-27T00:05:00.000Z", { openPriceRaw: 106, closePriceRaw: 107, localTradedAt: "2026-10-27T09:04:50+09:00", marketStatus: "OPEN" });

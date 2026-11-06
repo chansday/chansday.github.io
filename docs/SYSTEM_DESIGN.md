@@ -1,5 +1,7 @@
 # KOSPI Signal Board 시스템 설계
 
+> 현재 일정과 장전 데이터 출처는 [운영 문서](OPERATIONS.md)가 기준입니다. 아래 과거 테스트·초기 설계 설명은 당시 기록입니다.
+
 상태: 정적 Pages MVP 구현 및 안전한 provider 경계 반영
 기준 시간대: `Asia/Seoul` (KST)
 
@@ -11,7 +13,7 @@
 
 가격은 승인된 provider가 정의한 공식 정규장 시작가·종가만 사용한다. 조정주가, 호가, 첫 체결가, 장중 추정값을 공식 가격으로 섞지 않는다. source의 가격 정의가 확인되지 않으면 숫자를 공개하지 않고 `no_data` 또는 `degraded`로 남긴다.
 
-장전 예측은 KST 08:20 수집 시점에 허용된 입력만 사용해 KST 09:00 시작가를 목표로 한다. 컷오프 이후 입력이 섞였거나 수집 시각을 확인할 수 없으면 해당 단계는 `degraded`가 된다.
+현재 정기 장전 예측은 KST 08:35 시작 예정이며 실제 수집 시각과 입력 출처를 기록한다. KRX 공식 예상체결가는 08:50부터 공개되므로 이 예측에 사용할 수 없고, 공식값 수집 및 별도 보정은 아직 구현되지 않았다. 세부 운영 기준은 [운영 문서](OPERATIONS.md#장전-예측과-공식-예상체결가-2026-11-06-확인)를 따른다.
 
 ## 2. 정적 데이터 모델
 
@@ -115,17 +117,20 @@ redirect를 거부하고 HTML·검색 결과·페이지 목록을 파싱하지 �
 
 ## 6. 실행 단계와 시간대
 
-GitHub Actions cron은 UTC 기준이며 KST는 UTC+9다. 한국은 서머타임이 없으므로 변환은 고정이다.
+정기 stage의 기준은 [`scripts/scheduler-plan.mjs`](../scripts/scheduler-plan.mjs)다. keeper가 거래일과 선행 단계, 실행 가능 시간을 확인한 뒤 workflow를 dispatch하며 실제 시작은 지연될 수 있다.
 
-| UTC cron | KST | pipeline key | 동작 |
-| --- | --- | --- | --- |
-| `0 22 * * 0-4` | 월–금 07:00 | `previousResult` | 전일 예상·실제 결과 업데이트 |
-| `0 23 * * 0-4` | 월–금 08:00 | `analysis` | 당일 기초 분석 |
-| `20 23 * * 0-4` | 월–금 08:20 | `forecast` | Naver quote freshness 검증 및 장전 상태 |
-| `0 0 * * 1-5` | 월–금 09:00 | `openSettlement` | 실제 시작가 정산 |
-| `30 6 * * 1-5` | 월–금 15:30 | `closeSettlement` | 장마감 실제 정산 |
+| KST 예정 | 단계 |
+| --- | --- |
+| 06:10 (07:10 재시도) | 장전 일봉 수집 |
+| 07:00 | 전일 결과 |
+| 08:00 | 기초 분석 |
+| 08:35 | 장전 예측 (신규 `0835.json`, 기존 `0820.json` 호환) |
+| 09:00 | 시가 정산 |
+| 09:30 | 누락 종가 정산 보충 |
+| 15:31 | 종가 정산 |
+| 18:45 | 다음 거래일 일봉 수집 |
 
-UTC 날짜가 KST보다 하루 빠른 오전 단계가 있으므로 `0 22 * * 0-4`는 KST 월요일 07:00에 UTC 일요일 22:00으로 실행된다. Naver crawl은 장전 신선한 openPriceRaw가 있을 때만 expected_open을 계산하고, 09:00 이후 openPriceRaw를 actual_open으로 저장하며, 장마감 후 closePriceRaw를 actual_close로 저장한다. 단, 수동 run-all의 오늘 장중 forecast 계열은 신선한 closePriceRaw current quote를 expected_open의 intraday baseline으로 기록할 수 있으며, 이 값의 `intraday_reference_return`은 expected_return과 별개이고 pre-open forecast가 아니다. actual_open/actual_close는 각각 open-settlement/close-settlement 단계에서만 기록한다. 휴장일·빈 응답·stale·차단이면 숫자를 대체 생성하지 않고 상태만 기록한다.
+장전 기록된 예상값은 이후 단계에서 보존한다. Naver `openPriceRaw`는 공식 예상체결가로 검증되지 않았으며, 공식 예상체결가는 08:50 이후 공개된다. 상세는 [운영 문서](OPERATIONS.md)를 참조한다.
 
 ## 7. 프론트엔드와 운영
 
@@ -147,6 +152,6 @@ Actions는 `workflow_dispatch`에서 기능별 stage를 선택할 수 있고 `ru
 - 공개 source 설정은 GitHub Variables로 관리하고 source URL·라이선스 URL·allowlist를 수동 검토한다.
 - 자동매매·주문·브로커 API·계좌 정보는 구현하지 않는다.
 - GitHub Actions 실행 시각은 지연될 수 있으므로 실제 시각과 cutoff/published 시각을 구분한다.
-- 운영 provider endpoint는 공개 daily CSV만 연결되어 있으며, 장전 호가·예상체결가·실시간 09:00 시가 provider는 연결하지 않았다. historical-test의 공개 파일 접근·라이선스·행 수·필수 숫자 필드는 수집 시점에 검증했지만, 한국거래소 인증 API 원문 응답과 각 종목의 security type은 확인하지 못했다.
+- 운영 provider는 비공식 Naver polling 및 일봉을 사용한다. KRX 공식 예상체결가 연결은 구현되지 않았으며, Naver 필드의 거래소·의미와 각 종목의 security type은 확인하지 못했다.
 
 검증 명령은 `npm test`, `npm run check`, `npm run pipeline:dry-run`, `git diff --check`이다. 로컬 HTTP smoke test는 `/`, `/?mode=demo`, `/data/latest-snapshot.json`의 응답과 JSON 파싱을 확인한다.

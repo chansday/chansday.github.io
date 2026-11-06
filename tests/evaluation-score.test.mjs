@@ -212,13 +212,12 @@ test("visible rank summary for touch layouts", () => {
   assert.equal(evaluationScoreSummary(null, null), "");
 });
 
-test("mobile card and detail panel show the rank summary as visible escaped text", async () => {
+test("mobile card and detail panel show scores without explanatory captions", async () => {
   const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
   const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
-  assert.match(app, /rowMetric\("종목 평가", formatEvaluationScore\(row\.evaluationScore\), toneClass\(row\.expectedReturn\), evaluationTitle\(row\), evaluationNote\(row\)\)/);
-  assert.match(app, /<small class="evaluation-note">\$\{escapeText\(note\)\}<\/small>/);
-  assert.match(app, /setText\(document\.getElementById\("selected-evaluation-note"\), evaluationNote\(row\)\)/);
-  assert.match(html, /<strong id="selected-expected-return">—<\/strong><small id="selected-evaluation-note" class="evaluation-note"><\/small>/);
+  assert.match(app, /rowMetric\("종목 평가", formatEvaluationScore\(row\.evaluationScore\), toneClass\(row\.expectedReturn\), evaluationTitle\(row\)\)/);
+  assert.doesNotMatch(app, /selected-evaluation-note|evaluationNote\(row\)/);
+  assert.doesNotMatch(html, /selected-evaluation-note/);
 });
 
 test("UI labels the column 종목 평가 with 3-decimal scores and no integer-display aria-label", async () => {

@@ -33,8 +33,8 @@ export const CATCH_UP_SOURCE = "naver_daily_candle_catch_up";
 export const CATCH_UP_SOURCE_ID = "naver-daily-candle-catch-up";
 export const MAX_CATCH_UP_TRADING_DAYS = 5;
 const FETCH_BUDGET_MS = 25 * 60_000;
-const BASE_STAGES = Object.freeze([["0900", "open-settlement"], ["0820", "forecast"]]);
-const PRIOR_STAGES = Object.freeze([["0820", "forecast"], ["0800", "analysis"], ["0700", "update-results"]]);
+const BASE_STAGES = Object.freeze([["0900", "open-settlement"], ["0835", "forecast"], ["0820", "forecast"]]);
+const PRIOR_STAGES = Object.freeze([["0835", "forecast"], ["0820", "forecast"], ["0800", "analysis"], ["0700", "update-results"]]);
 export const CATCH_UP_CAVEAT = "Close settlement caught up after the missed 15:30 run from the Naver daily candle. The Naver daily close may include NXT after-hours trading; market venue, adjustment basis, publication time and redistribution rights are unconfirmed. Source license_status is unconfirmed; preferred shares may be included.";
 
 function shiftDate(date, days) {

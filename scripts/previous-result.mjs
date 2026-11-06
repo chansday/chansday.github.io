@@ -36,7 +36,8 @@ export async function evaluatePreviousResult(runDate, attemptedAt) {
   // Consult the original dated forecast; never infer this from missing prices.
   let forecastExclusions = new Set();
   try {
-    const forecast = JSON.parse(await readFile(resolve("data", "runs", targetDate, "0820.json"), "utf8"));
+    const content = await readFile(resolve("data", "runs", targetDate, "0835.json"), "utf8").catch(e => { if (e.code === "ENOENT") return readFile(resolve("data", "runs", targetDate, "0820.json"), "utf8"); throw e; });
+    const forecast = JSON.parse(content);
     const forecastAt = Date.parse(forecast.pipeline?.forecast?.attemptedAt);
     const fetchedAt = Date.parse(forecast.meta?.source?.retrieved_at);
     const dayStart = Date.parse(`${targetDate}T00:00:00+09:00`);

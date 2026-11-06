@@ -282,6 +282,7 @@ test("catch-up candidates are the previous five trading days; only dates with 09
   const files = { "2026-10-27": ["0700.json", "0820.json", "0900.json", "1530.json"], "2026-10-28": ["0700.json", "0800.json", "0820.json", "0900.json"], "2026-10-26": ["0700.json"], "2026-10-23": [] };
   assert.deepEqual(missingCloseDates(catchUpCandidateDates(DAY, calendar), files), ["2026-10-28"]);
   assert.deepEqual(missingCloseDates(["2026-10-28"], { "2026-10-28": ["0820.json"] }), ["2026-10-28"]);
+  assert.deepEqual(missingCloseDates(["2026-10-28"], { "2026-10-28": ["0835.json"] }), ["2026-10-28"]);
 });
 
 test("catch-up is dispatched with run_date only after 09:30 and after every earlier stage of today finished", () => {

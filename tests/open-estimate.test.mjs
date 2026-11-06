@@ -109,7 +109,7 @@ test("stage recovery and merge reject a later pre-open snapshot", async () => {
     const fetchImpl = async (url) => url.includes("/marketValue") ? respond({ totalCount: 1, stocks: [{ itemCode: "000001", stockName: "A", stockEndType: "stock", sosok: "0" }] }) : respond({ datas: [{ symbolCode: "000001", stockName: "A", openPriceRaw: 125, closePriceRaw: 120, localTradedAt: "2026-10-27T08:20:00+09:00", marketStatus: "PREOPEN" }] });
     const summary = await run(["--mode", "forecast", "--provider", "naver-crawl", "--run-date", "2026-10-27", "--run-started-at", now.toISOString()], { now: () => now, fetchImpl: naverRobotsFetch(fetchImpl) });
     assert.equal(summary.status, "ready");
-    const saved = JSON.parse(await readFile(join(root, "data", "runs", "2026-10-27", "0820.json"), "utf8"));
+    const saved = JSON.parse(await readFile(join(root, "data", "runs", "2026-10-27", "0835.json"), "utf8"));
     assert.equal(saved.rows[0].expected_open, 125); assert.notEqual(saved.rows[0].expected_open, 999);
   } finally { process.chdir(original); delete process.env.KOSPI_DATA_ROOT; await rm(root, { recursive: true, force: true }); }
 });
@@ -226,7 +226,7 @@ test("blocked and degraded reruns leave existing latest and stage files byte-for
     const now = new Date("2026-10-27T04:11:00Z"), dir = join(root, "data", "runs", "2026-10-27");
     try {
       await mkdir(dir, { recursive: true });
-      const stagePath = join(dir, "0820.json"), latestPath = join(root, "data", "latest-snapshot.json");
+      const stagePath = join(dir, "0835.json"), latestPath = join(root, "data", "latest-snapshot.json");
       const existing = { ...noDataSnapshot(), status: "ready", mode: "provider", asOfDate: "2026-10-27", provider: { id: "naver-crawl" }, rows: [{ rank: 1, symbol: "000001", name: "A", expected_open: null, expected_close: null, expected_return: null, actual_open: null, actual_close: null, actual_return: null, error: null, status: "valid" }], meta: { run_date: "2026-10-27", run_stage: "forecast" } };
       const stageBytes = JSON.stringify(existing, null, 1) + "\n", latestBytes = "existing latest bytes\n";
       await writeFile(stagePath, stageBytes); await writeFile(latestPath, latestBytes); process.chdir(root); process.env.KOSPI_DATA_ROOT = root; process.env.KOSPI_MANUAL_RUN_ALL = "1";

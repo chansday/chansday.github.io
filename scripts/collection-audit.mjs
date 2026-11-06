@@ -63,7 +63,7 @@ function buildMatrix(latest) {
 
 // The next session's polling prior close (closePrice - change) is the KRX
 // regular-session close. 08:00 is skipped: the NXT pre-market can move it.
-export const PRIOR_CLOSE_STAGES = Object.freeze(["0700", "0820", "0900"]);
+export const PRIOR_CLOSE_STAGES = Object.freeze(["0700", "0835", "0820", "0900"]);
 
 // Explicit, reviewed exceptions: the 15:30 krx_regular close is the real KRX
 // close but the next session's base price (prior_close) was adjusted by an
