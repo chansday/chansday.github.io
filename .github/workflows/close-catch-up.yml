@@ -3,7 +3,7 @@ name: "[복구 01] 누락된 종가 결과 보충"
 on:
   # Started by scheduler-keeper.yml (workflow_dispatch) at 09:30 KST or later,
   # after every earlier stage of the day has finished, only when a recent past
-  # trading day has a 0900/0820 file but no 1530.json. No schedule cron.
+  # trading day has a 0900/0835 (or legacy 0820) file but no 1530.json. No schedule cron.
   workflow_dispatch:
     inputs:
       run_date:

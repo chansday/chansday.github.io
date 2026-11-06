@@ -116,6 +116,11 @@ test("pre-open no-trade exclusions are distinguished from missing forecasts", as
     await writeFile("data/runs/2026-11-02/1530.json",JSON.stringify(saved));
     await writeFile("data/runs/2026-11-02/0820.json",JSON.stringify(forecast));
     let result = await run(); assert.equal(result.status,"ready"); assert.equal(result.forecastExcluded,1); assert.equal(result.compared,1);
+    await writeFile("data/runs/2026-11-02/0835.json",JSON.stringify(forecast));
+    forecast.rows[0].no_trade_evidence.volume = 1;
+    await writeFile("data/runs/2026-11-02/0820.json",JSON.stringify(forecast));
+    result = await run(); assert.equal(result.status,"ready"); assert.equal(result.forecastExcluded,1);
+    await rm("data/runs/2026-11-02/0835.json");
     forecast.rows[0].no_trade_evidence.volume = 1;
     await writeFile("data/runs/2026-11-02/0820.json",JSON.stringify(forecast));
     assert.equal((await run()).status,"partial");

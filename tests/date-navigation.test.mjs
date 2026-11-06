@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, readdir, stat } from "node:fs/promises";
+import { mkdtemp, mkdir, writeFile, readFile, rm, readdir, stat } from "node:fs/promises";
 import { join, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import test from "node:test";
@@ -52,6 +52,19 @@ test("date index generator lists only dates with the configured stage file", asy
   } finally {
     await rm(dirname(output), { recursive: true, force: true });
   }
+});
+
+test("date index selects 0835 over legacy 0820 and uses the legacy file when needed", async () => {
+  const root = await mkdtemp(join(tmpdir(), "kospi-stage-index-"));
+  try {
+    const dir = join(root, "data", "runs", "2026-11-02");
+    await mkdir(dir, { recursive: true });
+    await writeFile(join(dir, "0820.json"), "{}");
+    await writeFile(join(dir, "0835.json"), "{}");
+    assert.equal((await buildDateIndex({ root })).latestStages.provider["2026-11-02"], "0835");
+    await rm(join(dir, "0835.json"));
+    assert.equal((await buildDateIndex({ root })).latestStages.provider["2026-11-02"], "0820");
+  } finally { await rm(root, { recursive: true, force: true }); }
 });
 
 test("app exposes URL date routing, status messaging, and keyboard calendar hooks", async () => {

@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { rankedRecords, rankChanges } from '../providers/rank-change.js';
-import { buildPreopenRanking } from '../scripts/freeze-preopen-ranking.mjs';
+import { buildPreopenRanking, freezePreopenRanking } from '../scripts/freeze-preopen-ranking.mjs';
 import { buildPreview } from '../scripts/preview-ranking.mjs';
 
 const row=(symbol,pct)=>({symbol,name:symbol,expected_open:100,expected_close:100+pct});
@@ -21,6 +24,20 @@ test('preopen freezes only the genuine forecast before 09:00',()=>{
  snapshot.meta.lastAttemptAt='2026-11-04T00:00:00Z';assert.throws(()=>buildPreopenRanking(snapshot,'2026-11-04'));
  snapshot.meta.lastAttemptAt='2026-11-03T23:35:00Z';snapshot.meta.source.retrieved_at='2026-11-04T00:00:01Z';assert.throws(()=>buildPreopenRanking(snapshot,'2026-11-04'));
  snapshot.meta.source.retrieved_at='2026-11-03T23:35:10Z';snapshot.meta.retrospective_evaluation=true;assert.throws(()=>buildPreopenRanking(snapshot,'2026-11-04'));
+});
+test('preopen ranking uses 0835 first and supports a legacy 0820 forecast',async()=>{
+ const root=await mkdtemp(join(tmpdir(),'preopen-stage-')); const oldRoot=process.env.KOSPI_DATA_ROOT;
+ try {
+  process.env.KOSPI_DATA_ROOT=root;
+  const dir=join(root,'data','runs','2026-11-04'); await mkdir(dir,{recursive:true});
+  const snapshot={mode:'provider',asOfDate:'2026-11-04',meta:{run_date:'2026-11-04',run_stage:'forecast',lastAttemptAt:'2026-11-03T23:35:00Z',run_id:'123',source:{retrieved_at:'2026-11-03T23:35:10Z'}},pipeline:{forecast:{status:'ready'}},rows:[row('000001',1)]};
+  await writeFile(join(dir,'0820.json'),JSON.stringify(snapshot));
+  snapshot.rows=[row('000002',2)]; await writeFile(join(dir,'0835.json'),JSON.stringify(snapshot));
+  const now=()=>new Date('2026-11-03T23:40:00Z'); const output=join(root,'data','preopen-ranking','2026-11-04.json');
+  await freezePreopenRanking('2026-11-04',{now}); assert.equal(JSON.parse(await readFile(output,'utf8')).rows[0].symbol,'000002');
+  await rm(output); await rm(join(dir,'0835.json'));
+  await freezePreopenRanking('2026-11-04',{now}); assert.equal(JSON.parse(await readFile(output,'utf8')).rows[0].symbol,'000001');
+ } finally { if(oldRoot===undefined) delete process.env.KOSPI_DATA_ROOT; else process.env.KOSPI_DATA_ROOT=oldRoot; await rm(root,{recursive:true,force:true}); }
 });
 test('preview accepts validated evening and early morning history, with explicit recovery',async()=>{
  const make=(date,close)=>({date,rows:[{symbol:'000001',open:100,close,volume:100}]});

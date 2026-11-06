@@ -63,6 +63,20 @@ test("eligibility: only past KOSPI trading days within the previous five trading
   assert.match(catchUpEligibility("2026-10-21", T, calendar).reason, /older_than_5_trading_days/);
 });
 
+test("catch-up recognizes the new forecast filename and prefers it to the legacy file", async () => {
+  const root = await setup({ base: false });
+  try {
+    const dir = join(root, "data", "runs", D);
+    await writeFile(join(dir, "0820.json"), JSON.stringify(stage("forecast", [row(A, { expected_open: 100 })])));
+    await writeFile(join(dir, "0835.json"), JSON.stringify(stage("forecast", [row(A, { expected_open: 110 })])));
+    assert.deepEqual(await missingCloseSettlementDates({ today: T, calendar }), [D]);
+    assert.equal((await loadCatchUpBase(D)).label, "0835");
+    await rm(join(dir, "0820.json"));
+    assert.equal((await loadCatchUpBase(D)).snapshot.rows[0].expected_open, 110);
+    assert.deepEqual(await missingCloseSettlementDates({ today: T, calendar }), [D]);
+  } finally { await cleanup(root); }
+});
+
 test("builds a ready 1530 from cached candles, carries the recorded forecast bundle, evaluates and indexes without touching other files", async () => {
   const newerLatest = stage("forecast", [row(A)], T);
   const root = await setup({ latest: newerLatest });

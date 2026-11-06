@@ -19,7 +19,7 @@ import { collectionProgress, createProgressLog } from "../providers/progress-log
 // When the 15:30 close-settlement of a past trading day D did not produce
 // data/runs/D/1530.json, the polling quote route can no longer observe D's
 // close. This builds D's 1530.json from
-//   - D's own latest stage file (0900.json, else 0820.json): forecast rows and
+//   - D's own latest stage file (0900.json, else 0835.json or legacy 0820.json): forecast rows and
 //     the recorded FORECAST_BUNDLE, kept only when it was recorded on D
 //     (pre-open kinds before 09:00 KST), exactly like the normal settlement;
 //   - D's daily candle (open/close/volume) from the committed Naver daily cache
@@ -284,7 +284,7 @@ export async function catchUpDate({ runDate, today, calendar, now = () => new Da
   const stagePath = runFile(runDate, "1530");
   if (await readJson(stagePath)) return skip({ runDate, status: "not_needed", reason: "existing 1530.json is preserved", wrote: [] });
   const base = await loadCatchUpBase(runDate);
-  if (!base) return skip({ runDate, status: "no_data", reason: "no same-date 0900/0820 stage file; nothing to settle", wrote: [] });
+  if (!base) return skip({ runDate, status: "no_data", reason: "no same-date 0900/0835/0820 stage file; nothing to settle", wrote: [] });
   log(`기준 단계 파일 ${base.label}.json · ${base.snapshot.rows.length}행 · run ${base.snapshot.meta?.run_id ?? "-"}`);
   const symbols = base.snapshot.rows.map((row) => row.symbol).filter(Boolean);
   const cached = await loadCachedCandles({ runDate, today, calendar, now });
@@ -339,7 +339,7 @@ export async function catchUpDate({ runDate, today, calendar, now = () => new Da
 }
 
 // Dates to settle: the requested ones, else every recent trading day whose
-// 1530.json is missing while a same-date 0900/0820 file exists.
+// 1530.json is missing while a same-date 0900/0835/0820 file exists.
 export async function missingCloseSettlementDates({ today, calendar }) {
   const dates = [];
   for (const date of previousTradingDates(today, calendar)) {

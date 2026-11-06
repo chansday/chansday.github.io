@@ -10,5 +10,6 @@ test('date navigation shows preview until a real pre-open result exists',()=>{
  const index=normalizeDateIndex({previewDates:['2026-11-02'],availableDates:{provider:['2026-11-02']},latestStages:{provider:{'2026-11-02':'0800'}}});
  assert.equal(classifyDate('2026-11-02','provider',index,{}).status,'preview');
  index.latestStages.provider['2026-11-02']='0820';assert.equal(classifyDate('2026-11-02','provider',index,{}).status,'available');
+ index.latestStages.provider['2026-11-02']='0835';assert.equal(classifyDate('2026-11-02','provider',index,{}).status,'available');
  assert.equal(classifyDate('2026-11-02','fixture',index,{}).status,'not_collected');
 });
