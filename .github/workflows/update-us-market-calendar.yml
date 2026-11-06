@@ -27,6 +27,8 @@ jobs:
         shell: bash
         run: |
           printf '%s\n' 'KOSPI_REQUEST_AUDIT=1' "BASH_ENV=$GITHUB_WORKSPACE/scripts/audit-env.sh" >> "$GITHUB_ENV"
+      - name: Install PDF reader
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq poppler-utils
       - name: 미국 휴장일 확인
         env:
           US_CALENDAR_DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
